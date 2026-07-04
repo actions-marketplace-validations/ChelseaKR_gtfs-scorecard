@@ -123,8 +123,8 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "stop_too_far_from_shape",
@@ -212,7 +212,7 @@
         "met": true
       },
       {
-        "detail": "Service data runs out in 23 days; renew to qualify.",
+        "detail": "Service data runs out in 21 days; renew to qualify.",
         "key": "current",
         "met": false
       },
@@ -223,7 +223,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data runs out in 23 days; renew to qualify. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data runs out in 21 days; renew to qualify. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: http://sanjoaquinrtd.com/preview/terms-of-use/",
@@ -232,7 +232,14 @@
     "size_bytes": 1414857,
     "static_url": "http://sjrtd.com/RTD-GTFS/RTD-GTFS.zip"
   },
-  "generated_at": "2026-07-02T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-california-san-joaquin-regional-transit-district-rtd-gtfs-886.zip?alt=media",
+    "max_attempts": 1,
+    "origin_error": "HTTPError",
+    "source": "mirror",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -121.89784,
@@ -264,13 +271,13 @@
         "status": "ready"
       },
       {
-        "detail": "Service data runs out in 23 days; renew before you certify.",
+        "detail": "Service data runs out in 21 days; renew before you certify.",
         "key": "current",
         "status": "at_risk"
       }
     ],
     "status": "at_risk",
-    "summary": "This feed is close to NTD-ready. Service data runs out in 23 days; renew before you certify."
+    "summary": "This feed is close to NTD-ready. Service data runs out in 21 days; renew before you certify."
   },
   "overall": {
     "grade": "D",
@@ -291,11 +298,6 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 870,
     "findings": [],

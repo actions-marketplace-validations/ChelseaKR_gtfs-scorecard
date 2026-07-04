@@ -4,14 +4,14 @@
     {
       "date": "2026-07-04",
       "from_grade": "C",
-      "from_score": 72.7,
-      "id": "clovis-transit-2894",
-      "name": "Clovis Transit",
+      "from_score": 78.4,
+      "id": "valley-regional-transit",
+      "name": "Valley Regional Transit",
       "regressed": true,
-      "score_delta": -9.9,
-      "since": "2026-07-02",
-      "to_grade": "D",
-      "to_score": 62.8
+      "score_delta": -32.2,
+      "since": "2026-07-03",
+      "to_grade": "F",
+      "to_score": 46.2
     },
     {
       "date": "2026-07-04",
@@ -52,18 +52,6 @@
     {
       "date": "2026-07-04",
       "from_grade": "F",
-      "from_score": 59.3,
-      "id": "arcadia-transit-2243",
-      "name": "Arcadia Transit",
-      "regressed": true,
-      "score_delta": -2.2,
-      "since": "2026-07-02",
-      "to_grade": "F",
-      "to_score": 57.1
-    },
-    {
-      "date": "2026-07-04",
-      "from_grade": "F",
       "from_score": 55.0,
       "id": "bay-area-transportation-authority-2254",
       "name": "Bay Area Transportation Authority",
@@ -76,14 +64,14 @@
     {
       "date": "2026-07-04",
       "from_grade": "D",
-      "from_score": 67.5,
-      "id": "clackco-connects-clackamas-county-2740",
-      "name": "Static feed for realtime",
+      "from_score": 68.4,
+      "id": "rogue-valley-transportation-district-rvtd-3219",
+      "name": "Rogue Valley Transportation District (RVTD)",
       "regressed": true,
-      "score_delta": -1.8,
+      "score_delta": -1.9,
       "since": "2026-07-02",
       "to_grade": "D",
-      "to_score": 65.7
+      "to_score": 66.5
     },
     {
       "date": "2026-07-04",
@@ -267,18 +255,6 @@
     },
     {
       "date": "2026-07-04",
-      "from_grade": "D",
-      "from_score": 60.2,
-      "id": "williamsburg-area-transit-authority-2649",
-      "name": "Williamsburg Area Transit Authority",
-      "regressed": true,
-      "score_delta": -0.4,
-      "since": "2026-07-03",
-      "to_grade": "F",
-      "to_score": 59.8
-    },
-    {
-      "date": "2026-07-04",
       "from_grade": "C",
       "from_score": 71.7,
       "id": "boxcar",
@@ -332,14 +308,26 @@
       "id": "sandy-area-metro-sam-2739",
       "name": "Static feed for realtime",
       "regressed": false,
-      "score_delta": 1.1,
+      "score_delta": 2.8,
       "since": "2026-07-03",
       "to_grade": "D",
-      "to_score": 65.0
+      "to_score": 66.7
+    },
+    {
+      "date": "2026-07-04",
+      "from_grade": "C",
+      "from_score": 80.0,
+      "id": "metro-transit",
+      "name": "Metro Transit",
+      "regressed": false,
+      "score_delta": 1.8,
+      "since": "2026-07-02",
+      "to_grade": "B",
+      "to_score": 81.8
     }
   ],
-  "count": 28,
-  "generated_at": "2026-07-04T07:50:08+00:00",
+  "count": 27,
+  "generated_at": "2026-07-04T10:05:28+00:00",
   "license": "CC-BY-4.0",
   "schema_version": "1.4"
 }

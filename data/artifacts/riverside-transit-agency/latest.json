@@ -166,13 +166,13 @@
           "points": 6.0,
           "severity": "WARNING",
           "what": "Some route colors don't contrast with their text color.",
-          "why": "Route badges become unreadable, especially for riders with low vision."
+          "why": "Route badges get hard to read, most of all for riders with low vision."
         },
         {
           "code": "unused_shape",
           "count": 5,
           "effort": "One setting.",
-          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
@@ -187,7 +187,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -239,39 +239,18 @@
     },
     "realtime": {
       "details": {
-        "coverage_pct": 98.9,
-        "covered_trips": 90,
-        "drift": {
-          "median_seconds": 47,
-          "observations": 3562,
-          "on_time_share_pct": 73.4,
-          "p90_abs_seconds": 237
-        },
+        "coverage_pct": null,
         "kinds_reachable": 3,
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 91,
-        "vehicles_checked": 253,
-        "vehicles_on_route_pct": 100.0,
-        "worst_lag_seconds": 23
+        "scheduled_trips_in_window": 0,
+        "worst_lag_seconds": 11
       },
-      "findings": [
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 1,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 0.4,
-          "severity": "WARNING",
-          "what": "1 of 91 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
-        }
-      ],
+      "findings": [],
       "name": "realtime",
-      "score": 99.6,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 98.9% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 47s behind schedule.",
+      "summary": "Sampled 9 times outside service hours: 3 of 3 feeds healthy.",
       "weight": 0.2
     }
   },
@@ -284,7 +263,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 71 days.",
+        "detail": "Service data covers the next 70 days.",
         "key": "current",
         "met": true
       },
@@ -304,7 +283,13 @@
     "size_bytes": 5512402,
     "static_url": "http://www.riversidetransit.com/google_transit.zip"
   },
-  "generated_at": "2026-07-03T00:00:00+00:00",
+  "fetch": {
+    "final_url": "http://www.riversidetransit.com/google_transit.zip",
+    "max_attempts": 4,
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -117.91555,
@@ -336,7 +321,7 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 71 days.",
+        "detail": "Service data covers the next 70 days.",
         "key": "current",
         "status": "ready"
       }
@@ -346,9 +331,9 @@
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 3.8,
-    "margin_to_next_band": 6.2,
-    "score": 73.8
+    "margin_to_lower_band": 3.9,
+    "margin_to_next_band": 6.1,
+    "score": 73.9
   },
   "recommendations": [
     {
@@ -374,11 +359,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 2326,
     "findings": [

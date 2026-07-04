@@ -6,5 +6,5 @@ city-of-winona-mn-winona-transit-service,City of Winona MN - Winona Transit Serv
 the-otter-express,Flex v2 included,D,64.2,2026-07-04,expiring_soon,28,yes,Service data expires in 28 day(s),Re-export with a validity window that reaches at least 60 days out.
 brown-county-heartland-express,Flex v2 included,D,65.1,2026-07-04,expiring_soon,28,yes,Service data expires in 28 day(s),Re-export with a validity window that reaches at least 60 days out.
 brown-county-heartland-express-2296,Fixed route + flex,D,66.9,2026-07-04,expiring_soon,28,yes,Service data expires in 28 day(s),Re-export with a validity window that reaches at least 60 days out.
-metro-transit,Metro Transit,C,79.3,2026-07-04,current,41,yes,Service data expires in 41 day(s),"Add fare_attributes.txt (or Fares v2 files) with your fare structure. If your service is fare-free, ask to have it marked fare-free instead."
+metro-transit,Metro Transit,B,81.8,2026-07-04,current,48,yes,Service data expires in 48 day(s),"Add fare_attributes.txt (or Fares v2 files) with your fare structure. If your service is fare-free, ask to have it marked fare-free instead."
 central-community-transit,Central Community Transit,B,83.6,2026-07-04,current,181,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.

@@ -1,5 +1,5 @@
 {
-  "at_risk": 183,
+  "at_risk": 182,
   "by_state": {
     "Alabama": {
       "at_risk": 0,
@@ -75,8 +75,8 @@
     },
     "Idaho": {
       "at_risk": 0,
-      "not_ready": 2,
-      "ready": 2,
+      "not_ready": 3,
+      "ready": 1,
       "total": 4
     },
     "Illinois": {
@@ -284,9 +284,9 @@
       "total": 28
     },
     "Virginia": {
-      "at_risk": 29,
+      "at_risk": 28,
       "not_ready": 15,
-      "ready": 31,
+      "ready": 32,
       "total": 75
     },
     "Washington": {
@@ -308,7 +308,7 @@
       "total": 22
     }
   },
-  "not_ready": 638,
+  "not_ready": 639,
   "one_fix_from_ready": [
     {
       "fix": "Service data expired 916 days ago, so FTA would find the link out of date.",

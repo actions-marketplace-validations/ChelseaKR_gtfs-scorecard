@@ -154,11 +154,11 @@
   "most_declined": [
     {
       "date": "2026-07-04",
-      "grade": "D",
-      "id": "clovis-transit-2894",
-      "name": "Clovis Transit",
-      "score": 62.8,
-      "score_delta": -9.9
+      "grade": "F",
+      "id": "valley-regional-transit",
+      "name": "Valley Regional Transit",
+      "score": 46.2,
+      "score_delta": -32.2
     },
     {
       "date": "2026-07-04",
@@ -187,14 +187,6 @@
     {
       "date": "2026-07-04",
       "grade": "F",
-      "id": "arcadia-transit-2243",
-      "name": "Arcadia Transit",
-      "score": 57.1,
-      "score_delta": -2.2
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
       "id": "bay-area-transportation-authority-2254",
       "name": "Bay Area Transportation Authority",
       "score": 53.1,
@@ -203,10 +195,10 @@
     {
       "date": "2026-07-04",
       "grade": "D",
-      "id": "clackco-connects-clackamas-county-2740",
-      "name": "Static feed for realtime",
-      "score": 65.7,
-      "score_delta": -1.8
+      "id": "rogue-valley-transportation-district-rvtd-3219",
+      "name": "Rogue Valley Transportation District (RVTD)",
+      "score": 66.5,
+      "score_delta": -1.9
     },
     {
       "date": "2026-07-04",
@@ -263,8 +255,16 @@
       "grade": "D",
       "id": "sandy-area-metro-sam-2739",
       "name": "Static feed for realtime",
-      "score": 65.0,
-      "score_delta": 1.1
+      "score": 66.7,
+      "score_delta": 2.8
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "B",
+      "id": "metro-transit",
+      "name": "Metro Transit",
+      "score": 81.8,
+      "score_delta": 1.8
     }
   ],
   "top": [

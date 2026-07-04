@@ -57,7 +57,7 @@
           "pathway_count": 0
         },
         "stops": 14,
-        "trips": 1781,
+        "trips": 1557,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -77,13 +77,13 @@
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 1781,
+          "count": 1557,
           "effort": "Often one default setting in your export.",
           "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "1781 of 1781 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "1557 of 1557 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
@@ -121,14 +121,14 @@
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 0,
-          "WARNING": 1783
+          "WARNING": 1559
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "missing_bike_allowance",
-          "count": 1781,
+          "count": 1557,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'missing_bike_allowance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
@@ -163,15 +163,15 @@
       "name": "correctness",
       "score": 84.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 3 kinds of issue across 1783 instances (0 error, 1783 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 3 kinds of issue across 1559 instances (0 error, 1559 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
         "days_until_expiry": 545,
         "feed_end_date": "2027-12-31",
-        "feed_start_date": "2026-07-03",
-        "feed_version": "20260703",
+        "feed_start_date": "2026-07-04",
+        "feed_version": "20260704",
         "has_feed_info": true,
         "last_service_date": "2027-12-31",
         "seasonal_boundary": false,
@@ -191,7 +191,7 @@
         "rt_freshness": "fresh",
         "samples": 9,
         "scheduled_trips_in_window": 0,
-        "worst_lag_seconds": 4
+        "worst_lag_seconds": 12
       },
       "findings": [],
       "name": "realtime",
@@ -210,7 +210,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 546 days.",
+        "detail": "Service data covers the next 545 days.",
         "key": "current",
         "met": true
       },
@@ -226,11 +226,17 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "5b4b6f5543c4b6c6a92d8293ee07d88adff61d97b9cb7fe15ac13f3ba42a0ba7",
-    "size_bytes": 36803,
+    "sha256": "357f91b810b7b762390c3400ce3cd8805f8b44afbd01d981a3cb9cea4d4b12bd",
+    "size_bytes": 33069,
     "static_url": "https://nywaterway.connexionz.net/rtt/public/resource/gtfs.zip"
   },
-  "generated_at": "2026-07-03T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://nywaterway.connexionz.net/rtt/public/resource/gtfs.zip",
+    "max_attempts": 4,
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -74.27585,
@@ -262,7 +268,7 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 546 days.",
+        "detail": "Service data covers the next 545 days.",
         "key": "current",
         "status": "ready"
       }
@@ -300,17 +306,12 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 14,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 1781
+    "trips_total": 1557
   },
   "route_map": {
     "drawn_route_count": 13,
@@ -483,14 +484,14 @@
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 1781,
+      "count": 1557,
       "effort": "Often one default setting in your export.",
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "1781 of 1781 trips don't say whether the vehicle is wheelchair accessible.",
+      "what": "1557 of 1557 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
     },
     {

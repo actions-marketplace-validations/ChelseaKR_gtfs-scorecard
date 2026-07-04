@@ -5,23 +5,23 @@
         "code": "unused_shape",
         "sample_notices": [
           {
-            "csvRowNumber": 150312,
+            "csvRowNumber": 149812,
             "shapeId": "740420001"
           },
           {
-            "csvRowNumber": 150788,
+            "csvRowNumber": 150288,
             "shapeId": "740420002"
           },
           {
-            "csvRowNumber": 151216,
+            "csvRowNumber": 150716,
             "shapeId": "740425001"
           },
           {
-            "csvRowNumber": 151884,
+            "csvRowNumber": 151384,
             "shapeId": "740425002"
           },
           {
-            "csvRowNumber": 152475,
+            "csvRowNumber": 151975,
             "shapeId": "740436001"
           }
         ],
@@ -32,8 +32,8 @@
         "code": "equal_shape_distance_same_coordinates",
         "sample_notices": [
           {
-            "csvRowNumber": 172179,
-            "prevCsvRowNumber": 172178,
+            "csvRowNumber": 171679,
+            "prevCsvRowNumber": 171678,
             "prevShapeDistTraveled": 28184.078,
             "prevShapePtSequence": 280066,
             "shapeDistTraveled": 28184.078,
@@ -41,8 +41,8 @@
             "shapePtSequence": 280067
           },
           {
-            "csvRowNumber": 171398,
-            "prevCsvRowNumber": 171397,
+            "csvRowNumber": 170898,
+            "prevCsvRowNumber": 170897,
             "prevShapeDistTraveled": 28184.078,
             "prevShapePtSequence": 280066,
             "shapeDistTraveled": 28184.078,
@@ -50,8 +50,8 @@
             "shapePtSequence": 280067
           },
           {
-            "csvRowNumber": 315832,
-            "prevCsvRowNumber": 315831,
+            "csvRowNumber": 313854,
+            "prevCsvRowNumber": 313853,
             "prevShapeDistTraveled": 16661.93,
             "prevShapePtSequence": 130038,
             "shapeDistTraveled": 16661.93,
@@ -59,8 +59,8 @@
             "shapePtSequence": 140002
           },
           {
-            "csvRowNumber": 317223,
-            "prevCsvRowNumber": 317222,
+            "csvRowNumber": 315245,
+            "prevCsvRowNumber": 315244,
             "prevShapeDistTraveled": 19593.928,
             "prevShapePtSequence": 190038,
             "shapeDistTraveled": 19593.928,
@@ -68,8 +68,8 @@
             "shapePtSequence": 200002
           },
           {
-            "csvRowNumber": 316426,
-            "prevCsvRowNumber": 316425,
+            "csvRowNumber": 314448,
+            "prevCsvRowNumber": 314447,
             "prevShapeDistTraveled": 15933.835,
             "prevShapePtSequence": 120038,
             "shapeDistTraveled": 15933.835,
@@ -97,9 +97,9 @@
         "code": "trip_coverage_not_active_for_next7_days",
         "sample_notices": [
           {
-            "currentDate": "20260627",
-            "serviceWindowEndDate": "20260814",
-            "serviceWindowStartDate": "20260629"
+            "currentDate": "20260704",
+            "serviceWindowEndDate": "20260821",
+            "serviceWindowStartDate": "20260706"
           }
         ],
         "severity": "WARNING",
@@ -109,65 +109,65 @@
         "code": "unsorted_stop_times",
         "sample_notices": [
           {
-            "endCsvRowNumber": 1101286,
-            "startCsvRowNumber": 37649,
+            "endCsvRowNumber": 886202,
+            "startCsvRowNumber": 12141,
+            "tripId": "1242632"
+          },
+          {
+            "endCsvRowNumber": 892183,
+            "startCsvRowNumber": 15197,
+            "tripId": "1181155"
+          },
+          {
+            "endCsvRowNumber": 847437,
+            "startCsvRowNumber": 30051,
             "tripId": "476298"
           },
           {
-            "endCsvRowNumber": 792898,
-            "startCsvRowNumber": 542045,
-            "tripId": "1243968"
-          },
-          {
-            "endCsvRowNumber": 1086905,
-            "startCsvRowNumber": 1587,
+            "endCsvRowNumber": 891152,
+            "startCsvRowNumber": 1258,
             "tripId": "1241308"
           },
           {
-            "endCsvRowNumber": 1106439,
-            "startCsvRowNumber": 447,
-            "tripId": "1243960"
-          },
-          {
-            "endCsvRowNumber": 1114918,
-            "startCsvRowNumber": 6819,
-            "tripId": "1241306"
+            "endCsvRowNumber": 893161,
+            "startCsvRowNumber": 1166,
+            "tripId": "1181153"
           }
         ],
         "severity": "INFO",
-        "total": 24910
+        "total": 19964
       },
       {
         "code": "platform_without_parent_station",
         "sample_notices": [
           {
-            "csvRowNumber": 1144,
+            "csvRowNumber": 1147,
             "stopId": "5020",
             "stopName": "Maplewood Mall Transit Center & Gate A"
           },
           {
-            "csvRowNumber": 1464,
+            "csvRowNumber": 1467,
             "stopId": "6767",
             "stopName": "Co Rd 73 P&R & A Bay"
           },
           {
-            "csvRowNumber": 1471,
+            "csvRowNumber": 1474,
             "stopId": "6784",
             "stopName": "Wayzata Blvd P&R & Gate A"
           },
           {
-            "csvRowNumber": 1507,
+            "csvRowNumber": 1510,
             "stopId": "6990",
             "stopName": "Wayzata Blvd P&R & Gate B"
           },
           {
-            "csvRowNumber": 1515,
+            "csvRowNumber": 1518,
             "stopId": "7004",
             "stopName": "Co Rd 73 P&R & B Bay"
           }
         ],
         "severity": "INFO",
-        "total": 120
+        "total": 117
       },
       {
         "code": "unknown_column",
@@ -205,38 +205,26 @@
         "code": "big_gap_in_service",
         "sample_notices": [
           {
-            "gapDurationDays": 26,
-            "gapEndDate": "2026-07-27",
-            "gapStartDate": "2026-06-30",
-            "serviceId": "11"
-          },
-          {
-            "gapDurationDays": 33,
-            "gapEndDate": "2026-08-01",
-            "gapStartDate": "2026-06-28",
-            "serviceId": "12"
-          },
-          {
-            "gapDurationDays": 26,
-            "gapEndDate": "2026-07-27",
-            "gapStartDate": "2026-06-30",
-            "serviceId": "14"
-          },
-          {
-            "gapDurationDays": 34,
-            "gapEndDate": "2026-08-01",
-            "gapStartDate": "2026-06-27",
-            "serviceId": "16"
-          },
-          {
-            "gapDurationDays": 34,
-            "gapEndDate": "2026-08-02",
-            "gapStartDate": "2026-06-28",
+            "gapDurationDays": 20,
+            "gapEndDate": "2026-08-16",
+            "gapStartDate": "2026-07-26",
             "serviceId": "18"
+          },
+          {
+            "gapDurationDays": 20,
+            "gapEndDate": "2026-08-16",
+            "gapStartDate": "2026-07-26",
+            "serviceId": "19"
+          },
+          {
+            "gapDurationDays": 23,
+            "gapEndDate": "2026-08-17",
+            "gapStartDate": "2026-07-24",
+            "serviceId": "20"
           }
         ],
         "severity": "INFO",
-        "total": 6
+        "total": 3
       },
       {
         "code": "unknown_file",
@@ -254,6 +242,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "79b0cbca38e756a25ad442ec2b49735fb39a995df7d6046e67f59c5e76ee078f",
+  "sha256": "f88583a8a6566809d174477af30d348e4ae04c69524caba06eb6dcba59833a60",
   "validator_version": "8.0.1"
 }

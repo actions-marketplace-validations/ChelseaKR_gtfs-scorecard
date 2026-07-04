@@ -6,13 +6,13 @@
     "pct": 0.1
   },
   "fare_models": {
-    "legacy": 831,
-    "none": 535,
+    "legacy": 830,
+    "none": 536,
     "v2": 83
   },
   "fares": {
-    "count": 914,
-    "pct": 63.1
+    "count": 913,
+    "pct": 63.0
   },
   "fares_v2": {
     "count": 83,
@@ -126,7 +126,7 @@
       "state": "Virginia"
     }
   ],
-  "generated_at": "2026-07-04T12:12:57+00:00",
+  "generated_at": "2026-07-04T12:39:44+00:00",
   "license": "CC-BY-4.0",
   "pathways": {
     "count": 5,
@@ -482,7 +482,7 @@
     },
     {
       "agencies": 4,
-      "fares": 4,
+      "fares": 3,
       "fares_v2": 0,
       "flex": 0,
       "pathways": 0,

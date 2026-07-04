@@ -93,7 +93,7 @@
     "stale": 20,
     "total": 33
   },
-  "generated_at": "2026-07-04T12:12:36+00:00",
+  "generated_at": "2026-07-04T12:39:23+00:00",
   "grade_distribution": {
     "A": 6,
     "B": 2,
@@ -518,7 +518,7 @@
       "id": "broome-county-transit-b-c-transit-2079",
       "name": "Broome County Transit (B.C. Transit)",
       "needs_attention": true,
-      "score": 57.6,
+      "score": 57.5,
       "snapshot_date": "2026-07-04",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },

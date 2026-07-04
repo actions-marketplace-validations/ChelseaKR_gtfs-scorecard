@@ -1979,7 +1979,7 @@
       "id": "broome-county-transit-b-c-transit-2079",
       "name": "Broome County Transit (B.C. Transit)",
       "realtime": null,
-      "score": 57.6
+      "score": 57.5
     },
     {
       "completeness": 69.3,
@@ -16286,16 +16286,16 @@
       "score": 79.9
     },
     {
-      "completeness": 52.5,
-      "correctness": 37.2,
+      "completeness": 37.5,
+      "correctness": 83.5,
       "date": "2026-07-04",
-      "days_until_expiry": -278,
-      "freshness": 0.0,
-      "grade": "F",
+      "days_until_expiry": 340,
+      "freshness": 100.0,
+      "grade": "C",
       "id": "valley-regional-transit",
       "name": "Valley Regional Transit",
       "realtime": 100.0,
-      "score": 46.2
+      "score": 78.6
     },
     {
       "completeness": 45.0,
@@ -16331,7 +16331,7 @@
       "id": "valley-transit-wi-2069",
       "name": "Valley Transit (WI)",
       "realtime": null,
-      "score": 60.3
+      "score": 60.4
     },
     {
       "completeness": 60.0,

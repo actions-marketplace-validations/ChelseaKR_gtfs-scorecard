@@ -146,7 +146,7 @@
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 75,
-          "WARNING": 5739
+          "WARNING": 5735
         },
         "validator_version": "8.0.1"
       },
@@ -170,12 +170,12 @@
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "stop_without_stop_time",
-          "count": 49,
+          "count": 45,
           "effort": "A review pass in your scheduling software.",
           "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
           "owner": "Likely your export tool",
@@ -243,7 +243,7 @@
       "name": "correctness",
       "score": 59.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 8 kinds of issue across 5814 instances (0 error, 5739 warning, 75 informational).",
+      "summary": "The MobilityData validator flagged 8 kinds of issue across 5810 instances (0 error, 5735 warning, 75 informational).",
       "weight": 0.35
     },
     "freshness": {
@@ -251,7 +251,7 @@
         "days_until_expiry": 50,
         "feed_end_date": "2026-08-23",
         "feed_start_date": "2026-05-04",
-        "feed_version": "May 2026_20260701",
+        "feed_version": "May 2026_20260702",
         "has_feed_info": true,
         "last_service_date": "2026-08-23",
         "seasonal_boundary": false,
@@ -280,7 +280,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 52 days.",
+        "detail": "Service data covers the next 50 days.",
         "key": "current",
         "met": true
       },
@@ -296,11 +296,17 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "c404c03db29c74726144e9a5aa5f2d26c582ad81e86feb2f00c33271b8ac8ca5",
-    "size_bytes": 6362474,
+    "sha256": "3e39c0db9df0b117b448f7ceb4310b0291223cbfc8faa0c0b55e5381eb7759de",
+    "size_bytes": 6367618,
     "static_url": "https://www.viainfo.net/BusService/google_transit.zip"
   },
-  "generated_at": "2026-07-02T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.viainfo.net/BusService/google_transit.zip",
+    "max_attempts": 4,
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -98.73475,
@@ -333,7 +339,7 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 52 days.",
+        "detail": "Service data covers the next 50 days.",
         "key": "current",
         "status": "ready"
       }
@@ -371,27 +377,22 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 6097,
     "findings": [
       {
         "code": "scorecard_orphan_stops",
-        "count": 49,
+        "count": 45,
         "effort": "A cleanup pass in your scheduling software.",
         "fix": "Remove stops no route serves, or add the trips that should call at them.",
         "owner": "Likely your export tool",
         "points": 0.0,
         "severity": "INFO",
-        "what": "49 of 6097 boardable stops are never served by any trip.",
+        "what": "45 of 6097 boardable stops are never served by any trip.",
         "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
       }
     ],
-    "orphan_stops": 49,
+    "orphan_stops": 45,
     "single_stop_trips": 0,
     "trips_total": 14589
   },

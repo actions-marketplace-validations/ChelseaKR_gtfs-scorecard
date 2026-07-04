@@ -59,11 +59,16 @@ jobs:
           # Empty when ARTIFACTS_BUCKET is unset, which the cache treats as off.
           VALIDATOR_CACHE_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
           AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
+          # Pass workflow inputs through env, not inline ${{…}} in run:, so untrusted
+          # input can't be shell-injected into the runner (semgrep run-shell-injection).
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+          SAMPLE_SIZE: ${{ inputs.sample_size }}
+          SEED: ${{ inputs.seed }}
         run: |
           uv run --with boto3 scorecard canary \
-            --candidate-version "${{ inputs.candidate_version }}" \
-            --sample-size "${{ inputs.sample_size }}" \
-            --seed "${{ inputs.seed }}" \
+            --candidate-version "$CANDIDATE_VERSION" \
+            --sample-size "$SAMPLE_SIZE" \
+            --seed "$SEED" \
             --out "$GITHUB_WORKSPACE/canary-report"
       - name: Publish the report to the step summary
         run: cat canary-report/*.md >> "$GITHUB_STEP_SUMMARY"

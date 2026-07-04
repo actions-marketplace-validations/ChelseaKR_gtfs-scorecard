@@ -1,6 +1,6 @@
 {
   "agency_count": 135,
-  "average_score": 62.1,
+  "average_score": 62.0,
   "common_fixes": [
     {
       "agencies": 104,
@@ -8,7 +8,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     },
     {
-      "agencies": 71,
+      "agencies": 70,
       "code": "scorecard_wheelchair_accessible_unknown",
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
     },
@@ -43,7 +43,7 @@
       "fix": "Review the rule documentation for 'invalid_currency_amount' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
     },
     {
-      "agencies": 6,
+      "agencies": 7,
       "code": "scorecard_feed_expiring_soon",
       "fix": "Re-export with a validity window that reaches at least 60 days out."
     },
@@ -143,13 +143,13 @@
     "stale": 44,
     "total": 65
   },
-  "generated_at": "2026-07-04T12:39:23+00:00",
+  "generated_at": "2026-07-04T14:25:44+00:00",
   "grade_distribution": {
     "A": 6,
     "B": 34,
     "C": 16,
-    "D": 11,
-    "F": 68
+    "D": 10,
+    "F": 69
   },
   "members": [
     {
@@ -475,6 +475,18 @@
       "score": 45.1,
       "snapshot_date": "2026-07-04",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service window shortened unexpectedly on 2026-07-04",
+      "days_until_expiry": 19,
+      "expiry_status": "expiring_soon",
+      "grade": "F",
+      "id": "palos-verdes-peninsula-transit-authority-pvpta",
+      "name": "Palos Verdes Peninsula Transit Authority (PVPTA)",
+      "needs_attention": true,
+      "score": 45.2,
+      "snapshot_date": "2026-07-04",
+      "top_fix": "Re-export with a validity window that reaches at least 60 days out."
     },
     {
       "attention_reason": "Service data has expired",
@@ -1258,18 +1270,6 @@
     },
     {
       "attention_reason": null,
-      "days_until_expiry": 118,
-      "expiry_status": "current",
-      "grade": "D",
-      "id": "palos-verdes-peninsula-transit-authority-pvpta",
-      "name": "Palos Verdes Peninsula Transit Authority (PVPTA)",
-      "needs_attention": false,
-      "score": 67.8,
-      "snapshot_date": "2026-07-04",
-      "top_fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
-    },
-    {
-      "attention_reason": null,
       "days_until_expiry": 26843,
       "expiry_status": "current",
       "grade": "D",
@@ -1773,7 +1773,7 @@
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     }
   ],
-  "needs_attention": 88,
+  "needs_attention": 89,
   "rollup": {
     "id": "california",
     "name": "California agencies"

@@ -18,6 +18,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
@@ -53,7 +57,7 @@
           "pathway_count": 0
         },
         "stops": 14,
-        "trips": 145,
+        "trips": 143,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -73,13 +77,13 @@
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 145,
+          "count": 143,
           "effort": "Often one default setting in your export.",
           "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "145 of 145 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "143 of 143 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
@@ -116,7 +120,7 @@
         "distinct_codes": 4,
         "instances_by_severity": {
           "ERROR": 0,
-          "INFO": 44,
+          "INFO": 45,
           "WARNING": 1
         },
         "validator_version": "8.0.1"
@@ -157,7 +161,7 @@
         },
         {
           "code": "service_window_outside_feed_period",
-          "count": 2,
+          "count": 3,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
@@ -170,15 +174,15 @@
       "name": "correctness",
       "score": 94.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 4 kinds of issue across 45 instances (0 error, 1 warning, 44 informational).",
+      "summary": "The MobilityData validator flagged 4 kinds of issue across 46 instances (0 error, 1 warning, 45 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
         "days_until_expiry": 54,
         "feed_end_date": "2026-08-27",
-        "feed_start_date": "2026-06-29",
-        "feed_version": "UTC: 29-Jun-2026 20:01",
+        "feed_start_date": "2026-07-02",
+        "feed_version": "UTC: 02-Jul-2026 17:40",
         "has_feed_info": true,
         "last_service_date": "2026-08-27",
         "seasonal_boundary": false,
@@ -207,7 +211,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 59 days.",
+        "detail": "Service data covers the next 54 days.",
         "key": "current",
         "met": true
       },
@@ -223,11 +227,17 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "41017d9b0a08ce50455252d2e3537ead718a3fa9baefb6a746575bbd6230ce65",
-    "size_bytes": 35664,
+    "sha256": "d39919a7a828025200682281862d78bdfb922af69b84e073feebc3727f1f878e",
+    "size_bytes": 35536,
     "static_url": "https://data.trilliumtransit.com/gtfs/dartmouth-vt-us/dartmouth-vt-us.zip"
   },
-  "generated_at": "2026-06-29T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/dartmouth-vt-us/dartmouth-vt-us.zip",
+    "max_attempts": 4,
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -72.28963,
@@ -240,7 +250,7 @@
     "stop_count": 14
   },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
     "feed_agency_ids": [
       "4959"
     ],
@@ -259,13 +269,13 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 59 days.",
+        "detail": "Service data covers the next 54 days.",
         "key": "current",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
@@ -308,17 +318,44 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 14,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 145
+    "trips_total": 143
+  },
+  "route_map": {
+    "drawn_route_count": 2,
+    "has_shapes": true,
+    "path": "data/artifacts/dartmouth-college/geometry.geojson",
+    "route_count": 2,
+    "routes": [
+      {
+        "color": "0B7142",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76138",
+        "label": "1",
+        "long": "Summit on Juniper",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DB1013",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "76431",
+        "label": "2",
+        "long": "Sachem",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 14,
+    "stop_points_capped": false
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
@@ -338,14 +375,14 @@
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 145,
+      "count": 143,
       "effort": "Often one default setting in your export.",
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "145 of 145 trips don't say whether the vehicle is wheelchair accessible.",
+      "what": "143 of 143 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
     },
     {

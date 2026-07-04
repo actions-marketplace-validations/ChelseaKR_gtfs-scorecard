@@ -85,10 +85,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 12,
-            "tripId": "6112560"
+            "tripId": "t_6112560_b_85672_tn_0"
           },
           {
             "arrivalTime2": "20:34:00",
@@ -102,10 +102,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 13,
-            "tripId": "6116403"
+            "tripId": "t_6116403_b_85672_tn_0"
           },
           {
             "arrivalTime2": "13:34:00",
@@ -119,10 +119,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 11,
-            "tripId": "6112545"
+            "tripId": "t_6112545_b_85672_tn_0"
           },
           {
             "arrivalTime2": "20:24:00",
@@ -136,10 +136,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 8,
-            "tripId": "6112527"
+            "tripId": "t_6112527_b_85672_tn_0"
           },
           {
             "arrivalTime2": "15:34:00",
@@ -153,10 +153,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 10,
-            "tripId": "6116402"
+            "tripId": "t_6116402_b_85672_tn_0"
           }
         ],
         "severity": "WARNING",
@@ -177,10 +177,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 12,
-            "tripId": "6112560"
+            "tripId": "t_6112560_b_85672_tn_0"
           },
           {
             "arrivalTime2": "20:34:00",
@@ -194,10 +194,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 13,
-            "tripId": "6116403"
+            "tripId": "t_6116403_b_85672_tn_0"
           },
           {
             "arrivalTime2": "13:34:00",
@@ -211,10 +211,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 11,
-            "tripId": "6112545"
+            "tripId": "t_6112545_b_85672_tn_0"
           },
           {
             "arrivalTime2": "20:24:00",
@@ -228,10 +228,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 8,
-            "tripId": "6112527"
+            "tripId": "t_6112527_b_85672_tn_0"
           },
           {
             "arrivalTime2": "15:34:00",
@@ -245,10 +245,10 @@
             "stopId2": "11812",
             "stopName1": "Hwy 62 & Park Blvd",
             "stopName2": "29 Palms Transit Center (Adobe & Cactus)",
-            "stopSequence1": 6,
-            "stopSequence2": 7,
+            "stopSequence1": 7,
+            "stopSequence2": 8,
             "tripCsvRowNumber": 10,
-            "tripId": "6116402"
+            "tripId": "t_6116402_b_85672_tn_0"
           }
         ],
         "severity": "WARNING",
@@ -258,24 +258,24 @@
         "code": "unknown_column",
         "sample_notices": [
           {
-            "fieldName": "wkt",
-            "filename": "areas.txt",
-            "index": 2
-          },
-          {
             "fieldName": "tts_agency_name",
             "filename": "agency.txt",
             "index": 8
           },
           {
-            "fieldName": "service_name",
-            "filename": "calendar.txt",
+            "fieldName": "wkt",
+            "filename": "areas.txt",
             "index": 2
           },
           {
             "fieldName": "holiday_name",
             "filename": "calendar_dates.txt",
             "index": 3
+          },
+          {
+            "fieldName": "service_name",
+            "filename": "calendar.txt",
+            "index": 2
           },
           {
             "fieldName": "feed_license",
@@ -331,10 +331,10 @@
             "filename": "farezone_attributes.txt"
           },
           {
-            "filename": "runcut.txt"
+            "filename": "linked_datasets.txt"
           },
           {
-            "filename": "stop_attributes.txt"
+            "filename": "runcut.txt"
           }
         ],
         "severity": "INFO",
@@ -345,35 +345,35 @@
         "sample_notices": [
           {
             "daysAfterFeedEnd": 0,
-            "daysBeforeFeedStart": 159,
+            "daysBeforeFeedStart": 181,
             "serviceId": "c_71604_b_85672_d_16",
             "serviceWindowEndDate": "2027-01-01",
             "serviceWindowStartDate": "2026-01-02"
           },
           {
             "daysAfterFeedEnd": 0,
-            "daysBeforeFeedStart": 158,
+            "daysBeforeFeedStart": 180,
             "serviceId": "c_71604_b_85672_d_32",
             "serviceWindowEndDate": "2026-12-26",
             "serviceWindowStartDate": "2026-01-03"
           },
           {
             "daysAfterFeedEnd": 0,
-            "daysBeforeFeedStart": 160,
+            "daysBeforeFeedStart": 182,
             "serviceId": "c_71604_b_85672_d_31",
             "serviceWindowEndDate": "2026-12-31",
             "serviceWindowStartDate": "2026-01-01"
           },
           {
             "daysAfterFeedEnd": 0,
-            "daysBeforeFeedStart": 157,
+            "daysBeforeFeedStart": 179,
             "serviceId": "c_71604_b_85672_d_64",
             "serviceWindowEndDate": "2026-12-27",
             "serviceWindowStartDate": "2026-01-04"
           },
           {
             "daysAfterFeedEnd": 0,
-            "daysBeforeFeedStart": 158,
+            "daysBeforeFeedStart": 180,
             "serviceId": "c_71604_b_85672_d_96",
             "serviceWindowEndDate": "2026-12-27",
             "serviceWindowStartDate": "2026-01-03"
@@ -385,6 +385,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "b5418f54c2ccc58076d1136ba00a95e8faeb401f489853ee32c80a6398f94633",
+  "sha256": "b15caab0287184fa9290a178078749f83ded2a8cd9170438ac9477c4bf8c6ad9",
   "validator_version": "8.0.1"
 }

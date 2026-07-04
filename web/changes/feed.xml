@@ -22,15 +22,15 @@
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/via-mobility-2395/"/>
     <updated>2026-07-04T00:00:00Z</updated>
     <category term="grade_drop"/>
-    <summary>On 2026-07-04, Via Mobility's GTFS data quality went from 70.8 (C) to 66.7 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
+    <summary>On 2026-07-04, Via Mobility's GTFS data quality went from 70.8 (C) to 63.6 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>Towson Loop: grade improved D to C</title>
+    <title>Towson Loop: score fell 4.1 points</title>
     <id>tag:gtfsscorecard.org,2026:agency/towson-loop/2026-07-04</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/towson-loop/"/>
     <updated>2026-07-04T00:00:00Z</updated>
-    <category term="grade_rise"/>
-    <summary>On 2026-07-04, Towson Loop's GTFS data quality went from 66.8 (D) to 70.9 (C). A step in the right direction.</summary>
+    <category term="score_drop"/>
+    <summary>On 2026-07-04, Towson Loop's GTFS data quality went from 66.8 (D) to 62.7 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
     <title>Flex: grade dropped B to C</title>
@@ -41,12 +41,12 @@
     <summary>On 2026-07-04, Flex's GTFS data quality went from 80.2 (B) to 79.8 (C). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>Static feed for realtime: score rose 2.8 points</title>
+    <title>Static feed for realtime: score fell 1.4 points</title>
     <id>tag:gtfsscorecard.org,2026:agency/sandy-area-metro-sam-2739/2026-07-04</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/sandy-area-metro-sam-2739/"/>
     <updated>2026-07-04T00:00:00Z</updated>
-    <category term="score_rise"/>
-    <summary>On 2026-07-04, Static feed for realtime's GTFS data quality went from 63.9 (D) to 66.7 (D). A step in the right direction.</summary>
+    <category term="score_drop"/>
+    <summary>On 2026-07-04, Static feed for realtime's GTFS data quality went from 63.9 (D) to 62.5 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
     <title>Rogue Valley Transportation District (RVTD): score fell 1.9 points</title>
@@ -63,6 +63,22 @@
     <updated>2026-07-04T00:00:00Z</updated>
     <category term="score_drop"/>
     <summary>On 2026-07-04, Pasadena Transit's GTFS data quality went from 83.1 (B) to 80.2 (B). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Palos Verdes Peninsula Transit Authority (PVPTA): grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/palos-verdes-peninsula-transit-authority-pvpta/2026-07-04</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/palos-verdes-peninsula-transit-authority-pvpta/"/>
+    <updated>2026-07-04T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-04, Palos Verdes Peninsula Transit Authority (PVPTA)'s GTFS data quality went from 67.8 (D) to 45.2 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Palos Verdes Peninsula Transit Authority (PVPTA): grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/palos-verdes-peninsula-transit-authority-pvpta-35/2026-07-04</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/palos-verdes-peninsula-transit-authority-pvpta-35/"/>
+    <updated>2026-07-04T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-04, Palos Verdes Peninsula Transit Authority (PVPTA)'s GTFS data quality went from 67.8 (D) to 45.2 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
     <title>Oregon Express Shuttle: grade dropped B to C</title>

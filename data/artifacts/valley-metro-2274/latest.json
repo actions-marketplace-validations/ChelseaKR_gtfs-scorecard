@@ -6,7 +6,6 @@
   "autofix": {
     "available": true,
     "download_path": "data/artifacts/valley-metro-2274/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/valley-metro-2274/corrected.zip",
     "fixes": [
       {
         "code": "autofix_trim_whitespace",
@@ -260,7 +259,7 @@
           "points": 4.0,
           "severity": "WARNING",
           "what": "Some route colors don't contrast with their text color.",
-          "why": "Route badges become unreadable, especially for riders with low vision."
+          "why": "Route badges get hard to read, most of all for riders with low vision."
         },
         {
           "code": "stop_without_stop_time",
@@ -292,7 +291,7 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -392,7 +391,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 26845 days.",
+        "detail": "Service data covers the next 26843 days.",
         "key": "current",
         "met": true
       },
@@ -408,11 +407,17 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "5f0a1c73f9ed499f6fce922aa6d5e4f6b977165fc057f64075c528fda46fac8d",
+    "sha256": "4721df1fe204b2b9371bda67a3c07d73790d176b7eb2cbd8ac518c649dd29bee",
     "size_bytes": 371063,
     "static_url": "https://vmgoapp.com/gtfs"
   },
-  "generated_at": "2026-07-02T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://vmgoapp.com/gtfs",
+    "max_attempts": 4,
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -80.42503,
@@ -444,7 +449,7 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 26845 days.",
+        "detail": "Service data covers the next 26843 days.",
         "key": "current",
         "status": "ready"
       }
@@ -482,11 +487,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 815,
     "findings": [

@@ -175,18 +175,31 @@
     },
     "realtime": {
       "details": {
-        "coverage_pct": null,
+        "coverage_pct": 0.0,
+        "covered_trips": 0,
         "kinds_reachable": 3,
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 0,
-        "worst_lag_seconds": 3
+        "scheduled_trips_in_window": 6,
+        "worst_lag_seconds": 4
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 6,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "owner": "",
+          "points": 35.0,
+          "severity": "WARNING",
+          "what": "6 of 6 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        }
+      ],
       "name": "realtime",
-      "score": 100.0,
+      "score": 58.8,
       "status": "measured",
-      "summary": "Sampled 9 times outside service hours: 3 of 3 feeds healthy.",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 0.0% of scheduled trips had live predictions.",
       "weight": 0.2
     }
   },
@@ -215,7 +228,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "d9fffe3f29116b3456e771c68e8444dc86ea21618bafc6848d15e1d071bde8d8",
+    "sha256": "ffd3cba28f040b45ac012d774908044399940dc14f296f9620d3118f53cbd8e1",
     "size_bytes": 39755,
     "static_url": "https://passio3.com/towson/passioTransit/gtfs/google_transit.zip"
   },
@@ -266,10 +279,10 @@
     "summary": "This feed is close to NTD-ready. Service data runs out in 30 days; renew before you certify."
   },
   "overall": {
-    "grade": "C",
-    "margin_to_lower_band": 0.9,
-    "margin_to_next_band": 9.1,
-    "score": 70.9
+    "grade": "D",
+    "margin_to_lower_band": 2.7,
+    "margin_to_next_band": 7.3,
+    "score": 62.7
   },
   "recommendations": [
     {
@@ -339,13 +352,25 @@
   "snapshot_date": "2026-07-04",
   "top_fixes": [
     {
+      "code": "scorecard_rt_trip_coverage",
+      "count": 6,
+      "effort": "A vendor data-mapping question.",
+      "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+      "owner": "",
+      "points": 35.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "6 of 6 trips scheduled during the sampling window had no live predictions.",
+      "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+    },
+    {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 47,
       "effort": "A column in stops.txt; your scheduling software likely has it.",
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 1,
+      "rank": 2,
       "severity": "WARNING",
       "what": "47 of 47 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -357,22 +382,10 @@
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 2,
+      "rank": 3,
       "severity": "WARNING",
       "what": "369 of 369 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
-    },
-    {
-      "code": "scorecard_missing_headsigns",
-      "count": 369,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
-      "owner": "Likely your export tool",
-      "points": 15.0,
-      "rank": 3,
-      "severity": "WARNING",
-      "what": "369 of 369 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
     }
   ],
   "validator_version": "8.0.1"

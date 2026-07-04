@@ -155,6 +155,30 @@
     {
       "date": "2026-07-04",
       "grade": "F",
+      "id": "palos-verdes-peninsula-transit-authority-pvpta",
+      "name": "Palos Verdes Peninsula Transit Authority (PVPTA)",
+      "score": 45.2,
+      "score_delta": -22.6
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "palos-verdes-peninsula-transit-authority-pvpta-35",
+      "name": "Palos Verdes Peninsula Transit Authority (PVPTA)",
+      "score": 45.2,
+      "score_delta": -22.6
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "D",
+      "id": "via-mobility-2395",
+      "name": "Via Mobility",
+      "score": 63.6,
+      "score_delta": -7.2
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
       "id": "los-angeles-department-of-transportation-ladot-dash-commuter-express",
       "name": "LADOT (DASH and Commuter Express)",
       "score": 50.2,
@@ -171,9 +195,9 @@
     {
       "date": "2026-07-04",
       "grade": "D",
-      "id": "via-mobility-2395",
-      "name": "Via Mobility",
-      "score": 66.7,
+      "id": "towson-loop",
+      "name": "Towson Loop",
+      "score": 62.7,
       "score_delta": -4.1
     },
     {
@@ -215,6 +239,14 @@
       "name": "NYC Ferry",
       "score": 83.9,
       "score_delta": -1.4
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "D",
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "score": 62.5,
+      "score_delta": -1.4
     }
   ],
   "most_improved": [
@@ -225,14 +257,6 @@
       "name": "Boxcar Commuter Bus",
       "score": 81.1,
       "score_delta": 9.4
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "C",
-      "id": "towson-loop",
-      "name": "Towson Loop",
-      "score": 70.9,
-      "score_delta": 4.1
     },
     {
       "date": "2026-07-04",
@@ -249,14 +273,6 @@
       "name": "Broward County Transit",
       "score": 90.4,
       "score_delta": 3.5
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "D",
-      "id": "sandy-area-metro-sam-2739",
-      "name": "Static feed for realtime",
-      "score": 66.7,
-      "score_delta": 2.8
     },
     {
       "date": "2026-07-04",

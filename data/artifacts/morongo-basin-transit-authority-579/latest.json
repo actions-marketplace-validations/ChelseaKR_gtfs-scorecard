@@ -18,6 +18,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -141,8 +145,8 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "fast_travel_between_far_stops",
@@ -210,8 +214,8 @@
       "details": {
         "days_until_expiry": 181,
         "feed_end_date": "2027-01-01",
-        "feed_start_date": "2026-06-10",
-        "feed_version": "UTC: 10-Jun-2026 18:31",
+        "feed_start_date": "2026-07-02",
+        "feed_version": "UTC: 02-Jul-2026 17:34",
         "has_feed_info": true,
         "last_service_date": "2027-01-01",
         "seasonal_boundary": false,
@@ -240,7 +244,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 185 days.",
+        "detail": "Service data covers the next 181 days.",
         "key": "current",
         "met": true
       },
@@ -256,11 +260,17 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "b5418f54c2ccc58076d1136ba00a95e8faeb401f489853ee32c80a6398f94633",
-    "size_bytes": 324944,
+    "sha256": "b15caab0287184fa9290a178078749f83ded2a8cd9170438ac9477c4bf8c6ad9",
+    "size_bytes": 308384,
     "static_url": "http://data.trilliumtransit.com/gtfs/morongobasin-ca-us/morongobasin-ca-us.zip"
   },
-  "generated_at": "2026-06-30T00:00:00+00:00",
+  "fetch": {
+    "final_url": "http://data.trilliumtransit.com/gtfs/morongobasin-ca-us/morongobasin-ca-us.zip",
+    "max_attempts": 4,
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -116.58361,
@@ -273,7 +283,7 @@
     "stop_count": 218
   },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
     "feed_agency_ids": [
       "74"
     ],
@@ -292,13 +302,13 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 185 days.",
+        "detail": "Service data covers the next 181 days.",
         "key": "current",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
@@ -330,11 +340,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 218,
     "findings": [

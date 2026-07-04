@@ -553,14 +553,21 @@
       "kinds_total": 2,
       "ts": 1783174078,
       "worst_lag_seconds": 3
+    },
+    {
+      "coverage_pct": null,
+      "kinds_reachable": 1,
+      "kinds_total": 2,
+      "ts": 1783182194,
+      "worst_lag_seconds": 1
     }
   ],
   "summary": {
     "first_ts": 1782181953,
-    "last_ts": 1783174078,
+    "last_ts": 1783182194,
     "median_coverage_pct": null,
     "median_lag_seconds": 2,
-    "observations": 79,
+    "observations": 80,
     "uptime_pct": 100.0
   }
 }

@@ -6,6 +6,7 @@
   "autofix": {
     "available": true,
     "download_path": "data/artifacts/ku-on-wheels-lawrence-transit-system-2063/corrected.zip",
+    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/ku-on-wheels-lawrence-transit-system-2063/corrected.zip",
     "fixes": [
       {
         "code": "autofix_trim_whitespace",
@@ -270,7 +271,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "b948d1463294dca728eeb33c549e9d8ba9cade3ae6310c3370d24da225159a13",
+    "sha256": "3c6387c3178bb89a5758e792615721e9ed9b72242c560965c6c1f132a3b9b445",
     "size_bytes": 285004,
     "static_url": "https://passio3.com/lawrencetransit/passioTransit/gtfs/google_transit.zip"
   },

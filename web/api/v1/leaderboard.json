@@ -122,12 +122,6 @@
     },
     {
       "grade": "F",
-      "id": "mountain-line-1148",
-      "name": "Mountain Line",
-      "score": 19.5
-    },
-    {
-      "grade": "F",
       "id": "uta",
       "name": "UTA",
       "score": 19.6
@@ -148,10 +142,24 @@
       "grade": "F",
       "id": "norwalk-transit-district",
       "name": "Norwalk Transit District",
-      "score": 20.8
+      "score": 20.9
+    },
+    {
+      "grade": "F",
+      "id": "stagecoach-transportation-services-sts-449",
+      "name": "Stagecoach Transportation Services (STS)",
+      "score": 21.4
     }
   ],
   "most_declined": [
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "detroit-department-of-transportation-ddot",
+      "name": "Detroit Department of Transportation (DDOT)",
+      "score": 36.0,
+      "score_delta": -37.4
+    },
     {
       "date": "2026-07-04",
       "grade": "F",
@@ -218,11 +226,27 @@
     },
     {
       "date": "2026-07-04",
+      "grade": "A",
+      "id": "capital-district-transportation-authority-cdta",
+      "name": "Capital District Transportation Authority (CDTA)",
+      "score": 91.1,
+      "score_delta": -1.9
+    },
+    {
+      "date": "2026-07-04",
       "grade": "D",
       "id": "rogue-valley-transportation-district-rvtd-3219",
       "name": "Rogue Valley Transportation District (RVTD)",
       "score": 66.5,
       "score_delta": -1.9
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "B",
+      "id": "golden-empire-transit-district-get",
+      "name": "Golden Empire Transit District (GET)",
+      "score": 87.3,
+      "score_delta": -1.8
     },
     {
       "date": "2026-07-04",
@@ -255,8 +279,32 @@
       "grade": "B",
       "id": "boxcar",
       "name": "Boxcar Commuter Bus",
-      "score": 81.1,
-      "score_delta": 9.4
+      "score": 80.6,
+      "score_delta": 8.9
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "capital-area-transit-system-cats",
+      "name": "Capital Area Transit System (CATS)",
+      "score": 46.2,
+      "score_delta": 8.8
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "mountain-line-1148",
+      "name": "Mountain Line",
+      "score": 28.3,
+      "score_delta": 8.8
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "springfield-mass-transit-district-smtd",
+      "name": "Springfield Mass Transit District (SMTD)",
+      "score": 59.8,
+      "score_delta": 4.0
     },
     {
       "date": "2026-07-04",

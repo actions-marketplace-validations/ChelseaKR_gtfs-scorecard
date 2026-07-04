@@ -6,6 +6,7 @@
   "autofix": {
     "available": true,
     "download_path": "data/artifacts/roadrunner-transit-2075/corrected.zip",
+    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/roadrunner-transit-2075/corrected.zip",
     "fixes": [
       {
         "code": "autofix_stop_name_case",
@@ -252,7 +253,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "cebd466b77e12e83f7f086349d81be1c2357f3bc854e50e82c93b2a5827bb9c1",
+    "sha256": "d6db4c4c28ab1c1051e424c79a7a9ffac84fadb4ce68c394df6634dd88ac2b0a",
     "size_bytes": 127039,
     "static_url": "https://passio3.com/roadrunner/passioTransit/gtfs/google_transit.zip"
   },

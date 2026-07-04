@@ -1,6 +1,6 @@
 {
   "agency_count": 1449,
-  "average_score": 60.8,
+  "average_score": 60.9,
   "common_fixes": [
     {
       "agencies": 1189,
@@ -368,7 +368,7 @@
     "stale": 488,
     "total": 617
   },
-  "generated_at": "2026-07-04T21:37:14+00:00",
+  "generated_at": "2026-07-04T22:29:40+00:00",
   "grade_distribution": {
     "A": 52,
     "B": 243,
@@ -8454,18 +8454,6 @@
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
-      "attention_reason": "Service data expires in 30 day(s)",
-      "days_until_expiry": 30,
-      "expiry_status": "expiring_soon",
-      "grade": "D",
-      "id": "sandy-area-metro-sam-2739",
-      "name": "Static feed for realtime",
-      "needs_attention": true,
-      "score": 61.1,
-      "snapshot_date": "2026-07-04",
-      "top_fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs."
-    },
-    {
       "attention_reason": "Service data has expired",
       "days_until_expiry": -154,
       "expiry_status": "lapsed",
@@ -8730,6 +8718,18 @@
       "top_fix": "Review the rule documentation for 'invalid_phone_number' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
     },
     {
+      "attention_reason": "Service data expires in 30 day(s)",
+      "days_until_expiry": 30,
+      "expiry_status": "expiring_soon",
+      "grade": "D",
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "needs_attention": true,
+      "score": 62.5,
+      "snapshot_date": "2026-07-04",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
       "attention_reason": "Score fell 4.1 points since 2026-07-03",
       "days_until_expiry": 30,
       "expiry_status": "expiring_soon",
@@ -8917,7 +8917,7 @@
       "id": "via-mobility-2395",
       "name": "Via Mobility",
       "needs_attention": true,
-      "score": 64.2,
+      "score": 64.4,
       "snapshot_date": "2026-07-04",
       "top_fix": "Review the rule documentation for 'foreign_key_violation' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
     },
@@ -15079,18 +15079,6 @@
     },
     {
       "attention_reason": null,
-      "days_until_expiry": 545,
-      "expiry_status": "current",
-      "grade": "B",
-      "id": "pasadena-transit",
-      "name": "Pasadena Transit",
-      "needs_attention": false,
-      "score": 80.2,
-      "snapshot_date": "2026-07-04",
-      "top_fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request."
-    },
-    {
-      "attention_reason": null,
       "days_until_expiry": 332,
       "expiry_status": "current",
       "grade": "B",
@@ -15652,6 +15640,18 @@
       "score": 81.6,
       "snapshot_date": "2026-07-04",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 545,
+      "expiry_status": "current",
+      "grade": "B",
+      "id": "pasadena-transit",
+      "name": "Pasadena Transit",
+      "needs_attention": false,
+      "score": 81.7,
+      "snapshot_date": "2026-07-04",
+      "top_fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request."
     },
     {
       "attention_reason": null,

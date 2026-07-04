@@ -93,7 +93,7 @@
     "stale": 30,
     "total": 35
   },
-  "generated_at": "2026-07-04T21:37:14+00:00",
+  "generated_at": "2026-07-04T22:29:40+00:00",
   "grade_distribution": {
     "B": 26,
     "C": 20,
@@ -553,9 +553,9 @@
       "id": "sandy-area-metro-sam-2739",
       "name": "Static feed for realtime",
       "needs_attention": true,
-      "score": 61.1,
+      "score": 62.5,
       "snapshot_date": "2026-07-04",
-      "top_fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs."
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     },
     {
       "attention_reason": "Service data expires in 30 day(s)",

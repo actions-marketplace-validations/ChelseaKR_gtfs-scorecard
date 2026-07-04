@@ -173,8 +173,8 @@
       "grade": "D",
       "id": "via-mobility-2395",
       "name": "Via Mobility",
-      "score": 64.4,
-      "score_delta": -6.4
+      "score": 63.3,
+      "score_delta": -7.5
     },
     {
       "date": "2026-07-04",
@@ -191,6 +191,14 @@
       "name": "Frederick County TransIT",
       "score": 53.7,
       "score_delta": -4.3
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "score": 59.7,
+      "score_delta": -4.2
     },
     {
       "date": "2026-07-04",
@@ -254,14 +262,6 @@
       "id": "pasadena-transit",
       "name": "Pasadena Transit",
       "score": 81.7,
-      "score_delta": -1.4
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "D",
-      "id": "sandy-area-metro-sam-2739",
-      "name": "Static feed for realtime",
-      "score": 62.5,
       "score_delta": -1.4
     }
   ],

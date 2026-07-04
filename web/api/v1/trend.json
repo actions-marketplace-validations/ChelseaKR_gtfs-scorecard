@@ -1,6 +1,6 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
-  "generated_at": "2026-07-04T22:30:00+00:00",
+  "generated_at": "2026-07-04T23:32:56+00:00",
   "license": "CC-BY-4.0",
   "points": [
     {
@@ -57,15 +57,15 @@
     },
     {
       "agency_count": 1449,
-      "average_score": 60.9,
+      "average_score": 60.8,
       "date": "2026-07-04",
       "expired_pct": 42.6,
       "grade_distribution": {
         "A": 52,
         "B": 243,
         "C": 269,
-        "D": 171,
-        "F": 714
+        "D": 170,
+        "F": 715
       }
     }
   ],
@@ -75,11 +75,11 @@
       "date": "2026-06-30"
     },
     "last": {
-      "average_score": 60.9,
+      "average_score": 60.8,
       "date": "2026-07-04"
     },
     "points": 5,
-    "score_delta": -0.1
+    "score_delta": -0.2
   },
   "top_improvers": [
     {

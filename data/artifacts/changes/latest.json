@@ -32,10 +32,10 @@
       "id": "via-mobility-2395",
       "name": "Via Mobility",
       "regressed": true,
-      "score_delta": -6.4,
+      "score_delta": -7.5,
       "since": "2026-07-03",
       "to_grade": "D",
-      "to_score": 64.4
+      "to_score": 63.3
     },
     {
       "date": "2026-07-04",
@@ -60,6 +60,18 @@
       "since": "2026-07-02",
       "to_grade": "F",
       "to_score": 53.7
+    },
+    {
+      "date": "2026-07-04",
+      "from_grade": "D",
+      "from_score": 63.9,
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "regressed": true,
+      "score_delta": -4.2,
+      "since": "2026-07-03",
+      "to_grade": "F",
+      "to_score": 59.7
     },
     {
       "date": "2026-07-04",
@@ -156,18 +168,6 @@
       "since": "2026-07-02",
       "to_grade": "B",
       "to_score": 81.7
-    },
-    {
-      "date": "2026-07-04",
-      "from_grade": "D",
-      "from_score": 63.9,
-      "id": "sandy-area-metro-sam-2739",
-      "name": "Static feed for realtime",
-      "regressed": true,
-      "score_delta": -1.4,
-      "since": "2026-07-03",
-      "to_grade": "D",
-      "to_score": 62.5
     },
     {
       "date": "2026-07-04",
@@ -411,7 +411,7 @@
     }
   ],
   "count": 34,
-  "generated_at": "2026-07-04T22:29:56+00:00",
+  "generated_at": "2026-07-04T23:32:52+00:00",
   "license": "CC-BY-4.0",
   "schema_version": "1.4"
 }

@@ -258,7 +258,7 @@
         "rt_freshness": "fresh",
         "samples": 6,
         "scheduled_trips_in_window": 6,
-        "worst_lag_seconds": 4
+        "worst_lag_seconds": 0
       },
       "findings": [
         {
@@ -316,7 +316,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "050c41a2d5a504cfe3da86a57d5bbae3358838523376b8b1fd51cf5e7b0a5922",
+    "sha256": "c103d07b70e6d1a75e17be9186add29710630ef4689cb6dd3b2500e75b0654c9",
     "size_bytes": 373196,
     "static_url": "https://passio3.com/frederick/passioTransit/gtfs/google_transit.zip"
   },

@@ -1,6 +1,6 @@
 agency_id,agency_name,grade,score,checked,expiry_status,days_until_expiry,needs_attention,attention_reason,top_fix
-uta,UTA,F,19.6,2026-07-03,stale,-811,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-elevated-transit,Elevated Transit,F,47.5,2026-07-03,stale,-3319,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-uta-2349,UTA,F,51.1,2026-07-03,current,43,yes,Service data expires in 43 day(s),Re-generate shape distances in your export; flag to your vendor if it persists.
-utah-transit-authority-uta,Utah Transit Authority (UTA),F,51.1,2026-07-03,current,43,yes,Service data expires in 43 day(s),Re-generate shape distances in your export; flag to your vendor if it persists.
-suntran-utah,SunTran Utah,F,58.6,2026-07-03,current,1672,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+uta,UTA,F,19.6,2026-07-04,stale,-812,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+elevated-transit,Elevated Transit,F,47.5,2026-07-04,stale,-3320,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+uta-2349,UTA,F,50.7,2026-07-04,current,42,yes,Service data expires in 42 day(s),Re-generate shape distances in your export; flag to your vendor if it persists.
+utah-transit-authority-uta,Utah Transit Authority (UTA),F,50.7,2026-07-04,current,42,yes,Service data expires in 42 day(s),Re-generate shape distances in your export; flag to your vendor if it persists.
+suntran-utah,SunTran Utah,F,58.6,2026-07-04,current,1671,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.

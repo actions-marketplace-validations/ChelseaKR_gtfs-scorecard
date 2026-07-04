@@ -165,6 +165,29 @@
         "total": 1
       },
       {
+        "code": "trip_coverage_not_active_for_next7_days",
+        "sample_notices": [
+          {
+            "currentDate": "20260704",
+            "serviceWindowEndDate": "20260803",
+            "serviceWindowStartDate": "20260706"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "future_calendar",
+        "sample_notices": [
+          {
+            "currentDate": "2026-07-04",
+            "minServiceStartDate": "2026-07-05"
+          }
+        ],
+        "severity": "INFO",
+        "total": 1
+      },
+      {
         "code": "unknown_column",
         "sample_notices": [
           {
@@ -179,6 +202,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "02239c4c77845e966fa5fe9456f2366e7f5c889643099fb7247b58d0a12a81a3",
+  "sha256": "1807e5a507f6e28f993d99bcc714b061d3bc2a21320cdcead24666092d37edec",
   "validator_version": "8.0.1"
 }

@@ -1,4 +1,4 @@
 agency_id,agency_name,grade,score,checked,expiry_status,days_until_expiry,needs_attention,attention_reason,top_fix
-concord-area-transit,Flex,F,41.1,2026-07-03,lapsed,-2,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-advance-transit-at,Advance Transit (AT),F,42.3,2026-07-03,stale,-1199,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-dartmouth-college,Dartmouth College,C,78.1,2026-07-03,current,55,yes,Service window shortened unexpectedly on 2026-06-24,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+concord-area-transit,Flex,F,41.1,2026-07-04,lapsed,-3,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+advance-transit-at,Advance Transit (AT),F,42.3,2026-07-04,stale,-1200,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+dartmouth-college,Dartmouth College,C,77.7,2026-07-04,current,54,yes,Service window shortened unexpectedly on 2026-06-24,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.

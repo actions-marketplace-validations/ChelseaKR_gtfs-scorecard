@@ -1,0 +1,16 @@
+{
+  "receipts": [
+    {
+      "cleared": "2026-06-21",
+      "code": "scorecard_rt_stale",
+      "last_seen": "2026-06-20",
+      "what": "Realtime data was up to 128 seconds old when sampled."
+    },
+    {
+      "cleared": "2026-06-25",
+      "code": "scorecard_rt_stale",
+      "last_seen": "2026-06-24",
+      "what": "Realtime data was up to 121 seconds old when sampled."
+    }
+  ]
+}

@@ -18,7 +18,7 @@
     "stale": 0,
     "total": 1
   },
-  "generated_at": "2026-07-03T15:51:50+00:00",
+  "generated_at": "2026-07-04T07:49:51+00:00",
   "grade_distribution": {
     "D": 1,
     "F": 2
@@ -26,38 +26,38 @@
   "members": [
     {
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -134,
+      "days_until_expiry": -135,
       "expiry_status": "lapsed",
       "grade": "F",
       "id": "capital-area-transit-system-cats",
       "name": "Capital Area Transit System (CATS)",
       "needs_attention": true,
       "score": 37.4,
-      "snapshot_date": "2026-07-03",
+      "snapshot_date": "2026-07-04",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
       "attention_reason": null,
-      "days_until_expiry": 26844,
+      "days_until_expiry": 26843,
       "expiry_status": "current",
       "grade": "F",
       "id": "shreveport-and-bossier-city",
       "name": "Shreveport and Bossier City",
       "needs_attention": false,
       "score": 34.7,
-      "snapshot_date": "2026-07-03",
+      "snapshot_date": "2026-07-04",
       "top_fix": "Re-generate shape distances in your export; flag to your vendor if it persists."
     },
     {
       "attention_reason": null,
-      "days_until_expiry": 181,
+      "days_until_expiry": 180,
       "expiry_status": "current",
       "grade": "D",
       "id": "capital-area-transit-system-cats-2065",
       "name": "Capital Area Transit System (CATS)",
       "needs_attention": false,
       "score": 64.7,
-      "snapshot_date": "2026-07-03",
+      "snapshot_date": "2026-07-04",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     }
   ],

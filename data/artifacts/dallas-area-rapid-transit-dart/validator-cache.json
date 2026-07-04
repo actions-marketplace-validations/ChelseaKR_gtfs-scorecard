@@ -47,8 +47,8 @@
         "code": "decreasing_or_equal_stop_time_distance",
         "sample_notices": [
           {
-            "csvRowNumber": 885179,
-            "prevCsvRowNumber": 885178,
+            "csvRowNumber": 885305,
+            "prevCsvRowNumber": 885304,
             "prevShapeDistTraveled": 5.2807,
             "prevStopSequence": 2,
             "shapeDistTraveled": 5.2807,
@@ -57,8 +57,8 @@
             "tripId": "9014050"
           },
           {
-            "csvRowNumber": 885180,
-            "prevCsvRowNumber": 885179,
+            "csvRowNumber": 885306,
+            "prevCsvRowNumber": 885305,
             "prevShapeDistTraveled": 5.2807,
             "prevStopSequence": 3,
             "shapeDistTraveled": 5.2807,
@@ -67,8 +67,8 @@
             "tripId": "9014050"
           },
           {
-            "csvRowNumber": 885181,
-            "prevCsvRowNumber": 885180,
+            "csvRowNumber": 885307,
+            "prevCsvRowNumber": 885306,
             "prevShapeDistTraveled": 5.2807,
             "prevStopSequence": 4,
             "shapeDistTraveled": 5.2807,
@@ -77,8 +77,8 @@
             "tripId": "9014050"
           },
           {
-            "csvRowNumber": 885143,
-            "prevCsvRowNumber": 885142,
+            "csvRowNumber": 885269,
+            "prevCsvRowNumber": 885268,
             "prevShapeDistTraveled": 5.2807,
             "prevStopSequence": 2,
             "shapeDistTraveled": 5.2807,
@@ -87,8 +87,8 @@
             "tripId": "9014044"
           },
           {
-            "csvRowNumber": 885144,
-            "prevCsvRowNumber": 885143,
+            "csvRowNumber": 885270,
+            "prevCsvRowNumber": 885269,
             "prevShapeDistTraveled": 5.2807,
             "prevStopSequence": 3,
             "shapeDistTraveled": 5.2807,
@@ -135,7 +135,7 @@
           }
         ],
         "severity": "WARNING",
-        "total": 29193
+        "total": 29289
       },
       {
         "code": "stop_too_far_from_shape_using_user_distance",
@@ -149,7 +149,7 @@
             "shapeId": "148089",
             "stopId": "19927",
             "stopName": "BROADWAY @ KAREN - N - NS",
-            "stopTimeCsvRowNumber": 632071,
+            "stopTimeCsvRowNumber": 632196,
             "tripCsvRowNumber": 4433,
             "tripId": "9019359"
           },
@@ -162,7 +162,7 @@
             "shapeId": "148089",
             "stopId": "19928",
             "stopName": "BROADWAY @ TACOMA - N - FS",
-            "stopTimeCsvRowNumber": 632072,
+            "stopTimeCsvRowNumber": 632197,
             "tripCsvRowNumber": 4433,
             "tripId": "9019359"
           },
@@ -175,7 +175,7 @@
             "shapeId": "148089",
             "stopId": "27340",
             "stopName": "BROADWAY @ PALO ALTO - N - NS",
-            "stopTimeCsvRowNumber": 632073,
+            "stopTimeCsvRowNumber": 632198,
             "tripCsvRowNumber": 4433,
             "tripId": "9019359"
           },
@@ -188,7 +188,7 @@
             "shapeId": "148089",
             "stopId": "19929",
             "stopName": "BROADWAY @ OATES - N - NS",
-            "stopTimeCsvRowNumber": 632075,
+            "stopTimeCsvRowNumber": 632200,
             "tripCsvRowNumber": 4433,
             "tripId": "9019359"
           },
@@ -201,13 +201,13 @@
             "shapeId": "148089",
             "stopId": "19930",
             "stopName": "BROADWAY @ GATEWOOD - N - NS",
-            "stopTimeCsvRowNumber": 632076,
+            "stopTimeCsvRowNumber": 632201,
             "tripCsvRowNumber": 4433,
             "tripId": "9019359"
           }
         ],
         "severity": "WARNING",
-        "total": 444
+        "total": 445
       },
       {
         "code": "same_name_and_description_for_stop",
@@ -246,8 +246,8 @@
         "sample_notices": [
           {
             "arrivalTime2": "20:33:28",
-            "csvRowNumber1": 889274,
-            "csvRowNumber2": 889275,
+            "csvRowNumber1": 889400,
+            "csvRowNumber2": 889401,
             "departureTime1": "20:33:00",
             "distanceKm": 0.26091997239749953,
             "routeId": "27224",
@@ -263,8 +263,8 @@
           },
           {
             "arrivalTime2": "20:33:38",
-            "csvRowNumber1": 889275,
-            "csvRowNumber2": 889276,
+            "csvRowNumber1": 889401,
+            "csvRowNumber2": 889402,
             "departureTime1": "20:33:28",
             "distanceKm": 0.09388768918363408,
             "routeId": "27224",
@@ -280,8 +280,8 @@
           },
           {
             "arrivalTime2": "20:34:00",
-            "csvRowNumber1": 889276,
-            "csvRowNumber2": 889277,
+            "csvRowNumber1": 889402,
+            "csvRowNumber2": 889403,
             "departureTime1": "20:33:38",
             "distanceKm": 0.19474881872302985,
             "routeId": "27224",
@@ -297,8 +297,8 @@
           },
           {
             "arrivalTime2": "18:02:01",
-            "csvRowNumber1": 824454,
-            "csvRowNumber2": 824455,
+            "csvRowNumber1": 824580,
+            "csvRowNumber2": 824581,
             "departureTime1": "18:02:00",
             "distanceKm": 0.44405752393936515,
             "routeId": "27207",
@@ -314,8 +314,8 @@
           },
           {
             "arrivalTime2": "18:02:09",
-            "csvRowNumber1": 824455,
-            "csvRowNumber2": 824456,
+            "csvRowNumber1": 824581,
+            "csvRowNumber2": 824582,
             "departureTime1": "18:02:01",
             "distanceKm": 0.5098380701773703,
             "routeId": "27207",
@@ -387,7 +387,7 @@
             "shapeId": "148168",
             "stopId": "29214",
             "stopName": "PALISADES BLDG",
-            "stopTimeCsvRowNumber": 884029,
+            "stopTimeCsvRowNumber": 884155,
             "tripCsvRowNumber": 6054,
             "tripId": "9013819"
           },
@@ -400,7 +400,7 @@
             "shapeId": "148169",
             "stopId": "29214",
             "stopName": "PALISADES BLDG",
-            "stopTimeCsvRowNumber": 884104,
+            "stopTimeCsvRowNumber": 884230,
             "tripCsvRowNumber": 6075,
             "tripId": "9013840"
           },
@@ -413,7 +413,7 @@
             "shapeId": "148175",
             "stopId": "33329",
             "stopName": "BAYLOR STATION",
-            "stopTimeCsvRowNumber": 884574,
+            "stopTimeCsvRowNumber": 884700,
             "tripCsvRowNumber": 6177,
             "tripId": "9013942"
           },
@@ -426,7 +426,7 @@
             "shapeId": "148175",
             "stopId": "33549",
             "stopName": "SAMMONS CANCER CENTER",
-            "stopTimeCsvRowNumber": 884575,
+            "stopTimeCsvRowNumber": 884701,
             "tripCsvRowNumber": 6177,
             "tripId": "9013942"
           },
@@ -439,7 +439,7 @@
             "shapeId": "148176",
             "stopId": "33554",
             "stopName": "ROBERTS HOSPITAL",
-            "stopTimeCsvRowNumber": 884614,
+            "stopTimeCsvRowNumber": 884740,
             "tripCsvRowNumber": 6198,
             "tripId": "9013963"
           }
@@ -489,9 +489,9 @@
         "sample_notices": [
           {
             "csvRowNumber": 2,
-            "currentDate": "20260621",
+            "currentDate": "20260704",
             "feedEndDate": "20260719",
-            "suggestedExpirationDate": "20260721"
+            "suggestedExpirationDate": "20260803"
           }
         ],
         "severity": "WARNING",
@@ -527,8 +527,8 @@
             "stopId2": "34308",
             "stopName1": "IRVING CONVENTION CENTER STATION",
             "stopName2": "PROMENADE @ PROMENADE - N - NS",
-            "stopTimeCsvRowNumber1": 657237,
-            "stopTimeCsvRowNumber2": 657236,
+            "stopTimeCsvRowNumber1": 657362,
+            "stopTimeCsvRowNumber2": 657361,
             "tripCsvRowNumber": 4520,
             "tripId": "9004961"
           }
@@ -573,6 +573,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "46763ba650f462957ff6dc3a4ef163a9bc0122d25891db128fb1aa5e25eb63ef",
+  "sha256": "5b932a78249816272882d0054dfc747cc8ced72013353751fca203a4a4acab40",
   "validator_version": "8.0.1"
 }

@@ -153,33 +153,81 @@
   ],
   "most_declined": [
     {
-      "date": "2026-07-03",
+      "date": "2026-07-04",
+      "grade": "D",
+      "id": "clovis-transit-2894",
+      "name": "Clovis Transit",
+      "score": 62.8,
+      "score_delta": -9.9
+    },
+    {
+      "date": "2026-07-04",
       "grade": "F",
+      "id": "los-angeles-department-of-transportation-ladot-dash-commuter-express",
+      "name": "LADOT (DASH and Commuter Express)",
+      "score": 50.2,
+      "score_delta": -5.3
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "frederick-county-transit-2432",
+      "name": "Frederick County TransIT",
+      "score": 53.7,
+      "score_delta": -4.3
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "D",
+      "id": "via-mobility-2395",
+      "name": "Via Mobility",
+      "score": 66.7,
+      "score_delta": -4.1
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "arcadia-transit-2243",
+      "name": "Arcadia Transit",
+      "score": 57.1,
+      "score_delta": -2.2
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "F",
+      "id": "bay-area-transportation-authority-2254",
+      "name": "Bay Area Transportation Authority",
+      "score": 53.1,
+      "score_delta": -1.9
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "D",
       "id": "clackco-connects-clackamas-county-2740",
       "name": "Static feed for realtime",
-      "score": 59.2,
-      "score_delta": -8.3
+      "score": 65.7,
+      "score_delta": -1.8
     },
     {
-      "date": "2026-07-03",
-      "grade": "B",
-      "id": "san-francisco-bay-area-water-emergency-transportation-authority-weta-3143",
-      "name": "San Francisco Bay Area Water Emergency Transportation Authority (WETA)",
-      "score": 88.6,
-      "score_delta": -1.7
-    },
-    {
-      "date": "2026-07-03",
+      "date": "2026-07-04",
       "grade": "C",
       "id": "ny-waterway-3192",
       "name": "NY Waterway",
       "score": 78.8,
       "score_delta": -1.4
+    },
+    {
+      "date": "2026-07-04",
+      "grade": "B",
+      "id": "nyc-ferry",
+      "name": "NYC Ferry",
+      "score": 83.9,
+      "score_delta": -1.4
     }
   ],
   "most_improved": [
     {
-      "date": "2026-07-03",
+      "date": "2026-07-04",
       "grade": "B",
       "id": "boxcar",
       "name": "Boxcar Commuter Bus",
@@ -187,23 +235,23 @@
       "score_delta": 9.4
     },
     {
-      "date": "2026-07-03",
-      "grade": "D",
-      "id": "southeastern-pennsylvania-transportation-authority-septa",
-      "name": "Bus",
-      "score": 63.2,
-      "score_delta": 6.6
-    },
-    {
-      "date": "2026-07-03",
+      "date": "2026-07-04",
       "grade": "C",
-      "id": "southeastern-pennsylvania-transportation-authority-septa-503",
-      "name": "Rail",
-      "score": 76.0,
-      "score_delta": 4.3
+      "id": "towson-loop",
+      "name": "Towson Loop",
+      "score": 70.9,
+      "score_delta": 4.1
     },
     {
-      "date": "2026-07-03",
+      "date": "2026-07-04",
+      "grade": "D",
+      "id": "washington-park-shuttle",
+      "name": "Washington Park Shuttle",
+      "score": 60.5,
+      "score_delta": 3.6
+    },
+    {
+      "date": "2026-07-04",
       "grade": "A",
       "id": "broward-county-transit",
       "name": "Broward County Transit",
@@ -211,28 +259,12 @@
       "score_delta": 3.5
     },
     {
-      "date": "2026-07-03",
-      "grade": "D",
-      "id": "spirit-bus-2202",
-      "name": "Spirit Bus",
-      "score": 66.7,
-      "score_delta": 2.3
-    },
-    {
-      "date": "2026-07-03",
-      "grade": "F",
-      "id": "bay-area-transportation-authority-2254",
-      "name": "Bay Area Transportation Authority",
-      "score": 56.8,
-      "score_delta": 1.8
-    },
-    {
-      "date": "2026-07-03",
+      "date": "2026-07-04",
       "grade": "D",
       "id": "sandy-area-metro-sam-2739",
       "name": "Static feed for realtime",
-      "score": 63.9,
-      "score_delta": 1.0
+      "score": 65.0,
+      "score_delta": 1.1
     }
   ],
   "top": [
@@ -360,7 +392,7 @@
       "grade": "A",
       "id": "patco-speedline",
       "name": "PATCO Speedline",
-      "score": 96.1
+      "score": 95.7
     },
     {
       "grade": "A",

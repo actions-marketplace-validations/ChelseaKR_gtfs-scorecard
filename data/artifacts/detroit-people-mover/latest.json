@@ -18,10 +18,6 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
-        "cemv": {
-          "declared": false,
-          "supported": false
-        },
         "components": {
           "contact": 0.0,
           "fares": 0.0,
@@ -275,7 +271,7 @@
     "size_bytes": 4820,
     "static_url": "https://www.detroitmi.gov/Portals/0/docs/deptoftransportation/pdfs/PeopleMoverGTFS.zip"
   },
-  "generated_at": "2026-07-02T00:00:00+00:00",
+  "generated_at": "2026-07-01T00:00:00+00:00",
   "ntd_id_alignment": {
     "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
     "feed_agency_ids": [],
@@ -324,7 +320,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-02",
+  "snapshot_date": "2026-07-01",
   "top_fixes": [
     {
       "code": "scorecard_no_expiry_date",

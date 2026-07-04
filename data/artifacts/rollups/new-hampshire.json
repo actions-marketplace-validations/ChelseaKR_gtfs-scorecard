@@ -1,6 +1,6 @@
 {
   "agency_count": 3,
-  "average_score": 53.8,
+  "average_score": 53.7,
   "common_fixes": [
     {
       "agencies": 3,
@@ -23,7 +23,7 @@
     "stale": 1,
     "total": 2
   },
-  "generated_at": "2026-07-03T15:51:50+00:00",
+  "generated_at": "2026-07-04T07:49:51+00:00",
   "grade_distribution": {
     "C": 1,
     "F": 2
@@ -31,38 +31,38 @@
   "members": [
     {
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -2,
+      "days_until_expiry": -3,
       "expiry_status": "lapsed",
       "grade": "F",
       "id": "concord-area-transit",
       "name": "Flex",
       "needs_attention": true,
       "score": 41.1,
-      "snapshot_date": "2026-07-03",
+      "snapshot_date": "2026-07-04",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -1199,
+      "days_until_expiry": -1200,
       "expiry_status": "stale",
       "grade": "F",
       "id": "advance-transit-at",
       "name": "Advance Transit (AT)",
       "needs_attention": true,
       "score": 42.3,
-      "snapshot_date": "2026-07-03",
+      "snapshot_date": "2026-07-04",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
       "attention_reason": "Service window shortened unexpectedly on 2026-06-24",
-      "days_until_expiry": 55,
+      "days_until_expiry": 54,
       "expiry_status": "current",
       "grade": "C",
       "id": "dartmouth-college",
       "name": "Dartmouth College",
       "needs_attention": true,
-      "score": 78.1,
-      "snapshot_date": "2026-07-03",
+      "score": 77.7,
+      "snapshot_date": "2026-07-04",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     }
   ],

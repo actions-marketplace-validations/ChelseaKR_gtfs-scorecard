@@ -2,6 +2,21 @@
   "report": {
     "notices": [
       {
+        "code": "foreign_key_violation",
+        "sample_notices": [
+          {
+            "childFieldName": "trip_id",
+            "childFilename": "frequencies.txt",
+            "csvRowNumber": 2,
+            "fieldValue": "1139960",
+            "parentFieldName": "trip_id",
+            "parentFilename": "trips.txt"
+          }
+        ],
+        "severity": "ERROR",
+        "total": 1
+      },
+      {
         "code": "stop_without_stop_time",
         "sample_notices": [
           {
@@ -75,36 +90,36 @@
         "code": "service_window_outside_feed_period",
         "sample_notices": [
           {
-            "daysAfterFeedEnd": 516,
-            "daysBeforeFeedStart": 546,
+            "daysAfterFeedEnd": 515,
+            "daysBeforeFeedStart": 547,
             "serviceId": "58369.155459",
             "serviceWindowEndDate": "2027-12-31",
             "serviceWindowStartDate": "2025-01-02"
           },
           {
-            "daysAfterFeedEnd": 516,
-            "daysBeforeFeedStart": 547,
+            "daysAfterFeedEnd": 515,
+            "daysBeforeFeedStart": 548,
             "serviceId": "48732.126242",
             "serviceWindowEndDate": "2027-12-31",
             "serviceWindowStartDate": "2025-01-01"
           },
           {
-            "daysAfterFeedEnd": 516,
-            "daysBeforeFeedStart": 546,
+            "daysAfterFeedEnd": 515,
+            "daysBeforeFeedStart": 547,
             "serviceId": "66637.183319",
             "serviceWindowEndDate": "2027-12-31",
             "serviceWindowStartDate": "2025-01-02"
           },
           {
-            "daysAfterFeedEnd": 515,
-            "daysBeforeFeedStart": 547,
+            "daysAfterFeedEnd": 514,
+            "daysBeforeFeedStart": 548,
             "serviceId": "50794.131155",
             "serviceWindowEndDate": "2027-12-30",
             "serviceWindowStartDate": "2025-01-01"
           },
           {
-            "daysAfterFeedEnd": 36,
-            "daysBeforeFeedStart": 40,
+            "daysAfterFeedEnd": 35,
+            "daysBeforeFeedStart": 41,
             "serviceId": "72925.214429",
             "serviceWindowEndDate": "2026-09-07",
             "serviceWindowStartDate": "2026-05-23"
@@ -141,6 +156,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "049fccda33354dbc6591ce02b9cea907b5b0da11700338e813ec035bc9610e0f",
+  "sha256": "30acfea2cd92c81ca3837fe9231400bf43aa6c5ccc8d5900abd78027f48447a4",
   "validator_version": "8.0.1"
 }

@@ -1,475 +1,592 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
   "distinct_problems": 117,
-  "generated_at": "2026-07-03T15:52:09+00:00",
+  "generated_at": "2026-07-04T07:50:12+00:00",
   "license": "CC-BY-4.0",
   "prevalence_by_code": {
     "bidirectional_exit_gate": {
       "agencies": 1,
+      "instances": 1,
       "prevalence_pct": 0.1
     },
     "big_gap_in_service": {
       "agencies": 158,
+      "instances": 879,
       "prevalence_pct": 10.9
     },
     "block_trips_with_overlapping_stop_times": {
       "agencies": 13,
+      "instances": 45657,
       "prevalence_pct": 0.9
     },
     "decreasing_or_equal_stop_time_distance": {
       "agencies": 35,
+      "instances": 8415,
       "prevalence_pct": 2.4
     },
     "duplicate_key": {
-      "agencies": 15,
-      "prevalence_pct": 1.0
+      "agencies": 16,
+      "instances": 96,
+      "prevalence_pct": 1.1
     },
     "duplicate_route_name": {
       "agencies": 11,
+      "instances": 294,
       "prevalence_pct": 0.8
     },
     "empty_file": {
       "agencies": 1,
+      "instances": 1,
       "prevalence_pct": 0.1
     },
     "equal_shape_distance_diff_coordinates": {
       "agencies": 24,
+      "instances": 103878,
       "prevalence_pct": 1.7
     },
     "equal_shape_distance_diff_coordinates_distance_below_threshold": {
       "agencies": 84,
+      "instances": 73367,
       "prevalence_pct": 5.8
     },
     "equal_shape_distance_same_coordinates": {
       "agencies": 134,
+      "instances": 303496,
       "prevalence_pct": 9.2
     },
     "expired_calendar": {
       "agencies": 760,
+      "instances": 6284,
       "prevalence_pct": 52.4
     },
     "fare_transfer_rule_with_forbidden_transfer_count": {
       "agencies": 4,
+      "instances": 58,
       "prevalence_pct": 0.3
     },
     "fare_transfer_rule_without_transfer_count": {
       "agencies": 8,
+      "instances": 124,
       "prevalence_pct": 0.6
     },
     "fast_travel_between_consecutive_stops": {
       "agencies": 234,
+      "instances": 171342,
       "prevalence_pct": 16.1
     },
     "fast_travel_between_far_stops": {
       "agencies": 68,
+      "instances": 1284,
       "prevalence_pct": 4.7
     },
     "feed_expiration_date30_days": {
-      "agencies": 19,
-      "prevalence_pct": 1.3
+      "agencies": 23,
+      "instances": 23,
+      "prevalence_pct": 1.6
     },
     "feed_expiration_date7_days": {
       "agencies": 508,
+      "instances": 508,
       "prevalence_pct": 35.1
     },
     "feed_valid_beyond_total_service_window": {
       "agencies": 61,
+      "instances": 61,
       "prevalence_pct": 4.2
     },
     "foreign_key_violation": {
-      "agencies": 16,
-      "prevalence_pct": 1.1
+      "agencies": 17,
+      "instances": 1646,
+      "prevalence_pct": 1.2
     },
     "future_calendar": {
-      "agencies": 25,
-      "prevalence_pct": 1.7
+      "agencies": 26,
+      "instances": 26,
+      "prevalence_pct": 1.8
     },
     "future_feed": {
       "agencies": 26,
+      "instances": 26,
       "prevalence_pct": 1.8
     },
     "inconsistent_route_type_for_block_id": {
       "agencies": 3,
+      "instances": 8,
       "prevalence_pct": 0.2
     },
     "invalid_currency_amount": {
       "agencies": 20,
+      "instances": 263,
       "prevalence_pct": 1.4
     },
     "invalid_date": {
       "agencies": 2,
+      "instances": 7,
       "prevalence_pct": 0.1
     },
     "invalid_email": {
       "agencies": 2,
+      "instances": 2,
       "prevalence_pct": 0.1
     },
     "invalid_geometry": {
       "agencies": 2,
+      "instances": 11,
       "prevalence_pct": 0.1
     },
     "invalid_input_files_in_subfolder": {
       "agencies": 10,
+      "instances": 10,
       "prevalence_pct": 0.7
     },
     "invalid_phone_number": {
       "agencies": 15,
+      "instances": 17,
       "prevalence_pct": 1.0
     },
     "invalid_pickup_drop_off_window": {
       "agencies": 4,
+      "instances": 68,
       "prevalence_pct": 0.3
     },
     "invalid_row_length": {
       "agencies": 1,
+      "instances": 1,
       "prevalence_pct": 0.1
     },
     "invalid_url": {
       "agencies": 5,
+      "instances": 8,
       "prevalence_pct": 0.3
     },
     "leading_or_trailing_whitespaces": {
       "agencies": 79,
+      "instances": 176049,
       "prevalence_pct": 5.5
     },
     "location_with_unexpected_stop_time": {
       "agencies": 1,
+      "instances": 1,
       "prevalence_pct": 0.1
     },
     "missing_bike_allowance": {
       "agencies": 48,
+      "instances": 101667,
       "prevalence_pct": 3.3
     },
     "missing_calendar_and_calendar_date_files": {
       "agencies": 16,
+      "instances": 16,
       "prevalence_pct": 1.1
     },
     "missing_feed_contact_email_and_url": {
       "agencies": 256,
+      "instances": 259,
       "prevalence_pct": 17.7
     },
     "missing_feed_info_date": {
       "agencies": 16,
+      "instances": 16,
       "prevalence_pct": 1.1
     },
     "missing_pickup_drop_off_booking_rule_id": {
       "agencies": 2,
+      "instances": 2102,
       "prevalence_pct": 0.1
     },
     "missing_pickup_or_drop_off_window": {
       "agencies": 1,
+      "instances": 17,
       "prevalence_pct": 0.1
     },
     "missing_prior_notice_last_time": {
       "agencies": 1,
+      "instances": 1,
       "prevalence_pct": 0.1
     },
     "missing_recommended_field": {
       "agencies": 236,
+      "instances": 5229,
       "prevalence_pct": 16.3
     },
     "missing_recommended_file": {
       "agencies": 153,
+      "instances": 153,
       "prevalence_pct": 10.6
     },
     "missing_required_agency_id": {
       "agencies": 2,
+      "instances": 6,
       "prevalence_pct": 0.1
     },
     "missing_required_column": {
       "agencies": 202,
+      "instances": 376,
       "prevalence_pct": 13.9
     },
     "missing_required_field": {
       "agencies": 15,
+      "instances": 212,
       "prevalence_pct": 1.0
     },
     "missing_required_file": {
       "agencies": 16,
+      "instances": 80,
       "prevalence_pct": 1.1
     },
     "missing_timepoint_value": {
       "agencies": 55,
+      "instances": 7821148,
       "prevalence_pct": 3.8
     },
     "missing_trip_edge": {
       "agencies": 3,
+      "instances": 247,
       "prevalence_pct": 0.2
     },
     "mixed_case_recommended_field": {
       "agencies": 443,
+      "instances": 763035,
       "prevalence_pct": 30.6
     },
     "more_than_one_entity": {
       "agencies": 1,
+      "instances": 1,
       "prevalence_pct": 0.1
     },
     "new_line_in_value": {
       "agencies": 1,
+      "instances": 29,
       "prevalence_pct": 0.1
     },
     "non_ascii_or_non_printable_char": {
       "agencies": 2,
+      "instances": 143,
       "prevalence_pct": 0.1
     },
     "number_out_of_range": {
       "agencies": 3,
+      "instances": 7,
       "prevalence_pct": 0.2
     },
     "pathway_dangling_generic_node": {
       "agencies": 1,
+      "instances": 4,
       "prevalence_pct": 0.1
     },
     "pathway_unreachable_location": {
       "agencies": 1,
+      "instances": 6,
       "prevalence_pct": 0.1
     },
     "platform_without_parent_station": {
       "agencies": 22,
+      "instances": 342,
       "prevalence_pct": 1.5
     },
     "point_near_origin": {
       "agencies": 1,
+      "instances": 1154,
       "prevalence_pct": 0.1
     },
     "route_color_contrast": {
       "agencies": 104,
+      "instances": 373,
       "prevalence_pct": 7.2
     },
     "route_long_name_contains_short_name": {
       "agencies": 116,
+      "instances": 1019,
       "prevalence_pct": 8.0
     },
     "route_short_name_too_long": {
       "agencies": 73,
+      "instances": 644,
       "prevalence_pct": 5.0
     },
     "same_name_and_description_for_route": {
       "agencies": 37,
+      "instances": 438,
       "prevalence_pct": 2.6
     },
     "same_name_and_description_for_stop": {
       "agencies": 27,
+      "instances": 1082,
       "prevalence_pct": 1.9
     },
     "same_route_and_agency_url": {
       "agencies": 49,
+      "instances": 365,
       "prevalence_pct": 3.4
     },
     "same_stop_and_agency_url": {
       "agencies": 10,
+      "instances": 428,
       "prevalence_pct": 0.7
     },
     "same_stop_and_route_url": {
       "agencies": 12,
+      "instances": 1047,
       "prevalence_pct": 0.8
     },
     "scorecard_bad_agency_url": {
       "agencies": 20,
+      "instances": 20,
       "prevalence_pct": 1.4
     },
     "scorecard_fares_published_not_applied": {
       "agencies": 3,
+      "instances": 47,
       "prevalence_pct": 0.2
     },
     "scorecard_feed_expired": {
       "agencies": 617,
+      "instances": 617,
       "prevalence_pct": 42.6
     },
     "scorecard_feed_expiring_soon": {
-      "agencies": 102,
-      "prevalence_pct": 7.0
+      "agencies": 111,
+      "instances": 111,
+      "prevalence_pct": 7.7
     },
     "scorecard_flex_no_booking_rules": {
       "agencies": 531,
+      "instances": 531,
       "prevalence_pct": 36.6
     },
     "scorecard_flex_service": {
       "agencies": 89,
+      "instances": 89,
       "prevalence_pct": 6.1
     },
     "scorecard_missing_feed_info_dates": {
       "agencies": 183,
+      "instances": 183,
       "prevalence_pct": 12.6
     },
     "scorecard_missing_headsigns": {
-      "agencies": 720,
-      "prevalence_pct": 49.7
+      "agencies": 721,
+      "instances": 419213,
+      "prevalence_pct": 49.8
     },
     "scorecard_no_expiry_date": {
       "agencies": 21,
+      "instances": 21,
       "prevalence_pct": 1.4
     },
     "scorecard_no_fare_data": {
       "agencies": 536,
+      "instances": 536,
       "prevalence_pct": 37.0
     },
     "scorecard_no_feed_contact": {
       "agencies": 415,
+      "instances": 415,
       "prevalence_pct": 28.6
     },
     "scorecard_rt_feed_lapsed": {
       "agencies": 2,
+      "instances": 2,
       "prevalence_pct": 0.1
     },
     "scorecard_rt_no_timestamp": {
       "agencies": 16,
+      "instances": 16,
       "prevalence_pct": 1.1
     },
     "scorecard_rt_predictions_implausible": {
-      "agencies": 7,
-      "prevalence_pct": 0.5
+      "agencies": 4,
+      "instances": 3047,
+      "prevalence_pct": 0.3
     },
     "scorecard_rt_service_alerts_unreachable": {
       "agencies": 32,
+      "instances": 32,
       "prevalence_pct": 2.2
     },
     "scorecard_rt_stale": {
       "agencies": 1,
+      "instances": 1,
       "prevalence_pct": 0.1
     },
     "scorecard_rt_trip_coverage": {
-      "agencies": 56,
-      "prevalence_pct": 3.9
+      "agencies": 51,
+      "instances": 1664,
+      "prevalence_pct": 3.5
     },
     "scorecard_rt_trip_updates_unreachable": {
       "agencies": 44,
+      "instances": 44,
       "prevalence_pct": 3.0
     },
     "scorecard_rt_vehicle_positions_unreachable": {
       "agencies": 43,
+      "instances": 43,
       "prevalence_pct": 3.0
     },
     "scorecard_rt_vehicles_off_route": {
       "agencies": 7,
+      "instances": 373,
       "prevalence_pct": 0.5
     },
     "scorecard_station_no_pathways": {
       "agencies": 143,
+      "instances": 143,
       "prevalence_pct": 9.9
     },
     "scorecard_station_pathways": {
       "agencies": 5,
+      "instances": 13262,
       "prevalence_pct": 0.3
     },
     "scorecard_stop_names_all_caps": {
       "agencies": 131,
+      "instances": 176079,
       "prevalence_pct": 9.0
     },
     "scorecard_wheelchair_accessible_unknown": {
       "agencies": 1239,
+      "instances": 2149950,
       "prevalence_pct": 85.5
     },
     "scorecard_wheelchair_boarding_unknown": {
       "agencies": 1356,
+      "instances": 645325,
       "prevalence_pct": 93.6
     },
     "service_extends_far_in_the_future": {
       "agencies": 53,
+      "instances": 526,
       "prevalence_pct": 3.7
     },
     "service_has_no_active_day_of_the_week": {
       "agencies": 53,
+      "instances": 845,
       "prevalence_pct": 3.7
     },
     "service_window_outside_feed_period": {
-      "agencies": 722,
-      "prevalence_pct": 49.8
+      "agencies": 723,
+      "instances": 3064,
+      "prevalence_pct": 49.9
     },
     "single_shape_point": {
       "agencies": 8,
+      "instances": 162,
       "prevalence_pct": 0.6
     },
     "start_and_end_range_out_of_order": {
       "agencies": 7,
+      "instances": 21,
       "prevalence_pct": 0.5
     },
     "stop_has_too_many_matches_for_shape": {
       "agencies": 8,
+      "instances": 259,
       "prevalence_pct": 0.6
     },
     "stop_time_timepoint_without_times": {
       "agencies": 24,
+      "instances": 23070,
       "prevalence_pct": 1.7
     },
     "stop_time_with_arrival_before_previous_departure_time": {
       "agencies": 5,
+      "instances": 93,
       "prevalence_pct": 0.3
     },
     "stop_time_with_only_arrival_or_departure_time": {
       "agencies": 1,
+      "instances": 245,
       "prevalence_pct": 0.1
     },
     "stop_too_far_from_shape": {
       "agencies": 136,
+      "instances": 2626,
       "prevalence_pct": 9.4
     },
     "stop_too_far_from_shape_using_user_distance": {
       "agencies": 173,
+      "instances": 66732,
       "prevalence_pct": 11.9
     },
     "stop_without_stop_time": {
       "agencies": 696,
+      "instances": 36944,
       "prevalence_pct": 48.0
     },
     "stop_without_zone_id": {
       "agencies": 19,
+      "instances": 141,
       "prevalence_pct": 1.3
     },
     "stops_match_shape_out_of_order": {
       "agencies": 100,
+      "instances": 452,
       "prevalence_pct": 6.9
     },
     "trip_coverage_not_active_for_next7_days": {
-      "agencies": 639,
-      "prevalence_pct": 44.1
+      "agencies": 642,
+      "instances": 642,
+      "prevalence_pct": 44.3
     },
     "trip_distance_exceeds_shape_distance": {
       "agencies": 41,
+      "instances": 7920,
       "prevalence_pct": 2.8
     },
     "trip_distance_exceeds_shape_distance_below_threshold": {
       "agencies": 128,
+      "instances": 39972,
       "prevalence_pct": 8.8
     },
     "trip_headsign_matches_intermediate_stop": {
       "agencies": 81,
+      "instances": 5816,
       "prevalence_pct": 5.6
     },
     "trip_with_shape_dist_traveled_but_no_shape_distances": {
       "agencies": 11,
+      "instances": 98071,
       "prevalence_pct": 0.8
     },
     "unexpected_enum_value": {
       "agencies": 8,
+      "instances": 265,
       "prevalence_pct": 0.6
     },
     "unknown_column": {
       "agencies": 898,
+      "instances": 22922,
       "prevalence_pct": 62.0
     },
     "unknown_file": {
       "agencies": 802,
+      "instances": 5721,
       "prevalence_pct": 55.3
     },
     "unsorted_stop_times": {
       "agencies": 38,
+      "instances": 175963,
       "prevalence_pct": 2.6
     },
     "unusable_trip": {
       "agencies": 28,
+      "instances": 457,
       "prevalence_pct": 1.9
     },
     "unused_shape": {
       "agencies": 85,
+      "instances": 1888,
       "prevalence_pct": 5.9
     },
     "unused_station": {
       "agencies": 12,
+      "instances": 80,
       "prevalence_pct": 0.8
     },
     "unused_trip": {
       "agencies": 9,
+      "instances": 45,
       "prevalence_pct": 0.6
     }
   },
@@ -479,7 +596,7 @@
       "code": "scorecard_wheelchair_boarding_unknown",
       "effort": "A column in stops.txt; your scheduling software likely has it.",
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
-      "instances": 645320,
+      "instances": 645325,
       "prevalence_pct": 93.6,
       "severity": "WARNING",
       "source": "scorecard",
@@ -491,7 +608,7 @@
       "code": "scorecard_wheelchair_accessible_unknown",
       "effort": "Often one default setting in your export.",
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
-      "instances": 2150663,
+      "instances": 2149950,
       "prevalence_pct": 85.5,
       "severity": "WARNING",
       "source": "scorecard",
@@ -527,7 +644,7 @@
       "code": "expired_calendar",
       "effort": "One setting in most export tools.",
       "fix": "Remove past service periods the next time you export the feed.",
-      "instances": 6276,
+      "instances": 6284,
       "prevalence_pct": 52.4,
       "severity": "WARNING",
       "source": "validator",
@@ -535,24 +652,24 @@
       "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
     },
     {
-      "agencies": 722,
+      "agencies": 723,
       "code": "service_window_outside_feed_period",
       "effort": "Varies.",
       "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "instances": 3063,
-      "prevalence_pct": 49.8,
+      "instances": 3064,
+      "prevalence_pct": 49.9,
       "severity": "INFO",
       "source": "validator",
       "what": "Service window outside feed period (flagged by the MobilityData validator).",
       "why": "See the linked rule for what this affects."
     },
     {
-      "agencies": 720,
+      "agencies": 721,
       "code": "scorecard_missing_headsigns",
       "effort": "Usually a bulk edit in your scheduling software.",
       "fix": "Populate trip_headsign to match what the bus displays.",
-      "instances": 418497,
-      "prevalence_pct": 49.7,
+      "instances": 419213,
+      "prevalence_pct": 49.8,
       "severity": "WARNING",
       "source": "scorecard",
       "what": "63 of 71 trips have no headsign.",
@@ -563,7 +680,7 @@
       "code": "stop_without_stop_time",
       "effort": "A review pass in your scheduling software.",
       "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
-      "instances": 36937,
+      "instances": 36944,
       "prevalence_pct": 48.0,
       "severity": "WARNING",
       "source": "validator",
@@ -571,12 +688,12 @@
       "why": "Riders may walk to a stop where no bus is scheduled to arrive."
     },
     {
-      "agencies": 639,
+      "agencies": 642,
       "code": "trip_coverage_not_active_for_next7_days",
       "effort": "One setting in most export tools.",
       "fix": "Trim past service periods the next time you export.",
-      "instances": 639,
-      "prevalence_pct": 44.1,
+      "instances": 642,
+      "prevalence_pct": 44.3,
       "severity": "WARNING",
       "source": "validator",
       "what": "Many of the feed's trips don't run at all in the next 7 days.",
@@ -591,7 +708,7 @@
       "prevalence_pct": 42.6,
       "severity": "ERROR",
       "source": "scorecard",
-      "what": "Service data ended 2740 day(s) ago.",
+      "what": "Service data ended 2741 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -635,7 +752,7 @@
       "code": "mixed_case_recommended_field",
       "effort": "Often a bulk fix in your scheduling software.",
       "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
-      "instances": 762939,
+      "instances": 763035,
       "prevalence_pct": 30.6,
       "severity": "WARNING",
       "source": "validator",
@@ -719,7 +836,7 @@
       "code": "stop_too_far_from_shape_using_user_distance",
       "effort": "Varies.",
       "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "instances": 66731,
+      "instances": 66732,
       "prevalence_pct": 11.9,
       "severity": "WARNING",
       "source": "validator",

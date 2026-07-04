@@ -2,6 +2,58 @@
   "report": {
     "notices": [
       {
+        "code": "equal_shape_distance_same_coordinates",
+        "sample_notices": [
+          {
+            "csvRowNumber": 1810,
+            "prevCsvRowNumber": 1809,
+            "prevShapeDistTraveled": 0.0,
+            "prevShapePtSequence": 0,
+            "shapeDistTraveled": 0.0,
+            "shapeId": "27828",
+            "shapePtSequence": 1
+          },
+          {
+            "csvRowNumber": 1812,
+            "prevCsvRowNumber": 1811,
+            "prevShapeDistTraveled": 5.577543595512174,
+            "prevShapePtSequence": 2,
+            "shapeDistTraveled": 5.577543595512174,
+            "shapeId": "27828",
+            "shapePtSequence": 3
+          },
+          {
+            "csvRowNumber": 1820,
+            "prevCsvRowNumber": 1819,
+            "prevShapeDistTraveled": 119.40196882790158,
+            "prevShapePtSequence": 10,
+            "shapeDistTraveled": 119.40196882790158,
+            "shapeId": "27828",
+            "shapePtSequence": 11
+          },
+          {
+            "csvRowNumber": 1823,
+            "prevCsvRowNumber": 1822,
+            "prevShapeDistTraveled": 209.75813318229848,
+            "prevShapePtSequence": 13,
+            "shapeDistTraveled": 209.75813318229848,
+            "shapeId": "27828",
+            "shapePtSequence": 14
+          },
+          {
+            "csvRowNumber": 1826,
+            "prevCsvRowNumber": 1825,
+            "prevShapeDistTraveled": 233.423626131213,
+            "prevShapePtSequence": 16,
+            "shapeDistTraveled": 233.423626131213,
+            "shapeId": "27828",
+            "shapePtSequence": 17
+          }
+        ],
+        "severity": "WARNING",
+        "total": 95
+      },
+      {
         "code": "trip_distance_exceeds_shape_distance_below_threshold",
         "sample_notices": [
           {
@@ -16,84 +68,32 @@
             "maxShapeDistanceTraveled": 9803.86680670919,
             "maxTripDistanceTraveled": 9803.924089651631,
             "shapeId": "24775",
-            "tripId": "01-100-2"
+            "tripId": "01-1003"
           },
           {
             "geoDistanceToShape": 0.0,
             "maxShapeDistanceTraveled": 9803.86680670919,
             "maxTripDistanceTraveled": 9803.924089651631,
             "shapeId": "24775",
-            "tripId": "01-1003-3"
+            "tripId": "01-1073"
           },
           {
             "geoDistanceToShape": 0.0,
             "maxShapeDistanceTraveled": 9803.86680670919,
             "maxTripDistanceTraveled": 9803.924089651631,
             "shapeId": "24775",
-            "tripId": "01-1073-3"
+            "tripId": "01-1191"
           },
           {
             "geoDistanceToShape": 0.0,
             "maxShapeDistanceTraveled": 9803.86680670919,
             "maxTripDistanceTraveled": 9803.924089651631,
             "shapeId": "24775",
-            "tripId": "01-114"
+            "tripId": "01-1192"
           }
         ],
         "severity": "WARNING",
-        "total": 146
-      },
-      {
-        "code": "equal_shape_distance_same_coordinates",
-        "sample_notices": [
-          {
-            "csvRowNumber": 1869,
-            "prevCsvRowNumber": 1868,
-            "prevShapeDistTraveled": 0.0,
-            "prevShapePtSequence": 0,
-            "shapeDistTraveled": 0.0,
-            "shapeId": "27828",
-            "shapePtSequence": 1
-          },
-          {
-            "csvRowNumber": 1871,
-            "prevCsvRowNumber": 1870,
-            "prevShapeDistTraveled": 5.577543595512174,
-            "prevShapePtSequence": 2,
-            "shapeDistTraveled": 5.577543595512174,
-            "shapeId": "27828",
-            "shapePtSequence": 3
-          },
-          {
-            "csvRowNumber": 1879,
-            "prevCsvRowNumber": 1878,
-            "prevShapeDistTraveled": 119.40196882790158,
-            "prevShapePtSequence": 10,
-            "shapeDistTraveled": 119.40196882790158,
-            "shapeId": "27828",
-            "shapePtSequence": 11
-          },
-          {
-            "csvRowNumber": 1882,
-            "prevCsvRowNumber": 1881,
-            "prevShapeDistTraveled": 209.75813318229848,
-            "prevShapePtSequence": 13,
-            "shapeDistTraveled": 209.75813318229848,
-            "shapeId": "27828",
-            "shapePtSequence": 14
-          },
-          {
-            "csvRowNumber": 1885,
-            "prevCsvRowNumber": 1884,
-            "prevShapeDistTraveled": 233.423626131213,
-            "prevShapePtSequence": 16,
-            "shapeDistTraveled": 233.423626131213,
-            "shapeId": "27828",
-            "shapePtSequence": 17
-          }
-        ],
-        "severity": "WARNING",
-        "total": 95
+        "total": 73
       },
       {
         "code": "stop_without_stop_time",
@@ -114,18 +114,18 @@
             "stopName": "Rt 31 - LaFranier Transfer - Park-N-Ride"
           },
           {
+            "csvRowNumber": 15,
+            "stopId": "11287528",
+            "stopName": "Union St at Grandview Pkwy (TC Tourism)"
+          },
+          {
             "csvRowNumber": 16,
             "stopId": "11301741",
             "stopName": "TC West Senior High 2025"
-          },
-          {
-            "csvRowNumber": 154,
-            "stopId": "8451726",
-            "stopName": "Mission Hill Church"
           }
         ],
         "severity": "WARNING",
-        "total": 20
+        "total": 27
       },
       {
         "code": "leading_or_trailing_whitespaces",
@@ -149,13 +149,13 @@
             "filename": "stops.txt"
           },
           {
-            "csvRowNumber": 41,
+            "csvRowNumber": 42,
             "fieldName": "stop_name",
             "fieldValue": "Meijer Park and Ride ",
             "filename": "stops.txt"
           },
           {
-            "csvRowNumber": 56,
+            "csvRowNumber": 57,
             "fieldName": "stop_name",
             "fieldValue": "Union St. at 7th St. ",
             "filename": "stops.txt"
@@ -263,6 +263,18 @@
         "total": 1
       },
       {
+        "code": "trip_coverage_not_active_for_next7_days",
+        "sample_notices": [
+          {
+            "currentDate": "20260704",
+            "serviceWindowEndDate": "20991231",
+            "serviceWindowStartDate": "20260706"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
         "code": "service_extends_far_in_the_future",
         "sample_notices": [
           {
@@ -304,6 +316,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "8064f73608cd9f64ef610d3595286d02613b95fc261839c6768b3da0c74e0e97",
+  "sha256": "50f9f50953094f8ca541815375f4c4d4f0e19fa323078176b60ddd3f4170c721",
   "validator_version": "8.0.1"
 }

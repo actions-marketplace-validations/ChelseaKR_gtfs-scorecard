@@ -260,36 +260,36 @@
         "code": "service_window_outside_feed_period",
         "sample_notices": [
           {
-            "daysAfterFeedEnd": 515,
-            "daysBeforeFeedStart": 546,
+            "daysAfterFeedEnd": 514,
+            "daysBeforeFeedStart": 547,
             "serviceId": "67563.186612",
             "serviceWindowEndDate": "2027-12-30",
             "serviceWindowStartDate": "2025-01-02"
           },
           {
-            "daysAfterFeedEnd": 516,
-            "daysBeforeFeedStart": 547,
+            "daysAfterFeedEnd": 515,
+            "daysBeforeFeedStart": 548,
             "serviceId": "66980.184803",
             "serviceWindowEndDate": "2027-12-31",
             "serviceWindowStartDate": "2025-01-01"
           },
           {
-            "daysAfterFeedEnd": 516,
-            "daysBeforeFeedStart": 547,
+            "daysAfterFeedEnd": 515,
+            "daysBeforeFeedStart": 548,
             "serviceId": "65329.177267",
             "serviceWindowEndDate": "2027-12-31",
             "serviceWindowStartDate": "2025-01-01"
           },
           {
-            "daysAfterFeedEnd": 516,
-            "daysBeforeFeedStart": 547,
+            "daysAfterFeedEnd": 515,
+            "daysBeforeFeedStart": 548,
             "serviceId": "54140.172640",
             "serviceWindowEndDate": "2027-12-31",
             "serviceWindowStartDate": "2025-01-01"
           },
           {
-            "daysAfterFeedEnd": 513,
-            "daysBeforeFeedStart": 541,
+            "daysAfterFeedEnd": 512,
+            "daysBeforeFeedStart": 542,
             "serviceId": "67636.186704",
             "serviceWindowEndDate": "2027-12-28",
             "serviceWindowStartDate": "2025-01-07"
@@ -326,6 +326,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "0b684cb2d4c21d94a6d4fa71807bfe7f14652a3bc820c6301668db5eccf88c49",
+  "sha256": "c3aa48c6dd7130e8d572d5d939ede8b1121f58897a3eae59c7e9c39d7ebc5e90",
   "validator_version": "8.0.1"
 }

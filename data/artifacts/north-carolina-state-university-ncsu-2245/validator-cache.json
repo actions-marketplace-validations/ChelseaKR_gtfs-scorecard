@@ -132,15 +132,15 @@
         "code": "service_window_outside_feed_period",
         "sample_notices": [
           {
-            "daysAfterFeedEnd": 5,
-            "daysBeforeFeedStart": 423,
+            "daysAfterFeedEnd": 4,
+            "daysBeforeFeedStart": 424,
             "serviceId": "59215.162571",
             "serviceWindowEndDate": "2026-08-07",
             "serviceWindowStartDate": "2025-05-05"
           },
           {
-            "daysAfterFeedEnd": 7,
-            "daysBeforeFeedStart": 418,
+            "daysAfterFeedEnd": 6,
+            "daysBeforeFeedStart": 419,
             "serviceId": "72451.213256",
             "serviceWindowEndDate": "2026-08-09",
             "serviceWindowStartDate": "2025-05-10"
@@ -152,6 +152,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "ea6a87c127d54954dfc5cd23ecf64eec4c6b5553b1789a9568b971be68ca42d6",
+  "sha256": "057fa40d095cdad40a4dc834bd71188534a9407e8af1ff15a16012b4032cec35",
   "validator_version": "8.0.1"
 }

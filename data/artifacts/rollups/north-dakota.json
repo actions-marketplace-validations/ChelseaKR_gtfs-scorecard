@@ -23,7 +23,7 @@
     "stale": 2,
     "total": 2
   },
-  "generated_at": "2026-07-03T15:51:50+00:00",
+  "generated_at": "2026-07-04T07:49:51+00:00",
   "grade_distribution": {
     "C": 1,
     "F": 2
@@ -31,38 +31,38 @@
   "members": [
     {
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -1234,
+      "days_until_expiry": -1235,
       "expiry_status": "stale",
       "grade": "F",
       "id": "matbus",
       "name": "MATBUS",
       "needs_attention": true,
       "score": 41.2,
-      "snapshot_date": "2026-07-03",
+      "snapshot_date": "2026-07-04",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -702,
+      "days_until_expiry": -703,
       "expiry_status": "stale",
       "grade": "F",
       "id": "cities-area-transit",
       "name": "Cities Area Transit",
       "needs_attention": true,
       "score": 44.3,
-      "snapshot_date": "2026-07-03",
+      "snapshot_date": "2026-07-04",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
       "attention_reason": null,
-      "days_until_expiry": 181,
+      "days_until_expiry": 180,
       "expiry_status": "current",
       "grade": "C",
       "id": "cities-area-transit-2199",
       "name": "Cities Area Transit",
       "needs_attention": false,
       "score": 71.1,
-      "snapshot_date": "2026-07-03",
+      "snapshot_date": "2026-07-04",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     }
   ],

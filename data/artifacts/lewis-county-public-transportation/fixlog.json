@@ -1,0 +1,34 @@
+{
+  "receipts": [
+    {
+      "cleared": "2026-06-25",
+      "code": "equal_shape_distance_same_coordinates",
+      "last_seen": "2026-06-24",
+      "what": "Equal shape distance same coordinates (flagged by the MobilityData validator)."
+    },
+    {
+      "cleared": "2026-07-01",
+      "code": "big_gap_in_service",
+      "last_seen": "2026-06-30",
+      "what": "Big gap in service (flagged by the MobilityData validator)."
+    },
+    {
+      "cleared": "2026-07-01",
+      "code": "unknown_file",
+      "last_seen": "2026-06-30",
+      "what": "Unknown file (flagged by the MobilityData validator)."
+    },
+    {
+      "cleared": "2026-07-02",
+      "code": "feed_expiration_date30_days",
+      "last_seen": "2026-07-01",
+      "what": "This feed's service calendar runs out within the next 30 days."
+    },
+    {
+      "cleared": "2026-07-02",
+      "code": "scorecard_feed_expiring_soon",
+      "last_seen": "2026-07-01",
+      "what": "Service data runs out in 20 day(s)."
+    }
+  ]
+}

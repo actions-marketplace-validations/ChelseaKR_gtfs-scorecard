@@ -33,10 +33,6 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
-        "cemv": {
-          "declared": false,
-          "supported": false
-        },
         "components": {
           "contact": 0.0,
           "fares": 15.0,
@@ -323,7 +319,7 @@
     "size_bytes": 499673,
     "static_url": "https://transitfeeds.com/p/metra/169/latest/download"
   },
-  "generated_at": "2026-07-02T00:00:00+00:00",
+  "generated_at": "2026-07-01T00:00:00+00:00",
   "ntd_id_alignment": {
     "detail": "Your feed's agency_id is METRA; your National Transit Database ID is 50118. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
     "feed_agency_ids": [
@@ -510,7 +506,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-02",
+  "snapshot_date": "2026-07-01",
   "top_fixes": [
     {
       "code": "scorecard_no_expiry_date",

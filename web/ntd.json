@@ -75,8 +75,8 @@
     },
     "Idaho": {
       "at_risk": 0,
-      "not_ready": 2,
-      "ready": 2,
+      "not_ready": 3,
+      "ready": 1,
       "total": 4
     },
     "Illinois": {
@@ -308,7 +308,7 @@
       "total": 22
     }
   },
-  "not_ready": 639,
+  "not_ready": 640,
   "one_fix_from_ready": [
     {
       "fix": "Service data expired 916 days ago, so FTA would find the link out of date.",
@@ -631,8 +631,8 @@
       "status": "not_ready"
     }
   ],
-  "one_fix_total": 505,
+  "one_fix_total": 506,
   "pct_ready": 43.2,
-  "ready": 625,
+  "ready": 624,
   "total": 1446
 }

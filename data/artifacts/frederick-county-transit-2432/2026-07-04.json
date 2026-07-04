@@ -252,13 +252,12 @@
     },
     "realtime": {
       "details": {
-        "coverage_pct": 0.0,
-        "covered_trips": 0,
+        "coverage_pct": null,
         "kinds_reachable": 2,
         "rt_freshness": "fresh",
         "samples": 6,
-        "scheduled_trips_in_window": 8,
-        "worst_lag_seconds": 4
+        "scheduled_trips_in_window": 0,
+        "worst_lag_seconds": 5
       },
       "findings": [
         {
@@ -271,23 +270,12 @@
           "severity": "ERROR",
           "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 8,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 35.0,
-          "severity": "WARNING",
-          "what": "8 of 8 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
-      "score": 49.0,
+      "score": 83.3,
       "status": "measured",
-      "summary": "Sampled 6 times: 2 of 3 feeds healthy; 0.0% of scheduled trips had live predictions.",
+      "summary": "Sampled 6 times outside service hours: 2 of 3 feeds healthy.",
       "weight": 0.2
     }
   },
@@ -316,7 +304,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "424b2afd36aaf4c997ea507d0159b48f52919d3acb577c511ea7ef015be6b716",
+    "sha256": "6f74addf2affd4c5ed38b91e93a146cf3e900ec22515668c333cba648804eb6d",
     "size_bytes": 373196,
     "static_url": "https://passio3.com/frederick/passioTransit/gtfs/google_transit.zip"
   },
@@ -367,10 +355,10 @@
     "summary": "This feed is close to NTD-ready. 1 validator error to resolve. Service data runs out in 30 days; renew before you certify."
   },
   "overall": {
-    "grade": "F",
-    "margin_to_lower_band": 53.7,
-    "margin_to_next_band": 6.3,
-    "score": 53.7
+    "grade": "D",
+    "margin_to_lower_band": 0.5,
+    "margin_to_next_band": 9.5,
+    "score": 60.5
   },
   "recommendations": [
     {
@@ -641,16 +629,16 @@
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     },
     {
-      "code": "scorecard_rt_trip_coverage",
-      "count": 8,
-      "effort": "A vendor data-mapping question.",
-      "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-      "owner": "",
-      "points": 35.0,
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 392,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 25.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "8 of 8 trips scheduled during the sampling window had no live predictions.",
-      "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+      "what": "392 of 392 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     }
   ],
   "validator_version": "8.0.1"

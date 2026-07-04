@@ -6,7 +6,6 @@
   "autofix": {
     "available": true,
     "download_path": "data/artifacts/concord-kannapolis-area-transit-rider-transit-2244/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/concord-kannapolis-area-transit-rider-transit-2244/corrected.zip",
     "fixes": [
       {
         "code": "autofix_stop_name_case",
@@ -207,7 +206,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "19894d7ea373b0c68773e48a031a466c43014bdf1a681a3816309a7a55d6d803",
+    "sha256": "c3aa9fa33ed681b279bf52a9f48c7a15d6a7b92641f12531874b6b72b51c6515",
     "size_bytes": 170890,
     "static_url": "https://passio3.com/concordKat/passioTransit/gtfs/google_transit.zip"
   },

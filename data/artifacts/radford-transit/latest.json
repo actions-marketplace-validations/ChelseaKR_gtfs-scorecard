@@ -6,7 +6,6 @@
   "autofix": {
     "available": true,
     "download_path": "data/artifacts/radford-transit/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/radford-transit/corrected.zip",
     "fixes": [
       {
         "code": "autofix_stop_name_case",
@@ -273,7 +272,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "87207269b4bc1bcce1867cc4e9d1d6459f08e843873fe19ac4896269e1d8a557",
+    "sha256": "d3794835faa73c426bebb725a0af825921f63e739af92a6200d2befb6246e3e4",
     "size_bytes": 103128,
     "static_url": "https://passio3.com/radford/passioTransit/gtfs/google_transit.zip"
   },

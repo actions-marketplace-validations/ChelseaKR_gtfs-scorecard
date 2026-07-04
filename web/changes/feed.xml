@@ -22,7 +22,15 @@
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/via-mobility-2395/"/>
     <updated>2026-07-04T00:00:00Z</updated>
     <category term="grade_drop"/>
-    <summary>On 2026-07-04, Via Mobility's GTFS data quality went from 70.8 (C) to 63.6 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
+    <summary>On 2026-07-04, Via Mobility's GTFS data quality went from 70.8 (C) to 64.1 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Valley Regional Transit: grade dropped C to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/valley-regional-transit/2026-07-04</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/valley-regional-transit/"/>
+    <updated>2026-07-04T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-04, Valley Regional Transit's GTFS data quality went from 78.4 (C) to 46.2 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
     <title>Towson Loop: score fell 4.1 points</title>
@@ -49,12 +57,12 @@
     <summary>On 2026-07-04, Flex's GTFS data quality went from 80.2 (B) to 79.8 (C). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>Static feed for realtime: score fell 1.4 points</title>
+    <title>Static feed for realtime: score fell 1.9 points</title>
     <id>tag:gtfsscorecard.org,2026:agency/sandy-area-metro-sam-2739/2026-07-04</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/sandy-area-metro-sam-2739/"/>
     <updated>2026-07-04T00:00:00Z</updated>
     <category term="score_drop"/>
-    <summary>On 2026-07-04, Static feed for realtime's GTFS data quality went from 63.9 (D) to 62.5 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
+    <summary>On 2026-07-04, Static feed for realtime's GTFS data quality went from 63.9 (D) to 62.0 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
     <title>Rogue Valley Transportation District (RVTD): score fell 1.9 points</title>
@@ -193,12 +201,12 @@
     <summary>On 2026-07-04, Golden Empire Transit District (GET)'s GTFS data quality went from 89.1 (B) to 87.3 (B). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>Frederick County TransIT: score fell 4.3 points</title>
+    <title>Frederick County TransIT: grade improved F to D</title>
     <id>tag:gtfsscorecard.org,2026:agency/frederick-county-transit-2432/2026-07-04</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/frederick-county-transit-2432/"/>
     <updated>2026-07-04T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-04, Frederick County TransIT's GTFS data quality went from 58.0 (F) to 53.7 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+    <category term="grade_rise"/>
+    <summary>On 2026-07-04, Frederick County TransIT's GTFS data quality went from 58.0 (F) to 60.5 (D). A step in the right direction.</summary>
   </entry>
   <entry>
     <title>Franklin County Public Transportation: grade dropped D to F</title>

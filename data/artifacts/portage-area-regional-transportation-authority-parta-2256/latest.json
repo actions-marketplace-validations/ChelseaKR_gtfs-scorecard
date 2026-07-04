@@ -6,7 +6,6 @@
   "autofix": {
     "available": true,
     "download_path": "data/artifacts/portage-area-regional-transportation-authority-parta-2256/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/portage-area-regional-transportation-authority-parta-2256/corrected.zip",
     "fixes": [
       {
         "code": "autofix_stop_name_case",
@@ -263,7 +262,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "be1c5baa897fb5f9ca33cdb122581b32d7728bfa2f534605ebd637726fd3d872",
+    "sha256": "fef2a7b78a55682a26ab265727698b416df1d6097ac5681e25b54bf8a3bcf7ea",
     "size_bytes": 532885,
     "static_url": "https://passio3.com/parta/passioTransit/gtfs/google_transit.zip"
   },

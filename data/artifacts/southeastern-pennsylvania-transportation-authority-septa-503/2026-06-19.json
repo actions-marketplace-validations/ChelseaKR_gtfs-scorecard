@@ -1,0 +1,234 @@
+{
+  "agency": {
+    "id": "southeastern-pennsylvania-transportation-authority-septa-503",
+    "name": "Rail"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 7.5,
+          "fares": 15.0,
+          "headsigns": 15.0,
+          "stop_names": 15.0,
+          "wheelchair_stops": 25.0,
+          "wheelchair_trips": 15.0
+        },
+        "has_fares": true,
+        "headsign_pct": 100.0,
+        "mixed_case_stop_name_pct": 100.0,
+        "stops": 156,
+        "trips": 1075,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 100.0,
+        "wheelchair_marked_accessible_pct": 49.4
+      },
+      "findings": [
+        {
+          "code": "scorecard_no_feed_contact",
+          "count": 1,
+          "effort": "One field.",
+          "fix": "Add feed_contact_email to feed_info.txt.",
+          "severity": "INFO",
+          "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
+          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+        }
+      ],
+      "name": "completeness",
+      "score": 92.5,
+      "status": "measured",
+      "summary": "100% of stops state wheelchair accessibility (49% marked accessible). Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 6,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 2,
+          "WARNING": 7
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "stop_too_far_from_shape",
+          "count": 3,
+          "effort": "A few minutes per flagged stop.",
+          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+          "severity": "WARNING",
+          "what": "Some stops sit far from the route line they belong to.",
+          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        },
+        {
+          "code": "expired_calendar",
+          "count": 1,
+          "effort": "One setting in most export tools.",
+          "fix": "Remove past service periods the next time you export the feed.",
+          "severity": "WARNING",
+          "what": "Some service calendars in the feed have already expired.",
+          "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
+        },
+        {
+          "code": "feed_expiration_date30_days",
+          "count": 1,
+          "effort": "Usually a re-export from your scheduling software.",
+          "fix": "Schedule a feed re-export now so the new calendar is live well before the current one ends.",
+          "severity": "WARNING",
+          "what": "This feed's service calendar runs out within the next 30 days.",
+          "why": "If a new feed isn't published before it ends, trip planners will drop your agency and riders will see no service."
+        },
+        {
+          "code": "missing_feed_contact_email_and_url",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "route_long_name_contains_short_name",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Route long name contains short name (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unknown_file",
+          "count": 2,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Unknown file (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 79.5,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 6 kinds of issues: 0 error, 7 warning, and 2 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 8,
+        "feed_end_date": "2026-06-27",
+        "feed_start_date": "2026-06-14",
+        "feed_version": "v202606141",
+        "has_feed_info": true,
+        "last_service_date": "2027-06-13"
+      },
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "severity": "WARNING",
+          "what": "Service data runs out in 8 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
+      "name": "freshness",
+      "score": 13.3,
+      "status": "measured",
+      "summary": "Service data runs out in 8 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "details": {
+        "coverage_pct": 97.2,
+        "covered_trips": 35,
+        "drift": {
+          "median_seconds": 180,
+          "observations": 64,
+          "on_time_share_pct": 89.1,
+          "p90_abs_seconds": 420
+        },
+        "kinds_reachable": 3,
+        "rt_freshness": "fresh",
+        "samples": 9,
+        "scheduled_trips_in_window": 36,
+        "vehicles_checked": 160,
+        "vehicles_on_route_pct": 68.1,
+        "worst_lag_seconds": 15
+      },
+      "findings": [
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 1,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "severity": "WARNING",
+          "what": "1 of 36 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        },
+        {
+          "code": "scorecard_rt_vehicles_off_route",
+          "count": 51,
+          "effort": "A vendor support ticket with the trip ids attached.",
+          "fix": "Ask your AVL vendor to check vehicle-to-trip assignments for the flagged trips.",
+          "severity": "WARNING",
+          "what": "51 of 160 sampled vehicle positions were far from their assigned route (worst: 51592 m).",
+          "why": "A bus shown off its route usually means a wrong trip assignment; riders watch their bus drive the wrong streets."
+        }
+      ],
+      "name": "realtime",
+      "score": 94.2,
+      "status": "measured",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 97.2% of scheduled trips had live predictions; 68.1% of vehicles on their route; predictions ran a median of 180s behind schedule.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "License: https://www3.septa.org/developer/",
+    "reachable": true,
+    "sha256": "df3b58a5579f6ae5fb91ffe7dec3619fb2df15e26b673a53c526fab4bd181e06",
+    "size_bytes": 617644,
+    "static_url": "https://www3.septa.org/developer/google_rail.zip"
+  },
+  "generated_at": "2026-06-19T00:00:00+00:00",
+  "overall": {
+    "grade": "C",
+    "score": 72.5
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.3",
+  "snapshot_date": "2026-06-19",
+  "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 8 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
+    {
+      "code": "scorecard_rt_vehicles_off_route",
+      "count": 51,
+      "effort": "A vendor support ticket with the trip ids attached.",
+      "fix": "Ask your AVL vendor to check vehicle-to-trip assignments for the flagged trips.",
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "51 of 160 sampled vehicle positions were far from their assigned route (worst: 51592 m).",
+      "why": "A bus shown off its route usually means a wrong trip assignment; riders watch their bus drive the wrong streets."
+    },
+    {
+      "code": "stop_too_far_from_shape",
+      "count": 3,
+      "effort": "A few minutes per flagged stop.",
+      "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "Some stops sit far from the route line they belong to.",
+      "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

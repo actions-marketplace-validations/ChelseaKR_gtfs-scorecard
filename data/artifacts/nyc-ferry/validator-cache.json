@@ -1,0 +1,64 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "missing_bike_allowance",
+        "sample_notices": [
+          {
+            "csvRowNumber": 89,
+            "routeId": "AS",
+            "tripId": "165"
+          },
+          {
+            "csvRowNumber": 90,
+            "routeId": "AS",
+            "tripId": "166"
+          },
+          {
+            "csvRowNumber": 91,
+            "routeId": "AS",
+            "tripId": "167"
+          },
+          {
+            "csvRowNumber": 92,
+            "routeId": "AS",
+            "tripId": "168"
+          },
+          {
+            "csvRowNumber": 93,
+            "routeId": "AS",
+            "tripId": "169"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 922
+      },
+      {
+        "code": "missing_feed_contact_email_and_url",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "route_color_contrast",
+        "sample_notices": [
+          {
+            "csvRowNumber": 9,
+            "routeColor": "#FFD100",
+            "routeId": "SB",
+            "routeTextColor": "#FFFFFF"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "049daabd2fc7edefc12766f941e5ca34c146b78a67eb341ed179e424faeaa7ff",
+  "validator_version": "8.0.1"
+}

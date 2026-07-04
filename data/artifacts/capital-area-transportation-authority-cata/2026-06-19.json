@@ -1,0 +1,260 @@
+{
+  "agency": {
+    "id": "capital-area-transportation-authority-cata",
+    "name": "Capital Area Transportation Authority (CATA)"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 7.5,
+          "fares": 0.0,
+          "headsigns": 14.6,
+          "stop_names": 15.0,
+          "wheelchair_stops": 0.0,
+          "wheelchair_trips": 0.0
+        },
+        "has_fares": false,
+        "headsign_pct": 97.3,
+        "mixed_case_stop_name_pct": 100.0,
+        "stops": 1335,
+        "trips": 7620,
+        "wheelchair_accessible_pct": 0.0,
+        "wheelchair_boarding_pct": 0.0,
+        "wheelchair_marked_accessible_pct": 0.0
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 1335,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "severity": "WARNING",
+          "what": "1335 of 1335 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_wheelchair_accessible_unknown",
+          "count": 7620,
+          "effort": "Often one default setting in your export.",
+          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "severity": "WARNING",
+          "what": "7620 of 7620 trips don't say whether the vehicle is wheelchair accessible.",
+          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+        },
+        {
+          "code": "scorecard_no_fare_data",
+          "count": 1,
+          "effort": "A small file for most flat-fare systems.",
+          "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure.",
+          "severity": "WARNING",
+          "what": "The feed contains no fare information.",
+          "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+        },
+        {
+          "code": "scorecard_missing_headsigns",
+          "count": 204,
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Populate trip_headsign to match what the bus displays.",
+          "severity": "WARNING",
+          "what": "204 of 7620 trips have no headsign.",
+          "why": "Riders at the stop can't tell which direction a bus is going."
+        },
+        {
+          "code": "scorecard_no_feed_contact",
+          "count": 1,
+          "effort": "One field.",
+          "fix": "Add feed_contact_email to feed_info.txt.",
+          "severity": "INFO",
+          "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
+          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+        }
+      ],
+      "name": "completeness",
+      "score": 37.1,
+      "status": "measured",
+      "summary": "0% of stops state wheelchair accessibility (0% marked accessible). Fare data is not published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 7,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 0,
+          "WARNING": 8154
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "mixed_case_recommended_field",
+          "count": 7448,
+          "effort": "Often a bulk fix in your scheduling software.",
+          "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+          "severity": "WARNING",
+          "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+          "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
+        },
+        {
+          "code": "fast_travel_between_consecutive_stops",
+          "count": 683,
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the flagged stop times for transposed minutes.",
+          "severity": "WARNING",
+          "what": "Some scheduled trips travel implausibly fast between stops.",
+          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+        },
+        {
+          "code": "stop_too_far_from_shape_using_user_distance",
+          "count": 18,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "stops_match_shape_out_of_order",
+          "count": 2,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "missing_feed_contact_email_and_url",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "route_color_contrast",
+          "count": 1,
+          "effort": "One field per route.",
+          "fix": "Pick a darker/lighter route_text_color for the flagged routes.",
+          "severity": "WARNING",
+          "what": "Some route colors don't contrast with their text color.",
+          "why": "Route badges become unreadable, especially for riders with low vision."
+        },
+        {
+          "code": "stop_too_far_from_shape",
+          "count": 1,
+          "effort": "A few minutes per flagged stop.",
+          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+          "severity": "WARNING",
+          "what": "Some stops sit far from the route line they belong to.",
+          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        }
+      ],
+      "name": "correctness",
+      "score": 62.0,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 7 kinds of issues: 0 error, 8154 warning, and 0 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 65,
+        "feed_end_date": "2026-08-23",
+        "feed_start_date": "2026-05-04",
+        "feed_version": "26-04 (May04-Aug23)_20260512",
+        "has_feed_info": true,
+        "last_service_date": "2026-08-23"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 65 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "details": {
+        "coverage_pct": 83.3,
+        "covered_trips": 40,
+        "drift": {
+          "median_seconds": 124,
+          "observations": 2686,
+          "on_time_share_pct": 66.0,
+          "p90_abs_seconds": 640
+        },
+        "kinds_reachable": 3,
+        "rt_freshness": "fresh",
+        "samples": 9,
+        "scheduled_trips_in_window": 48,
+        "vehicles_checked": 130,
+        "vehicles_on_route_pct": 93.8,
+        "worst_lag_seconds": 5
+      },
+      "findings": [
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 8,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "severity": "WARNING",
+          "what": "8 of 48 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        }
+      ],
+      "name": "realtime",
+      "score": 93.2,
+      "status": "measured",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 83.3% of scheduled trips had live predictions; 93.8% of vehicles on their route; predictions ran a median of 124s behind schedule.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "License: https://www.cata.org/Portals/0/CATAGTFSLicenseAgreement20150323.pdf",
+    "reachable": true,
+    "sha256": "556602b61a352b98628bfa3487939c86321c29828d1da614c68d938940df06ab",
+    "size_bytes": 2164607,
+    "static_url": "http://developers.cata.org/gtfsdownload.ashx?key=5b4690ed-0a69-4320-897b-7d92def4b96f&data=base"
+  },
+  "generated_at": "2026-06-19T00:00:00+00:00",
+  "overall": {
+    "grade": "D",
+    "score": 69.6
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.3",
+  "snapshot_date": "2026-06-19",
+  "top_fixes": [
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 1335,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "1335 of 1335 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    },
+    {
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "count": 7620,
+      "effort": "Often one default setting in your export.",
+      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "7620 of 7620 trips don't say whether the vehicle is wheelchair accessible.",
+      "why": "Even with accessible stops, riders need to know the bus itself can take them."
+    },
+    {
+      "code": "scorecard_no_fare_data",
+      "count": 1,
+      "effort": "A small file for most flat-fare systems.",
+      "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure.",
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "The feed contains no fare information.",
+      "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

@@ -1,0 +1,59 @@
+name: Equity overlay (ACS)
+
+# Refresh the equity overlay from live Census ACS data (ADR 0015). ACS changes
+# once a year, so this runs weekly (and on demand), fetches per-state poverty,
+# zero-vehicle, and disability indicators, joins them to agency grades, and
+# commits the overlay. The site's /equity/ page and /api/v1/equity.json read it.
+#
+# The Census API requires a free key (keyless requests redirect to a missing-key
+# page): set the CENSUS_API_KEY repo secret (https://api.census.gov/data/key_signup.html).
+# If ACS returns no need tiers, the job FAILS rather than shipping an empty overlay
+# or silently keeping a stale one.
+
+on:
+  schedule:
+    - cron: "41 7 * * 1" # Mondays, early UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: equity
+  cancel-in-progress: false
+
+jobs:
+  overlay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+      - name: Build the overlay from live ACS
+        working-directory: pipeline
+        env:
+          # Required free Census API key (keyless requests redirect to a missing-key
+          # page). Set this repo secret: https://api.census.gov/data/key_signup.html
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+        run: |
+          # The command writes the overlay only when ACS returns real need tiers;
+          # otherwise it exits non-zero and leaves the committed overlay untouched,
+          # so a missing key fails the job loudly instead of shipping empty tiers.
+          uv run scorecard equity --json-out ../web/api/v1/equity.json
+      - name: Commit the overlay
+        run: |
+          git config user.name "scorecard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add web/api/v1/equity.json || true
+          if git diff --cached --quiet; then
+            echo "No overlay change."
+          else
+            git commit -m "chore(equity): refresh ACS overlay"
+            for attempt in 1 2 3 4 5; do
+              if git push origin HEAD:main; then break; fi
+              git fetch origin main
+              git rebase origin/main || { git rebase --abort; exit 1; }
+              sleep 3
+            done
+          fi

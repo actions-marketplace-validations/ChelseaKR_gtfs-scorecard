@@ -1,0 +1,115 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "stop_without_stop_time",
+        "sample_notices": [
+          {
+            "csvRowNumber": 11,
+            "stopId": "7210",
+            "stopName": "San Francisco Pier 41 Ferry Terminal"
+          },
+          {
+            "csvRowNumber": 15,
+            "stopId": "7214",
+            "stopName": "Pier 48 Ferry Dock"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      },
+      {
+        "code": "unknown_column",
+        "sample_notices": [
+          {
+            "fieldName": "tts_agency_name",
+            "filename": "agency.txt",
+            "index": 8
+          },
+          {
+            "fieldName": "wkt",
+            "filename": "areas.txt",
+            "index": 2
+          },
+          {
+            "fieldName": "holiday_name",
+            "filename": "calendar_dates.txt",
+            "index": 3
+          },
+          {
+            "fieldName": "service_name",
+            "filename": "calendar.txt",
+            "index": 2
+          },
+          {
+            "fieldName": "feed_license",
+            "filename": "feed_info.txt",
+            "index": 5
+          }
+        ],
+        "severity": "INFO",
+        "total": 34
+      },
+      {
+        "code": "unknown_file",
+        "sample_notices": [
+          {
+            "filename": "calendar_attributes.txt"
+          },
+          {
+            "filename": "directions.txt"
+          },
+          {
+            "filename": "farezone_attributes.txt"
+          },
+          {
+            "filename": "linked_datasets.txt"
+          },
+          {
+            "filename": "runcut.txt"
+          }
+        ],
+        "severity": "INFO",
+        "total": 8
+      },
+      {
+        "code": "service_window_outside_feed_period",
+        "sample_notices": [
+          {
+            "daysAfterFeedEnd": 0,
+            "daysBeforeFeedStart": 102,
+            "serviceId": "c_71765_b_86232_d_96",
+            "serviceWindowEndDate": "2026-06-27",
+            "serviceWindowStartDate": "2026-03-14"
+          },
+          {
+            "daysAfterFeedEnd": 0,
+            "daysBeforeFeedStart": 107,
+            "serviceId": "c_71765_b_86232_d_31",
+            "serviceWindowEndDate": "2026-06-25",
+            "serviceWindowStartDate": "2026-03-09"
+          },
+          {
+            "daysAfterFeedEnd": 0,
+            "daysBeforeFeedStart": 103,
+            "serviceId": "c_71798_b_86549_d_112",
+            "serviceWindowEndDate": "2026-11-01",
+            "serviceWindowStartDate": "2026-03-13"
+          },
+          {
+            "daysAfterFeedEnd": 0,
+            "daysBeforeFeedStart": 106,
+            "serviceId": "c_71798_b_86549_d_14",
+            "serviceWindowEndDate": "2026-10-29",
+            "serviceWindowStartDate": "2026-03-10"
+          }
+        ],
+        "severity": "INFO",
+        "total": 4
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "c35f1a16f0a1ef6cef772b9f158dbbbaaebb4b6c01aa0ccda76bf4298c795d31",
+  "validator_version": "8.0.1"
+}

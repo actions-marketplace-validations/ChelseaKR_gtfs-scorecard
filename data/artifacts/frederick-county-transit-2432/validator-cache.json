@@ -1,0 +1,372 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "stop_time_with_arrival_before_previous_departure_time",
+        "sample_notices": [
+          {
+            "arrivalTime": "06:40:00",
+            "csvRowNumber": 13470,
+            "departureTime": "30:20:00",
+            "prevCsvRowNumber": 13468,
+            "tripId": "714468"
+          }
+        ],
+        "severity": "ERROR",
+        "total": 1
+      },
+      {
+        "code": "stop_without_stop_time",
+        "sample_notices": [
+          {
+            "csvRowNumber": 43,
+            "stopId": "163181",
+            "stopName": "Avery's Restaurant"
+          },
+          {
+            "csvRowNumber": 67,
+            "stopId": "163115",
+            "stopName": "Brunswick Senior Center (12 East A Street)"
+          },
+          {
+            "csvRowNumber": 71,
+            "stopId": "162836",
+            "stopName": "Cawley Drive at shelter"
+          },
+          {
+            "csvRowNumber": 83,
+            "stopId": "162822",
+            "stopName": "Clarion Inn Frederick Event Center"
+          },
+          {
+            "csvRowNumber": 86,
+            "stopId": "162820",
+            "stopName": "Corporate Drive at New Design Road"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 40
+      },
+      {
+        "code": "route_long_name_contains_short_name",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "routeId": "6154",
+            "routeLongName": "10 Connector",
+            "routeShortName": "10"
+          },
+          {
+            "csvRowNumber": 3,
+            "routeId": "9349",
+            "routeLongName": "15 Connector",
+            "routeShortName": "15"
+          },
+          {
+            "csvRowNumber": 4,
+            "routeId": "6155",
+            "routeLongName": "20 Connector",
+            "routeShortName": "20"
+          },
+          {
+            "csvRowNumber": 5,
+            "routeId": "6156",
+            "routeLongName": "40 Connector",
+            "routeShortName": "40"
+          },
+          {
+            "csvRowNumber": 6,
+            "routeId": "6157",
+            "routeLongName": "50 Connector",
+            "routeShortName": "50"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 10
+      },
+      {
+        "code": "fast_travel_between_consecutive_stops",
+        "sample_notices": [
+          {
+            "arrivalTime2": "06:40:00",
+            "csvRowNumber1": 13468,
+            "csvRowNumber2": 13470,
+            "departureTime1": "30:20:00",
+            "distanceKm": 22.278062103667757,
+            "routeId": "6163",
+            "speedKph": 1336.6837262200654,
+            "stopId1": "162970",
+            "stopId2": "163122",
+            "stopName1": "Fairview Avenue at College Park Plaza (The Common Market)",
+            "stopName2": "Church St at CVS",
+            "stopSequence1": 4,
+            "stopSequence2": 6,
+            "tripCsvRowNumber": 738,
+            "tripId": "714468"
+          },
+          {
+            "arrivalTime2": "16:55:00",
+            "csvRowNumber1": 3627,
+            "csvRowNumber2": 3634,
+            "departureTime1": "16:55:00",
+            "distanceKm": 3.3232067175815017,
+            "routeId": "6156",
+            "speedKph": 199.3924030548901,
+            "stopId1": "162799",
+            "stopId2": "162872",
+            "stopName1": "Waverley Transfer Facility",
+            "stopName2": "West South Street at Thomas Avenue",
+            "stopSequence1": 1,
+            "stopSequence2": 8,
+            "tripCsvRowNumber": 223,
+            "tripId": "714028"
+          },
+          {
+            "arrivalTime2": "15:55:00",
+            "csvRowNumber1": 3614,
+            "csvRowNumber2": 3621,
+            "departureTime1": "15:55:00",
+            "distanceKm": 3.3232067175815017,
+            "routeId": "6156",
+            "speedKph": 199.3924030548901,
+            "stopId1": "162799",
+            "stopId2": "162872",
+            "stopName1": "Waverley Transfer Facility",
+            "stopName2": "West South Street at Thomas Avenue",
+            "stopSequence1": 1,
+            "stopSequence2": 8,
+            "tripCsvRowNumber": 222,
+            "tripId": "714027"
+          },
+          {
+            "arrivalTime2": "18:55:00",
+            "csvRowNumber1": 3653,
+            "csvRowNumber2": 3660,
+            "departureTime1": "18:55:00",
+            "distanceKm": 3.3232067175815017,
+            "routeId": "6156",
+            "speedKph": 199.3924030548901,
+            "stopId1": "162799",
+            "stopId2": "162872",
+            "stopName1": "Waverley Transfer Facility",
+            "stopName2": "West South Street at Thomas Avenue",
+            "stopSequence1": 1,
+            "stopSequence2": 8,
+            "tripCsvRowNumber": 225,
+            "tripId": "714030"
+          },
+          {
+            "arrivalTime2": "17:55:00",
+            "csvRowNumber1": 3640,
+            "csvRowNumber2": 3647,
+            "departureTime1": "17:55:00",
+            "distanceKm": 3.3232067175815017,
+            "routeId": "6156",
+            "speedKph": 199.3924030548901,
+            "stopId1": "162799",
+            "stopId2": "162872",
+            "stopName1": "Waverley Transfer Facility",
+            "stopName2": "West South Street at Thomas Avenue",
+            "stopSequence1": 1,
+            "stopSequence2": 8,
+            "tripCsvRowNumber": 224,
+            "tripId": "714029"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 5
+      },
+      {
+        "code": "stop_too_far_from_shape_using_user_distance",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 807.8271330794164,
+            "match": [
+              39.42698405662899,
+              -77.43597674186907
+            ],
+            "shapeId": "51830",
+            "stopId": "162939",
+            "stopName": "Baughman's Lane at Walgreens",
+            "stopTimeCsvRowNumber": 14179,
+            "tripCsvRowNumber": 778,
+            "tripId": "714501"
+          },
+          {
+            "geoDistanceToShape": 166.65586990521786,
+            "match": [
+              39.37828398342257,
+              -77.47383585010762
+            ],
+            "shapeId": "51830",
+            "stopId": "163125",
+            "stopName": "Mt. Zion Road Park and Ride",
+            "stopTimeCsvRowNumber": 14180,
+            "tripCsvRowNumber": 778,
+            "tripId": "714501"
+          },
+          {
+            "geoDistanceToShape": 622.8956716276466,
+            "match": [
+              39.275340821423285,
+              -77.54113272910014
+            ],
+            "shapeId": "51830",
+            "stopId": "163126",
+            "stopName": "Point of Rocks MARC Train Station",
+            "stopTimeCsvRowNumber": 14181,
+            "tripCsvRowNumber": 778,
+            "tripId": "714501"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 3
+      },
+      {
+        "code": "fast_travel_between_far_stops",
+        "sample_notices": [
+          {
+            "arrivalTime2": "06:40:00",
+            "csvRowNumber1": 13468,
+            "csvRowNumber2": 13470,
+            "departureTime1": "30:20:00",
+            "distanceKm": 22.40454342506966,
+            "routeId": "6163",
+            "speedKph": 1344.2726055041796,
+            "stopId1": "162970",
+            "stopId2": "163122",
+            "stopName1": "Fairview Avenue at College Park Plaza (The Common Market)",
+            "stopName2": "Church St at CVS",
+            "stopSequence1": 4,
+            "stopSequence2": 6,
+            "tripCsvRowNumber": 738,
+            "tripId": "714468"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "stop_too_far_from_shape",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 318.28558766777377,
+            "match": [
+              39.391202107585556,
+              -77.44953970750211
+            ],
+            "shapeId": "51829",
+            "stopId": "163156",
+            "stopName": "Jefferson Tech Park (Jefferson Station Boulevard at Mary Lou Lane)",
+            "stopTimeCsvRowNumber": 12720,
+            "tripCsvRowNumber": 681,
+            "tripId": "714491"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "stops_match_shape_out_of_order",
+        "sample_notices": [
+          {
+            "match1": [
+              39.3790231536472,
+              -77.42139148541713
+            ],
+            "match2": [
+              39.41022907480635,
+              -77.44559659961938
+            ],
+            "shapeId": "51783",
+            "stopId1": "162843",
+            "stopId2": "162842",
+            "stopName1": "Hillcrest Drive at Hill Street",
+            "stopName2": "Seneca Drive at Hillcrest Drive",
+            "stopTimeCsvRowNumber1": 343,
+            "stopTimeCsvRowNumber2": 342,
+            "tripCsvRowNumber": 19,
+            "tripId": "713825"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "big_gap_in_service",
+        "sample_notices": [
+          {
+            "gapDurationDays": 31,
+            "gapEndDate": "2023-12-26",
+            "gapStartDate": "2023-11-24",
+            "serviceId": "51783.134015"
+          },
+          {
+            "gapDurationDays": 320,
+            "gapEndDate": "2024-11-11",
+            "gapStartDate": "2023-12-26",
+            "serviceId": "51783.134015"
+          },
+          {
+            "gapDurationDays": 44,
+            "gapEndDate": "2024-12-26",
+            "gapStartDate": "2024-11-11",
+            "serviceId": "51783.134015"
+          },
+          {
+            "gapDurationDays": 150,
+            "gapEndDate": "2025-05-26",
+            "gapStartDate": "2024-12-26",
+            "serviceId": "51783.134015"
+          },
+          {
+            "gapDurationDays": 213,
+            "gapEndDate": "2025-12-26",
+            "gapStartDate": "2025-05-26",
+            "serviceId": "51783.134015"
+          }
+        ],
+        "severity": "INFO",
+        "total": 6
+      },
+      {
+        "code": "service_window_outside_feed_period",
+        "sample_notices": [
+          {
+            "daysAfterFeedEnd": 516,
+            "daysBeforeFeedStart": 547,
+            "serviceId": "51839.134159",
+            "serviceWindowEndDate": "2027-12-31",
+            "serviceWindowStartDate": "2025-01-01"
+          },
+          {
+            "daysAfterFeedEnd": 510,
+            "daysBeforeFeedStart": 544,
+            "serviceId": "51790.134035",
+            "serviceWindowEndDate": "2027-12-25",
+            "serviceWindowStartDate": "2025-01-04"
+          },
+          {
+            "daysAfterFeedEnd": 516,
+            "daysBeforeFeedStart": 546,
+            "serviceId": "51783.134013",
+            "serviceWindowEndDate": "2027-12-31",
+            "serviceWindowStartDate": "2025-01-02"
+          },
+          {
+            "daysAfterFeedEnd": 101,
+            "daysBeforeFeedStart": 965,
+            "serviceId": "51783.134015",
+            "serviceWindowEndDate": "2026-11-11",
+            "serviceWindowStartDate": "2023-11-10"
+          }
+        ],
+        "severity": "INFO",
+        "total": 4
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "27397601757b1cd7c3596a0973b140492011285f6cca54ed566c2a9355f58a2c",
+  "validator_version": "8.0.1"
+}

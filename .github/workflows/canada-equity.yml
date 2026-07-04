@@ -1,0 +1,50 @@
+name: Canada equity (CIMD)
+
+# Refresh the Canada served-area equity overlay from the Statistics Canada
+# Canadian Index of Multiple Deprivation (ADR 0027). The CIMD is a static 2021
+# index, so this runs monthly (and on demand): for each Canadian agency it reads
+# the stops from the committed geometry artifact, queries the StatCan CIMD ESRI
+# REST service for the dissemination areas the feed serves, and computes a
+# within-Canada served-area need tier. No API key is needed. The territories are
+# excluded from the CIMD, so a feed there (e.g. Yukon) reads as no-coverage. The
+# agency pages and /api/v1/canada-equity.json read the committed result.
+
+on:
+  schedule:
+    - cron: "43 7 1 * *" # first of the month, early UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: canada-equity
+  cancel-in-progress: false
+
+jobs:
+  overlay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+      - name: Compute the Canada CIMD overlay
+        working-directory: pipeline
+        run: uv run scorecard canada-equity
+      - name: Commit the overlay
+        run: |
+          git config user.name "scorecard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/artifacts/canada-equity.json || true
+          if git diff --cached --quiet; then
+            echo "No overlay change."
+          else
+            git commit -m "chore(equity): refresh Canada CIMD overlay"
+            for attempt in 1 2 3 4 5; do
+              if git push origin HEAD:main; then break; fi
+              git fetch origin main
+              git rebase origin/main || { git rebase --abort; exit 1; }
+              sleep 3
+            done
+          fi

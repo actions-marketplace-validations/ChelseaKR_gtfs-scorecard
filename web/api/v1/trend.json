@@ -1,0 +1,173 @@
+{
+  "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
+  "generated_at": "2026-07-03T15:52:09+00:00",
+  "license": "CC-BY-4.0",
+  "points": [
+    {
+      "agency_count": 1446,
+      "average_score": 61.0,
+      "date": "2026-06-30",
+      "expired_pct": 42.7,
+      "grade_distribution": {
+        "A": 53,
+        "B": 247,
+        "C": 269,
+        "D": 165,
+        "F": 712
+      }
+    },
+    {
+      "agency_count": 1449,
+      "average_score": 61.0,
+      "date": "2026-07-01",
+      "expired_pct": 42.7,
+      "grade_distribution": {
+        "A": 53,
+        "B": 245,
+        "C": 274,
+        "D": 168,
+        "F": 709
+      }
+    },
+    {
+      "agency_count": 1449,
+      "average_score": 61.0,
+      "date": "2026-07-02",
+      "expired_pct": 42.6,
+      "grade_distribution": {
+        "A": 52,
+        "B": 247,
+        "C": 271,
+        "D": 171,
+        "F": 708
+      }
+    },
+    {
+      "agency_count": 1449,
+      "average_score": 61.0,
+      "date": "2026-07-03",
+      "expired_pct": 42.6,
+      "grade_distribution": {
+        "A": 52,
+        "B": 247,
+        "C": 268,
+        "D": 168,
+        "F": 714
+      }
+    }
+  ],
+  "summary": {
+    "first": {
+      "average_score": 61.0,
+      "date": "2026-06-30"
+    },
+    "last": {
+      "average_score": 61.0,
+      "date": "2026-07-03"
+    },
+    "points": 4,
+    "score_delta": 0.0
+  },
+  "top_improvers": [
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-16",
+      "delta": 34.9,
+      "grade_end": "B",
+      "id": "devils-postpile-national-monument",
+      "name": "Reds Meadow Shuttle",
+      "score_end": 85.6,
+      "score_start": 50.7
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-19",
+      "delta": 34.5,
+      "grade_end": "B",
+      "id": "roaring-fork-transportation-authority",
+      "name": "Roaring Fork Transportation Authority",
+      "score_end": 83.7,
+      "score_start": 49.2
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-19",
+      "delta": 31.7,
+      "grade_end": "C",
+      "id": "detroit-department-of-transportation-ddot",
+      "name": "Detroit Department of Transportation (DDOT)",
+      "score_end": 73.5,
+      "score_start": 41.8
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-19",
+      "delta": 31.3,
+      "grade_end": "C",
+      "id": "metropolitan-transit-authority-mta-513",
+      "name": "Manhattan Bus",
+      "score_end": 70.4,
+      "score_start": 39.1
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-19",
+      "delta": 28.6,
+      "grade_end": "B",
+      "id": "rocky-mountain-national-park",
+      "name": "Rocky Mountain National Park Shuttles",
+      "score_end": 81.3,
+      "score_start": 52.7
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-19",
+      "delta": 27.8,
+      "grade_end": "D",
+      "id": "metropolitan-transit-authority-mta-512",
+      "name": "Brooklyn Bus",
+      "score_end": 69.2,
+      "score_start": 41.4
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-16",
+      "delta": 27.7,
+      "grade_end": "B",
+      "id": "laguna-beach-transit-lbt",
+      "name": "Laguna Beach Transit (LBT)",
+      "score_end": 81.9,
+      "score_start": 54.2
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-19",
+      "delta": 26.1,
+      "grade_end": "D",
+      "id": "metropolitan-transit-authority-mta-510",
+      "name": "NYC Bus Company",
+      "score_end": 63.2,
+      "score_start": 37.1
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-19",
+      "delta": 26.0,
+      "grade_end": "D",
+      "id": "metropolitan-transit-authority-mta-528",
+      "name": "Bronx Bus",
+      "score_end": 69.1,
+      "score_start": 43.1
+    },
+    {
+      "date_end": "2026-07-03",
+      "date_start": "2026-06-19",
+      "delta": 26.0,
+      "grade_end": "D",
+      "id": "metropolitan-transit-authority-mta-520",
+      "name": "Queens Bus",
+      "score_end": 69.5,
+      "score_start": 43.5
+    }
+  ]
+}

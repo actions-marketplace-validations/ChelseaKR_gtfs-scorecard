@@ -1,0 +1,14 @@
+agency_id,agency_name,grade,score,checked,expiry_status,days_until_expiry,needs_attention,attention_reason,top_fix
+muncie-indiana-transit-system-mits,Muncie Indiana Transit System (MITS),F,29.5,2026-07-03,stale,-3485,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+bloomington-transit,Bloomington Transit,F,32.1,2026-07-03,stale,-1413,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+indygo,IndyGo,F,37.4,2026-07-03,stale,-860,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+citilink,Citilink,F,38.9,2026-07-03,stale,-2741,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+terre-haute-transit-utility,Terre Haute Transit Utility,F,52.0,2026-07-03,stale,-367,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+terre-haute-transit-utility-387,Terre Haute Transit Utility,F,52.0,2026-07-03,stale,-367,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+citybus-of-greater-lafayette-indiana-citybus,CityBus of Greater Lafayette Indiana (CityBus),C,79.1,2026-07-03,current,51,yes,Service data expires in 51 day(s),Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+bloomington-transit-2066,Bloomington Transit,C,75.3,2026-07-03,current,354,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+citilink-2266,Citilink,B,83.0,2026-07-03,current,181,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+valparaiso-transit,Valparaiso Transit,B,84.9,2026-07-03,current,121,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+valparaiso-transit-620,Valparaiso Transit,B,84.9,2026-07-03,current,121,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+interurban-trolley,Interurban Trolley,B,85.2,2026-07-03,current,181,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+south-shore-line,South Shore Line,B,89.7,2026-07-03,current,1642,no,,"Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs."

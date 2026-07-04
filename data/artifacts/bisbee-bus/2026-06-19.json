@@ -1,0 +1,131 @@
+{
+  "agency": {
+    "id": "bisbee-bus",
+    "name": "Bisbee Bus"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 15.0,
+          "stop_names": 14.6,
+          "wheelchair_stops": 24.3,
+          "wheelchair_trips": 15.0
+        },
+        "has_fares": true,
+        "headsign_pct": 100.0,
+        "mixed_case_stop_name_pct": 97.1,
+        "stops": 35,
+        "trips": 14,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 97.1,
+        "wheelchair_marked_accessible_pct": 97.1
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 1,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "severity": "WARNING",
+          "what": "1 of 35 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        }
+      ],
+      "name": "completeness",
+      "score": 98.9,
+      "status": "measured",
+      "summary": "97% of stops state wheelchair accessibility (97% marked accessible). Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 1,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 1,
+          "WARNING": 0
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "service_window_outside_feed_period",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Service window outside feed period (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 99.5,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 1 kinds of issues: 0 error, 0 warning, and 1 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 570,
+        "feed_end_date": "2028-01-10",
+        "feed_start_date": "2025-06-01",
+        "feed_version": "20260613",
+        "has_feed_info": true,
+        "last_service_date": "2028-01-10"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 570 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "No stated data license in the Mobility Database; verify before publishing.",
+    "reachable": true,
+    "sha256": "f42598daa92a7726e2a190d2df1baa580c807a82ed640ce9e4db5670a8ef10ce",
+    "size_bytes": 70141,
+    "static_url": "https://rapid.nationalrtap.org/GTFSFileManagement/UserUploadFiles/11816/Bisbee_AZ_GTFS.zip"
+  },
+  "generated_at": "2026-06-19T00:00:00+00:00",
+  "overall": {
+    "grade": "A",
+    "score": 99.4
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.3",
+  "snapshot_date": "2026-06-19",
+  "top_fixes": [
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 1,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "1 of 35 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    },
+    {
+      "code": "service_window_outside_feed_period",
+      "count": 1,
+      "effort": "Varies.",
+      "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+      "rank": 2,
+      "severity": "INFO",
+      "what": "Service window outside feed period (flagged by the MobilityData validator).",
+      "why": "See the linked rule for what this affects."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

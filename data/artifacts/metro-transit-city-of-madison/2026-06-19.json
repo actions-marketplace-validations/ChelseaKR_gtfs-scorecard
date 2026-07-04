@@ -1,0 +1,215 @@
+{
+  "agency": {
+    "id": "metro-transit-city-of-madison",
+    "name": "Metro Transit - City of Madison"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 15.0,
+          "stop_names": 15.0,
+          "wheelchair_stops": 21.9,
+          "wheelchair_trips": 15.0
+        },
+        "has_fares": true,
+        "headsign_pct": 100.0,
+        "mixed_case_stop_name_pct": 100.0,
+        "stops": 1684,
+        "trips": 6331,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 87.8,
+        "wheelchair_marked_accessible_pct": 87.8
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 206,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "severity": "WARNING",
+          "what": "206 of 1684 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        }
+      ],
+      "name": "completeness",
+      "score": 96.9,
+      "status": "measured",
+      "summary": "88% of stops state wheelchair accessibility (88% marked accessible). Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 6,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 20,
+          "WARNING": 3476
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "mixed_case_recommended_field",
+          "count": 3454,
+          "effort": "Often a bulk fix in your scheduling software.",
+          "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+          "severity": "WARNING",
+          "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+          "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
+        },
+        {
+          "code": "stop_without_stop_time",
+          "count": 21,
+          "effort": "A review pass in your scheduling software.",
+          "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+          "severity": "WARNING",
+          "what": "Some stops exist in the feed but no trip ever stops at them.",
+          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+        },
+        {
+          "code": "expired_calendar",
+          "count": 1,
+          "effort": "One setting in most export tools.",
+          "fix": "Remove past service periods the next time you export the feed.",
+          "severity": "WARNING",
+          "what": "Some service calendars in the feed have already expired.",
+          "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
+        },
+        {
+          "code": "unknown_column",
+          "count": 14,
+          "effort": "A quick look at the flagged files.",
+          "fix": "Check the flagged column names for misspellings of standard GTFS fields; remove them if they are vendor extras.",
+          "severity": "INFO",
+          "what": "Some files contain columns that are not part of the GTFS spec.",
+          "why": "Harmless to riders, but apps ignore these columns and they can hide typos in real column names."
+        },
+        {
+          "code": "unknown_file",
+          "count": 5,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Unknown file (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "big_gap_in_service",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Big gap in service (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 80.2,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 6 kinds of issues: 0 error, 3476 warning, and 20 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 57,
+        "feed_end_date": "2026-08-15",
+        "feed_start_date": "2026-05-10",
+        "feed_version": "S070_202605050858",
+        "has_feed_info": true,
+        "last_service_date": "2026-08-15"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 95.0,
+      "status": "measured",
+      "summary": "Service data covers the next 57 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "details": {
+        "coverage_pct": 97.7,
+        "covered_trips": 42,
+        "drift": {
+          "median_seconds": 0,
+          "observations": 3748,
+          "on_time_share_pct": 84.1,
+          "p90_abs_seconds": 353
+        },
+        "kinds_reachable": 3,
+        "rt_freshness": "fresh",
+        "samples": 9,
+        "scheduled_trips_in_window": 43,
+        "vehicles_checked": 141,
+        "vehicles_on_route_pct": 100.0,
+        "worst_lag_seconds": 21
+      },
+      "findings": [
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 1,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "severity": "WARNING",
+          "what": "1 of 43 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        }
+      ],
+      "name": "realtime",
+      "score": 99.2,
+      "status": "measured",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 97.7% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 0s behind schedule.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "No stated data license in the Mobility Database; verify before publishing.",
+    "reachable": true,
+    "sha256": "44255d6d938c2951ab76f7dc4f2f1ec2af2bb848578d58e93d1a14eb901b12be",
+    "size_bytes": 5587828,
+    "static_url": "http://transitdata.cityofmadison.com/GTFS/mmt_gtfs.zip"
+  },
+  "generated_at": "2026-06-19T00:00:00+00:00",
+  "overall": {
+    "grade": "A",
+    "score": 91.2
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.3",
+  "snapshot_date": "2026-06-19",
+  "top_fixes": [
+    {
+      "code": "mixed_case_recommended_field",
+      "count": 3454,
+      "effort": "Often a bulk fix in your scheduling software.",
+      "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+      "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
+    },
+    {
+      "code": "stop_without_stop_time",
+      "count": 21,
+      "effort": "A review pass in your scheduling software.",
+      "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "Some stops exist in the feed but no trip ever stops at them.",
+      "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+    },
+    {
+      "code": "expired_calendar",
+      "count": 1,
+      "effort": "One setting in most export tools.",
+      "fix": "Remove past service periods the next time you export the feed.",
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "Some service calendars in the feed have already expired.",
+      "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

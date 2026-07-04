@@ -1,0 +1,10 @@
+agency_id,agency_name,grade,score,checked,expiry_status,days_until_expiry,needs_attention,attention_reason,top_fix
+capital-transit-310,Capital Transit,F,43.5,2026-07-03,stale,-1554,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+butte-regional-transit-b-line,Butte Regional Transit (B-Line),F,45.2,2026-07-03,lapsed,-188,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+butte-silver-bow,Butte-Silver Bow,F,48.7,2026-07-03,stale,-1950,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+butte-silver-bow-291,Butte-Silver Bow,F,48.7,2026-07-03,stale,-1950,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+university-of-montana-udash,University of Montana (UDASH),F,49.9,2026-07-03,stale,-783,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+university-of-montana-udash-293,University of Montana (UDASH),F,49.9,2026-07-03,stale,-783,yes,Service data has expired,"Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+mountain-line,Mountain Line,C,73.5,2026-07-03,current,181,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+streamline,Streamline,B,80.3,2026-07-03,current,912,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+streamline-295,Streamline,B,80.3,2026-07-03,current,912,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.

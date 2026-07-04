@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>GTFS Scorecard: Amtrak San Joaquins feed quality changes</title>
+  <subtitle>Grade moves, expiry warnings, and score swings for Amtrak San Joaquins's GTFS feed.</subtitle>
+  <id>tag:gtfsscorecard.org,2026:agency/amtrak-san-joaquins/changes</id>
+  <link rel="self" type="application/atom+xml" href="https://gtfsscorecard.org/agency/amtrak-san-joaquins/feed.xml"/>
+  <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/amtrak-san-joaquins/"/>
+  <updated>2026-06-30T00:00:00Z</updated>
+  <author><name>GTFS Scorecard</name></author>
+  <generator uri="https://gtfsscorecard.org">GTFS Scorecard</generator>
+  <entry>
+    <title>Amtrak San Joaquins: Feed expired.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/amtrak-san-joaquins/2026-06-30/expiry</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/amtrak-san-joaquins/"/>
+    <updated>2026-06-30T00:00:00Z</updated>
+    <category term="expiry"/>
+    <summary>Feed expired.</summary>
+  </entry>
+</feed>

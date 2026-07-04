@@ -1,0 +1,54 @@
+{
+  "agency_count": 3,
+  "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
+  "cemv": {
+    "count": 0,
+    "pct": 0.0
+  },
+  "fare_models": {
+    "legacy": 0,
+    "none": 2,
+    "v2": 1
+  },
+  "fares": {
+    "count": 1,
+    "pct": 33.3
+  },
+  "fares_v2": {
+    "count": 1,
+    "pct": 33.3
+  },
+  "fares_v2_sample": [
+    {
+      "id": "unitrans",
+      "name": "Unitrans (ASUCD / City of Davis)",
+      "state": "Unlocated"
+    }
+  ],
+  "flex": {
+    "count": 0,
+    "pct": 0.0
+  },
+  "flex_sample": [],
+  "generated_at": "2026-07-02T03:39:07+00:00",
+  "license": "CC-BY-4.0",
+  "pathways": {
+    "count": 0,
+    "pct": 0.0
+  },
+  "pathways_sample": [],
+  "states": [
+    {
+      "agencies": 3,
+      "fares": 1,
+      "fares_v2": 1,
+      "flex": 0,
+      "pathways": 0,
+      "state": "Unlocated"
+    }
+  ],
+  "step_free": {
+    "count": 0,
+    "pct": 0.0
+  }
+}

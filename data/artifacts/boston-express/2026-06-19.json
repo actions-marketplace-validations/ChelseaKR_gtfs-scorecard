@@ -1,0 +1,187 @@
+{
+  "agency": {
+    "id": "boston-express",
+    "name": "Boston Express"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 15.0,
+          "fares": 0.0,
+          "headsigns": 0.0,
+          "stop_names": 15.0,
+          "wheelchair_stops": 0.0,
+          "wheelchair_trips": 15.0
+        },
+        "has_fares": false,
+        "headsign_pct": 0.0,
+        "mixed_case_stop_name_pct": 100.0,
+        "stops": 6,
+        "trips": 74,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 0.0,
+        "wheelchair_marked_accessible_pct": 0.0
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 6,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "severity": "WARNING",
+          "what": "6 of 6 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_no_fare_data",
+          "count": 1,
+          "effort": "A small file for most flat-fare systems.",
+          "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure.",
+          "severity": "WARNING",
+          "what": "The feed contains no fare information.",
+          "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+        },
+        {
+          "code": "scorecard_missing_headsigns",
+          "count": 74,
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Populate trip_headsign to match what the bus displays.",
+          "severity": "WARNING",
+          "what": "74 of 74 trips have no headsign.",
+          "why": "Riders at the stop can't tell which direction a bus is going."
+        }
+      ],
+      "name": "completeness",
+      "score": 45.0,
+      "status": "measured",
+      "summary": "0% of stops state wheelchair accessibility (0% marked accessible). Fare data is not published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 3,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 74,
+          "WARNING": 281
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "missing_timepoint_value",
+          "count": 279,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'missing_timepoint_value' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Missing timepoint value (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "missing_recommended_field",
+          "count": 2,
+          "effort": "A field at a time; not urgent.",
+          "fix": "Review the flagged fields and fill in the ones your riders would use.",
+          "severity": "WARNING",
+          "what": "Some files are missing recommended (not required) fields.",
+          "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
+        },
+        {
+          "code": "service_extends_far_in_the_future",
+          "count": 74,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'service_extends_far_in_the_future' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Service extends far in the future (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 87.0,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 3 kinds of issues: 0 error, 281 warning, and 74 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 926,
+        "feed_end_date": null,
+        "feed_start_date": null,
+        "feed_version": "1",
+        "has_feed_info": true,
+        "last_service_date": "2028-12-31"
+      },
+      "findings": [
+        {
+          "code": "scorecard_missing_feed_info_dates",
+          "count": 1,
+          "effort": "Two fields, set once in export settings.",
+          "fix": "Add feed_info.txt with feed_start_date and feed_end_date to your export.",
+          "severity": "WARNING",
+          "what": "feed_info.txt is missing its start/end dates",
+          "why": "Apps and this scorecard can't warn anyone before the feed goes stale without stated validity dates."
+        }
+      ],
+      "name": "freshness",
+      "score": 85.0,
+      "status": "measured",
+      "summary": "Service data covers the next 926 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "No stated data license in the Mobility Database; verify before publishing.",
+    "reachable": true,
+    "sha256": "a6dbd479525ac1c374beef72507fbe29ae6ceaa3ce3bc5a4a1e21347274881a8",
+    "size_bytes": 5812,
+    "static_url": "https://rapid.nationalrtap.org/GTFSFileManagement/UserUploadFiles/11782/GTFS.zip"
+  },
+  "generated_at": "2026-06-19T00:00:00+00:00",
+  "overall": {
+    "grade": "C",
+    "score": 73.4
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.3",
+  "snapshot_date": "2026-06-19",
+  "top_fixes": [
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 6,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "6 of 6 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    },
+    {
+      "code": "scorecard_missing_headsigns",
+      "count": 74,
+      "effort": "Usually a bulk edit in your scheduling software.",
+      "fix": "Populate trip_headsign to match what the bus displays.",
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "74 of 74 trips have no headsign.",
+      "why": "Riders at the stop can't tell which direction a bus is going."
+    },
+    {
+      "code": "scorecard_missing_feed_info_dates",
+      "count": 1,
+      "effort": "Two fields, set once in export settings.",
+      "fix": "Add feed_info.txt with feed_start_date and feed_end_date to your export.",
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "feed_info.txt is missing its start/end dates",
+      "why": "Apps and this scorecard can't warn anyone before the feed goes stale without stated validity dates."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

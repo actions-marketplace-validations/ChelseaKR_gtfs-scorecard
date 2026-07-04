@@ -1,0 +1,522 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "same_route_and_agency_url",
+        "sample_notices": [
+          {
+            "agencyCsvRowNumber": 3,
+            "agencyName": "Roadrunner Shuttle",
+            "routeCsvRowNumber": 2,
+            "routeId": "18650",
+            "routeUrl": "https://www.amtrak.com/thruway-connecting-services-multiply-your-travel-destinations"
+          },
+          {
+            "agencyCsvRowNumber": 8,
+            "agencyName": "Arrow Trailways",
+            "routeCsvRowNumber": 2,
+            "routeId": "18650",
+            "routeUrl": "https://www.amtrak.com/thruway-connecting-services-multiply-your-travel-destinations"
+          },
+          {
+            "agencyCsvRowNumber": 10,
+            "agencyName": "Executive Transportation",
+            "routeCsvRowNumber": 2,
+            "routeId": "18650",
+            "routeUrl": "https://www.amtrak.com/thruway-connecting-services-multiply-your-travel-destinations"
+          },
+          {
+            "agencyCsvRowNumber": 11,
+            "agencyName": "Stagecoach Express",
+            "routeCsvRowNumber": 2,
+            "routeId": "18650",
+            "routeUrl": "https://www.amtrak.com/thruway-connecting-services-multiply-your-travel-destinations"
+          },
+          {
+            "agencyCsvRowNumber": 12,
+            "agencyName": "Amtrak Chartered Motorcoach",
+            "routeCsvRowNumber": 2,
+            "routeId": "18650",
+            "routeUrl": "https://www.amtrak.com/thruway-connecting-services-multiply-your-travel-destinations"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 242
+      },
+      {
+        "code": "stop_too_far_from_shape",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 354.4473918891339,
+            "match": [
+              42.10396100000003,
+              -72.59622199899997
+            ],
+            "shapeId": "190",
+            "stopId": "SPG",
+            "stopName": "Springfield",
+            "stopTimeCsvRowNumber": 19575,
+            "tripCsvRowNumber": 2114,
+            "tripId": "278957"
+          },
+          {
+            "geoDistanceToShape": 100.75616242043166,
+            "match": [
+              41.29718964936795,
+              -72.92568637227626
+            ],
+            "shapeId": "190",
+            "stopId": "NHV",
+            "stopName": "New Haven",
+            "stopTimeCsvRowNumber": 19579,
+            "tripCsvRowNumber": 2114,
+            "tripId": "278957"
+          },
+          {
+            "geoDistanceToShape": 100.75616242043166,
+            "match": [
+              41.29718964936795,
+              -72.92568637227626
+            ],
+            "shapeId": "191",
+            "stopId": "NHV",
+            "stopName": "New Haven",
+            "stopTimeCsvRowNumber": 17291,
+            "tripCsvRowNumber": 1523,
+            "tripId": "278427"
+          },
+          {
+            "geoDistanceToShape": 354.4473918891339,
+            "match": [
+              42.10396100000003,
+              -72.59622199899997
+            ],
+            "shapeId": "191",
+            "stopId": "SPG",
+            "stopName": "Springfield",
+            "stopTimeCsvRowNumber": 17295,
+            "tripCsvRowNumber": 1523,
+            "tripId": "278427"
+          },
+          {
+            "geoDistanceToShape": 102.32718192727317,
+            "match": [
+              38.62331956280076,
+              -90.20433609053903
+            ],
+            "shapeId": "193",
+            "stopId": "STL",
+            "stopName": "St. Louis",
+            "stopTimeCsvRowNumber": 3324,
+            "tripCsvRowNumber": 2908,
+            "tripId": "270816"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 135
+      },
+      {
+        "code": "fast_travel_between_consecutive_stops",
+        "sample_notices": [
+          {
+            "arrivalTime2": "51:09:00",
+            "csvRowNumber1": 14471,
+            "csvRowNumber2": 14472,
+            "departureTime1": "51:09:00",
+            "distanceKm": 63.51489087820268,
+            "routeId": "51",
+            "speedKph": 3810.8934526921607,
+            "stopId1": "KNG",
+            "stopId2": "NDL",
+            "stopName1": "Kingman",
+            "stopName2": "Needles Amtrak",
+            "stopSequence1": 25,
+            "stopSequence2": 26,
+            "tripCsvRowNumber": 762,
+            "tripId": "277258"
+          },
+          {
+            "arrivalTime2": "39:05:00",
+            "csvRowNumber1": 556,
+            "csvRowNumber2": 557,
+            "departureTime1": "35:05:00",
+            "distanceKm": 2478.50403643086,
+            "routeId": "42954",
+            "speedKph": 617.0549468292598,
+            "stopId1": "LBO",
+            "stopId2": "GLY",
+            "stopName1": "Lbo",
+            "stopName2": "Gilroy",
+            "stopSequence1": 2,
+            "stopSequence2": 3,
+            "tripCsvRowNumber": 62,
+            "tripId": "228161"
+          },
+          {
+            "arrivalTime2": "03:20:00",
+            "csvRowNumber1": 3676,
+            "csvRowNumber2": 3677,
+            "departureTime1": "03:20:00",
+            "distanceKm": 47.69637424074291,
+            "routeId": "42912",
+            "speedKph": 2861.782454444575,
+            "stopId1": "KNG",
+            "stopId2": "LNV",
+            "stopName1": "Kingman",
+            "stopName2": "Laughlin Amtrak Bus Stop",
+            "stopSequence1": 1,
+            "stopSequence2": 2,
+            "tripCsvRowNumber": 2882,
+            "tripId": "270869"
+          },
+          {
+            "arrivalTime2": "06:12:00",
+            "csvRowNumber1": 2246,
+            "csvRowNumber2": 2247,
+            "departureTime1": "06:00:00",
+            "distanceKm": 45.75986953210759,
+            "routeId": "42920",
+            "speedKph": 211.19939784049654,
+            "stopId1": "WIC",
+            "stopId2": "WEL",
+            "stopName1": "Wichita Amtrak Station",
+            "stopName2": "Wellington",
+            "stopSequence1": 2,
+            "stopSequence2": 3,
+            "tripCsvRowNumber": 390,
+            "tripId": "263556"
+          },
+          {
+            "arrivalTime2": "51:10:00",
+            "csvRowNumber1": 14503,
+            "csvRowNumber2": 14504,
+            "departureTime1": "51:09:00",
+            "distanceKm": 63.51489087820268,
+            "routeId": "51",
+            "speedKph": 1905.4467263460804,
+            "stopId1": "KNG",
+            "stopId2": "NDL",
+            "stopName1": "Kingman",
+            "stopName2": "Needles Amtrak",
+            "stopSequence1": 25,
+            "stopSequence2": 26,
+            "tripCsvRowNumber": 763,
+            "tripId": "277259"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 8
+      },
+      {
+        "code": "fast_travel_between_far_stops",
+        "sample_notices": [
+          {
+            "arrivalTime2": "51:09:00",
+            "csvRowNumber1": 14471,
+            "csvRowNumber2": 14472,
+            "departureTime1": "51:09:00",
+            "distanceKm": 63.51489087820268,
+            "routeId": "51",
+            "speedKph": 3810.8934526921607,
+            "stopId1": "KNG",
+            "stopId2": "NDL",
+            "stopName1": "Kingman",
+            "stopName2": "Needles Amtrak",
+            "stopSequence1": 25,
+            "stopSequence2": 26,
+            "tripCsvRowNumber": 762,
+            "tripId": "277258"
+          },
+          {
+            "arrivalTime2": "39:05:00",
+            "csvRowNumber1": 556,
+            "csvRowNumber2": 557,
+            "departureTime1": "35:05:00",
+            "distanceKm": 2478.50403643086,
+            "routeId": "42954",
+            "speedKph": 617.0549468292598,
+            "stopId1": "LBO",
+            "stopId2": "GLY",
+            "stopName1": "Lbo",
+            "stopName2": "Gilroy",
+            "stopSequence1": 2,
+            "stopSequence2": 3,
+            "tripCsvRowNumber": 62,
+            "tripId": "228161"
+          },
+          {
+            "arrivalTime2": "03:20:00",
+            "csvRowNumber1": 3676,
+            "csvRowNumber2": 3677,
+            "departureTime1": "03:20:00",
+            "distanceKm": 47.69637424074291,
+            "routeId": "42912",
+            "speedKph": 2861.782454444575,
+            "stopId1": "KNG",
+            "stopId2": "LNV",
+            "stopName1": "Kingman",
+            "stopName2": "Laughlin Amtrak Bus Stop",
+            "stopSequence1": 1,
+            "stopSequence2": 2,
+            "tripCsvRowNumber": 2882,
+            "tripId": "270869"
+          },
+          {
+            "arrivalTime2": "06:12:00",
+            "csvRowNumber1": 2246,
+            "csvRowNumber2": 2247,
+            "departureTime1": "06:00:00",
+            "distanceKm": 45.75986953210759,
+            "routeId": "42920",
+            "speedKph": 211.19939784049654,
+            "stopId1": "WIC",
+            "stopId2": "WEL",
+            "stopName1": "Wichita Amtrak Station",
+            "stopName2": "Wellington",
+            "stopSequence1": 2,
+            "stopSequence2": 3,
+            "tripCsvRowNumber": 390,
+            "tripId": "263556"
+          },
+          {
+            "arrivalTime2": "51:10:00",
+            "csvRowNumber1": 14503,
+            "csvRowNumber2": 14504,
+            "departureTime1": "51:09:00",
+            "distanceKm": 63.51489087820268,
+            "routeId": "51",
+            "speedKph": 1905.4467263460804,
+            "stopId1": "KNG",
+            "stopId2": "NDL",
+            "stopName1": "Kingman",
+            "stopName2": "Needles Amtrak",
+            "stopSequence1": 25,
+            "stopSequence2": 26,
+            "tripCsvRowNumber": 763,
+            "tripId": "277259"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 8
+      },
+      {
+        "code": "stops_match_shape_out_of_order",
+        "sample_notices": [
+          {
+            "match1": [
+              41.17809626932007,
+              -73.18673558222088
+            ],
+            "match2": [
+              41.29732443737298,
+              -72.92591678316212
+            ],
+            "shapeId": "378",
+            "stopId1": "BRP",
+            "stopId2": "NHV",
+            "stopName1": "Bridgeport Amtrak Station",
+            "stopName2": "New Haven",
+            "stopTimeCsvRowNumber1": 19623,
+            "stopTimeCsvRowNumber2": 19622,
+            "tripCsvRowNumber": 2116,
+            "tripId": "278959"
+          },
+          {
+            "match1": [
+              41.17809626932007,
+              -73.18673558222088
+            ],
+            "match2": [
+              41.29732443737298,
+              -72.92591678316212
+            ],
+            "shapeId": "378",
+            "stopId1": "BRP",
+            "stopId2": "NHV",
+            "stopName1": "Bridgeport Amtrak Station",
+            "stopName2": "New Haven",
+            "stopTimeCsvRowNumber1": 36068,
+            "stopTimeCsvRowNumber2": 36067,
+            "tripCsvRowNumber": 2632,
+            "tripId": "282023"
+          },
+          {
+            "match1": [
+              42.54243836786237,
+              -83.19128754854779
+            ],
+            "match2": [
+              42.632651376843306,
+              -83.29260950986136
+            ],
+            "shapeId": "53",
+            "stopId1": "TRM",
+            "stopId2": "PNT",
+            "stopName1": "Troy Amtrak Station",
+            "stopName2": "Pontiac Amtrak Station",
+            "stopTimeCsvRowNumber1": 31659,
+            "stopTimeCsvRowNumber2": 31658,
+            "tripCsvRowNumber": 2652,
+            "tripId": "281598"
+          },
+          {
+            "match1": [
+              42.54243836786237,
+              -83.19128754854779
+            ],
+            "match2": [
+              42.632651376843306,
+              -83.29260950986136
+            ],
+            "shapeId": "53",
+            "stopId1": "TRM",
+            "stopId2": "PNT",
+            "stopName1": "Troy Amtrak Station",
+            "stopName2": "Pontiac Amtrak Station",
+            "stopTimeCsvRowNumber1": 31746,
+            "stopTimeCsvRowNumber2": 31745,
+            "tripCsvRowNumber": 2654,
+            "tripId": "281605"
+          },
+          {
+            "match1": [
+              42.54243836786237,
+              -83.19128754854779
+            ],
+            "match2": [
+              42.632651376843306,
+              -83.29260950986136
+            ],
+            "shapeId": "53",
+            "stopId1": "TRM",
+            "stopId2": "PNT",
+            "stopName1": "Troy Amtrak Station",
+            "stopName2": "Pontiac Amtrak Station",
+            "stopTimeCsvRowNumber1": 31842,
+            "stopTimeCsvRowNumber2": 31841,
+            "tripCsvRowNumber": 2656,
+            "tripId": "281612"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 6
+      },
+      {
+        "code": "feed_expiration_date30_days",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "currentDate": "20260703",
+            "feedEndDate": "20260710",
+            "suggestedExpirationDate": "20260802"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "trip_headsign_matches_intermediate_stop",
+        "sample_notices": [
+          {
+            "csvRowNumber": 25,
+            "stopId1": "SKT",
+            "stopId2": "SKN",
+            "stopSequence": 1,
+            "tripHeadsign": "Stockton",
+            "tripId": "222248"
+          },
+          {
+            "csvRowNumber": 44,
+            "stopId1": "SKT",
+            "stopId2": "SKN",
+            "stopSequence": 1,
+            "tripHeadsign": "Stockton",
+            "tripId": "222798"
+          },
+          {
+            "csvRowNumber": 54,
+            "stopId1": "ARC",
+            "stopId2": "HSU",
+            "stopSequence": 13,
+            "tripHeadsign": "Arcata",
+            "tripId": "223530"
+          },
+          {
+            "csvRowNumber": 79,
+            "stopId1": "STS",
+            "stopId2": "NHV",
+            "stopSequence": 7,
+            "tripHeadsign": "New Haven",
+            "tripId": "185956"
+          },
+          {
+            "csvRowNumber": 89,
+            "stopId1": "SKT",
+            "stopId2": "SKN",
+            "stopSequence": 3,
+            "tripHeadsign": "Stockton",
+            "tripId": "242252"
+          }
+        ],
+        "severity": "INFO",
+        "total": 388
+      },
+      {
+        "code": "service_window_outside_feed_period",
+        "sample_notices": [
+          {
+            "daysAfterFeedEnd": 352,
+            "daysBeforeFeedStart": 6,
+            "serviceId": "307461797179",
+            "serviceWindowEndDate": "2027-06-27",
+            "serviceWindowStartDate": "2026-06-28"
+          },
+          {
+            "daysAfterFeedEnd": 50,
+            "daysBeforeFeedStart": 0,
+            "serviceId": "105761996241",
+            "serviceWindowEndDate": "2026-08-29",
+            "serviceWindowStartDate": "2026-07-18"
+          },
+          {
+            "daysAfterFeedEnd": 100,
+            "daysBeforeFeedStart": 0,
+            "serviceId": "106561996291",
+            "serviceWindowEndDate": "2026-10-18",
+            "serviceWindowStartDate": "2026-07-18"
+          },
+          {
+            "daysAfterFeedEnd": 350,
+            "daysBeforeFeedStart": 0,
+            "serviceId": "100270087179",
+            "serviceWindowEndDate": "2027-06-25",
+            "serviceWindowStartDate": "2027-01-08"
+          },
+          {
+            "daysAfterFeedEnd": 7,
+            "daysBeforeFeedStart": 6,
+            "serviceId": "212761796198",
+            "serviceWindowEndDate": "2026-07-17",
+            "serviceWindowStartDate": "2026-06-28"
+          }
+        ],
+        "severity": "INFO",
+        "total": 380
+      },
+      {
+        "code": "future_feed",
+        "sample_notices": [
+          {
+            "currentDate": "20260703",
+            "feedStartDate": "20260704"
+          }
+        ],
+        "severity": "INFO",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "aec024d9030c5394e471a0ed9dff6190454885efa8661a405c153e2ed03ba929",
+  "validator_version": "8.0.1"
+}

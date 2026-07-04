@@ -1,0 +1,756 @@
+"""The self-serve tool pages: /compare/, /query/, and /check/.
+
+Extracted from render_site.py: these three pages share a shape (client-side
+tools over published data, plain semantic HTML with the work announced via a
+status region) and none of them reads artifacts at render time — compare gets
+the catalog it lists, query and check are pure. See each docstring for the
+page's accessibility and no-shaming rules.
+"""
+
+# ruff: noqa: E501  (long inline-HTML lines, matching render_site)
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from .site_shell import BASE_URL, CATEGORY_LABELS, CATEGORY_ORDER, _breadcrumb, _page, esc
+
+
+def _render_compare_page(catalog: list[dict[str, Any]]) -> str:
+    """The side-by-side compare page (/compare/?a=<id>&b=<id>).
+
+    Two agencies' latest artifacts, loaded client-side and rendered as one
+    accessible table: overall grade, each rubric category, days of service
+    left, and the adoption flags (fares, flex, pathways). The pickers are
+    plain selects submitted as a GET form, so choosing agencies works with
+    JavaScript off and every comparison has a shareable URL; only the result
+    table itself needs JS, and the noscript path says so. An unmeasured
+    realtime category renders as "Not yet published", never as a zero
+    (docs/SIDE_BY_SIDE_COMPARE_DESIGN.md)."""
+    options = "".join(
+        f'<option value="{esc(r["id"])}">{esc(r["name"])}'
+        + (f" &mdash; {esc(r['state'])}" if r.get("state") else "")
+        + "</option>"
+        for r in sorted(catalog, key=lambda r: str(r["name"]).lower())
+    )
+    labels = json.dumps(
+        [[key, CATEGORY_LABELS[key]] for key in CATEGORY_ORDER], separators=(",", ":")
+    )
+    body = f"""    {_breadcrumb([("Home", "/"), ("Compare agencies", None)])}
+    <a class="backlink" href="/">&larr; Home</a>
+    <h1 class="page-title">Compare two agencies.</h1>
+    <p class="page-lede">Put two scorecards side by side: overall grade, each category,
+    days of service left, and which optional
+    <abbr title="General Transit Feed Specification">GTFS</abbr> features each feed has
+    adopted. Pick two agencies and the page builds one table from their latest
+    scorecards.</p>
+    <form class="map-filters" action="/compare/" method="get" aria-label="Choose two agencies to compare">
+      <div class="map-filter-row">
+        <label for="compare-a">First agency</label>
+        <select id="compare-a" name="a" required>
+          <option value="">Choose an agency</option>{options}
+        </select>
+      </div>
+      <div class="map-filter-row">
+        <label for="compare-b">Second agency</label>
+        <select id="compare-b" name="b" required>
+          <option value="">Choose an agency</option>{options}
+        </select>
+      </div>
+      <div class="map-filter-row">
+        <button type="submit" class="copy-btn">Compare</button>
+      </div>
+    </form>
+    <p id="compare-status" role="status"></p>
+    <div id="compare-result"></div>
+    <noscript><p>Building the comparison table needs JavaScript. The pickers above still
+    work: choose two agencies to get a shareable link, or open each scorecard from the
+    <a href="/agencies/">agency directory</a>.</p></noscript>
+    <p class="fineprint">Category scores measure published data quality, not service
+    quality, and a missing realtime feed is shown as not yet published, never as a
+    failure. <a href="/how-to-read/">How to read a scorecard.</a></p>
+    <script>
+      (function () {{
+        var CATS = {labels};
+        var selA = document.getElementById("compare-a");
+        var selB = document.getElementById("compare-b");
+        var statusEl = document.getElementById("compare-status");
+        var result = document.getElementById("compare-result");
+        var params = new URLSearchParams(window.location.search);
+        var a = params.get("a"), b = params.get("b");
+        if (!a || !b) return;
+        selA.value = a; selB.value = b;
+        if (selA.value !== a || selB.value !== b) {{
+          statusEl.textContent = "We don't track a scorecard for \\"" +
+            (selA.value !== a ? a : b) + "\\". Pick two agencies from the lists above.";
+          return;
+        }}
+        if (a === b) {{
+          statusEl.textContent = "Pick two different agencies to compare.";
+          return;
+        }}
+        statusEl.textContent = "Loading both scorecards\\u2026";
+        function fetchArtifact(id) {{
+          return fetch("/data/artifacts/" + encodeURIComponent(id) + "/latest.json")
+            .then(function (r) {{
+              if (!r.ok) throw new Error(id);
+              return r.json();
+            }});
+        }}
+        function el(tag, text) {{
+          var e = document.createElement(tag);
+          if (text !== undefined) e.textContent = text;
+          return e;
+        }}
+        // A score cell; when this side is measured, higher, and the gap is real,
+        // the number is emphasised with a text note, never colour alone.
+        function scoreCell(mine, theirs) {{
+          var td = el("td");
+          if (mine === null) {{ td.textContent = "Not yet published"; return td; }}
+          if (theirs !== null && mine > theirs) {{
+            var strong = el("strong", String(mine));
+            td.appendChild(strong);
+            var sr = el("span", " (higher)");
+            sr.className = "visually-hidden";
+            td.appendChild(sr);
+          }} else {{
+            td.textContent = String(mine);
+          }}
+          td.appendChild(el("span")).textContent = " / 100";
+          return td;
+        }}
+        function catScore(art, key) {{
+          var cat = (art.categories || {{}})[key] || {{}};
+          return cat.status === "measured" ? cat.score : null;
+        }}
+        function flag(v) {{ return v ? "Yes" : "Not yet"; }}
+        function detail(art) {{
+          var comp = ((art.categories || {{}}).completeness || {{}}).details || {{}};
+          var fresh = ((art.categories || {{}}).freshness || {{}}).details || {{}};
+          return {{
+            days: typeof fresh.days_until_expiry === "number" ? fresh.days_until_expiry : null,
+            fares: !!comp.has_fares,
+            flex: !!(comp.flex && comp.flex.has_flex),
+            pathways: !!(comp.pathways && comp.pathways.has_pathways)
+          }};
+        }}
+        Promise.all([fetchArtifact(a), fetchArtifact(b)]).then(function (arts) {{
+          var artA = arts[0], artB = arts[1];
+          var nameA = artA.agency.name, nameB = artB.agency.name;
+          var table = el("table");
+          table.className = "leaderboard";
+          var caption = el("caption", "Side-by-side scorecard comparison of " +
+            nameA + " and " + nameB + ".");
+          table.appendChild(caption);
+          var thead = el("thead"), hr = el("tr");
+          hr.appendChild(el("th", "Measure")).setAttribute("scope", "col");
+          [[nameA, a], [nameB, b]].forEach(function (pair) {{
+            var th = el("th");
+            th.setAttribute("scope", "col");
+            var link = el("a", pair[0]);
+            link.href = "/agency/" + encodeURIComponent(pair[1]) + "/";
+            th.appendChild(link);
+            hr.appendChild(th);
+          }});
+          thead.appendChild(hr);
+          table.appendChild(thead);
+          var tbody = el("tbody");
+          function row(label, cellA, cellB) {{
+            var tr = el("tr");
+            tr.appendChild(el("th", label)).setAttribute("scope", "row");
+            tr.appendChild(cellA);
+            tr.appendChild(cellB);
+            tbody.appendChild(tr);
+          }}
+          row("Overall grade",
+              el("td", artA.overall.grade + " (" + artA.overall.score + " / 100)"),
+              el("td", artB.overall.grade + " (" + artB.overall.score + " / 100)"));
+          CATS.forEach(function (c) {{
+            var sa = catScore(artA, c[0]), sb = catScore(artB, c[0]);
+            row(c[1], scoreCell(sa, sb), scoreCell(sb, sa));
+          }});
+          var dA = detail(artA), dB = detail(artB);
+          function daysText(d) {{
+            if (d === null) return "\\u2014";
+            return d < 0 ? "Expired" : d + " days";
+          }}
+          row("Days of service left", el("td", daysText(dA.days)), el("td", daysText(dB.days)));
+          row("Fare data published", el("td", flag(dA.fares)), el("td", flag(dB.fares)));
+          row("GTFS-Flex (demand-responsive)", el("td", flag(dA.flex)), el("td", flag(dB.flex)));
+          row("Pathways (station wayfinding)", el("td", flag(dA.pathways)), el("td", flag(dB.pathways)));
+          table.appendChild(tbody);
+          result.textContent = "";
+          result.appendChild(table);
+          statusEl.textContent = "Comparing " + nameA + " and " + nameB + ".";
+        }}).catch(function (err) {{
+          statusEl.textContent = "We couldn't load a scorecard for \\"" + err.message +
+            "\\". It may not be tracked yet; pick from the lists above.";
+        }});
+      }})();
+    </script>"""
+    return _page(
+        title="Compare two agencies side by side — GTFS Scorecard",
+        description=(
+            "Put two transit agencies' GTFS scorecards side by side: overall grade, "
+            "category scores, days of service left, and adopted features."
+        ),
+        canonical=f"{BASE_URL}/compare/",
+        body=body,
+    )
+
+
+_DUCKDB_WASM_VERSION = "1.29.0"
+
+_QUERY_EXAMPLES = [
+    (
+        "Grade distribution",
+        "SELECT grade, count(*) AS agencies\nFROM agencies\nGROUP BY grade\nORDER BY grade",
+    ),
+    (
+        "Feeds closest to expiry",
+        "SELECT name, days_until_expiry\nFROM agencies\n"
+        "WHERE days_until_expiry BETWEEN 0 AND 60\n"
+        "ORDER BY days_until_expiry\nLIMIT 15",
+    ),
+    (
+        "National category averages",
+        "SELECT round(avg(correctness), 1) AS correctness,\n"
+        "       round(avg(freshness), 1) AS freshness,\n"
+        "       round(avg(completeness), 1) AS completeness\nFROM agencies",
+    ),
+]
+
+
+def _render_query_page() -> str:
+    """The in-browser SQL page (/query/): DuckDB-WASM over the published
+    parquet, so an analyst or journalist can run SQL against the national
+    dataset with no backend added and nothing installed
+    (docs/expansion-ideation-2026-07.md, section C).
+
+    The engine and the data load only on the first Run, keeping page load
+    light; queries run entirely in the visitor's browser against the same
+    agencies.parquet any consumer can download. The textarea, buttons, and
+    result table are plain semantic HTML; run state is announced via a status
+    region."""
+    example_buttons = "".join(
+        f'<button type="button" class="copy-btn query-example" data-sql="{esc(sql)}">'
+        f"{esc(label)}</button>"
+        for label, sql in _QUERY_EXAMPLES
+    )
+    default_sql = _QUERY_EXAMPLES[0][1]
+    body = f"""    {_breadcrumb([("Home", "/"), ("Query the dataset", None)])}
+    <a class="backlink" href="/">&larr; Home</a>
+    <h1 class="page-title">Query the dataset.</h1>
+    <p class="page-lede">Run SQL against the national scorecard dataset, right here in your
+    browser. One table, <code>agencies</code>, holds every tracked agency's latest snapshot:
+    <code>id</code>, <code>name</code>, <code>date</code>, <code>grade</code>,
+    <code>score</code>, <code>days_until_expiry</code>, and the
+    <code>correctness</code>, <code>freshness</code>, <code>completeness</code>, and
+    <code>realtime</code> category scores. Nothing is sent to a server: the engine
+    (DuckDB) and the data load into the page and the query runs on your machine.</p>
+    <p class="page-lede">Prefer a file? The same data is
+    <a href="/api/v1/agencies.parquet">agencies.parquet</a>,
+    <a href="/catalog.csv">catalog.csv</a>, and the JSON described in the
+    <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/api.md">data
+    dictionary</a>.</p>
+    <form aria-label="SQL query" class="query-form">
+      <label for="query-sql">SQL to run against the <code>agencies</code> table</label>
+      <textarea id="query-sql" class="outreach-text" rows="6"
+        spellcheck="false">{esc(default_sql)}</textarea>
+      <div class="map-filter-row">
+        <button type="submit" class="copy-btn" id="query-run">Run</button>
+        {example_buttons}
+      </div>
+    </form>
+    <p id="query-status" role="status">The query engine (about 6&nbsp;MB) downloads the
+    first time you press Run.</p>
+    <div id="query-result"></div>
+    <noscript><p>Running SQL in the page needs JavaScript. The downloads above carry the
+    same data.</p></noscript>
+    <p class="fineprint">Remember the sampling frame: this is the covered set of feeds,
+    not the universe of agencies, and absence means not covered, never failing.
+    Data CC BY 4.0.</p>
+    <script>
+      (function () {{
+        var form = document.querySelector(".query-form");
+        var sqlEl = document.getElementById("query-sql");
+        var statusEl = document.getElementById("query-status");
+        var result = document.getElementById("query-result");
+        var conn = null;
+        document.querySelectorAll(".query-example").forEach(function (btn) {{
+          btn.addEventListener("click", function () {{
+            sqlEl.value = btn.getAttribute("data-sql");
+            sqlEl.focus();
+          }});
+        }});
+        function el(tag, text) {{
+          var e = document.createElement(tag);
+          if (text !== undefined) e.textContent = text;
+          return e;
+        }}
+        async function ensureEngine() {{
+          if (conn) return conn;
+          statusEl.textContent = "Loading the query engine\\u2026";
+          var duckdb = await import(
+            "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@{_DUCKDB_WASM_VERSION}/+esm");
+          var bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+          var workerUrl = URL.createObjectURL(new Blob(
+            ['importScripts("' + bundle.mainWorker + '");'],
+            {{ type: "text/javascript" }}));
+          var db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), new Worker(workerUrl));
+          await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+          URL.revokeObjectURL(workerUrl);
+          statusEl.textContent = "Loading the dataset\\u2026";
+          var buf = new Uint8Array(
+            await (await fetch("/api/v1/agencies.parquet")).arrayBuffer());
+          await db.registerFileBuffer("agencies.parquet", buf);
+          conn = await db.connect();
+          await conn.query(
+            "CREATE VIEW agencies AS SELECT * FROM read_parquet('agencies.parquet')");
+          return conn;
+        }}
+        async function run(sql) {{
+          var c = await ensureEngine();
+          statusEl.textContent = "Running\\u2026";
+          var res = await c.query(sql);
+          var cols = res.schema.fields.map(function (f) {{ return f.name; }});
+          var rows = res.toArray();
+          var table = el("table");
+          table.className = "leaderboard";
+          table.appendChild(el("caption", "Query result: " + rows.length + " row" +
+            (rows.length === 1 ? "" : "s") + "."));
+          var thead = el("thead"), hr = el("tr");
+          cols.forEach(function (cname) {{
+            hr.appendChild(el("th", cname)).setAttribute("scope", "col");
+          }});
+          thead.appendChild(hr);
+          table.appendChild(thead);
+          var tbody = el("tbody");
+          rows.slice(0, 500).forEach(function (row) {{
+            var tr = el("tr");
+            cols.forEach(function (cname) {{
+              var v = row[cname];
+              tr.appendChild(el("td", v === null || v === undefined ? "" : String(v)));
+            }});
+            tbody.appendChild(tr);
+          }});
+          table.appendChild(tbody);
+          result.textContent = "";
+          result.appendChild(table);
+          statusEl.textContent = rows.length > 500
+            ? rows.length + " rows; showing the first 500."
+            : rows.length + " row" + (rows.length === 1 ? "" : "s") + ".";
+        }}
+        form.addEventListener("submit", function (ev) {{
+          ev.preventDefault();
+          run(sqlEl.value).catch(function (err) {{
+            statusEl.textContent = "That query did not run: " + err.message;
+          }});
+        }});
+      }})();
+    </script>"""
+    return _page(
+        title="Query the dataset in your browser — GTFS Scorecard",
+        description=(
+            "Run SQL against the national GTFS quality dataset in your browser with "
+            "DuckDB: grades, category scores, and freshness for every tracked agency."
+        ),
+        canonical=f"{BASE_URL}/query/",
+        body=body,
+    )
+
+
+_FFLATE_VERSION = "0.8.2"
+
+# The check page's logic, kept out of the f-string so braces stay readable.
+# The five questions mirror the rubric's plain-language framing; every status
+# is carried in text ("Looks good" / "Needs attention" / "Can't tell yet"),
+# never colour. See _render_check_page for the page around it.
+_CHECK_PAGE_SCRIPT = r"""    <script>
+      (function () {
+        var input = document.getElementById("check-file");
+        var zone = document.getElementById("check-drop");
+        var statusEl = document.getElementById("check-status");
+        var result = document.getElementById("check-result");
+
+        function el(tag, text) {
+          var e = document.createElement(tag);
+          if (text !== undefined) e.textContent = text;
+          return e;
+        }
+
+        // A small CSV reader: quoted fields, embedded commas/newlines, CRLF,
+        // BOM. Returns row objects keyed by the header line.
+        function parseCsv(text, maxRows) {
+          if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+          var rows = [], field = "", row = [], inQ = false, i = 0, n = text.length;
+          while (i < n) {
+            var ch = text[i];
+            if (inQ) {
+              if (ch === '"') {
+                if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+                inQ = false; i++; continue;
+              }
+              field += ch; i++; continue;
+            }
+            if (ch === '"') { inQ = true; i++; continue; }
+            if (ch === ",") { row.push(field); field = ""; i++; continue; }
+            if (ch === "\n" || ch === "\r") {
+              if (ch === "\r" && text[i + 1] === "\n") i++;
+              row.push(field); field = "";
+              if (row.length > 1 || row[0] !== "") rows.push(row);
+              row = []; i++;
+              if (maxRows && rows.length > maxRows) break;
+              continue;
+            }
+            field += ch; i++;
+          }
+          if (field !== "" || row.length) { row.push(field); rows.push(row); }
+          if (!rows.length) return [];
+          var header = rows[0].map(function (h) { return h.trim(); });
+          return rows.slice(1).map(function (r) {
+            var o = {};
+            header.forEach(function (h, j) { o[h] = (r[j] || "").trim(); });
+            return o;
+          });
+        }
+
+        function ymd(s) {
+          if (!/^\d{8}$/.test(s)) return null;
+          return new Date(Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)));
+        }
+
+        function daysFromToday(d) {
+          var today = new Date();
+          var t = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+          return Math.round((d.getTime() - t) / 86400000);
+        }
+
+        // The five pre-publish questions, each {q, status, note}; status is
+        // "good", "attention", or "unknown" and is always rendered as text.
+        function assess(files) {
+          var out = [];
+          var names = Object.keys(files);
+          function has(f) { return names.indexOf(f) >= 0; }
+          function read(f, maxRows) {
+            return has(f)
+              ? parseCsv(new TextDecoder("utf-8").decode(files[f]), maxRows)
+              : [];
+          }
+
+          var required = ["agency.txt", "stops.txt", "routes.txt", "trips.txt", "stop_times.txt"];
+          var missing = required.filter(function (f) { return !has(f); });
+          var hasCal = has("calendar.txt") || has("calendar_dates.txt");
+          if (!missing.length && hasCal) {
+            out.push({ q: "Does it have the required files?", status: "good",
+              note: "All required files are present, including a service calendar." });
+          } else {
+            var what = missing.slice();
+            if (!hasCal) what.push("calendar.txt or calendar_dates.txt");
+            out.push({ q: "Does it have the required files?", status: "attention",
+              note: "Missing: " + what.join(", ") +
+                ". Trip planners cannot load the feed without these." });
+          }
+
+          var end = null, source = "";
+          read("feed_info.txt", 5).forEach(function (r) {
+            var d = ymd(r.feed_end_date || "");
+            if (d && (!end || d > end)) { end = d; source = "feed_info.txt"; }
+          });
+          if (!end) {
+            read("calendar.txt", 5000).forEach(function (r) {
+              var d = ymd(r.end_date || "");
+              if (d && (!end || d > end)) { end = d; source = "calendar.txt"; }
+            });
+          }
+          if (!end) {
+            read("calendar_dates.txt", 200000).forEach(function (r) {
+              var d = ymd(r.date || "");
+              if (d && (!end || d > end)) { end = d; source = "calendar_dates.txt"; }
+            });
+          }
+          if (!end) {
+            out.push({ q: "When does the service data run out?", status: "unknown",
+              note: "No end date could be read. Add feed_info.txt with a feed_end_date " +
+                "so consumers can tell." });
+          } else {
+            var days = daysFromToday(end);
+            if (days < 0) {
+              out.push({ q: "When does the service data run out?", status: "attention",
+                note: "The " + source + " end date passed " + (-days) + " days ago. Trip " +
+                  "planners treat this feed as expired; re-export with current dates " +
+                  "before publishing." });
+            } else if (days < 30) {
+              out.push({ q: "When does the service data run out?", status: "attention",
+                note: "Only " + days + " days of service left (" + source + "). Extend the " +
+                  "calendar before publishing; consumers want weeks of future coverage." });
+            } else {
+              out.push({ q: "When does the service data run out?", status: "good",
+                note: days + " days of service ahead (" + source + ")." });
+            }
+          }
+
+          var stops = read("stops.txt", 200000);
+          if (!stops.length) {
+            out.push({ q: "Do stops state wheelchair accessibility?", status: "unknown",
+              note: "stops.txt could not be read." });
+          } else {
+            var stated = stops.filter(function (r) {
+              return r.wheelchair_boarding === "1" || r.wheelchair_boarding === "2";
+            }).length;
+            var pct = Math.round(stated / stops.length * 100);
+            out.push({
+              q: "Do stops state wheelchair accessibility?",
+              status: stated ? "good" : "attention",
+              note: stated
+                ? pct + "% of " + stops.length + " stops state wheelchair_boarding. This " +
+                  "states what is published, not whether a stop is physically usable."
+                : "No stop states wheelchair_boarding. Riders using wheelchairs cannot " +
+                  "tell from apps which stops work for them; this data usually lives in " +
+                  "your scheduling software already."
+            });
+          }
+
+          if (has("fare_products.txt") || has("fare_leg_rules.txt")) {
+            out.push({ q: "Is fare data included?", status: "good",
+              note: "Fares v2 files are present." });
+          } else if (has("fare_attributes.txt")) {
+            out.push({ q: "Is fare data included?", status: "good",
+              note: "Fares v1 files are present." });
+          } else {
+            out.push({ q: "Is fare data included?", status: "attention",
+              note: "No fare files. Riders cannot see what a trip costs; if the service " +
+                "is fare-free, saying so in fare data is still worth it." });
+          }
+
+          if (stops.length) {
+            var named = stops.filter(function (r) { return (r.stop_name || "").length > 0; });
+            var mixed = named.filter(function (r) { return /[a-z]/.test(r.stop_name); });
+            if (named.length < stops.length) {
+              out.push({ q: "Are stop names readable?", status: "attention",
+                note: (stops.length - named.length) + " stops have no name at all." });
+            } else if (mixed.length < named.length / 2) {
+              out.push({ q: "Are stop names readable?", status: "attention",
+                note: "Most stop names are ALL CAPS. Mixed case reads better in apps and " +
+                  "for screen readers; usually one export setting." });
+            } else {
+              out.push({ q: "Are stop names readable?", status: "good",
+                note: "Stops are named in readable mixed case." });
+            }
+          } else {
+            out.push({ q: "Are stop names readable?", status: "unknown",
+              note: "stops.txt could not be read." });
+          }
+          return out;
+        }
+
+        var LABELS = { good: "Looks good", attention: "Needs attention", unknown: "Can't tell yet" };
+
+        function render(checks, fileName) {
+          var table = el("table");
+          table.className = "leaderboard";
+          table.appendChild(el("caption", "Pre-publish check of " + fileName + "."));
+          var thead = el("thead"), hr = el("tr");
+          ["Question", "Status", "What we saw"].forEach(function (h) {
+            hr.appendChild(el("th", h)).setAttribute("scope", "col");
+          });
+          thead.appendChild(hr);
+          table.appendChild(thead);
+          var tbody = el("tbody");
+          checks.forEach(function (c) {
+            var tr = el("tr");
+            tr.appendChild(el("th", c.q)).setAttribute("scope", "row");
+            tr.appendChild(el("td", LABELS[c.status] || c.status));
+            tr.appendChild(el("td", c.note));
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          result.textContent = "";
+          result.appendChild(table);
+          var next = el("p");
+          next.appendChild(document.createTextNode(
+            "This previews five things, not everything. "));
+          var a = el("a", "Get the full scorecard");
+          a.href = "/try.html";
+          next.appendChild(a);
+          next.appendChild(document.createTextNode(
+            " to run the canonical MobilityData validator over the whole feed."));
+          result.appendChild(next);
+          var attention = checks.filter(function (c) { return c.status === "attention"; }).length;
+          statusEl.textContent = attention
+            ? "Checked " + fileName + ": " + attention + " of " + checks.length +
+              " questions need attention."
+            : "Checked " + fileName + ": all " + checks.length + " questions look good.";
+        }
+
+        async function handle(file) {
+          if (!file) return;
+          if (file.size > 300 * 1024 * 1024) {
+            statusEl.textContent =
+              "That file is over 300 MB; this preview is built for small-agency feeds.";
+            return;
+          }
+          statusEl.textContent = "Reading " + file.name + " in your browser…";
+          try {
+            if (!window.fflate) {
+              await new Promise(function (resolve, reject) {
+                var s = document.createElement("script");
+                s.src = "https://cdn.jsdelivr.net/npm/fflate@__FFLATE__/umd/index.js";
+                s.onload = resolve;
+                s.onerror = function () {
+                  reject(new Error("could not load the unzip library"));
+                };
+                document.head.appendChild(s);
+              });
+            }
+            var buf = new Uint8Array(await file.arrayBuffer());
+            var files = window.fflate.unzipSync(buf);
+            // Feeds are sometimes zipped inside a folder; flatten one level.
+            var flat = {};
+            Object.keys(files).forEach(function (k) {
+              var base = k.split("/").pop();
+              if (base && base.slice(-4) === ".txt" && !(base in flat)) flat[base] = files[k];
+            });
+            render(assess(flat), file.name);
+          } catch (err) {
+            statusEl.textContent = "That zip could not be read: " + err.message +
+              ". Is it the GTFS zip your scheduling software exported?";
+          }
+        }
+
+        input.addEventListener("change", function () { handle(input.files[0]); });
+        if (zone) {
+          ["dragover", "dragenter"].forEach(function (evName) {
+            zone.addEventListener(evName, function (ev) { ev.preventDefault(); });
+          });
+          zone.addEventListener("drop", function (ev) {
+            ev.preventDefault();
+            var f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+            handle(f);
+          });
+        }
+      })();
+    </script>"""
+
+
+def _render_check_page() -> str:
+    """The pre-publish check (/check/): drag a GTFS zip in, get the five
+    questions that matter answered before publishing, entirely in the browser
+    (docs/expansion-ideation-2026-07.md, section A).
+
+    The person exporting a feed from scheduling software does not run CI; this
+    meets them at the moment of export. The zip never leaves the page (fflate
+    unzips it client-side, loaded only when a file arrives), the five answers
+    are framed as fixes with a text status never colour, and the page is loud
+    that the canonical validator remains the authority: it links try.html for
+    the full scorecard. The file input is the accessible primary; the drop
+    zone is an enhancement."""
+    body = f"""    {_breadcrumb([("Home", "/"), ("Check a feed before you publish", None)])}
+    <a class="backlink" href="/">&larr; Home</a>
+    <h1 class="page-title">Check a feed before you publish.</h1>
+    <p class="page-lede">About to publish a GTFS export? Drop the zip here first and get
+    the five questions that matter answered in seconds: required files, expiry,
+    wheelchair fields, fares, and stop names. Your feed never leaves this page; it is
+    read entirely in your browser and nothing is uploaded anywhere.</p>
+    <div id="check-drop" class="feed-details">
+      <label for="check-file"><strong>Choose your GTFS zip</strong> (or drag it onto this
+        box)</label>
+      <p><input type="file" id="check-file" accept=".zip,application/zip"></p>
+    </div>
+    <p id="check-status" role="status"></p>
+    <div id="check-result"></div>
+    <noscript><p>Reading a zip in the page needs JavaScript. You can run the full check
+    instead: <a href="/try.html">score a feed now</a>.</p></noscript>
+    <p class="fineprint">A preview, not the full validation. The canonical
+    <a href="https://github.com/MobilityData/gtfs-validator">MobilityData validator</a>
+    stays the authority; <a href="/try.html">score a feed now</a> runs it over the whole
+    feed, and <a href="/subscribe.html">subscribe</a> to hear before a published feed
+    expires.</p>
+{_CHECK_PAGE_SCRIPT.replace("__FFLATE__", _FFLATE_VERSION)}"""
+    return _page(
+        title="Check a GTFS feed before you publish — GTFS Scorecard",
+        description=(
+            "Drop a GTFS zip in and get the five pre-publish questions answered in "
+            "your browser: required files, expiry, wheelchair fields, fares, and "
+            "stop names. Nothing is uploaded."
+        ),
+        canonical=f"{BASE_URL}/check/",
+        body=body,
+    )
+
+
+# Every self-serve tool, one entry each: (href, name, one-sentence what-for).
+_TOOLS = [
+    (
+        "/app/",
+        "Interactive app",
+        "Browse every scorecard with live search, filters, and the state grid.",
+    ),
+    (
+        "/compare/",
+        "Compare two agencies",
+        "Two scorecards side by side: grades, categories, and adopted features.",
+    ),
+    (
+        "/check/",
+        "Check a feed before you publish",
+        "Drop your GTFS zip in and get the five pre-publish questions answered; the file never leaves your browser.",
+    ),
+    (
+        "/try.html",
+        "Score any feed now",
+        "Paste a published feed URL and get the full graded scorecard back.",
+    ),
+    ("/query/", "Query the dataset", "Run SQL over the national dataset, right in the page."),
+    (
+        "/subscribe.html",
+        "Feed-health alerts",
+        "Get an email before a feed expires or when its grade changes.",
+    ),
+    ("/submit.html", "Add your agency", "Track a new feed on this site in about ten minutes."),
+    (
+        "/agency/unitrans/brief/",
+        "Call-prep briefs",
+        "Every agency has a printable one-page brief for a check-in call (this links an example; find yours from its scorecard).",
+    ),
+    (
+        "/procurement/",
+        "For agencies: procurement",
+        "Contract and acceptance-test language for holding a GTFS vendor to the same bar.",
+    ),
+    (
+        "/data/",
+        "Open data",
+        "Download the national dataset, CC BY 4.0, with a versioned public API.",
+    ),
+]
+
+
+def _render_tools_page() -> str:
+    """The tools index (/tools/): every self-serve tool on one page, one line
+    each, so nothing depends on a visitor discovering the footer. Linked from
+    the primary nav."""
+    items = "".join(
+        f'<li class="finding"><p class="what"><a href="{esc(href)}">{esc(name)}</a></p>'
+        f'<p class="why">{esc(what)}</p></li>'
+        for href, name, what in _TOOLS
+    )
+    body = f"""    {_breadcrumb([("Home", "/"), ("Tools", None)])}
+    <a class="backlink" href="/">&larr; Home</a>
+    <h1 class="page-title">Tools.</h1>
+    <p class="page-lede">Everything on this site you can act with, not just read: check a
+    feed, score a feed, compare agencies, query the data, and get alerts. Each tool works
+    without an account and most work without a backend at all.</p>
+    <ul class="findings">{items}</ul>
+    <p class="fineprint">All of it is open source; the
+    <a href="https://github.com/ChelseaKR/gtfs-scorecard">repository</a> has the CLI and
+    CI-action versions of these tools.</p>"""
+    return _page(
+        title="Tools — GTFS Scorecard",
+        description=(
+            "Every self-serve GTFS Scorecard tool: pre-publish checks, ad-hoc scoring, "
+            "side-by-side comparison, SQL over the dataset, and feed-health alerts."
+        ),
+        canonical=f"{BASE_URL}/tools/",
+        body=body,
+    )

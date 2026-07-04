@@ -1,0 +1,9 @@
+# Copy to terraform.tfvars and adjust. bucket_name must be globally unique.
+bucket_name = "gtfs-scorecard-artifacts-ckr"
+project     = "gtfs-scorecard"
+region      = "us-west-2"
+github_repo = "ChelseaKR/gtfs-scorecard"
+
+# Set false only if this AWS account already has a GitHub OIDC provider
+# (token.actions.githubusercontent.com); an account may have just one.
+# create_oidc_provider = true

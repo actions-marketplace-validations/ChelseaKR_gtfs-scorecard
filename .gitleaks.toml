@@ -1,0 +1,33 @@
+# gitleaks configuration — extends the default ruleset with a path-scoped
+# allowlist for known false positives. Everything listed here is PUBLIC
+# third-party data, not a credential owned by this repo:
+#
+#   * agencies.yaml — the agency registry. GTFS/GTFS-RT feed URLs sourced from
+#     the Mobility Database frequently embed an access key in the URL itself
+#     (e.g. `?key=...` / `?apiKey=...`). Those keys are published by the
+#     transit agencies as part of their public feed URL and are already
+#     world-readable in the upstream registry.
+#   * pipeline/tests/fixtures/ — golden-site fixtures derived from the same
+#     registry entries (same public feed-URL keys).
+#   * data/ — machine-generated pipeline artifacts (per-agency JSON) that echo
+#     the registry's public feed URLs verbatim.
+#   * web/ — the generated static site: catalog.json repeats the registry
+#     URLs, and per-agency pages carry `data-route-key` UUID attributes that
+#     are route identifiers, not secrets.
+#
+# Hand-written source code (pipeline/src, scripts, workflows) is NOT
+# allowlisted; a real credential committed there still fails the scan.
+
+title = "gtfs-scorecard gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public GTFS registry feed-URL keys and generated artifacts that echo them"
+paths = [
+    '''^agencies\.yaml$''',
+    '''^pipeline/tests/fixtures/''',
+    '''^data/''',
+    '''^web/''',
+]

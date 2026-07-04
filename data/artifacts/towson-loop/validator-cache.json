@@ -1,0 +1,56 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "stops_match_shape_out_of_order",
+        "sample_notices": [
+          {
+            "match1": [
+              39.40087810279058,
+              -76.60637795081152
+            ],
+            "match2": [
+              39.4035948368457,
+              -76.60949123665631
+            ],
+            "shapeId": "67271",
+            "stopId1": "54888",
+            "stopId2": "207674",
+            "stopName1": "W. Pennsylvania Ave at Baltimore Ave (WB)",
+            "stopName2": "ByKota Senior Center",
+            "stopTimeCsvRowNumber1": 3480,
+            "stopTimeCsvRowNumber2": 3479,
+            "tripCsvRowNumber": 283,
+            "tripId": "994556"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "service_window_outside_feed_period",
+        "sample_notices": [
+          {
+            "daysAfterFeedEnd": 510,
+            "daysBeforeFeedStart": 544,
+            "serviceId": "67268.185534",
+            "serviceWindowEndDate": "2027-12-25",
+            "serviceWindowStartDate": "2025-01-04"
+          },
+          {
+            "daysAfterFeedEnd": 516,
+            "daysBeforeFeedStart": 547,
+            "serviceId": "67268.185530",
+            "serviceWindowEndDate": "2027-12-31",
+            "serviceWindowStartDate": "2025-01-01"
+          }
+        ],
+        "severity": "INFO",
+        "total": 2
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "105b37cb074e6f703d38b127e2a07ffa6b07438b09e5deb05c7a12f7ade47a8c",
+  "validator_version": "8.0.1"
+}

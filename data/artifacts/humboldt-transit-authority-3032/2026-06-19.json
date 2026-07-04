@@ -1,0 +1,195 @@
+{
+  "agency": {
+    "id": "humboldt-transit-authority-3032",
+    "name": "Humboldt Transit Authority"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 14.7,
+          "stop_names": 15.0,
+          "wheelchair_stops": 24.9,
+          "wheelchair_trips": 15.0
+        },
+        "has_fares": true,
+        "headsign_pct": 98.3,
+        "mixed_case_stop_name_pct": 100.0,
+        "stops": 339,
+        "trips": 458,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 99.7,
+        "wheelchair_marked_accessible_pct": 87.6
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 1,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "severity": "WARNING",
+          "what": "1 of 339 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_missing_headsigns",
+          "count": 8,
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Populate trip_headsign to match what the bus displays.",
+          "severity": "WARNING",
+          "what": "8 of 458 trips have no headsign.",
+          "why": "Riders at the stop can't tell which direction a bus is going."
+        }
+      ],
+      "name": "completeness",
+      "score": 99.7,
+      "status": "measured",
+      "summary": "100% of stops state wheelchair accessibility (88% marked accessible). Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 6,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 6,
+          "WARNING": 34
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "trip_distance_exceeds_shape_distance_below_threshold",
+          "count": 22,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "stop_too_far_from_shape_using_user_distance",
+          "count": 7,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unusable_trip",
+          "count": 4,
+          "effort": "Worth a vendor question if it appears often.",
+          "fix": "Check the flagged trips in your scheduling software; remove them or restore their missing stops.",
+          "severity": "WARNING",
+          "what": "Some trips serve fewer than two stops.",
+          "why": "A trip with one stop can't be ridden; planners ignore it and it may signal an export problem."
+        },
+        {
+          "code": "route_long_name_contains_short_name",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Route long name contains short name (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "big_gap_in_service",
+          "count": 5,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Big gap in service (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unknown_file",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Unknown file (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 79.0,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 6 kinds of issues: 0 error, 34 warning, and 6 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 195,
+        "feed_end_date": "2026-12-31",
+        "feed_start_date": "2026-06-08",
+        "feed_version": "UTC: 04-Jun-2026 22:50",
+        "has_feed_info": true,
+        "last_service_date": "2026-12-31"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 195 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "No stated data license in the Mobility Database; verify before publishing.",
+    "reachable": true,
+    "sha256": "c42cf1f4b8376804f6ce637f4cb0c0b0537286ab26c2378be7fded126eca777c",
+    "size_bytes": 2977968,
+    "static_url": "https://hta.optibus.co/public_api/v1/feeds/gtfs"
+  },
+  "generated_at": "2026-06-19T00:00:00+00:00",
+  "overall": {
+    "grade": "A",
+    "score": 90.7
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.3",
+  "snapshot_date": "2026-06-19",
+  "top_fixes": [
+    {
+      "code": "trip_distance_exceeds_shape_distance_below_threshold",
+      "count": 22,
+      "effort": "Varies.",
+      "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
+      "why": "See the linked rule for what this affects."
+    },
+    {
+      "code": "stop_too_far_from_shape_using_user_distance",
+      "count": 7,
+      "effort": "Varies.",
+      "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
+      "why": "See the linked rule for what this affects."
+    },
+    {
+      "code": "unusable_trip",
+      "count": 4,
+      "effort": "Worth a vendor question if it appears often.",
+      "fix": "Check the flagged trips in your scheduling software; remove them or restore their missing stops.",
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "Some trips serve fewer than two stops.",
+      "why": "A trip with one stop can't be ridden; planners ignore it and it may signal an export problem."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

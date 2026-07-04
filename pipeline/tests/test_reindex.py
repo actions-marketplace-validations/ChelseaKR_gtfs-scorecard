@@ -1,0 +1,56 @@
+"""Tests for rebuilding index.json from artifacts on disk (sharded runs)."""
+
+from __future__ import annotations
+
+import datetime as dt
+import json
+from pathlib import Path
+
+from scorecard_pipeline.config import Agency, artifacts_dir
+from scorecard_pipeline.fetch import FetchResult
+from scorecard_pipeline.metrics import CategoryResult
+from scorecard_pipeline.publish import build_artifact, publish, rebuild_index
+from scorecard_pipeline.score import build_scorecard
+
+GENERATED_AT = dt.datetime(2026, 6, 12, 12, 0, tzinfo=dt.UTC)
+
+
+def _publish(agency_id: str, date: dt.date, score: float) -> None:
+    agency = Agency(
+        id=agency_id, name=f"{agency_id} Transit", static_gtfs_url="https://ex.org/g.zip"
+    )
+    fetch = FetchResult(
+        agency_id=agency_id,
+        path=Path("/tmp/g.zip"),
+        url=agency.static_gtfs_url,
+        fetched_date=date,
+        sha256="x",
+        size_bytes=1,
+        reused=False,
+    )
+    card = build_scorecard([CategoryResult(name="correctness", score=score, summary="s")])
+    publish(build_artifact(agency, fetch, card, GENERATED_AT))
+
+
+def test_reindex_assembles_history_from_disk() -> None:
+    _publish("a", dt.date(2026, 6, 11), 80.0)
+    _publish("a", dt.date(2026, 6, 12), 84.0)
+    _publish("b", dt.date(2026, 6, 12), 70.0)
+
+    # corrupt the incrementally-built index to prove reindex rebuilds from scratch
+    (artifacts_dir() / "index.json").write_text('{"schema_version": "1.1", "agencies": {}}')
+
+    rebuild_index()
+    index = json.loads((artifacts_dir() / "index.json").read_text())
+    assert set(index["agencies"]) == {"a", "b"}
+    a_dates = [h["date"] for h in index["agencies"]["a"]["history"]]
+    assert a_dates == ["2026-06-11", "2026-06-12"]
+
+
+def test_reindex_ignores_rollups_dir() -> None:
+    _publish("a", dt.date(2026, 6, 12), 80.0)
+    (artifacts_dir() / "rollups").mkdir(parents=True, exist_ok=True)
+    (artifacts_dir() / "rollups" / "all.json").write_text("{}")
+    rebuild_index()
+    index = json.loads((artifacts_dir() / "index.json").read_text())
+    assert "rollups" not in index["agencies"]

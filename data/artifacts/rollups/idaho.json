@@ -1,0 +1,88 @@
+{
+  "agency_count": 4,
+  "average_score": 64.0,
+  "common_fixes": [
+    {
+      "agencies": 4,
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "agencies": 4,
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
+    },
+    {
+      "agencies": 2,
+      "code": "scorecard_feed_expired",
+      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    }
+  ],
+  "expired": {
+    "lapsed": 0,
+    "stale": 2,
+    "total": 2
+  },
+  "generated_at": "2026-07-03T15:51:50+00:00",
+  "grade_distribution": {
+    "A": 1,
+    "C": 1,
+    "F": 2
+  },
+  "members": [
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -5663,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "mountain-rides-transportation-authority-mrta",
+      "name": "Mountain Rides Transportation Authority (MRTA)",
+      "needs_attention": true,
+      "score": 41.5,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -5663,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "mountain-rides-transportation-authority-mrta-143",
+      "name": "Mountain Rides Transportation Authority (MRTA)",
+      "needs_attention": true,
+      "score": 41.5,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 341,
+      "expiry_status": "current",
+      "grade": "C",
+      "id": "valley-regional-transit",
+      "name": "Valley Regional Transit",
+      "needs_attention": false,
+      "score": 78.4,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 181,
+      "expiry_status": "current",
+      "grade": "A",
+      "id": "pocatello-regional-transit",
+      "name": "Pocatello Regional Transit",
+      "needs_attention": false,
+      "score": 94.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
+    }
+  ],
+  "needs_attention": 2,
+  "rollup": {
+    "id": "idaho",
+    "name": "Idaho agencies"
+  },
+  "schema_version": "1.4"
+}

@@ -1,0 +1,28 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "mixed_case_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 68,
+            "fieldName": "stop_name",
+            "fieldValue": "10th & 30th",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 69,
+            "fieldName": "stop_name",
+            "fieldValue": "10th & 34th",
+            "filename": "stops.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "bc12c8b8079cdaa0118cdb3549ca51548e644895f8f3f48a1eae5a03fb1d1449",
+  "validator_version": "8.0.1"
+}

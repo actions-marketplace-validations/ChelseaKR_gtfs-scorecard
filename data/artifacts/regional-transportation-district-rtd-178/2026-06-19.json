@@ -1,0 +1,260 @@
+{
+  "agency": {
+    "id": "regional-transportation-district-rtd-178",
+    "name": "Regional Transportation District (RTD)"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 7.5,
+          "fares": 0.0,
+          "headsigns": 15.0,
+          "stop_names": 15.0,
+          "wheelchair_stops": 24.6,
+          "wheelchair_trips": 0.0
+        },
+        "has_fares": false,
+        "headsign_pct": 100.0,
+        "mixed_case_stop_name_pct": 100.0,
+        "stops": 7570,
+        "trips": 21501,
+        "wheelchair_accessible_pct": 0.0,
+        "wheelchair_boarding_pct": 98.3,
+        "wheelchair_marked_accessible_pct": 98.3
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 131,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "severity": "WARNING",
+          "what": "131 of 7570 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_wheelchair_accessible_unknown",
+          "count": 21501,
+          "effort": "Often one default setting in your export.",
+          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "severity": "WARNING",
+          "what": "21501 of 21501 trips don't say whether the vehicle is wheelchair accessible.",
+          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+        },
+        {
+          "code": "scorecard_no_fare_data",
+          "count": 1,
+          "effort": "A small file for most flat-fare systems.",
+          "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure.",
+          "severity": "WARNING",
+          "what": "The feed contains no fare information.",
+          "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+        },
+        {
+          "code": "scorecard_no_feed_contact",
+          "count": 1,
+          "effort": "One field.",
+          "fix": "Add feed_contact_email to feed_info.txt.",
+          "severity": "INFO",
+          "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
+          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+        }
+      ],
+      "name": "completeness",
+      "score": 62.1,
+      "status": "measured",
+      "summary": "98% of stops state wheelchair accessibility (98% marked accessible). Fare data is not published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 8,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 48,
+          "WARNING": 68
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "fast_travel_between_consecutive_stops",
+          "count": 58,
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the flagged stop times for transposed minutes.",
+          "severity": "WARNING",
+          "what": "Some scheduled trips travel implausibly fast between stops.",
+          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+        },
+        {
+          "code": "mixed_case_recommended_field",
+          "count": 6,
+          "effort": "Often a bulk fix in your scheduling software.",
+          "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+          "severity": "WARNING",
+          "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+          "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
+        },
+        {
+          "code": "missing_feed_contact_email_and_url",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "route_long_name_contains_short_name",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "WARNING",
+          "what": "Route long name contains short name (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "stop_without_stop_time",
+          "count": 1,
+          "effort": "A review pass in your scheduling software.",
+          "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+          "severity": "WARNING",
+          "what": "Some stops exist in the feed but no trip ever stops at them.",
+          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+        },
+        {
+          "code": "unused_shape",
+          "count": 1,
+          "effort": "One setting.",
+          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "severity": "WARNING",
+          "what": "The feed contains route shapes no trip uses.",
+          "why": "Harmless to riders, but it bloats the feed and suggests stale export data."
+        },
+        {
+          "code": "trip_headsign_matches_intermediate_stop",
+          "count": 43,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'trip_headsign_matches_intermediate_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Trip headsign matches intermediate stop (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "platform_without_parent_station",
+          "count": 5,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'platform_without_parent_station' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Platform without parent station (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 68.8,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 8 kinds of issues: 0 error, 68 warning, and 48 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 99,
+        "feed_end_date": "2026-09-26",
+        "feed_start_date": "2026-06-07",
+        "feed_version": "Jun26-36765-12-19-20260617-112927",
+        "has_feed_info": true,
+        "last_service_date": "2026-09-26"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 99 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "details": {
+        "coverage_pct": 92.9,
+        "covered_trips": 352,
+        "drift": {
+          "median_seconds": 63,
+          "observations": 9783,
+          "on_time_share_pct": 90.4,
+          "p90_abs_seconds": 252
+        },
+        "kinds_reachable": 3,
+        "rt_freshness": "fresh",
+        "samples": 9,
+        "scheduled_trips_in_window": 379,
+        "vehicles_checked": 1079,
+        "vehicles_on_route_pct": 99.4,
+        "worst_lag_seconds": 21
+      },
+      "findings": [
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 27,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "severity": "WARNING",
+          "what": "27 of 379 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        }
+      ],
+      "name": "realtime",
+      "score": 97.4,
+      "status": "measured",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 92.9% of scheduled trips had live predictions; 99.4% of vehicles on their route; predictions ran a median of 63s behind schedule.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "License: https://www.rtd-denver.com/business-center/open-spatial-data/gtfs-license-agreement",
+    "reachable": true,
+    "sha256": "3ef91b298cc9d985188681097d9dc386b470a7dca0011861f78722b60e84763b",
+    "size_bytes": 8186042,
+    "static_url": "https://www.rtd-denver.com/files/gtfs/google_transit.zip"
+  },
+  "generated_at": "2026-06-19T00:00:00+00:00",
+  "overall": {
+    "grade": "C",
+    "score": 79.1
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.3",
+  "snapshot_date": "2026-06-19",
+  "top_fixes": [
+    {
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "count": 21501,
+      "effort": "Often one default setting in your export.",
+      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "21501 of 21501 trips don't say whether the vehicle is wheelchair accessible.",
+      "why": "Even with accessible stops, riders need to know the bus itself can take them."
+    },
+    {
+      "code": "scorecard_no_fare_data",
+      "count": 1,
+      "effort": "A small file for most flat-fare systems.",
+      "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure.",
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "The feed contains no fare information.",
+      "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+    },
+    {
+      "code": "fast_travel_between_consecutive_stops",
+      "count": 58,
+      "effort": "A few minutes per flagged trip.",
+      "fix": "Check the flagged stop times for transposed minutes.",
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "Some scheduled trips travel implausibly fast between stops.",
+      "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

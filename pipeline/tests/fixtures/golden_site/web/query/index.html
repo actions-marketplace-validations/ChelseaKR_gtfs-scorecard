@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Query the dataset in your browser — GTFS Scorecard</title>
+  <meta name="description" content="Run SQL against the national GTFS quality dataset in your browser with DuckDB: grades, category scores, and freshness for every tracked agency.">
+  <link rel="canonical" href="https://gtfsscorecard.org/query/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Query the dataset in your browser — GTFS Scorecard">
+  <meta property="og:description" content="Run SQL against the national GTFS quality dataset in your browser with DuckDB: grades, category scores, and freshness for every tracked agency.">
+  <meta property="og:url" content="https://gtfsscorecard.org/query/">
+  <meta property="og:image" content="https://gtfsscorecard.org/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f5efe2'/%3E%3C/svg%3E">
+  <script>
+    /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
+    try {
+      var t = localStorage.getItem("scorecard-theme");
+      if (t && ["light", "contrast", "dark"].indexOf(t) >= 0)
+        document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+  <script src="/src/theme.js" defer></script>
+  <script src="/src/nav.js" defer></script>
+  <script src="/analytics.js" defer></script>
+  <noscript><style>
+    /* Without JS the menu button cannot expand the collapsed nav, so show the
+       stacked nav permanently and hide the button (content stays operable
+       without scripting). nav.js never runs here, so nothing double-toggles. */
+    @media (max-width: 1400px) {
+      .nav-menu-btn { display: none !important; }
+      .nav-cluster { display: flex !important; position: static; }
+    }
+  </style></noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header"><div class="wrap"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">GTFS&nbsp;Scorecard</span></a><button class="nav-menu-btn" type="button" aria-expanded="false" aria-controls="nav-cluster"><span aria-hidden="true">☰</span> Menu</button><div class="nav-cluster" id="nav-cluster"><nav class="nav-stops" aria-label="Primary"><a class="nav-stop" href="/agencies/"><span class="pip" aria-hidden="true"></span>Agencies</a><a class="nav-stop" href="/pulse/"><span class="pip" aria-hidden="true"></span>National pulse</a><a class="nav-stop" href="/focus/"><span class="pip" aria-hidden="true"></span>Focus areas</a><a class="nav-stop" href="/tools/" aria-current="page"><span class="pip" aria-hidden="true"></span>Tools</a><a class="nav-stop" href="/how-to-read/"><span class="pip" aria-hidden="true"></span>How to read</a><a class="nav-stop" href="/about/"><span class="pip" aria-hidden="true"></span>About</a></nav><div id="theme-control"></div></div></div></header>
+  <main id="main" class="wrap" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><span aria-current="page">Query the dataset</span></li></ol></nav>
+    <a class="backlink" href="/">&larr; Home</a>
+    <h1 class="page-title">Query the dataset.</h1>
+    <p class="page-lede">Run SQL against the national scorecard dataset, right here in your
+    browser. One table, <code>agencies</code>, holds every tracked agency's latest snapshot:
+    <code>id</code>, <code>name</code>, <code>date</code>, <code>grade</code>,
+    <code>score</code>, <code>days_until_expiry</code>, and the
+    <code>correctness</code>, <code>freshness</code>, <code>completeness</code>, and
+    <code>realtime</code> category scores. Nothing is sent to a server: the engine
+    (DuckDB) and the data load into the page and the query runs on your machine.</p>
+    <p class="page-lede">Prefer a file? The same data is
+    <a href="/api/v1/agencies.parquet">agencies.parquet</a>,
+    <a href="/catalog.csv">catalog.csv</a>, and the JSON described in the
+    <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/api.md">data
+    dictionary</a>.</p>
+    <form aria-label="SQL query" class="query-form">
+      <label for="query-sql">SQL to run against the <code>agencies</code> table</label>
+      <textarea id="query-sql" class="outreach-text" rows="6"
+        spellcheck="false">SELECT grade, count(*) AS agencies
+FROM agencies
+GROUP BY grade
+ORDER BY grade</textarea>
+      <div class="map-filter-row">
+        <button type="submit" class="copy-btn" id="query-run">Run</button>
+        <button type="button" class="copy-btn query-example" data-sql="SELECT grade, count(*) AS agencies
+FROM agencies
+GROUP BY grade
+ORDER BY grade">Grade distribution</button><button type="button" class="copy-btn query-example" data-sql="SELECT name, days_until_expiry
+FROM agencies
+WHERE days_until_expiry BETWEEN 0 AND 60
+ORDER BY days_until_expiry
+LIMIT 15">Feeds closest to expiry</button><button type="button" class="copy-btn query-example" data-sql="SELECT round(avg(correctness), 1) AS correctness,
+       round(avg(freshness), 1) AS freshness,
+       round(avg(completeness), 1) AS completeness
+FROM agencies">National category averages</button>
+      </div>
+    </form>
+    <p id="query-status" role="status">The query engine (about 6&nbsp;MB) downloads the
+    first time you press Run.</p>
+    <div id="query-result"></div>
+    <noscript><p>Running SQL in the page needs JavaScript. The downloads above carry the
+    same data.</p></noscript>
+    <p class="fineprint">Remember the sampling frame: this is the covered set of feeds,
+    not the universe of agencies, and absence means not covered, never failing.
+    Data CC BY 4.0.</p>
+    <script>
+      (function () {
+        var form = document.querySelector(".query-form");
+        var sqlEl = document.getElementById("query-sql");
+        var statusEl = document.getElementById("query-status");
+        var result = document.getElementById("query-result");
+        var conn = null;
+        document.querySelectorAll(".query-example").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            sqlEl.value = btn.getAttribute("data-sql");
+            sqlEl.focus();
+          });
+        });
+        function el(tag, text) {
+          var e = document.createElement(tag);
+          if (text !== undefined) e.textContent = text;
+          return e;
+        }
+        async function ensureEngine() {
+          if (conn) return conn;
+          statusEl.textContent = "Loading the query engine\u2026";
+          var duckdb = await import(
+            "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm");
+          var bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+          var workerUrl = URL.createObjectURL(new Blob(
+            ['importScripts("' + bundle.mainWorker + '");'],
+            { type: "text/javascript" }));
+          var db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), new Worker(workerUrl));
+          await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+          URL.revokeObjectURL(workerUrl);
+          statusEl.textContent = "Loading the dataset\u2026";
+          var buf = new Uint8Array(
+            await (await fetch("/api/v1/agencies.parquet")).arrayBuffer());
+          await db.registerFileBuffer("agencies.parquet", buf);
+          conn = await db.connect();
+          await conn.query(
+            "CREATE VIEW agencies AS SELECT * FROM read_parquet('agencies.parquet')");
+          return conn;
+        }
+        async function run(sql) {
+          var c = await ensureEngine();
+          statusEl.textContent = "Running\u2026";
+          var res = await c.query(sql);
+          var cols = res.schema.fields.map(function (f) { return f.name; });
+          var rows = res.toArray();
+          var table = el("table");
+          table.className = "leaderboard";
+          table.appendChild(el("caption", "Query result: " + rows.length + " row" +
+            (rows.length === 1 ? "" : "s") + "."));
+          var thead = el("thead"), hr = el("tr");
+          cols.forEach(function (cname) {
+            hr.appendChild(el("th", cname)).setAttribute("scope", "col");
+          });
+          thead.appendChild(hr);
+          table.appendChild(thead);
+          var tbody = el("tbody");
+          rows.slice(0, 500).forEach(function (row) {
+            var tr = el("tr");
+            cols.forEach(function (cname) {
+              var v = row[cname];
+              tr.appendChild(el("td", v === null || v === undefined ? "" : String(v)));
+            });
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          result.textContent = "";
+          result.appendChild(table);
+          statusEl.textContent = rows.length > 500
+            ? rows.length + " rows; showing the first 500."
+            : rows.length + " row" + (rows.length === 1 ? "" : "s") + ".";
+        }
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          run(sqlEl.value).catch(function (err) {
+            statusEl.textContent = "That query did not run: " + err.message;
+          });
+        });
+      })();
+    </script>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>An open-source data quality tool for small and rural transit agencies.</p>
+      <p><strong>Agencies:</strong>
+      <a href="/agencies/">Directory</a> ·
+      <a href="/app/">Interactive app</a> ·
+      <a href="/map/">Map</a> · <a href="/routes/">All routes</a></p>
+      <p><strong>The nation:</strong>
+      <a href="/pulse/">National pulse</a> ·
+      <a href="/problems/">Common problems</a> ·
+      <a href="/ntd/">NTD readiness</a> ·
+      <a href="/realtime/">Realtime</a> · <a href="/equity/">Equity</a> ·
+      <a href="/adoption/">What feeds publish</a></p>
+      <p><strong>Tools:</strong>
+      <a href="/compare/">Compare two agencies</a> ·
+      <a href="/check/">Check a feed before you publish</a> ·
+      <a href="/try.html">Score any feed now</a> ·
+      <a href="/query/">Query the dataset</a> ·
+      <a href="/subscribe.html">Feed-health alerts</a> ·
+      <a href="/submit.html">Add your agency</a> ·
+      <a href="/procurement/">For agencies: procurement</a></p>
+      <p><a href="/about/">About</a> ·
+      <a href="/how-to-read/">How to read a scorecard</a> ·
+      <a href="/how-to-read/#glossary">Glossary</a> ·
+      <a href="/press/">For reporters</a> ·
+      <a href="/data/">Open data</a> ·
+      <a href="/accessibility/">Accessibility</a> ·
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a> ·
+      Built by <a href="https://chelseakr.com">Chelsea Kelly-Reif</a></p>
+    </div>
+  </footer>
+</body>
+</html>

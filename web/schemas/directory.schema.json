@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gtfsscorecard.org/schemas/directory.schema.json",
+  "title": "GTFS Scorecard national directory",
+  "description": "Slim per-agency directory plus a national and per-state summary. Additive within a major schema_version: tolerate unknown fields.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "summary",
+    "agencies"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "attribution": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "agencies",
+        "grade_distribution"
+      ],
+      "properties": {
+        "agencies": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "average_score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "median_score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "grade_distribution": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "expiring_soon": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expired": {
+          "type": "object",
+          "properties": {
+            "lapsed": {
+              "type": "integer"
+            },
+            "stale": {
+              "type": "integer"
+            },
+            "total": {
+              "type": "integer"
+            }
+          }
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "state",
+              "agencies"
+            ],
+            "properties": {
+              "state": {
+                "type": "string"
+              },
+              "agencies": {
+                "type": "integer"
+              },
+              "average_score": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "grade_distribution": {
+                "type": "object"
+              },
+              "expired": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "size_tiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "agencies": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "agencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "grade",
+          "score"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "F"
+            ]
+          },
+          "score": {
+            "type": "number"
+          },
+          "size_tier": {
+            "type": "string"
+          },
+          "national_percentile": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "peer_percentile": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "expiry_status": {
+            "type": "string"
+          },
+          "days_until_expiry": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "mdb_id": {
+            "type": "string"
+          },
+          "ntd_ready": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ready",
+              "at_risk",
+              "not_ready",
+              null
+            ],
+            "description": "NTD GTFS certification readiness heads-up; null for non-US agencies (see catalog schema)."
+          },
+          "google_gate": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "at_risk",
+              "fail"
+            ],
+            "description": "Google/Apple Maps four-week coverage bar (see catalog schema)."
+          },
+          "stops": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Boardable stop count from stops.txt."
+          },
+          "feed_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The static GTFS URL that was scored."
+          },
+          "feed_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SHA-256 of the exact feed bytes scored."
+          },
+          "retrieved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When the feed was fetched and scored (ISO 8601)."
+          },
+          "snapshot_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The scorecard's snapshot date (YYYY-MM-DD)."
+          },
+          "rubric_version": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Rubric version that produced this grade."
+          },
+          "validator_version": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "MobilityData gtfs-validator release used."
+          },
+          "scorecard_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Canonical scorecard page for this agency."
+          },
+          "top_fix": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The highest-leverage plain-language fix, when any."
+          },
+          "country": {
+            "type": "string",
+            "enum": [
+              "US",
+              "CA"
+            ],
+            "description": "ISO 3166-1 alpha-2 country code; US unless the agency is Canadian."
+          }
+        }
+      }
+    }
+  }
+}

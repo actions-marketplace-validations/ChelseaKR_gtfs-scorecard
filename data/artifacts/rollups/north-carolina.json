@@ -1,0 +1,513 @@
+{
+  "agency_count": 36,
+  "average_score": 55.6,
+  "common_fixes": [
+    {
+      "agencies": 34,
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "agencies": 24,
+      "code": "scorecard_feed_expired",
+      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "agencies": 22,
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
+    },
+    {
+      "agencies": 6,
+      "code": "scorecard_no_fare_data",
+      "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure. If your service is fare-free, ask to have it marked fare-free instead."
+    },
+    {
+      "agencies": 6,
+      "code": "stop_time_timepoint_without_times",
+      "fix": "Review the rule documentation for 'stop_time_timepoint_without_times' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
+    },
+    {
+      "agencies": 4,
+      "code": "missing_required_column",
+      "fix": "Review the rule documentation for 'missing_required_column' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
+    },
+    {
+      "agencies": 2,
+      "code": "scorecard_rt_trip_updates_unreachable",
+      "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request."
+    },
+    {
+      "agencies": 2,
+      "code": "scorecard_rt_vehicle_positions_unreachable",
+      "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request."
+    },
+    {
+      "agencies": 2,
+      "code": "stop_without_stop_time",
+      "fix": "Remove retired stops from the export, or add them back to the trips that should serve them."
+    },
+    {
+      "agencies": 2,
+      "code": "equal_shape_distance_diff_coordinates_distance_below_threshold",
+      "fix": "Review the rule documentation for 'equal_shape_distance_diff_coordinates_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
+    },
+    {
+      "agencies": 2,
+      "code": "scorecard_feed_expiring_soon",
+      "fix": "Re-export with a validity window that reaches at least 60 days out."
+    }
+  ],
+  "expired": {
+    "lapsed": 6,
+    "stale": 18,
+    "total": 24
+  },
+  "generated_at": "2026-07-03T15:51:50+00:00",
+  "grade_distribution": {
+    "B": 4,
+    "C": 5,
+    "D": 3,
+    "F": 24
+  },
+  "members": [
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -184,
+      "expiry_status": "lapsed",
+      "grade": "F",
+      "id": "godurham",
+      "name": "GoDurham",
+      "needs_attention": true,
+      "score": 38.0,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -184,
+      "expiry_status": "lapsed",
+      "grade": "F",
+      "id": "godurham-377",
+      "name": "GoDurham",
+      "needs_attention": true,
+      "score": 38.0,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -327,
+      "expiry_status": "lapsed",
+      "grade": "F",
+      "id": "duke-university",
+      "name": "Duke University",
+      "needs_attention": true,
+      "score": 38.6,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -327,
+      "expiry_status": "lapsed",
+      "grade": "F",
+      "id": "duke-university-378",
+      "name": "Duke University",
+      "needs_attention": true,
+      "score": 38.6,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -549,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "chapel-hill-transit-cht",
+      "name": "Chapel Hill Transit (CHT)",
+      "needs_attention": true,
+      "score": 41.5,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -549,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "chapel-hill-transit-cht-376",
+      "name": "Chapel Hill Transit (CHT)",
+      "needs_attention": true,
+      "score": 41.5,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -702,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "capital-area-transit-goraleigh-1983",
+      "name": "Capital Area Transit (GoRaleigh)",
+      "needs_attention": true,
+      "score": 42.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1280,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "concord-kannapolis-area-transit-rider-transit",
+      "name": "Concord Kannapolis Area Transit (Rider Transit)",
+      "needs_attention": true,
+      "score": 42.9,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1280,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "concord-kannapolis-area-transit-rider-transit-372",
+      "name": "Concord Kannapolis Area Transit (Rider Transit)",
+      "needs_attention": true,
+      "score": 42.9,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1608,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "charlotte-area-transit-system-cats",
+      "name": "Charlotte Area Transit System (CATS)",
+      "needs_attention": true,
+      "score": 44.1,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1221,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "wave-transit-1861",
+      "name": "fixed route",
+      "needs_attention": true,
+      "score": 44.1,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -3,
+      "expiry_status": "lapsed",
+      "grade": "F",
+      "id": "asheville-rides-transit",
+      "name": "Asheville Rides Transit",
+      "needs_attention": true,
+      "score": 46.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -3,
+      "expiry_status": "lapsed",
+      "grade": "F",
+      "id": "asheville-rides-transit-903",
+      "name": "Asheville Rides Transit",
+      "needs_attention": true,
+      "score": 46.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -2194,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "north-carolina-state-university-ncsu",
+      "name": "North Carolina State University (NCSU)",
+      "needs_attention": true,
+      "score": 46.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -2194,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "north-carolina-state-university-ncsu-1289",
+      "name": "North Carolina State University (NCSU)",
+      "needs_attention": true,
+      "score": 46.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -490,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "greensboro-transit-authority-gta",
+      "name": "Greensboro Transit Authority (GTA)",
+      "needs_attention": true,
+      "score": 47.6,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -421,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "wave-transit-2026",
+      "name": "UNCW Seahawk Shuttle",
+      "needs_attention": true,
+      "score": 48.2,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -549,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "gotriangle",
+      "name": "GoTriangle",
+      "needs_attention": true,
+      "score": 50.2,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -549,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "gotriangle-374",
+      "name": "GoTriangle",
+      "needs_attention": true,
+      "score": 50.2,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1151,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "wave-transit-1862",
+      "name": "UNCW Seahawk Shuttle",
+      "needs_attention": true,
+      "score": 50.3,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -824,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "capital-area-transit-goraleigh",
+      "name": "Capital Area Transit (GoRaleigh)",
+      "needs_attention": true,
+      "score": 51.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -824,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "capital-area-transit-goraleigh-471",
+      "name": "Capital Area Transit (GoRaleigh)",
+      "needs_attention": true,
+      "score": 51.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -549,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "gocary",
+      "name": "GoCary",
+      "needs_attention": true,
+      "score": 52.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -549,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "gocary-375",
+      "name": "GoCary",
+      "needs_attention": true,
+      "score": 52.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data expires in 30 day(s)",
+      "days_until_expiry": 30,
+      "expiry_status": "expiring_soon",
+      "grade": "D",
+      "id": "north-carolina-state-university-ncsu-2245",
+      "name": "North Carolina State University (NCSU)",
+      "needs_attention": true,
+      "score": 64.6,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": "Service data expires in 30 day(s)",
+      "days_until_expiry": 30,
+      "expiry_status": "expiring_soon",
+      "grade": "D",
+      "id": "concord-kannapolis-area-transit-rider-transit-2244",
+      "name": "Concord Kannapolis Area Transit (Rider Transit)",
+      "needs_attention": true,
+      "score": 65.4,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": "Service data expires in 29 day(s)",
+      "days_until_expiry": 29,
+      "expiry_status": "expiring_soon",
+      "grade": "C",
+      "id": "tar-river-transit",
+      "name": "Tar River Transit",
+      "needs_attention": true,
+      "score": 73.0,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export with a validity window that reaches at least 60 days out."
+    },
+    {
+      "attention_reason": "Service data expires in 29 day(s)",
+      "days_until_expiry": 29,
+      "expiry_status": "expiring_soon",
+      "grade": "C",
+      "id": "tar-river-transit-472",
+      "name": "Tar River Transit",
+      "needs_attention": true,
+      "score": 73.0,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export with a validity window that reaches at least 60 days out."
+    },
+    {
+      "attention_reason": "Score changed sharply on 2026-06-30",
+      "days_until_expiry": 59,
+      "expiry_status": "current",
+      "grade": "C",
+      "id": "capital-area-transit-goraleigh-2074",
+      "name": "Capital Area Transit (GoRaleigh)",
+      "needs_attention": true,
+      "score": 74.8,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 93,
+      "expiry_status": "current",
+      "grade": "D",
+      "id": "charlotte-area-transit-system-cats-2265",
+      "name": "Charlotte Area Transit System (CATS)",
+      "needs_attention": false,
+      "score": 69.7,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 181,
+      "expiry_status": "current",
+      "grade": "C",
+      "id": "wave-transit",
+      "name": "fixed route",
+      "needs_attention": false,
+      "score": 72.6,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 393,
+      "expiry_status": "current",
+      "grade": "C",
+      "id": "link-transit-1971",
+      "name": "Link Transit",
+      "needs_attention": false,
+      "score": 75.6,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 154,
+      "expiry_status": "current",
+      "grade": "B",
+      "id": "gocary-2277",
+      "name": "GoCary",
+      "needs_attention": false,
+      "score": 81.1,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 181,
+      "expiry_status": "current",
+      "grade": "B",
+      "id": "piedmont-authority-for-regional-transportation-part",
+      "name": "Piedmont Authority for Regional Transportation (PART)",
+      "needs_attention": false,
+      "score": 84.9,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 181,
+      "expiry_status": "current",
+      "grade": "B",
+      "id": "piedmont-authority-for-regional-transportation-part-373",
+      "name": "Piedmont Authority for Regional Transportation (PART)",
+      "needs_attention": false,
+      "score": 84.9,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 240,
+      "expiry_status": "current",
+      "grade": "B",
+      "id": "cape-lookout-national-seashore",
+      "name": "CALO Ferry Service",
+      "needs_attention": false,
+      "score": 87.5,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    }
+  ],
+  "needs_attention": 29,
+  "rollup": {
+    "id": "north-carolina",
+    "name": "North Carolina agencies"
+  },
+  "schema_version": "1.4"
+}

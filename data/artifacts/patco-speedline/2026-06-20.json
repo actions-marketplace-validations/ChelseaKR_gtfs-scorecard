@@ -1,0 +1,149 @@
+{
+  "agency": {
+    "id": "patco-speedline",
+    "name": "PATCO Speedline"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "accessibility": {
+          "measures": "presence_not_usability",
+          "score": 100.0,
+          "stops_marked_accessible_pct": 57.1,
+          "stops_marked_not_accessible_pct": 42.9,
+          "stops_stated_pct": 100.0,
+          "trips_stated_pct": 100.0
+        },
+        "accessibility_measures": "presence_not_usability",
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 15.0,
+          "stop_names": 15.0,
+          "wheelchair_stops": 25.0,
+          "wheelchair_trips": 15.0
+        },
+        "fare_free": false,
+        "fares": {
+          "applied": true,
+          "has_leg_rules": false,
+          "has_products": false,
+          "has_transfer_rules": false,
+          "model": "legacy",
+          "product_count": 0
+        },
+        "flex": {
+          "booking_reachable": false,
+          "booking_rule_count": 0,
+          "has_booking_rules": false,
+          "has_flex": false
+        },
+        "has_fares": true,
+        "headsign_pct": 100.0,
+        "mixed_case_stop_name_pct": 100.0,
+        "pathways": {
+          "has_entrances": false,
+          "has_levels": false,
+          "has_pathways": false,
+          "has_stations": false,
+          "has_step_free": false,
+          "pathway_count": 0
+        },
+        "stops": 14,
+        "trips": 10475,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 100.0,
+        "wheelchair_marked_accessible_pct": 57.1,
+        "wheelchair_marked_not_accessible_pct": 42.9
+      },
+      "findings": [],
+      "name": "completeness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "100% of stops state wheelchair accessibility (57% marked accessible, 43% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 1,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 0,
+          "WARNING": 90
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "expired_calendar",
+          "count": 90,
+          "effort": "One setting in most export tools.",
+          "fix": "Remove past service periods the next time you export the feed.",
+          "owner": "Likely your export tool",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Some service calendars in the feed have already expired.",
+          "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
+        }
+      ],
+      "name": "correctness",
+      "score": 92.0,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 1 kind of issue across 90 instances (0 error, 90 warning, 0 informational).",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 72,
+        "feed_end_date": "2026-08-31",
+        "feed_start_date": "2015-07-02",
+        "feed_version": "59",
+        "has_feed_info": true,
+        "last_service_date": "2026-08-31",
+        "service_type": "fixed"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 72 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "No stated data license in the Mobility Database; verify before publishing.",
+    "reachable": true,
+    "sha256": "a1bc65bf4f0c9f44893e93f6dc22686238832118ea783d5c40b3a0c6698143ad",
+    "size_bytes": 773425,
+    "static_url": "http://www.ridepatco.org/developers/PortAuthorityTransitCorporation.zip"
+  },
+  "generated_at": "2026-06-20T00:00:00+00:00",
+  "overall": {
+    "grade": "A",
+    "score": 96.5
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.4",
+  "snapshot_date": "2026-06-20",
+  "top_fixes": [
+    {
+      "code": "expired_calendar",
+      "count": 90,
+      "effort": "One setting in most export tools.",
+      "fix": "Remove past service periods the next time you export the feed.",
+      "owner": "Likely your export tool",
+      "points": 8.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Some service calendars in the feed have already expired.",
+      "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

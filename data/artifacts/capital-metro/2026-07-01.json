@@ -1,0 +1,1182 @@
+{
+  "agency": {
+    "id": "capital-metro",
+    "name": "Capital Metro"
+  },
+  "autofix": {
+    "available": true,
+    "download_path": "data/artifacts/capital-metro/corrected.zip",
+    "fixes": [
+      {
+        "code": "autofix_stop_name_case",
+        "count": 10,
+        "examples": [
+          "12TH/WEBBERVILLE -> 12th/webberville",
+          "RUNDBERG/NORTHCREEK -> Rundberg/northcreek",
+          "2098 SAN JACINTO/21ST -> 2098 San Jacinto/21st"
+        ],
+        "label": "Recased shouting stop names"
+      },
+      {
+        "code": "autofix_route_name_case",
+        "count": 2,
+        "examples": [
+          "800 PLEASANT VALLEY -> 800 Pleasant Valley",
+          "837-EXPO CENTER -> 837-expo Center"
+        ],
+        "label": "Recased shouting route names"
+      }
+    ],
+    "total": 12
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "accessibility": {
+          "measures": "presence_not_usability",
+          "score": 37.5,
+          "stops_marked_accessible_pct": 0.0,
+          "stops_marked_not_accessible_pct": 0.0,
+          "stops_stated_pct": 0.0,
+          "trips_stated_pct": 100.0
+        },
+        "accessibility_measures": "presence_not_usability",
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 15.0,
+          "stop_names": 14.9,
+          "wheelchair_stops": 0.0,
+          "wheelchair_trips": 15.0
+        },
+        "fare_free": false,
+        "fares": {
+          "applied": true,
+          "has_leg_rules": false,
+          "has_products": false,
+          "has_transfer_rules": false,
+          "model": "legacy",
+          "product_count": 0
+        },
+        "flex": {
+          "booking_reachable": false,
+          "booking_rule_count": 0,
+          "has_booking_rules": false,
+          "has_flex": false
+        },
+        "has_fares": true,
+        "headsign_pct": 100.0,
+        "mixed_case_stop_name_pct": 99.6,
+        "pathways": {
+          "has_entrances": false,
+          "has_levels": false,
+          "has_pathways": false,
+          "has_stations": true,
+          "has_step_free": false,
+          "pathway_count": 0
+        },
+        "stops": 2343,
+        "trips": 21787,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 0.0,
+        "wheelchair_marked_accessible_pct": 0.0,
+        "wheelchair_marked_not_accessible_pct": 0.0
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 2343,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "owner": "Likely your team",
+          "points": 25.0,
+          "severity": "WARNING",
+          "what": "2343 of 2343 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_station_no_pathways",
+          "count": 1,
+          "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
+          "fix": "Add pathways.txt connecting entrances, platforms, and any elevators, with a level for each.",
+          "owner": "",
+          "points": 0.0,
+          "severity": "WARNING",
+          "what": "This feed models stations or entrances but has no pathways.txt.",
+          "why": "Trip planners can't guide riders through the station, and there is no step-free route information for wheelchair users."
+        }
+      ],
+      "name": "completeness",
+      "score": 74.9,
+      "status": "measured",
+      "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 5,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 6,
+          "WARNING": 3666
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "mixed_case_recommended_field",
+          "count": 3125,
+          "effort": "Often a bulk fix in your scheduling software.",
+          "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+          "owner": "Likely your export tool",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+          "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
+        },
+        {
+          "code": "stop_too_far_from_shape_using_user_distance",
+          "count": 458,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "route_long_name_contains_short_name",
+          "count": 70,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Route long name contains short name (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "stop_too_far_from_shape",
+          "count": 13,
+          "effort": "A few minutes per flagged stop.",
+          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some stops sit far from the route line they belong to.",
+          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        },
+        {
+          "code": "unknown_column",
+          "count": 6,
+          "effort": "A quick look at the flagged files.",
+          "fix": "Check the flagged column names for misspellings of standard GTFS fields; remove them if they are vendor extras.",
+          "owner": "",
+          "points": 0.8,
+          "severity": "INFO",
+          "what": "Some files contain columns that are not part of the GTFS spec.",
+          "why": "Harmless to riders, but apps ignore these columns and they can hide typos in real column names."
+        }
+      ],
+      "name": "correctness",
+      "score": 69.2,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 5 kinds of issue across 3672 instances (0 error, 3666 warning, 6 informational).",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 45,
+        "feed_end_date": "2026-08-15",
+        "feed_start_date": "2026-06-30",
+        "feed_version": "260630_1449",
+        "has_feed_info": true,
+        "last_service_date": "2026-08-15",
+        "service_type": "fixed"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 75.0,
+      "status": "measured",
+      "summary": "Service data covers the next 45 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "details": {
+        "coverage_pct": 97.9,
+        "covered_trips": 235,
+        "drift": {
+          "median_seconds": -22,
+          "observations": 14520,
+          "on_time_share_pct": 51.9,
+          "p90_abs_seconds": 386
+        },
+        "kinds_reachable": 2,
+        "rt_freshness": "fresh",
+        "samples": 9,
+        "scheduled_trips_in_window": 240,
+        "vehicles_checked": 666,
+        "vehicles_on_route_pct": 99.2,
+        "worst_lag_seconds": 34
+      },
+      "findings": [
+        {
+          "code": "scorecard_rt_service_alerts_unreachable",
+          "count": 1,
+          "effort": "Usually a vendor support ticket.",
+          "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
+          "owner": "",
+          "points": 8.3,
+          "severity": "ERROR",
+          "what": "The service alerts realtime feed failed during sampling.",
+          "why": "When this feed is down, riders see scheduled times presented as if they were live."
+        },
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 5,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "owner": "",
+          "points": 0.7,
+          "severity": "WARNING",
+          "what": "5 of 240 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        }
+      ],
+      "name": "realtime",
+      "score": 90.8,
+      "status": "measured",
+      "summary": "Sampled 9 times: 2 of 3 feeds healthy; 97.9% of scheduled trips had live predictions; 99.2% of vehicles on their route; predictions ran a median of 22s ahead of schedule.",
+      "weight": 0.2
+    }
+  },
+  "conformance": {
+    "awarded": false,
+    "criteria": [
+      {
+        "detail": "Passes validation with no errors.",
+        "key": "valid",
+        "met": true
+      },
+      {
+        "detail": "Service data covers the next 45 days.",
+        "key": "current",
+        "met": true
+      },
+      {
+        "detail": "States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each.",
+        "key": "accessible",
+        "met": false
+      }
+    ],
+    "status": "not_yet",
+    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+  },
+  "feed": {
+    "license_note": "License: https://www.capmetro.org/metrolabs/",
+    "reachable": true,
+    "sha256": "09cc6d8700e14dbce373a557b9a307425f2ac5f57fa24da72e208b76909083f0",
+    "size_bytes": 9865866,
+    "static_url": "https://data.texas.gov/download/r4v4-vz24/application/zip"
+  },
+  "generated_at": "2026-07-01T00:00:00+00:00",
+  "geo": {
+    "bbox": [
+      -97.9911,
+      30.14725,
+      -97.37168,
+      30.5879
+    ],
+    "lat": 30.2833,
+    "lon": -97.73181,
+    "stop_count": 2343
+  },
+  "ntd_id_alignment": {
+    "detail": "Your feed uses agency_id CM; the NTD asks for your five-digit NTD ID (60048) so the feed lines up with your record.",
+    "feed_agency_ids": [
+      "CM"
+    ],
+    "fix": "Change the agency_id to 60048 in agency.txt and update the matching agency_id in routes.txt.",
+    "ntd_id": "60048",
+    "status": "mismatch"
+  },
+  "ntd_readiness": {
+    "pillars": [
+      {
+        "detail": "Published at a public URL.",
+        "key": "published",
+        "status": "ready"
+      },
+      {
+        "detail": "Passes validation with no errors.",
+        "key": "valid",
+        "status": "ready"
+      },
+      {
+        "detail": "Service data covers the next 45 days.",
+        "key": "current",
+        "status": "ready"
+      }
+    ],
+    "status": "ready",
+    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+  },
+  "overall": {
+    "grade": "C",
+    "score": 76.1
+  },
+  "recommendations": [
+    {
+      "code": "scorecard_stop_name_needs_tts",
+      "count": 2148,
+      "effort": "A short text field per affected stop; start with the busiest.",
+      "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "INFO",
+      "what": "2148 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Riverside/Burton\", \"2237 Riverside/Willow Creek\", \"2507 Riverside/Pleasant Valley\", and more).",
+      "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
+    },
+    {
+      "code": "scorecard_station_missing_step_free_data",
+      "count": 2,
+      "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
+      "fix": "Add pathways.txt connecting entrances, platforms, and elevators, and levels.txt for each floor, so the step-free route is described.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "This feed models stations or entrances but has no pathways.txt and levels.txt.",
+      "why": "Without pathways and levels, a wheelchair user can't tell whether a step-free route exists inside the station, and trip planners can't route anyone through it."
+    }
+  ],
+  "routability": {
+    "boardable_stops": 2331,
+    "findings": [],
+    "orphan_stops": 0,
+    "single_stop_trips": 0,
+    "trips_total": 21787
+  },
+  "route_map": {
+    "drawn_route_count": 70,
+    "has_shapes": true,
+    "path": "data/artifacts/capital-metro/geometry.geojson",
+    "route_count": 70,
+    "routes": [
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "1-North Lamar/South Congress",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "10-South 1st/Red River",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "103",
+        "label": "103",
+        "long": "103-Manchaca Flyer",
+        "short": "103",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "105",
+        "label": "105",
+        "long": "105-South 5th Flyer",
+        "short": "105",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "111",
+        "label": "111",
+        "long": "111-South Mopac Flyer",
+        "short": "111",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "135",
+        "label": "135",
+        "long": "135-Dell Limited",
+        "short": "135",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "142",
+        "label": "142",
+        "long": "142-Metric Flyer",
+        "short": "142",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "152",
+        "label": "152",
+        "long": "152-Round Rock Tech Ridge Limited",
+        "short": "152",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "171",
+        "label": "171",
+        "long": "171-Oak Hill Flyer",
+        "short": "171",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "18",
+        "label": "18",
+        "long": "18-Martin Luther King",
+        "short": "18",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "2",
+        "label": "2",
+        "long": "2-Rosewood/CESAR CHAVEZ",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "20",
+        "label": "20",
+        "long": "20-Riverside",
+        "short": "20",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "201",
+        "label": "201",
+        "long": "201-Southpark Meadows",
+        "short": "201",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "214",
+        "label": "214",
+        "long": "214-Northwest Feeder",
+        "short": "214",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "217",
+        "label": "217",
+        "long": "217-Montopolis Feeder",
+        "short": "217",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "228",
+        "label": "228",
+        "long": "228-VA Clinic",
+        "short": "228",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "233",
+        "label": "233",
+        "long": "233-Decker/Daffan Ln",
+        "short": "233",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "243",
+        "label": "243",
+        "long": "243-Wells Branch",
+        "short": "243",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "271",
+        "label": "271",
+        "long": "271-Del Valle",
+        "short": "271",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "3",
+        "label": "3",
+        "long": "3-Burnet/Manchaca",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "30",
+        "label": "30",
+        "long": "30-Barton Creek/Bull Creek",
+        "short": "30",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "300",
+        "label": "300",
+        "long": "300-Springdale/Oltorf",
+        "short": "300",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "310",
+        "label": "310",
+        "long": "310-Parker/Wickersham",
+        "short": "310",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "311",
+        "label": "311",
+        "long": "311-Stassney",
+        "short": "311",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "315",
+        "label": "315",
+        "long": "315-Ben White",
+        "short": "315",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "318",
+        "label": "318",
+        "long": "318-Westgate/Slaughter",
+        "short": "318",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "320",
+        "label": "320",
+        "long": "320-Manor Road",
+        "short": "320",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "322",
+        "label": "322",
+        "long": "322-Chicon/Cherrywood",
+        "short": "322",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "324",
+        "label": "324",
+        "long": "324-Georgian/Ohlen",
+        "short": "324",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "325",
+        "label": "325",
+        "long": "325-Metric/Rundberg",
+        "short": "325",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "333",
+        "label": "333",
+        "long": "333-William Cannon",
+        "short": "333",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "335",
+        "label": "335",
+        "long": "335 35th/38th",
+        "short": "335",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "337",
+        "label": "337",
+        "long": "337-Koenig/Colony Park",
+        "short": "337",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "339",
+        "label": "339",
+        "long": "339-Tuscany",
+        "short": "339",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "345",
+        "label": "345",
+        "long": "345-45th",
+        "short": "345",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "350",
+        "label": "350",
+        "long": "350-Airport Blvd",
+        "short": "350",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "383",
+        "label": "383",
+        "long": "383-Research",
+        "short": "383",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "392",
+        "label": "392",
+        "long": "392-Braker",
+        "short": "392",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "4",
+        "label": "4",
+        "long": "4-7th Street",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "465",
+        "label": "465",
+        "long": "465-MLK/University of Texas",
+        "short": "465",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "466",
+        "label": "466",
+        "long": "466-Kramer/Domain",
+        "short": "466",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "481",
+        "label": "481",
+        "long": "481-Night Owl North Lamar",
+        "short": "481",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "483",
+        "label": "483",
+        "long": "483-Night Owl Riverside",
+        "short": "483",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "484",
+        "label": "484",
+        "long": "484-Night Owl South Lamar",
+        "short": "484",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "485",
+        "label": "485",
+        "long": "485-Night Owl 7th Street/Cameron",
+        "short": "485",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "486",
+        "label": "486",
+        "long": "486-Night Owl South Congress",
+        "short": "486",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "490",
+        "label": "490",
+        "long": "490-HEB Shuttle",
+        "short": "490",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "491",
+        "label": "491",
+        "long": "491-Allandale",
+        "short": "491",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "492",
+        "label": "492",
+        "long": "492-Delwood",
+        "short": "492",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "493",
+        "label": "493",
+        "long": "493-Eastview",
+        "short": "493",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "5-Woodrow/Lamar",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "50",
+        "label": "50",
+        "long": "50-Round Rock Techridge",
+        "short": "50",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2231A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "550",
+        "label": "550",
+        "long": "550-Metro Rail Red Line",
+        "short": "550",
+        "text_color": "FFFFFF",
+        "type_label": "Tram / light rail"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "640",
+        "label": "640",
+        "long": "640-Forty Acres",
+        "short": "640",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "642",
+        "label": "642",
+        "long": "642-West Campus/UT",
+        "short": "642",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "656",
+        "label": "656",
+        "long": "656-Intramural Fields/UT",
+        "short": "656",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "661",
+        "label": "661",
+        "long": "661-Far West/UT",
+        "short": "661",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "663",
+        "label": "663",
+        "long": "663-Lake Austin/UT",
+        "short": "663",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "670",
+        "label": "670",
+        "long": "670-North Riverside",
+        "short": "670",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "672",
+        "label": "672",
+        "long": "672-Lakeshore",
+        "short": "672",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "004A97",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "7",
+        "label": "7",
+        "long": "7-Duval / Dove Springs",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "800",
+        "label": "800",
+        "long": "800 PLEASANT VALLEY",
+        "short": "800",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "801",
+        "label": "801",
+        "long": "801-N Lamar S Congress",
+        "short": "801",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "803",
+        "label": "803",
+        "long": "803-Burnet/S Lamar",
+        "short": "803",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "555555",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "837",
+        "label": "837",
+        "long": "837-EXPO CENTER",
+        "short": "837",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2231A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "935",
+        "label": "935",
+        "long": "935-Tech Ridge Express",
+        "short": "935",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2231A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "980",
+        "label": "980",
+        "long": "980-North Mopac Express",
+        "short": "980",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2231A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "982",
+        "label": "982",
+        "long": "982-Pavilion Express",
+        "short": "982",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2231A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "985",
+        "label": "985",
+        "long": "985-Leander/Lakeline Direct",
+        "short": "985",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2231A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "990",
+        "label": "990",
+        "long": "990-Manor/Elgin Express",
+        "short": "990",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 2343,
+    "stop_points_capped": true
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.4",
+  "snapshot_date": "2026-07-01",
+  "top_fixes": [
+    {
+      "code": "scorecard_rt_service_alerts_unreachable",
+      "count": 1,
+      "effort": "Usually a vendor support ticket.",
+      "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
+      "owner": "",
+      "points": 8.3,
+      "rank": 1,
+      "severity": "ERROR",
+      "what": "The service alerts realtime feed failed during sampling.",
+      "why": "When this feed is down, riders see scheduled times presented as if they were live."
+    },
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 2343,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 25.0,
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "2343 of 2343 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    },
+    {
+      "code": "mixed_case_recommended_field",
+      "count": 3125,
+      "effort": "Often a bulk fix in your scheduling software.",
+      "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+      "owner": "Likely your export tool",
+      "points": 8.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+      "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

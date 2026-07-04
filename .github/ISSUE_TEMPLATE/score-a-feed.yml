@@ -1,0 +1,28 @@
+name: Score a feed
+description: Paste a GTFS feed URL and get a grade posted back as a comment.
+title: "Score a feed"
+labels: ["score-request"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Give us a direct link to a published GTFS Schedule feed and a bot will
+        score it and comment back, usually within a few minutes. This is a
+        one-off check and does not add the agency to the tracked list. To track a
+        feed over time, use [Add your agency](https://gtfsscorecard.org/submit.html).
+  - type: input
+    id: feed-url
+    attributes:
+      label: GTFS Schedule URL
+      description: A direct link to the feed .zip (often ends in google_transit.zip).
+      placeholder: https://.../google_transit.zip
+    validations:
+      required: true
+  - type: input
+    id: agency-name
+    attributes:
+      label: Agency name
+      description: Optional. Shown at the top of the scorecard.
+      placeholder: e.g. Fairfield and Suisun Transit
+    validations:
+      required: false

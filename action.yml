@@ -1,0 +1,63 @@
+name: "GTFS Scorecard gate"
+description: "Score a GTFS Schedule feed and fail the build if it falls below a grade or is about to expire."
+author: "gtfs-scorecard"
+branding:
+  icon: "check-circle"
+  color: "green"
+
+inputs:
+  feed-url:
+    description: "Direct link to a GTFS Schedule zip to score."
+    required: true
+  min-grade:
+    description: "Fail if the overall grade is below this letter (A, B, C, D, or F). Leave blank to skip the grade check."
+    required: false
+    default: ""
+  min-days-to-expiry:
+    description: "Fail if the feed expires within this many days. Leave blank to skip the expiry check."
+    required: false
+    default: ""
+  name:
+    description: "Agency name to show in the report (default: the feed host)."
+    required: false
+    default: ""
+  html:
+    description: "Path to also write a standalone HTML scorecard (relative to the workspace). Leave blank to skip."
+    required: false
+    default: ""
+  ref:
+    description: "Ref of gtfs-scorecard to install the scorer from (branch, tag, or SHA). Defaults to the version this action was called as, so pinning the action (e.g. @v1) installs the matching scorer; falls back to main."
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Java for the GTFS validator
+      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+      with:
+        distribution: temurin
+        java-version: "17"
+    - name: Set up uv
+      uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+    - name: Run the scorecard gate
+      shell: bash
+      env:
+        FEED_URL: ${{ inputs.feed-url }}
+        MIN_GRADE: ${{ inputs.min-grade }}
+        MIN_DAYS: ${{ inputs.min-days-to-expiry }}
+        FEED_NAME: ${{ inputs.name }}
+        HTML_OUT: ${{ inputs.html }}
+        # An explicit ref wins; otherwise install the scorer from the same ref
+        # this action was referenced at (github.action_ref), so @v1 is reproducible
+        # rather than floating on main. Falls back to main for local/`./` use.
+        SCORECARD_REF: ${{ inputs.ref != '' && inputs.ref || github.action_ref || 'main' }}
+      run: |
+        set -euo pipefail
+        args=("$FEED_URL")
+        if [[ -n "$FEED_NAME" ]]; then args+=(--name "$FEED_NAME"); fi
+        if [[ -n "$HTML_OUT" ]]; then args+=(--html "$HTML_OUT"); fi
+        if [[ -n "$MIN_GRADE" ]]; then args+=(--min-grade "$MIN_GRADE"); fi
+        if [[ -n "$MIN_DAYS" ]]; then args+=(--min-days-to-expiry "$MIN_DAYS"); fi
+        uvx --from "git+https://github.com/ChelseaKR/gtfs-scorecard@${SCORECARD_REF}#subdirectory=pipeline" \
+          scorecard try "${args[@]}"

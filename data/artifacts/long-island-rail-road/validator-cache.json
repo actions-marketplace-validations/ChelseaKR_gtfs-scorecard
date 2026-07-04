@@ -1,0 +1,33 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "stop_without_stop_time",
+        "sample_notices": [
+          {
+            "csvRowNumber": 14,
+            "stopId": "24",
+            "stopName": "Belmont Park"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "unknown_column",
+        "sample_notices": [
+          {
+            "fieldName": "peak_offpeak",
+            "filename": "trips.txt",
+            "index": 8
+          }
+        ],
+        "severity": "INFO",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "a8d94e1a2b95cb802041a8b0b82385a3888ba5f21de7511917dd5757dd70d6ac",
+  "validator_version": "8.0.1"
+}

@@ -1,0 +1,115 @@
+{
+  "agency_count": 6,
+  "average_score": 42.5,
+  "common_fixes": [
+    {
+      "agencies": 6,
+      "code": "scorecard_feed_expired",
+      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "agencies": 5,
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "agencies": 2,
+      "code": "missing_required_column",
+      "fix": "Review the rule documentation for 'missing_required_column' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
+    },
+    {
+      "agencies": 2,
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
+    }
+  ],
+  "expired": {
+    "lapsed": 0,
+    "stale": 6,
+    "total": 6
+  },
+  "generated_at": "2026-07-03T15:51:50+00:00",
+  "grade_distribution": {
+    "F": 6
+  },
+  "members": [
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -630,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "washington-metropolitan-area-transit-authority-wmata-1847",
+      "name": "Rail",
+      "needs_attention": true,
+      "score": 26.7,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1553,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "dc-circulator",
+      "name": "Service Discontinued",
+      "needs_attention": true,
+      "score": 39.4,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -559,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "washington-metropolitan-area-transit-authority-wmata",
+      "name": "Bus",
+      "needs_attention": true,
+      "score": 39.9,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1128,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "dc-streetcar",
+      "name": "DC Streetcar",
+      "needs_attention": true,
+      "score": 45.9,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1128,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "dc-streetcar-487",
+      "name": "DC Streetcar",
+      "needs_attention": true,
+      "score": 45.9,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -368,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "dc-streetcar-2223",
+      "name": "DC Streetcar",
+      "needs_attention": true,
+      "score": 57.2,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    }
+  ],
+  "needs_attention": 6,
+  "rollup": {
+    "id": "district-of-columbia",
+    "name": "District of Columbia agencies"
+  },
+  "schema_version": "1.4"
+}

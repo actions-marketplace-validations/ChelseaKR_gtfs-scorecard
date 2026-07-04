@@ -1,0 +1,493 @@
+{
+  "agency": {
+    "id": "dallas-area-rapid-transit-dart",
+    "name": "Dallas Area Rapid Transit (DART)"
+  },
+  "autofix": {
+    "available": true,
+    "download_path": "data/artifacts/dallas-area-rapid-transit-dart/corrected.zip",
+    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/dallas-area-rapid-transit-dart/corrected.zip",
+    "fixes": [
+      {
+        "code": "autofix_stop_name_case",
+        "count": 6939,
+        "examples": [
+          "FOREST @ SHEPHERD - E - NS -> Forest @ Shepherd - E - Ns",
+          "WALNUT HILL @ RAMBLER - W - MB -> Walnut Hill @ Rambler - W - Mb",
+          "WALNUT HILL @ GREENVILLE - E - MB -> Walnut Hill @ Greenville - E - Mb"
+        ],
+        "label": "Recased shouting stop names"
+      },
+      {
+        "code": "autofix_route_name_case",
+        "count": 91,
+        "examples": [
+          "MALCOLM X/MAPLE -> Malcolm X/maple",
+          "ROSS -> Ross",
+          "LOVE FIELD SHUTTLE -> Love Field Shuttle"
+        ],
+        "label": "Recased shouting route names"
+      }
+    ],
+    "total": 7030
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "accessibility": {
+          "measures": "presence_not_usability",
+          "score": 26.1,
+          "stops_marked_accessible_pct": 41.8,
+          "stops_marked_not_accessible_pct": 0.0,
+          "stops_stated_pct": 41.8,
+          "trips_stated_pct": 0.0
+        },
+        "accessibility_measures": "presence_not_usability",
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 15.0,
+          "stop_names": 0.1,
+          "wheelchair_stops": 10.5,
+          "wheelchair_trips": 0.0
+        },
+        "fare_free": false,
+        "fares": {
+          "applied": true,
+          "has_leg_rules": false,
+          "has_products": false,
+          "has_transfer_rules": false,
+          "model": "legacy",
+          "product_count": 0
+        },
+        "flex": {
+          "booking_reachable": false,
+          "booking_rule_count": 0,
+          "has_booking_rules": false,
+          "has_flex": false
+        },
+        "has_fares": true,
+        "headsign_pct": 99.8,
+        "mixed_case_stop_name_pct": 0.5,
+        "pathways": {
+          "has_entrances": false,
+          "has_levels": false,
+          "has_pathways": false,
+          "has_stations": false,
+          "has_step_free": false,
+          "pathway_count": 0
+        },
+        "stops": 6975,
+        "trips": 22211,
+        "wheelchair_accessible_pct": 0.0,
+        "wheelchair_boarding_pct": 41.8,
+        "wheelchair_marked_accessible_pct": 41.8,
+        "wheelchair_marked_not_accessible_pct": 0.0
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 4057,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "owner": "Likely your team",
+          "points": 14.5,
+          "severity": "WARNING",
+          "what": "4057 of 6975 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_wheelchair_accessible_unknown",
+          "count": 22211,
+          "effort": "Often one default setting in your export.",
+          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "owner": "Likely your export tool",
+          "points": 15.0,
+          "severity": "WARNING",
+          "what": "22211 of 22211 trips don't say whether the vehicle is wheelchair accessible.",
+          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+        },
+        {
+          "code": "scorecard_stop_names_all_caps",
+          "count": 6939,
+          "effort": "Often a bulk fix in your scheduling software.",
+          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "owner": "Likely your export tool",
+          "points": 14.9,
+          "severity": "INFO",
+          "what": "About 6939 stop names are written in ALL CAPS.",
+          "why": "Mixed-case names are easier to read in apps and are read more naturally by screen readers."
+        },
+        {
+          "code": "scorecard_missing_headsigns",
+          "count": 39,
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Populate trip_headsign to match what the bus displays.",
+          "owner": "Likely your export tool",
+          "points": 0.0,
+          "severity": "WARNING",
+          "what": "39 of 22211 trips have no headsign.",
+          "why": "Riders at the stop can't tell which direction a bus is going."
+        }
+      ],
+      "name": "completeness",
+      "score": 55.5,
+      "status": "measured",
+      "summary": "42% of stops state wheelchair accessibility (42% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 14,
+        "instances_by_severity": {
+          "ERROR": 1035,
+          "INFO": 6,
+          "WARNING": 30094
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "trip_distance_exceeds_shape_distance",
+          "count": 927,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 24.0,
+          "severity": "ERROR",
+          "what": "Trip distance exceeds shape distance (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "decreasing_or_equal_stop_time_distance",
+          "count": 108,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape distances in your export; flag to your vendor if it persists.",
+          "owner": "Likely your export tool",
+          "points": 24.0,
+          "severity": "ERROR",
+          "what": "Some trips have stop times whose distances along the route go backwards.",
+          "why": "Apps can show buses jumping backwards or mis-order stops."
+        },
+        {
+          "code": "mixed_case_recommended_field",
+          "count": 29193,
+          "effort": "Often a bulk fix in your scheduling software.",
+          "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+          "owner": "Likely your export tool",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+          "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
+        },
+        {
+          "code": "stop_too_far_from_shape_using_user_distance",
+          "count": 444,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "same_name_and_description_for_stop",
+          "count": 183,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'same_name_and_description_for_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Same name and description for stop (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "fast_travel_between_consecutive_stops",
+          "count": 176,
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the flagged stop times for transposed minutes.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Some scheduled trips travel implausibly fast between stops.",
+          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+        },
+        {
+          "code": "trip_distance_exceeds_shape_distance_below_threshold",
+          "count": 54,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "stop_too_far_from_shape",
+          "count": 23,
+          "effort": "A few minutes per flagged stop.",
+          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some stops sit far from the route line they belong to.",
+          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        },
+        {
+          "code": "route_color_contrast",
+          "count": 18,
+          "effort": "One field per route.",
+          "fix": "Pick a darker/lighter route_text_color for the flagged routes.",
+          "owner": "",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some route colors don't contrast with their text color.",
+          "why": "Route badges become unreadable, especially for riders with low vision."
+        },
+        {
+          "code": "feed_expiration_date30_days",
+          "count": 1,
+          "effort": "Usually a re-export from your scheduling software.",
+          "fix": "Schedule a feed re-export now so the new calendar is live well before the current one ends.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "This feed's service calendar runs out within the next 30 days.",
+          "why": "If a new feed isn't published before it ends, trip planners will drop your agency and riders will see no service."
+        },
+        {
+          "code": "route_long_name_contains_short_name",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Route long name contains short name (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "stops_match_shape_out_of_order",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unknown_file",
+          "count": 5,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.5,
+          "severity": "INFO",
+          "what": "Unknown file (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unknown_column",
+          "count": 1,
+          "effort": "A quick look at the flagged files.",
+          "fix": "Check the flagged column names for misspellings of standard GTFS fields; remove them if they are vendor extras.",
+          "owner": "",
+          "points": 0.5,
+          "severity": "INFO",
+          "what": "Some files contain columns that are not part of the GTFS spec.",
+          "why": "Harmless to riders, but apps ignore these columns and they can hide typos in real column names."
+        }
+      ],
+      "name": "correctness",
+      "score": 0.0,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 14 kinds of issue across 31135 instances (1035 error, 30094 warning, 6 informational).",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 27,
+        "feed_end_date": "2026-07-19",
+        "feed_start_date": "2026-06-08",
+        "feed_version": "V702-215-214-20260608",
+        "has_feed_info": true,
+        "last_service_date": "2026-07-19",
+        "service_type": "fixed"
+      },
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 53.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 27 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
+      "name": "freshness",
+      "score": 45.0,
+      "status": "measured",
+      "summary": "Service data runs out in 27 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "conformance": {
+    "awarded": false,
+    "criteria": [
+      {
+        "detail": "2 validator errors to resolve.",
+        "key": "valid",
+        "met": false
+      },
+      {
+        "detail": "Service data runs out in 27 days; renew to qualify.",
+        "key": "current",
+        "met": false
+      },
+      {
+        "detail": "States wheelchair access on 42% of stops and 0% of trips; the mark needs 90% of each.",
+        "key": "accessible",
+        "met": false
+      }
+    ],
+    "status": "not_yet",
+    "summary": "This feed is close to the conformance mark. 2 validator errors to resolve. Service data runs out in 27 days; renew to qualify. States wheelchair access on 42% of stops and 0% of trips; the mark needs 90% of each."
+  },
+  "feed": {
+    "license_note": "License: https://www.dart.org/transitdata/legalnotices.asp",
+    "reachable": true,
+    "sha256": "46763ba650f462957ff6dc3a4ef163a9bc0122d25891db128fb1aa5e25eb63ef",
+    "size_bytes": 8548456,
+    "static_url": "http://www.dart.org/transitdata/latest/google_transit.zip"
+  },
+  "generated_at": "2026-06-22T00:00:00+00:00",
+  "geo": {
+    "bbox": [
+      -97.3282,
+      32.55935,
+      -96.56339,
+      33.08435
+    ],
+    "lat": 32.8243,
+    "lon": -96.79337,
+    "stop_count": 6975
+  },
+  "ntd_id_alignment": {
+    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "feed_agency_ids": [
+      "60056"
+    ],
+    "status": "unknown"
+  },
+  "ntd_readiness": {
+    "pillars": [
+      {
+        "detail": "Published at a public URL.",
+        "key": "published",
+        "status": "ready"
+      },
+      {
+        "detail": "2 validator errors to resolve.",
+        "key": "valid",
+        "status": "at_risk"
+      },
+      {
+        "detail": "Service data runs out in 27 days; renew before you certify.",
+        "key": "current",
+        "status": "at_risk"
+      }
+    ],
+    "status": "at_risk",
+    "summary": "This feed is close to NTD-ready. 2 validator errors to resolve. Service data runs out in 27 days; renew before you certify."
+  },
+  "overall": {
+    "grade": "F",
+    "score": 28.6
+  },
+  "recommendations": [
+    {
+      "code": "scorecard_route_color_low_contrast",
+      "count": 75,
+      "effort": "A per-route color setting in your scheduling software.",
+      "fix": "Adjust route_color or route_text_color so each pair clears 4.5:1. Often switching the text between black and white is enough.",
+      "owner": "Likely your export tool",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "75 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (001, 003, 005, 009, 013, and more).",
+      "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
+    },
+    {
+      "code": "scorecard_stop_name_needs_tts",
+      "count": 6834,
+      "effort": "A short text field per affected stop; start with the busiest.",
+      "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "INFO",
+      "what": "6834 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"FOREST @ SHEPHERD - E - NS\", \"WALNUT HILL @ RAMBLER - W - MB\", \"WALNUT HILL @ GREENVILLE - E - MB\", and more).",
+      "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
+    }
+  ],
+  "routability": {
+    "boardable_stops": 6975,
+    "findings": [],
+    "orphan_stops": 0,
+    "single_stop_trips": 0,
+    "trips_total": 22211
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.4",
+  "snapshot_date": "2026-06-22",
+  "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 53.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 27 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
+    {
+      "code": "trip_distance_exceeds_shape_distance",
+      "count": 927,
+      "effort": "Varies.",
+      "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+      "owner": "",
+      "points": 24.0,
+      "rank": 2,
+      "severity": "ERROR",
+      "what": "Trip distance exceeds shape distance (flagged by the MobilityData validator).",
+      "why": "See the linked rule for what this affects."
+    },
+    {
+      "code": "decreasing_or_equal_stop_time_distance",
+      "count": 108,
+      "effort": "Usually an export-tool fix, not hand editing.",
+      "fix": "Re-generate shape distances in your export; flag to your vendor if it persists.",
+      "owner": "Likely your export tool",
+      "points": 24.0,
+      "rank": 3,
+      "severity": "ERROR",
+      "what": "Some trips have stop times whose distances along the route go backwards.",
+      "why": "Apps can show buses jumping backwards or mis-order stops."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

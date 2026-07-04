@@ -1,0 +1,67 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "mixed_case_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "fieldName": "stop_name",
+            "fieldValue": "ANGELUS AVE ANGELUS SENIOR HOUSING SB",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 3,
+            "fieldName": "stop_name",
+            "fieldValue": "ELLIS LN & OLNEY ST NB",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 4,
+            "fieldName": "stop_name",
+            "fieldValue": "ELLIS LN & OLNEY ST SB",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 5,
+            "fieldName": "stop_name",
+            "fieldValue": "GARVES AVE & DEL MAR AVE WB",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 6,
+            "fieldName": "stop_name",
+            "fieldValue": "GARVEY AVE & (GARVEY COMMUNITY CENTER) EB",
+            "filename": "stops.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 80
+      },
+      {
+        "code": "service_window_outside_feed_period",
+        "sample_notices": [
+          {
+            "daysAfterFeedEnd": 511,
+            "daysBeforeFeedStart": 544,
+            "serviceId": "40586.104745",
+            "serviceWindowEndDate": "2027-12-26",
+            "serviceWindowStartDate": "2025-01-04"
+          },
+          {
+            "daysAfterFeedEnd": 516,
+            "daysBeforeFeedStart": 547,
+            "serviceId": "40586.104564",
+            "serviceWindowEndDate": "2027-12-31",
+            "serviceWindowStartDate": "2025-01-01"
+          }
+        ],
+        "severity": "INFO",
+        "total": 2
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "636e9f325e569c0fb96074a9c0c3e57ffeef19fbc1bbf9a1b766ffa9630aaf30",
+  "validator_version": "8.0.1"
+}

@@ -1,0 +1,78 @@
+# Monthly citable dataset release (docs/expansion-ideation-2026-07.md, section C;
+# RESEARCH-ROADMAP.md E7). A researcher citing "the scorecard dataset" needs a
+# pinned, immutable reference, not a URL whose contents change daily. This tags
+# the first-of-month state as dataset-YYYY-MM and attaches the flat exports plus
+# the data dictionary, so a citation resolves to exactly the bytes analysed.
+name: Dataset release
+
+on:
+  schedule:
+    - cron: "47 6 1 * *" # monthly, after that day's daily run windows
+  workflow_dispatch: {}
+
+permissions:
+  contents: write # create the tag and release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Assemble the release bundle
+        id: bundle
+        run: |
+          tag="dataset-$(date -u +%Y-%m)"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "$tag already released; nothing to do."
+            exit 0
+          fi
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+          mkdir -p bundle
+          # A citable release must be complete: a missing file is a failed
+          # release, not a smaller one.
+          for f in web/catalog.json web/catalog.csv web/dataset.json \
+                   web/dataset.csv web/api/v1/agencies.parquet web/ntd.json; do
+            if [ ! -f "$f" ]; then
+              echo "::error::$f is missing; refusing to cut an incomplete dataset release"
+              exit 1
+            fi
+            cp "$f" bundle/
+          done
+          cp docs/api.md bundle/DATA-DICTIONARY.md
+          cp CITATION.cff bundle/
+          ls -l bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Write release notes
+        if: steps.bundle.outputs.exists == 'false'
+        run: |
+          agencies=$(python3 -c "import json;print(len(json.load(open('web/catalog.json'))['agencies']))")
+          rubric=$(python3 -c "import json;print(json.load(open('web/catalog.json')).get('rubric_version','unknown'))")
+          cat > notes.md <<EOF
+          Monthly snapshot of the GTFS Scorecard dataset: per-agency grades,
+          category scores, freshness, NTD readiness, and feed provenance for
+          $agencies tracked agencies (rubric $rubric), pinned at commit
+          ${GITHUB_SHA}.
+
+          Files: catalog.json / catalog.csv (per-agency records),
+          dataset.json / dataset.csv (flat analysis export),
+          agencies.parquet (columnar), ntd.json (NTD readiness rollup),
+          DATA-DICTIONARY.md (field reference), CITATION.cff.
+
+          License: data CC BY 4.0, code Apache-2.0. Cite this release tag (or
+          its commit) rather than the live site, which changes daily.
+          EOF
+
+      - name: Create the release
+        if: steps.bundle.outputs.exists == 'false'
+        run: |
+          tag="${{ steps.bundle.outputs.tag }}"
+          gh release create "$tag" bundle/* \
+            --title "Dataset ${tag#dataset-}" \
+            --notes-file notes.md
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,17 @@
+{
+  "receipts": [
+    {
+      "cleared": "2026-06-20",
+      "code": "missing_feed_contact_email_and_url",
+      "last_seen": "2026-06-19",
+      "what": "Riders had no way to reach the agency from trip planners."
+    },
+    {
+      "cleared": "2026-07-01",
+      "code": "missing_recommended_field",
+      "last_seen": "2026-06-30",
+      "what": "A recommended field was empty on several stops."
+    }
+  ],
+  "schema_version": "1.0"
+}

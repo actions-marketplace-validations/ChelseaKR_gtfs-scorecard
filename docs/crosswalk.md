@@ -1,0 +1,143 @@
+# How the grade maps to the standards
+
+The scorecard's four categories are its own. This page shows how each one lines
+up with the two standards California small agencies are actually held to, so the
+grade is legible to someone who already knows those standards, and so a manager
+can move from "scorecard says B" to "here is the official thing this relates to."
+
+This is a crosswalk, not a compliance determination. A category being strong here
+does not certify a feed against any guideline, and a weak one does not fail it.
+For the official assessment, use the sources linked below.
+
+## The standards
+
+Three of these apply to every US agency; the fourth is the agency's own state
+guideline, shown only where one exists. On an agency page, the "How this agency
+maps to the standards" section shows the universal three plus the state guideline
+for that agency's state.
+
+- **The [FTA National Transit Database](https://www.transit.dot.gov/ntd) GTFS
+  requirement.** Since Report Year 2023, every NTD reporter with fixed-route
+  service must publish and maintain a valid, public GTFS feed and certify it
+  annually. This is the one standard that applies nationwide, and it tracks the
+  scorecard's Correctness and Freshness categories. Aligning the GTFS `agency_id`
+  with the agency's five-digit NTD ID lets a feed join cleanly to its NTD record.
+  The October 2024 proposal would have required that alignment in the feed; the
+  [July 2025 final rule](https://www.federalregister.gov/documents/2025/07/10/2025-12813/national-transit-database-reporting-changes-and-clarifications-for-report-years-2025-and-2026)
+  did not adopt it, collecting the `agency_id`-to-NTD-ID link on the P-50 form
+  instead. When the agency's NTD ID is on file, the NTD readiness section on its
+  scorecard checks the alignment and frames it as an optional convenience, never
+  a required feed change and not part of the grade.
+- **A state's own guideline or program, where it has one.** California is
+  currently the only US state with a formal published GTFS quality *guideline*:
+  the [California Transit Data Guidelines](https://dot.ca.gov/cal-itp/california-transit-data-guidelines)
+  and [Minimum GTFS Guidelines](https://dot.ca.gov/cal-itp/california-minimum-general-transit-feed-specification-gtfs-guidelines-v2_0),
+  which define "Features" under GTFS Schedule, Realtime, and Data Availability and
+  a ten-point checklist. This scorecard's rubric is anchored to them, so for
+  California agencies it is shown as the guideline the score maps to.
+  Other states (Colorado, Michigan, Minnesota, Oregon, Washington) run GTFS
+  *programs* rather than a quality rubric; for agencies in those states the
+  program is shown as a support resource, not as a standard the score maps to.
+  The registry adds a state in one block.
+- The [MobilityData GTFS Grading Scheme](https://github.com/MobilityData/gtfs-grading-scheme):
+  a qualitative check that rider-facing values match the real world (route names
+  and colors, stop names and locations, trip headsigns). It deliberately does not
+  cover accessibility, fares, or feed validity, which is where this scorecard adds
+  to it.
+- **Google Transit (Google Maps).** Not a published rubric, but the de-facto
+  gate beyond California: to appear and stay in Google Maps a feed has to pass
+  Google's own validation and stay current. A feed that does not validate, or
+  whose calendar has expired, is dropped. In practice this tracks the scorecard's
+  Correctness and Freshness categories. Apple Maps applies a similar bar.
+
+## The Grading Scheme's seven fields, mapped
+
+The [MobilityData GTFS Grading Scheme](https://github.com/MobilityData/gtfs-grading-scheme)
+(v1.0.0) grades seven rider-facing fields by hand, comparing each against a source
+of truth (the agency website, street imagery). The scorecard automates a proxy
+for every one of them. The methods differ on purpose: the scheme verifies that a
+value is *accurate against the real world*, which needs a human; the scorecard
+checks that a value is *present, legible, and internally plausible*, which a
+machine can do daily. The scorecard is the automated complement to the scheme,
+not a replacement for its accuracy checks.
+
+| Grading Scheme field | The scheme checks (by hand) | The scorecard's automated proxy |
+|---|---|---|
+| `route_short_name` | matches on-street signage | Correctness: validator route-name notices |
+| `route_long_name` | matches official route documentation | Correctness: `missing_route_long_name` and related notices |
+| `route_color` | matches on-the-ground signage | Correctness: `route_color_contrast` (the published color is legible) |
+| `route_text_color` | legible against the route color | Correctness: `route_color_contrast` |
+| `stop_name` | matches the real stop (`location_type=0`) | Rider experience: readable (mixed-case) stop names; Correctness: name notices |
+| `stop_lat` / `stop_lon` | the coordinate is the real location | Correctness: stop-too-far-from-shape; Realtime: position plausibility |
+| `trip_headsign` | matches the destination the bus displays | Rider experience: headsign presence |
+
+Beyond these seven, the scorecard also grades accessibility, fares, feed
+freshness, and realtime, which the scheme does not address. So it covers every
+field the scheme does (automatically, as a proxy) and four dimensions it does not.
+
+## Category by category
+
+### Correctness (35%)
+
+What it measures: structural and semantic problems from the
+[MobilityData GTFS validator](https://gtfs-validator.mobilitydata.org/rules.html),
+weighted by severity.
+
+- **California Guidelines:** the GTFS Schedule expectation that the feed
+  implements the specification per industry best practices. Validator-clean is
+  the floor for most Schedule Features.
+- **Grading Scheme:** carries the automated proxy for most of the scheme's
+  fields (see the seven-field table above): `stop_lat`/`stop_lon` via
+  stop-far-from-street-location notices, and `route_color`/`route_text_color`
+  and the route names via the validator's color-contrast and route-name notices.
+- **Google Transit:** a feed has to pass validation to be accepted and kept in
+  Maps, so validator errors here are the same ones that risk the listing.
+
+### Freshness (20%)
+
+What it measures: a present and current `feed_info` validity window, calendar
+coverage for the weeks ahead, and days until the service data expires.
+
+- **California Guidelines:** "keep GTFS Schedule up to date and consistent," and
+  the Data Availability expectation of a stable, current feed at a fixed URL. This
+  is the category closest to the compliance threshold: an expired feed drops the
+  agency off the map, which is the failure the Guidelines exist to prevent.
+- **Grading Scheme:** not covered (the scheme assesses accuracy, not currency),
+  so this category is additive to it.
+- **Google Transit:** an expired calendar is one of the clearest ways to fall
+  out of Maps, so this is the category that most directly protects the listing.
+
+### Rider experience (25%)
+
+What it measures: accessibility fields populated (`wheelchair_boarding`), fares
+present, human-readable stop names, headsigns, and valid agency contact details.
+
+- **California Guidelines:** the expectation that riders get complete and accurate
+  information including fare, pathway, accessibility, and geographic data, so
+  anyone can plan a trip regardless of familiarity or access needs.
+- **Grading Scheme:** directly overlaps the rider-facing-accuracy dimensions —
+  `stop_name`, `route_short_name`/`route_long_name`, and `trip_headsign`. Note the
+  difference in method: the scheme compares values against real-world signage by
+  hand; the scorecard checks presence and plausibility automatically. The
+  accessibility and fare parts of this category go beyond the grading scheme,
+  which does not assess them.
+
+### Realtime quality (20%)
+
+What it measures: the GTFS-Realtime feed reachable and fresh, the share of
+scheduled trips represented in TripUpdates, and plausible vehicle positions. Shown
+neutrally as "Not yet published" when an agency has no realtime feed.
+
+- **California Guidelines:** the GTFS Realtime Features — standard formats at a
+  stable URL, with high uptime and update frequency.
+- **Grading Scheme:** not covered (Schedule only).
+
+## Where the scorecard and the standards differ
+
+- The scorecard is automated and runs daily; the Grading Scheme's accuracy checks
+  are manual by design. The scorecard approximates them, it does not replace them.
+- The scorecard weights and grades; the California Guidelines are pass/fail per
+  Feature. A good grade is encouragement toward the Features, not a substitute for
+  the official checklist.
+- Accessibility and fares are first-class in the scorecard's Rider-experience
+  category and absent from the Grading Scheme, which is a deliberate emphasis.

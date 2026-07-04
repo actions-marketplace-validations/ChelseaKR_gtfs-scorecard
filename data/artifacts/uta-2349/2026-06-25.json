@@ -1,0 +1,437 @@
+{
+  "agency": {
+    "id": "uta-2349",
+    "name": "UTA"
+  },
+  "autofix": {
+    "available": true,
+    "download_path": "data/artifacts/uta-2349/corrected.zip",
+    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/uta-2349/corrected.zip",
+    "fixes": [
+      {
+        "code": "autofix_trim_whitespace",
+        "count": 78,
+        "examples": [
+          "'stop_desc': '1235 ' -> '1235'",
+          "'stop_desc': '6926 ' -> '6926'",
+          "'stop_desc': '1227 ' -> '1227'"
+        ],
+        "label": "Trimmed surrounding whitespace"
+      },
+      {
+        "code": "autofix_stop_name_case",
+        "count": 7,
+        "examples": [
+          "WASHINGTON BLVD @ 24TH ST -> Washington Blvd @ 24th St",
+          "STATE ST / 10200 S (NB) -> State St / 10200 S (nb)",
+          "STATE ST / 11200 S (NB) -> State St / 11200 S (nb)"
+        ],
+        "label": "Recased shouting stop names"
+      },
+      {
+        "code": "autofix_route_name_case",
+        "count": 76,
+        "examples": [
+          "12600 SOUTH -> 12600 South",
+          "1700 SOUTH -> 1700 South",
+          "200 SOUTH -> 200 South"
+        ],
+        "label": "Recased shouting route names"
+      }
+    ],
+    "total": 161
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "accessibility": {
+          "measures": "presence_not_usability",
+          "score": 66.7,
+          "stops_marked_accessible_pct": 46.8,
+          "stops_marked_not_accessible_pct": 0.0,
+          "stops_stated_pct": 46.8,
+          "trips_stated_pct": 100.0
+        },
+        "accessibility_measures": "presence_not_usability",
+        "components": {
+          "contact": 7.5,
+          "fares": 0.0,
+          "headsigns": 14.9,
+          "stop_names": 15.0,
+          "wheelchair_stops": 11.7,
+          "wheelchair_trips": 15.0
+        },
+        "fare_free": false,
+        "fares": {
+          "applied": false,
+          "has_leg_rules": false,
+          "has_products": false,
+          "has_transfer_rules": false,
+          "model": "none",
+          "product_count": 0
+        },
+        "flex": {
+          "booking_reachable": false,
+          "booking_rule_count": 0,
+          "has_booking_rules": false,
+          "has_flex": false
+        },
+        "has_fares": false,
+        "headsign_pct": 99.5,
+        "mixed_case_stop_name_pct": 99.9,
+        "pathways": {
+          "has_entrances": false,
+          "has_levels": false,
+          "has_pathways": false,
+          "has_stations": false,
+          "has_step_free": false,
+          "pathway_count": 0
+        },
+        "stops": 5435,
+        "trips": 11053,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 46.8,
+        "wheelchair_marked_accessible_pct": 46.8,
+        "wheelchair_marked_not_accessible_pct": 0.0
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 2894,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "owner": "Likely your team",
+          "points": 13.3,
+          "severity": "WARNING",
+          "what": "2894 of 5435 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_no_fare_data",
+          "count": 1,
+          "effort": "A small file for most flat-fare systems.",
+          "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure. If your service is fare-free, ask to have it marked fare-free instead.",
+          "owner": "",
+          "points": 15.0,
+          "severity": "WARNING",
+          "what": "The feed contains no fare information.",
+          "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+        },
+        {
+          "code": "scorecard_missing_headsigns",
+          "count": 55,
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Populate trip_headsign to match what the bus displays.",
+          "owner": "Likely your export tool",
+          "points": 0.1,
+          "severity": "WARNING",
+          "what": "55 of 11053 trips have no headsign.",
+          "why": "Riders at the stop can't tell which direction a bus is going."
+        },
+        {
+          "code": "scorecard_no_feed_contact",
+          "count": 1,
+          "effort": "One field.",
+          "fix": "Add feed_contact_email to feed_info.txt.",
+          "owner": "",
+          "points": 7.5,
+          "severity": "INFO",
+          "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
+          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+        }
+      ],
+      "name": "completeness",
+      "score": 64.1,
+      "status": "measured",
+      "summary": "47% of stops state wheelchair accessibility (47% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is not published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 8,
+        "instances_by_severity": {
+          "ERROR": 65,
+          "INFO": 0,
+          "WARNING": 2061
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "decreasing_or_equal_stop_time_distance",
+          "count": 65,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape distances in your export; flag to your vendor if it persists.",
+          "owner": "Likely your export tool",
+          "points": 24.0,
+          "severity": "ERROR",
+          "what": "Some trips have stop times whose distances along the route go backwards.",
+          "why": "Apps can show buses jumping backwards or mis-order stops."
+        },
+        {
+          "code": "mixed_case_recommended_field",
+          "count": 1693,
+          "effort": "Often a bulk fix in your scheduling software.",
+          "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+          "owner": "Likely your export tool",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+          "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
+        },
+        {
+          "code": "stop_too_far_from_shape_using_user_distance",
+          "count": 270,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "fast_travel_between_consecutive_stops",
+          "count": 58,
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the flagged stop times for transposed minutes.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Some scheduled trips travel implausibly fast between stops.",
+          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+        },
+        {
+          "code": "stop_too_far_from_shape",
+          "count": 17,
+          "effort": "A few minutes per flagged stop.",
+          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some stops sit far from the route line they belong to.",
+          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        },
+        {
+          "code": "stop_without_stop_time",
+          "count": 16,
+          "effort": "A review pass in your scheduling software.",
+          "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some stops exist in the feed but no trip ever stops at them.",
+          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+        },
+        {
+          "code": "unused_shape",
+          "count": 6,
+          "effort": "One setting.",
+          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "The feed contains route shapes no trip uses.",
+          "why": "Harmless to riders, but it bloats the feed and suggests stale export data."
+        },
+        {
+          "code": "missing_feed_contact_email_and_url",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 30.0,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 8 kinds of issue across 2126 instances (65 error, 2061 warning, 0 informational).",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 51,
+        "feed_end_date": "2026-08-15",
+        "feed_start_date": "2026-06-21",
+        "feed_version": "2026 April SGR After_20260624",
+        "has_feed_info": true,
+        "last_service_date": "2026-08-15",
+        "service_type": "fixed"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 85.0,
+      "status": "measured",
+      "summary": "Service data covers the next 51 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "conformance": {
+    "awarded": false,
+    "criteria": [
+      {
+        "detail": "1 validator error to resolve.",
+        "key": "valid",
+        "met": false
+      },
+      {
+        "detail": "Service data covers the next 51 days.",
+        "key": "current",
+        "met": true
+      },
+      {
+        "detail": "States wheelchair access on 47% of stops and 100% of trips; the mark needs 90% of each.",
+        "key": "accessible",
+        "met": false
+      }
+    ],
+    "status": "not_yet",
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. States wheelchair access on 47% of stops and 100% of trips; the mark needs 90% of each."
+  },
+  "feed": {
+    "license_note": "No stated data license in the Mobility Database; verify before publishing.",
+    "reachable": true,
+    "sha256": "9a4021f5cbfa88bf2a963fcd39b2d4bc6aad1020dbf19854b698bcb53b52d9c3",
+    "size_bytes": 4381631,
+    "static_url": "https://gtfsfeed.rideuta.com/gtfs.zip"
+  },
+  "generated_at": "2026-06-25T00:00:00+00:00",
+  "geo": {
+    "bbox": [
+      -112.30446,
+      39.97552,
+      -111.58247,
+      41.52816
+    ],
+    "lat": 40.6998,
+    "lon": -111.91038,
+    "stop_count": 5435
+  },
+  "ntd_id_alignment": {
+    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "feed_agency_ids": [
+      "80001"
+    ],
+    "status": "unknown"
+  },
+  "ntd_readiness": {
+    "pillars": [
+      {
+        "detail": "Published at a public URL.",
+        "key": "published",
+        "status": "ready"
+      },
+      {
+        "detail": "1 validator error to resolve.",
+        "key": "valid",
+        "status": "at_risk"
+      },
+      {
+        "detail": "Service data covers the next 51 days.",
+        "key": "current",
+        "status": "ready"
+      }
+    ],
+    "status": "at_risk",
+    "summary": "This feed is close to NTD-ready. 1 validator error to resolve."
+  },
+  "overall": {
+    "grade": "F",
+    "score": 54.4
+  },
+  "recommendations": [
+    {
+      "code": "scorecard_route_color_low_contrast",
+      "count": 18,
+      "effort": "A per-route color setting in your scheduling software.",
+      "fix": "Adjust route_color or route_text_color so each pair clears 4.5:1. Often switching the text between black and white is enough.",
+      "owner": "Likely your export tool",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "18 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (1, 2, 200, 209, 21, and more).",
+      "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
+    },
+    {
+      "code": "scorecard_stop_name_needs_tts",
+      "count": 5044,
+      "effort": "A short text field per affected stop; start with the busiest.",
+      "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "INFO",
+      "what": "5044 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"4015 W / Ridgecrest Dr (SB)\", \"4015 W / 4990 S (SB)\", \"2700 W / 3650 S (SB)\", and more).",
+      "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
+    }
+  ],
+  "routability": {
+    "boardable_stops": 5435,
+    "findings": [
+      {
+        "code": "scorecard_orphan_stops",
+        "count": 16,
+        "effort": "A cleanup pass in your scheduling software.",
+        "fix": "Remove stops no route serves, or add the trips that should call at them.",
+        "owner": "Likely your export tool",
+        "points": 0.0,
+        "severity": "INFO",
+        "what": "16 of 5435 boardable stops are never served by any trip.",
+        "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
+      }
+    ],
+    "orphan_stops": 16,
+    "single_stop_trips": 0,
+    "trips_total": 11053
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.4",
+  "snapshot_date": "2026-06-25",
+  "top_fixes": [
+    {
+      "code": "decreasing_or_equal_stop_time_distance",
+      "count": 65,
+      "effort": "Usually an export-tool fix, not hand editing.",
+      "fix": "Re-generate shape distances in your export; flag to your vendor if it persists.",
+      "owner": "Likely your export tool",
+      "points": 24.0,
+      "rank": 1,
+      "severity": "ERROR",
+      "what": "Some trips have stop times whose distances along the route go backwards.",
+      "why": "Apps can show buses jumping backwards or mis-order stops."
+    },
+    {
+      "code": "scorecard_no_fare_data",
+      "count": 1,
+      "effort": "A small file for most flat-fare systems.",
+      "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure. If your service is fare-free, ask to have it marked fare-free instead.",
+      "owner": "",
+      "points": 15.0,
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "The feed contains no fare information.",
+      "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+    },
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 2894,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 13.3,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "2894 of 5435 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

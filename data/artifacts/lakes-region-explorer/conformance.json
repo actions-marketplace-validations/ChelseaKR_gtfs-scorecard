@@ -1,0 +1,22 @@
+{
+  "awarded": false,
+  "status": "not_yet",
+  "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each.",
+  "criteria": [
+    {
+      "key": "valid",
+      "met": true,
+      "detail": "Passes validation with no errors."
+    },
+    {
+      "key": "current",
+      "met": true,
+      "detail": "Service data covers the next 1031 days."
+    },
+    {
+      "key": "accessible",
+      "met": false,
+      "detail": "States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    }
+  ]
+}

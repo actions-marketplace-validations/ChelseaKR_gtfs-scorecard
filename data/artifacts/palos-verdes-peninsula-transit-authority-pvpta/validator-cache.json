@@ -1,0 +1,220 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "trip_distance_exceeds_shape_distance",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 11.612744048905228,
+            "maxShapeDistanceTraveled": 13.7047,
+            "maxTripDistanceTraveled": 21.6335,
+            "shapeId": "1440572",
+            "tripId": "t_6059297_b_85011_tn_0"
+          },
+          {
+            "geoDistanceToShape": 25.068639077812428,
+            "maxShapeDistanceTraveled": 12.7542,
+            "maxTripDistanceTraveled": 19.6468,
+            "shapeId": "2241",
+            "tripId": "t_6059292_b_85011_tn_0"
+          },
+          {
+            "geoDistanceToShape": 33.05416500948143,
+            "maxShapeDistanceTraveled": 12.9327,
+            "maxTripDistanceTraveled": 20.3911,
+            "shapeId": "1440573",
+            "tripId": "t_6059304_b_85011_tn_0"
+          },
+          {
+            "geoDistanceToShape": 11.612744048905228,
+            "maxShapeDistanceTraveled": 13.7047,
+            "maxTripDistanceTraveled": 21.6335,
+            "shapeId": "1440572",
+            "tripId": "t_6059311_b_85011_tn_0"
+          },
+          {
+            "geoDistanceToShape": 25.068639077812428,
+            "maxShapeDistanceTraveled": 12.7542,
+            "maxTripDistanceTraveled": 19.6468,
+            "shapeId": "2241",
+            "tripId": "t_6059293_b_85011_tn_0"
+          }
+        ],
+        "severity": "ERROR",
+        "total": 59
+      },
+      {
+        "code": "stop_too_far_from_shape_using_user_distance",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 238.23153543722344,
+            "match": [
+              33.737873981654,
+              -118.29453451376145
+            ],
+            "shapeId": "8375",
+            "stopId": "2434994",
+            "stopName": "W 7th St & S Gaffey St",
+            "stopTimeCsvRowNumber": 651,
+            "tripCsvRowNumber": 36,
+            "tripId": "t_5672959_b_81193_tn_0"
+          },
+          {
+            "geoDistanceToShape": 372.81624621373237,
+            "match": [
+              33.737884992037785,
+              -118.29837930399991
+            ],
+            "shapeId": "8375",
+            "stopId": "2434995",
+            "stopName": "W 7th St & S Cabrillo Ave",
+            "stopTimeCsvRowNumber": 652,
+            "tripCsvRowNumber": 36,
+            "tripId": "t_5672959_b_81193_tn_0"
+          },
+          {
+            "geoDistanceToShape": 495.8319760820361,
+            "match": [
+              33.73789390255398,
+              -118.30189324390331
+            ],
+            "shapeId": "8375",
+            "stopId": "2434996",
+            "stopName": "W 7th St & S Meyler St",
+            "stopTimeCsvRowNumber": 653,
+            "tripCsvRowNumber": 36,
+            "tripId": "t_5672959_b_81193_tn_0"
+          },
+          {
+            "geoDistanceToShape": 621.6426189216497,
+            "match": [
+              33.73790747003432,
+              -118.30548939758727
+            ],
+            "shapeId": "8375",
+            "stopId": "2434997",
+            "stopName": "W 7th St & S Bandini St",
+            "stopTimeCsvRowNumber": 654,
+            "tripCsvRowNumber": 36,
+            "tripId": "t_5672959_b_81193_tn_0"
+          },
+          {
+            "geoDistanceToShape": 614.2541287273626,
+            "match": [
+              33.73609056044664,
+              -118.30790126458291
+            ],
+            "shapeId": "8375",
+            "stopId": "2434998",
+            "stopName": "W 7th St & S Leland St",
+            "stopTimeCsvRowNumber": 655,
+            "tripCsvRowNumber": 36,
+            "tripId": "t_5672959_b_81193_tn_0"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1013
+      },
+      {
+        "code": "trip_distance_exceeds_shape_distance_below_threshold",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 7.055506176480343,
+            "maxShapeDistanceTraveled": 11.6231,
+            "maxTripDistanceTraveled": 18.6964,
+            "shapeId": "1438145",
+            "tripId": "t_6059322_b_85011_tn_0"
+          },
+          {
+            "geoDistanceToShape": 7.9229686747045385,
+            "maxShapeDistanceTraveled": 11.6135,
+            "maxTripDistanceTraveled": 18.6818,
+            "shapeId": "1438144",
+            "tripId": "t_6059325_b_85011_tn_0"
+          },
+          {
+            "geoDistanceToShape": 7.9229686747045385,
+            "maxShapeDistanceTraveled": 11.5133,
+            "maxTripDistanceTraveled": 18.526,
+            "shapeId": "2215",
+            "tripId": "t_6059326_b_85011_tn_0"
+          },
+          {
+            "geoDistanceToShape": 7.055506176480343,
+            "maxShapeDistanceTraveled": 11.6231,
+            "maxTripDistanceTraveled": 18.6964,
+            "shapeId": "1438145",
+            "tripId": "t_6059327_b_85011_tn_0"
+          },
+          {
+            "geoDistanceToShape": 7.9229686747045385,
+            "maxShapeDistanceTraveled": 11.6135,
+            "maxTripDistanceTraveled": 18.6818,
+            "shapeId": "1438144",
+            "tripId": "t_6059324_b_85011_tn_0"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 101
+      },
+      {
+        "code": "fast_travel_between_consecutive_stops",
+        "sample_notices": [
+          {
+            "arrivalTime2": "15:20:00",
+            "csvRowNumber1": 2138,
+            "csvRowNumber2": 2142,
+            "departureTime1": "15:20:00",
+            "distanceKm": 3.4457507194937596,
+            "routeId": "745",
+            "speedKph": 206.74504316962557,
+            "stopId1": "26145",
+            "stopId2": "26163",
+            "stopName1": "Cloyden Rd & Dalton Rd - PV High School",
+            "stopName2": "Palos Verdes Dr W & Malaga Cove Plaza",
+            "stopSequence1": 2,
+            "stopSequence2": 6,
+            "tripCsvRowNumber": 82,
+            "tripId": "t_5921129_b_85428_tn_0"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "big_gap_in_service",
+        "sample_notices": [
+          {
+            "gapDurationDays": 83,
+            "gapEndDate": "2026-08-24",
+            "gapStartDate": "2026-06-01",
+            "serviceId": "School Year Starting 08/20/25  (Weekday)"
+          },
+          {
+            "gapDurationDays": 83,
+            "gapEndDate": "2026-08-24",
+            "gapStartDate": "2026-06-01",
+            "serviceId": "School Year Starting 08/20/25  (Monday only)"
+          },
+          {
+            "gapDurationDays": 87,
+            "gapEndDate": "2026-08-25",
+            "gapStartDate": "2026-05-29",
+            "serviceId": "School Year Starting 08/20/25  (TuWThF)"
+          },
+          {
+            "gapDurationDays": 90,
+            "gapEndDate": "2026-08-26",
+            "gapStartDate": "2026-05-27",
+            "serviceId": "School Year Starting 08/20/25  (Wednesday only)"
+          }
+        ],
+        "severity": "INFO",
+        "total": 4
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "6eeaa00e2276b4c8aaba0c1c116e418cc0c2d9c07ff9967926cae709ffe39d32",
+  "validator_version": "8.0.1"
+}

@@ -1,0 +1,348 @@
+# Program rollups: portfolio views across many agencies, for the people who
+# support them (a Caltrans district liaison, a statewide data program). Each
+# rollup is published as static JSON the web app reads at #/program/<id>.
+#
+# Fields:
+#   id        short slug used in the URL (required)
+#   name      shown on the rollup page (required)
+#   all       true to include every tracked agency
+#   members   explicit list of agency ids (ignored when all: true)
+#   state     auto-include every agency in this state, e.g. CA (no member list;
+#             uses the state persisted in each agency's artifact)
+#
+# With no rollups.yaml at all, a single "all tracked agencies" rollup is still
+# produced, so this file only adds named groups on top of that default.
+
+rollups:
+  - id: all
+    name: All tracked agencies
+    all: true
+
+  - id: california
+    name: California agencies
+    members:
+      - alhambra-community-transit
+      - amador-transit
+      - amtrak-san-joaquins
+      - arcadia-transit
+      - arvin-transit
+      - auburn-transit
+      - avalon-transit
+      - baldwin-park-transit
+      - beach-cities-transit-1999
+      - beaumont-transit
+      - bellflower-bus-3095
+      - blossom-express
+      - burbankbus
+      - calabasas-transit-system
+      - calaveras-transit
+      - camarillo-area-transit
+      - capitol-corridor-joint-powers-authority-capitol-corridor
+      - carson-circuit
+      - catalina-flyer
+      - city-coach
+      - city-of-banning-transit
+      - city-of-bell-la-campana
+      - city-of-madera
+      - city-of-san-luis-obispo-transit
+      - city-of-tracy
+      - city-of-tracy-tracer
+      - clovis-transit
+      - commerce-municipal-bus-lines
+      - compton-renaissance
+      - corona-cruiser
+      - cudahy-area-rapid-transit
+      - culver-city-bus
+      - delano-area-rapid-transit
+      - devils-postpile-national-monument
+      - duarte-transit
+      - eastern-sierra-transit
+      - el-dorado-transit-agency
+      - el-monte-transit
+      - el-segundo-transportation
+      - emery-go-round
+      - etrans
+      - fast-transit
+      - fcrta
+      - glendora-transportation-division-3097
+      - glenn-transit-service
+      - go-west-shuttle
+      - golden-empire-transit-district-get
+      - grapeline
+      - gtrans
+      - guadalupe-flyer
+      - humboldt-transit-authority
+      - huntington-park-express-2648
+      - kern-transit
+      - kings-area-rural-transit
+      - la-puente-link
+      - laguna-beach-transit-lbt
+      - lake-transit
+      - lassen-rural-bus-lrb
+      - lawndale-beat
+      - los-angeles-county-department-of-public-works-the-link-and-shuttles
+      - los-angeles-department-of-transportation-ladot-dash-commuter-express
+      - madera-county-transit
+      - manteca-transit
+      - marin-transit
+      - mendocino-transit-authority
+      - merced-county-transit-the-bus
+      - metrolink
+      - modesto-area-express
+      - montebello-bus-lines
+      - moorpark-city-transit
+      - morongo-basin-transit-authority
+      - mountain-transit
+      - mountain-view-community-shuttle
+      - move-stanislaus
+      - needles-area-transit
+      - nevada-county-connects-gold-country-stage
+      - norwalk-transit-system-nts
+      - palo-verde-valley-transit-agency-2190
+      - palos-verdes-peninsula-transit-authority-pvpta
+      - pasadena-transit
+      - petaluma-transit
+      - placer-county-transit
+      - plumas-transit
+      - porterville-transit
+      - redding-area-bus-authority
+      - redding-area-bus-authority-raba
+      - redwood-coast-transit-rct
+      - relaxsan
+      - ridgecrest-transit
+      - ridgerunner
+      - rio-vista-delta-breeze
+      - rosemead-explorer-3098
+      - roseville-transit
+      - sage-stage
+      - san-benito-county-express-sbce
+      - san-joaquin-regional-transit-district
+      - san-juan-capistrano-free-weekend-trolley
+      - san-leandro-links
+      - san-luis-obispo-regional-transit-authority-slorta
+      - santa-barbara-metropolitan-transit-district-mtd
+      - santa-clarita-transit
+      - santa-maria-area-transit
+      - santa-rosa-citybus-1986
+      - santa-ynez-valley-transit
+      - sierra-madre-gateway-coach
+      - simi-valley-transit
+      - siskiyou-county
+      - soltrans
+      - sonoma-county-airport-express
+      - sonoma-county-transit-sct
+      - sonoma-marin-area-rail-transit-smart
+      - south-county-transit-link
+      - spirit-bus
+      - stanislaus-regional-transit-authority
+      - stanislaus-regional-transit-authority-stanrta
+      - stanislaus-regional-transit-start
+      - sunline-transit-agency
+      - taft-area-transit
+      - tahoe-area-regional-transit-tart-north-lake-tahoe-express
+      - tehama-rural-area-express-trax-susanville-indian-rancheria-public-transportation-program
+      - the-santa-cruzer
+      - thousand-oaks-transit
+      - thousand-oaks-transit-kanan-shuttle
+      - trinity-transit
+      - tulare-county-area-transit-tcat
+      - turlock-transit
+      - union-city-transit
+      - unitrans
+      - university-of-california-berkeley-shuttle-bear-transit
+      - ventura-county-transportation-commission
+      - vine-transit
+      - westcat
+      - yolobus
+      - yosemite-area-regional-transportation-system-yarts
+      - yuba-sutter-transit
+
+  - id: yolo-county
+    name: Yolo County
+    members:
+      - unitrans
+      - yolobus
+
+  - id: alabama
+    name: Alabama agencies
+    state: Alabama
+
+  - id: alaska
+    name: Alaska agencies
+    state: Alaska
+
+  - id: arizona
+    name: Arizona agencies
+    state: Arizona
+
+  - id: arkansas
+    name: Arkansas agencies
+    state: Arkansas
+
+  - id: colorado
+    name: Colorado agencies
+    state: Colorado
+
+  - id: connecticut
+    name: Connecticut agencies
+    state: Connecticut
+
+  - id: district-of-columbia
+    name: District of Columbia agencies
+    state: District of Columbia
+
+  - id: florida
+    name: Florida agencies
+    state: Florida
+
+  - id: georgia
+    name: Georgia agencies
+    state: Georgia
+
+  - id: hawaii
+    name: Hawaii agencies
+    state: Hawaii
+
+  - id: idaho
+    name: Idaho agencies
+    state: Idaho
+
+  - id: illinois
+    name: Illinois agencies
+    state: Illinois
+
+  - id: indiana
+    name: Indiana agencies
+    state: Indiana
+
+  - id: iowa
+    name: Iowa agencies
+    state: Iowa
+
+  - id: kansas
+    name: Kansas agencies
+    state: Kansas
+
+  - id: kentucky
+    name: Kentucky agencies
+    state: Kentucky
+
+  - id: louisiana
+    name: Louisiana agencies
+    state: Louisiana
+
+  - id: maine
+    name: Maine agencies
+    state: Maine
+
+  - id: maryland
+    name: Maryland agencies
+    state: Maryland
+
+  - id: massachusetts
+    name: Massachusetts agencies
+    state: Massachusetts
+
+  - id: michigan
+    name: Michigan agencies
+    state: Michigan
+
+  - id: minnesota
+    name: Minnesota agencies
+    state: Minnesota
+
+  - id: mississippi
+    name: Mississippi agencies
+    state: Mississippi
+
+  - id: missouri
+    name: Missouri agencies
+    state: Missouri
+
+  - id: montana
+    name: Montana agencies
+    state: Montana
+
+  - id: nebraska
+    name: Nebraska agencies
+    state: Nebraska
+
+  - id: nevada
+    name: Nevada agencies
+    state: Nevada
+
+  - id: new-hampshire
+    name: New Hampshire agencies
+    state: New Hampshire
+
+  - id: new-jersey
+    name: New Jersey agencies
+    state: New Jersey
+
+  - id: new-mexico
+    name: New Mexico agencies
+    state: New Mexico
+
+  - id: new-york
+    name: New York agencies
+    state: New York
+
+  - id: north-carolina
+    name: North Carolina agencies
+    state: North Carolina
+
+  - id: north-dakota
+    name: North Dakota agencies
+    state: North Dakota
+
+  - id: ohio
+    name: Ohio agencies
+    state: Ohio
+
+  - id: oklahoma
+    name: Oklahoma agencies
+    state: Oklahoma
+
+  - id: oregon
+    name: Oregon agencies
+    state: Oregon
+
+  - id: pennsylvania
+    name: Pennsylvania agencies
+    state: Pennsylvania
+
+  - id: rhode-island
+    name: Rhode Island agencies
+    state: Rhode Island
+
+  - id: south-carolina
+    name: South Carolina agencies
+    state: South Carolina
+
+  - id: tennessee
+    name: Tennessee agencies
+    state: Tennessee
+
+  - id: texas
+    name: Texas agencies
+    state: Texas
+
+  - id: utah
+    name: Utah agencies
+    state: Utah
+
+  - id: vermont
+    name: Vermont agencies
+    state: Vermont
+
+  - id: virginia
+    name: Virginia agencies
+    state: Virginia
+
+  - id: washington
+    name: Washington agencies
+    state: Washington
+
+  - id: wisconsin
+    name: Wisconsin agencies
+    state: Wisconsin

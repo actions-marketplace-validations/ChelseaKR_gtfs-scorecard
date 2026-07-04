@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>National map — GTFS Scorecard</title>
+  <meta name="description" content="A national map of transit agencies labelled and coloured by GTFS data quality grade.">
+  <link rel="canonical" href="https://gtfsscorecard.org/map/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="National map — GTFS Scorecard">
+  <meta property="og:description" content="A national map of transit agencies labelled and coloured by GTFS data quality grade.">
+  <meta property="og:url" content="https://gtfsscorecard.org/map/">
+  <meta property="og:image" content="https://gtfsscorecard.org/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f5efe2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <script>
+    /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
+    try {
+      var t = localStorage.getItem("scorecard-theme");
+      if (t && ["light", "contrast", "dark"].indexOf(t) >= 0)
+        document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+  <script src="/src/theme.js" defer></script>
+  <script src="/src/nav.js" defer></script>
+  <script src="/analytics.js" defer></script>
+  <noscript><style>
+    /* Without JS the menu button cannot expand the collapsed nav, so show the
+       stacked nav permanently and hide the button (content stays operable
+       without scripting). nav.js never runs here, so nothing double-toggles. */
+    @media (max-width: 1400px) {
+      .nav-menu-btn { display: none !important; }
+      .nav-cluster { display: flex !important; position: static; }
+    }
+  </style></noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header"><div class="wrap"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">GTFS&nbsp;Scorecard</span></a><button class="nav-menu-btn" type="button" aria-expanded="false" aria-controls="nav-cluster"><span aria-hidden="true">☰</span> Menu</button><div class="nav-cluster" id="nav-cluster"><nav class="nav-stops" aria-label="Primary"><a class="nav-stop" href="/agencies/" aria-current="page"><span class="pip" aria-hidden="true"></span>Agencies</a><a class="nav-stop" href="/pulse/"><span class="pip" aria-hidden="true"></span>National pulse</a><a class="nav-stop" href="/focus/"><span class="pip" aria-hidden="true"></span>Focus areas</a><a class="nav-stop" href="/tools/"><span class="pip" aria-hidden="true"></span>Tools</a><a class="nav-stop" href="/how-to-read/"><span class="pip" aria-hidden="true"></span>How to read</a><a class="nav-stop" href="/about/"><span class="pip" aria-hidden="true"></span>About</a></nav><div id="theme-control"></div></div></div></header>
+  <main id="main" class="wrap wrap-wide" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><span aria-current="page">National map</span></li></ol></nav>
+    <a class="backlink" href="/">&larr; Home</a>
+    <h1 class="page-title">The national map.</h1>
+    <p class="page-lede">Every tracked agency with a locatable
+    <abbr title="General Transit Feed Specification">GTFS</abbr> feed, placed at its
+    service area, labelled with its grade letter and coloured by grade. 3 agencies
+    are on the map. Select a point for its grade and a link to the scorecard, or work
+    the list below.</p>
+    <p class="page-lede">To see the actual route lines instead of one point per agency,
+    open <a href="/routes/">every route on one map</a>.</p>
+    <a class="skip-link-inline" href="#agency-list">Skip to the agency list</a>
+    <form class="map-filters" aria-label="Filter the map and list">
+      <p class="map-filters-intro">Filter by grade, location, or flexible service. The map and the list update together.</p>
+      <div class="map-filter-row">
+        <label for="map-grade">Grade</label>
+        <select id="map-grade" name="grade"><option value="">All grades</option><option value="A">Grade A</option><option value="B">Grade B</option><option value="C">Grade C</option><option value="D">Grade D</option><option value="F">Grade F</option></select>
+        <label for="map-state">Location</label>
+        <select id="map-state" name="state"><option value="">All locations</option><option value="Canada">Canada</option></select>
+      </div>
+      <div class="map-filter-row">
+        <label><input type="checkbox" id="map-flex" name="flex"> Offers GTFS-Flex (demand-responsive service)</label>
+      </div>
+    </form>
+    <div id="map" class="national-map" aria-hidden="true"><p class="map-fallback">The map
+      draws here once its library loads from a content delivery network. If it stays
+      blank (a blocked or slow network), the agency list below carries everything the
+      map shows.</p></div>
+    <ul class="map-legend" aria-label="Grade colours"><li><span class="map-dot" style="background:#1f7a4d"><span class="map-dot-letter" aria-hidden="true">A</span></span>Grade A</li><li><span class="map-dot" style="background:#3f7d20"><span class="map-dot-letter" aria-hidden="true">B</span></span>Grade B</li><li><span class="map-dot" style="background:#9a7d0a"><span class="map-dot-letter" aria-hidden="true">C</span></span>Grade C</li><li><span class="map-dot" style="background:#b5651d"><span class="map-dot-letter" aria-hidden="true">D</span></span>Grade D</li><li><span class="map-dot" style="background:#a32020"><span class="map-dot-letter" aria-hidden="true">F</span></span>Grade F</li></ul>
+    <p class="fineprint">Points are placed at each feed's median stop. Basemap:
+      OpenFreeMap, &copy; OpenStreetMap contributors. Data: this scorecard, CC BY 4.0.</p>
+    <section id="agency-list" tabindex="-1" aria-labelledby="agency-list-h">
+      <h2 class="section-title" id="agency-list-h">Every agency on the map</h2>
+      <p class="map-count" role="status"><span id="map-result-count">3</span> of 3
+        agencies shown.</p>
+      <table class="leaderboard map-table">
+        <caption class="visually-hidden">Agencies on the national map, with grade, location,
+          and score. Use the grade and location filters above to narrow the list.</caption>
+        <thead><tr><th scope="col">Agency</th><th scope="col">Grade</th>
+          <th scope="col">Location</th><th scope="col">Score</th></tr></thead>
+        <tbody id="map-tbody"><tr data-grade="C" data-state="" data-country="CA" data-has-flex="false" data-name="barrie transit (ontario)"><td><a href="/agency/barrie-transit/">Barrie Transit (Ontario)</a></td><td>C</td><td>CA</td><td>72.3</td></tr><tr data-grade="B" data-state="" data-country="" data-has-flex="false" data-name="unitrans (asucd / city of davis)"><td><a href="/agency/unitrans/">Unitrans (ASUCD / City of Davis)</a></td><td>B</td><td>&mdash;</td><td>80.8</td></tr><tr data-grade="B" data-state="" data-country="" data-has-flex="false" data-name="yolobus (yolo county transportation district)"><td><a href="/agency/yolobus/">Yolobus (Yolo County Transportation District)</a></td><td>B</td><td>&mdash;</td><td>82.5</td></tr></tbody>
+      </table>
+    </section>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+      (function () {
+        var gradeEl = document.getElementById("map-grade");
+        var stateEl = document.getElementById("map-state");
+        var flexEl = document.getElementById("map-flex");
+        var countEl = document.getElementById("map-result-count");
+        var rows = Array.prototype.slice.call(
+          document.querySelectorAll("#map-tbody tr"));
+        var all = null;  // the full FeatureCollection, fetched once
+
+        function matches(grade, state, country, hasFlex) {
+          var g = gradeEl.value, loc = stateEl.value, f = flexEl && flexEl.checked;
+          var locOk = !loc || state === loc || (loc === "Canada" && country === "CA");
+          // hasFlex is a string from the table's data attribute and a boolean
+          // from the GeoJSON properties; accept both.
+          var flexOk = !f || hasFlex === true || hasFlex === "true";
+          return (!g || grade === g) && locOk && flexOk;
+        }
+        // The table is the conformant primary; filter it even when the map
+        // (and MapLibre) never load.
+        function filterTable() {
+          var shown = 0;
+          rows.forEach(function (tr) {
+            var ok = matches(tr.getAttribute("data-grade"),
+                             tr.getAttribute("data-state"),
+                             tr.getAttribute("data-country"),
+                             tr.getAttribute("data-has-flex"));
+            tr.hidden = !ok;
+            if (ok) shown++;
+          });
+          if (countEl) countEl.textContent = shown;
+        }
+
+        if (!window.maplibregl) {
+          gradeEl.addEventListener("change", filterTable);
+          stateEl.addEventListener("change", filterTable);
+          if (flexEl) flexEl.addEventListener("change", filterTable);
+          filterTable();
+          return;
+        }
+        var reduce = window.matchMedia
+          && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var map = new maplibregl.Map({
+          container: "map",
+          style: "https://tiles.openfreemap.org/styles/positron",
+          center: [-96, 38], zoom: 3, keyboard: false,
+          attributionControl: false
+        });
+        // Take the canvas out of the tab order synchronously (not only on load),
+        // so this aria-hidden map never briefly holds a focusable canvas while a
+        // slower basemap style is still loading (WCAG aria-hidden-focus).
+        map.getCanvas().setAttribute("tabindex", "-1");
+        // No on-canvas controls: the canvas is aria-hidden and out of the tab
+        // order, so it must hold nothing focusable. Scroll/pinch zooms; clicking
+        // a cluster zooms in; the table is the operable primary.
+
+        function filtered() {
+          if (!all) return { type: "FeatureCollection", features: [] };
+          return {
+            type: "FeatureCollection",
+            features: all.features.filter(function (f) {
+              var p = f.properties || {};
+              return matches(p.grade, p.state || "", p.country || "", p.has_flex);
+            })
+          };
+        }
+        function applyFilter() {
+          filterTable();
+          var src = map.getSource("agencies");
+          if (src) src.setData(filtered());
+        }
+
+        map.on("load", function () {
+          // The canvas is a visual layer only; the table is the operable
+          // equivalent, so keep the canvas out of the keyboard tab order.
+          map.getCanvas().setAttribute("tabindex", "-1");
+          map.addSource("agencies", {
+            type: "geojson", data: { type: "FeatureCollection", features: [] },
+            cluster: true, clusterRadius: 48, clusterMaxZoom: 6
+          });
+          // Clusters: a neutral disc with a count, a low-zoom convenience.
+          map.addLayer({
+            id: "clusters", type: "circle", source: "agencies",
+            filter: ["has", "point_count"],
+            paint: {
+              "circle-color": "#3a4a42",
+              "circle-radius": ["step", ["get", "point_count"], 14, 25, 18, 100, 24],
+              "circle-stroke-width": 1.5, "circle-stroke-color": "#ffffff"
+            }
+          });
+          map.addLayer({
+            id: "cluster-count", type: "symbol", source: "agencies",
+            filter: ["has", "point_count"],
+            layout: {
+              "text-field": ["get", "point_count_abbreviated"],
+              "text-font": ["Noto Sans Regular"],
+              "text-size": 12, "text-allow-overlap": true
+            },
+            paint: { "text-color": "#ffffff" }
+          });
+          map.addLayer({
+            id: "agencies", type: "circle", source: "agencies",
+            filter: ["!", ["has", "point_count"]],
+            paint: {
+              "circle-radius": 9, "circle-color": ["get", "color"],
+              "circle-stroke-width": 1, "circle-stroke-color": "#ffffff"
+            }
+          });
+          // The grade letter, drawn on every point so grade reads without colour.
+          map.addLayer({
+            id: "agency-grade", type: "symbol", source: "agencies",
+            filter: ["!", ["has", "point_count"]],
+            layout: {
+              "text-field": ["get", "grade"], "text-size": 11,
+              "text-font": ["Noto Sans Bold"], "text-allow-overlap": true
+            },
+            paint: {
+              "text-color": "#ffffff",
+              "text-halo-color": "#1c1c1c", "text-halo-width": 0.8
+            }
+          });
+          fetch("/map.geojson").then(function (r) { return r.json(); })
+            .then(function (gj) { all = gj; applyFilter(); })
+            .catch(function () {});
+
+          map.on("click", "clusters", function (e) {
+            var f = map.queryRenderedFeatures(e.point, { layers: ["clusters"] })[0];
+            if (!f) return;
+            // MapLibre GL >= 3 returns a Promise here (the callback form was
+            // removed); a click on a cluster zooms in to expand it.
+            Promise.resolve(
+              map.getSource("agencies").getClusterExpansionZoom(f.properties.cluster_id)
+            ).then(function (zoom) {
+              map.easeTo({
+                center: f.geometry.coordinates, zoom: zoom,
+                animate: !reduce, duration: reduce ? 0 : 500
+              });
+            }).catch(function () {});
+          });
+          map.on("click", "agencies", function (e) {
+            var p = e.features[0].properties;
+            var link = document.createElement("a");
+            link.href = p.url; link.textContent = p.name + " (grade " + p.grade + ")";
+            var div = document.createElement("div");
+            div.appendChild(link);
+            new maplibregl.Popup().setLngLat(e.lngLat).setDOMContent(div).addTo(map);
+          });
+          ["clusters", "agencies"].forEach(function (layer) {
+            map.on("mouseenter", layer, function () { map.getCanvas().style.cursor = "pointer"; });
+            map.on("mouseleave", layer, function () { map.getCanvas().style.cursor = ""; });
+          });
+        });
+        gradeEl.addEventListener("change", applyFilter);
+        stateEl.addEventListener("change", applyFilter);
+        if (flexEl) flexEl.addEventListener("change", applyFilter);
+      })();
+    </script>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>An open-source data quality tool for small and rural transit agencies.</p>
+      <p><strong>Agencies:</strong>
+      <a href="/agencies/">Directory</a> ·
+      <a href="/app/">Interactive app</a> ·
+      <a href="/map/">Map</a> · <a href="/routes/">All routes</a></p>
+      <p><strong>The nation:</strong>
+      <a href="/pulse/">National pulse</a> ·
+      <a href="/problems/">Common problems</a> ·
+      <a href="/ntd/">NTD readiness</a> ·
+      <a href="/realtime/">Realtime</a> · <a href="/equity/">Equity</a> ·
+      <a href="/adoption/">What feeds publish</a></p>
+      <p><strong>Tools:</strong>
+      <a href="/compare/">Compare two agencies</a> ·
+      <a href="/check/">Check a feed before you publish</a> ·
+      <a href="/try.html">Score any feed now</a> ·
+      <a href="/query/">Query the dataset</a> ·
+      <a href="/subscribe.html">Feed-health alerts</a> ·
+      <a href="/submit.html">Add your agency</a> ·
+      <a href="/procurement/">For agencies: procurement</a></p>
+      <p><a href="/about/">About</a> ·
+      <a href="/how-to-read/">How to read a scorecard</a> ·
+      <a href="/how-to-read/#glossary">Glossary</a> ·
+      <a href="/press/">For reporters</a> ·
+      <a href="/data/">Open data</a> ·
+      <a href="/accessibility/">Accessibility</a> ·
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a> ·
+      Built by <a href="https://chelseakr.com">Chelsea Kelly-Reif</a></p>
+    </div>
+  </footer>
+</body>
+</html>

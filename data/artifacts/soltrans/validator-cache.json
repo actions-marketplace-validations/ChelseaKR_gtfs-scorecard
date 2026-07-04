@@ -1,0 +1,32 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "missing_feed_contact_email_and_url",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "route_color_contrast",
+        "sample_notices": [
+          {
+            "csvRowNumber": 15,
+            "routeColor": "#FDB415",
+            "routeId": "Y",
+            "routeTextColor": "#FFFFFF"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "fe33260168f51cb7224d3055d77e318301f9b2265d03f2d7fbdca64a01aa7efd",
+  "validator_version": "8.0.1"
+}

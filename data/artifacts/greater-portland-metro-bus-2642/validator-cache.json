@@ -1,0 +1,184 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "mixed_case_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "fieldName": "stop_name",
+            "fieldValue": "WESTBROOK ST + UPPER  COACH RD",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 3,
+            "fieldName": "stop_name",
+            "fieldValue": "WESTBROOK ST + LOWER COACH RD",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 4,
+            "fieldName": "stop_name",
+            "fieldValue": "COTTAGE RD + SOULE ST",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 5,
+            "fieldName": "stop_name",
+            "fieldValue": "BROADWAY + CLEMONS ST",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 6,
+            "fieldName": "stop_name",
+            "fieldValue": "BROADWAY + MUSSEY ST",
+            "filename": "stops.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2410
+      },
+      {
+        "code": "equal_shape_distance_diff_coordinates_distance_below_threshold",
+        "sample_notices": [
+          {
+            "actualDistanceBetweenShapePoints": 0.8044157784080564,
+            "csvRowNumber": 16341,
+            "prevCsvRowNumber": 16340,
+            "prevShapeDistTraveled": 2213.0,
+            "prevShapePtSequence": 213,
+            "shapeDistTraveled": 2213.0,
+            "shapeId": "HSK_372_783",
+            "shapePtSequence": 214
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.7963714871372028,
+            "csvRowNumber": 16344,
+            "prevCsvRowNumber": 16343,
+            "prevShapeDistTraveled": 2216.0,
+            "prevShapePtSequence": 216,
+            "shapeDistTraveled": 2216.0,
+            "shapeId": "HSK_372_783",
+            "shapePtSequence": 217
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.8044155083863148,
+            "csvRowNumber": 16347,
+            "prevCsvRowNumber": 16346,
+            "prevShapeDistTraveled": 2219.0,
+            "prevShapePtSequence": 219,
+            "shapeDistTraveled": 2219.0,
+            "shapeId": "HSK_372_783",
+            "shapePtSequence": 220
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.8044153764455921,
+            "csvRowNumber": 16350,
+            "prevCsvRowNumber": 16349,
+            "prevShapeDistTraveled": 2222.0,
+            "prevShapePtSequence": 222,
+            "shapeDistTraveled": 2222.0,
+            "shapeId": "HSK_372_783",
+            "shapePtSequence": 223
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.8124596643298296,
+            "csvRowNumber": 16357,
+            "prevCsvRowNumber": 16356,
+            "prevShapeDistTraveled": 2229.0,
+            "prevShapePtSequence": 229,
+            "shapeDistTraveled": 2229.0,
+            "shapeId": "HSK_372_783",
+            "shapePtSequence": 230
+          }
+        ],
+        "severity": "WARNING",
+        "total": 186
+      },
+      {
+        "code": "stop_without_stop_time",
+        "sample_notices": [
+          {
+            "csvRowNumber": 40,
+            "stopId": "0:374",
+            "stopName": "MIDDLE ST + FRANKLIN ST"
+          },
+          {
+            "csvRowNumber": 41,
+            "stopId": "0:376",
+            "stopName": "MIDDLE ST + PEARL ST"
+          },
+          {
+            "csvRowNumber": 504,
+            "stopId": "0:114",
+            "stopName": "Garage"
+          },
+          {
+            "csvRowNumber": 624,
+            "stopId": "0:494",
+            "stopName": "RAY ST + JOSEPH AVE"
+          },
+          {
+            "csvRowNumber": 625,
+            "stopId": "0:493",
+            "stopName": "RAY ST + IVALOO ST"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 28
+      },
+      {
+        "code": "unused_shape",
+        "sample_notices": [
+          {
+            "csvRowNumber": 17512,
+            "shapeId": "9B_20_140"
+          },
+          {
+            "csvRowNumber": 17809,
+            "shapeId": "9A_121_518"
+          },
+          {
+            "csvRowNumber": 18088,
+            "shapeId": "9A_121_18"
+          },
+          {
+            "csvRowNumber": 64344,
+            "shapeId": "9B_140_608_1"
+          },
+          {
+            "csvRowNumber": 64923,
+            "shapeId": "9A_636_121"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 8
+      },
+      {
+        "code": "missing_recommended_file",
+        "sample_notices": [
+          {
+            "filename": "feed_info.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "unknown_column",
+        "sample_notices": [
+          {
+            "fieldName": "vehicle_type",
+            "filename": "stops.txt",
+            "index": 10
+          }
+        ],
+        "severity": "INFO",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "02239c4c77845e966fa5fe9456f2366e7f5c889643099fb7247b58d0a12a81a3",
+  "validator_version": "8.0.1"
+}

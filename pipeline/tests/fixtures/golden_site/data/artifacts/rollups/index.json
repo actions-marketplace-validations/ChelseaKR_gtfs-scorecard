@@ -1,0 +1,29 @@
+{
+  "rollups": [
+    {
+      "agency_count": 1449,
+      "average_score": 60.9,
+      "expired": 618,
+      "id": "all",
+      "name": "All tracked agencies",
+      "needs_attention": 877
+    },
+    {
+      "agency_count": 135,
+      "average_score": 62.3,
+      "expired": 65,
+      "id": "california",
+      "name": "California agencies",
+      "needs_attention": 84
+    },
+    {
+      "agency_count": 2,
+      "average_score": 81.7,
+      "expired": 0,
+      "id": "yolo-county",
+      "name": "Yolo County",
+      "needs_attention": 0
+    }
+  ],
+  "schema_version": "1.4"
+}

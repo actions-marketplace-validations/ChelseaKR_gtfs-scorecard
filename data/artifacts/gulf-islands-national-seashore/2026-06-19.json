@@ -1,0 +1,130 @@
+{
+  "agency": {
+    "id": "gulf-islands-national-seashore",
+    "name": "Pensacola Bay City Ferry"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 15.0,
+          "stop_names": 15.0,
+          "wheelchair_stops": 25.0,
+          "wheelchair_trips": 15.0
+        },
+        "has_fares": true,
+        "headsign_pct": 100.0,
+        "mixed_case_stop_name_pct": 100.0,
+        "stops": 3,
+        "trips": 3,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 100.0,
+        "wheelchair_marked_accessible_pct": 100.0
+      },
+      "findings": [],
+      "name": "completeness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "100% of stops state wheelchair accessibility (100% marked accessible). Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 2,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 0,
+          "WARNING": 2
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "stop_too_far_from_shape",
+          "count": 1,
+          "effort": "A few minutes per flagged stop.",
+          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+          "severity": "WARNING",
+          "what": "Some stops sit far from the route line they belong to.",
+          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        },
+        {
+          "code": "unused_shape",
+          "count": 1,
+          "effort": "One setting.",
+          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "severity": "WARNING",
+          "what": "The feed contains route shapes no trip uses.",
+          "why": "Harmless to riders, but it bloats the feed and suggests stale export data."
+        }
+      ],
+      "name": "correctness",
+      "score": 92.0,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 2 kinds of issues: 0 error, 2 warning, and 0 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 134,
+        "feed_end_date": "2026-10-31",
+        "feed_start_date": "2026-03-14",
+        "feed_version": "20260327",
+        "has_feed_info": true,
+        "last_service_date": "2026-10-31"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 134 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "No stated data license in the Mobility Database; verify before publishing.",
+    "reachable": true,
+    "sha256": "d9b0f8c2a7d21e8668f31f21940377559c59c3357e9d62ca8f4332254813d617",
+    "size_bytes": 4428,
+    "static_url": "https://www.nps.gov/external-resources/gtfs/guis/guis-ferry-service-fl.zip"
+  },
+  "generated_at": "2026-06-19T00:00:00+00:00",
+  "overall": {
+    "grade": "A",
+    "score": 96.5
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.3",
+  "snapshot_date": "2026-06-19",
+  "top_fixes": [
+    {
+      "code": "stop_too_far_from_shape",
+      "count": 1,
+      "effort": "A few minutes per flagged stop.",
+      "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Some stops sit far from the route line they belong to.",
+      "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+    },
+    {
+      "code": "unused_shape",
+      "count": 1,
+      "effort": "One setting.",
+      "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "The feed contains route shapes no trip uses.",
+      "why": "Harmless to riders, but it bloats the feed and suggests stale export data."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

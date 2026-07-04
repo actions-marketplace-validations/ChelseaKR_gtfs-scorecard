@@ -1,0 +1,43 @@
+# GTFS Scorecard
+
+> An open-source data quality scorecard for US transit GTFS feeds, built for small and rural agencies.
+
+GTFS Scorecard scores the data quality of 2,083 US transit agencies' GTFS Schedule and GTFS-Realtime feeds daily. It runs the MobilityData canonical gtfs-validator, checks calendar freshness, rider accessibility fields, and realtime health, and translates every finding into a plain-language fix. Scoring methodology is documented with citations to the Caltrans California Transit Data Guidelines v4.0. Piloted with Unitrans (Davis, CA) and Yolobus (Yolo County, CA).
+
+The primary users are transit managers at small and rural agencies who need to know if their feed is any good, and state program staff (Caltrans district liaisons, Cal-ITP customer success) preparing for agency check-ins.
+
+## Scoring rubric
+
+Four categories, each 0–100, combined into a weighted letter grade:
+
+- Correctness (35%): gtfs-validator notices weighted by severity
+- Freshness (20%): calendar runway, feed_info validity window, days until expiry
+- Rider experience completeness (25%): wheelchair_boarding fields, fare data, headsigns, stop names, agency contact
+- Realtime quality (20%): RT feed reachability, TripUpdate coverage, vehicle position plausibility
+
+## Data API
+
+All artifacts are static JSON served from GitHub Pages.
+
+- Agency scorecard: https://gtfsscorecard.org/data/artifacts/{agency-id}/latest.json
+- All-agencies index: https://gtfsscorecard.org/data/artifacts/directory.json
+- National trend: https://gtfsscorecard.org/api/v1/trend.json
+- State rollup: https://gtfsscorecard.org/data/artifacts/rollups/{state-slug}.json
+- Rollup index: https://gtfsscorecard.org/data/artifacts/rollups/index.json
+
+## Key pages
+
+- Homepage: https://gtfsscorecard.org/
+- All agencies: https://gtfsscorecard.org/agencies/
+- Leaderboard: https://gtfsscorecard.org/leaderboard/
+- National trend: https://gtfsscorecard.org/trends/
+- Map: https://gtfsscorecard.org/map/
+- Common problems: https://gtfsscorecard.org/problems/
+- NTD readiness: https://gtfsscorecard.org/ntd/
+- Realtime overview: https://gtfsscorecard.org/realtime/
+- Submit an agency: https://gtfsscorecard.org/submit.html
+- Scoring methodology: https://gtfsscorecard.org/about/
+
+## Source
+
+https://github.com/ChelseaKR/gtfs-scorecard

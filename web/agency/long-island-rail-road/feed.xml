@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>GTFS Scorecard: Long Island Rail Road feed quality changes</title>
+  <subtitle>Grade moves, expiry warnings, and score swings for Long Island Rail Road's GTFS feed.</subtitle>
+  <id>tag:gtfsscorecard.org,2026:agency/long-island-rail-road/changes</id>
+  <link rel="self" type="application/atom+xml" href="https://gtfsscorecard.org/agency/long-island-rail-road/feed.xml"/>
+  <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/long-island-rail-road/"/>
+  <updated>2026-07-02T00:00:00Z</updated>
+  <author><name>GTFS Scorecard</name></author>
+  <generator uri="https://gtfsscorecard.org">GTFS Scorecard</generator>
+  <entry>
+    <title>Long Island Rail Road: Grade went C to B, correctness rose 10 points.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/long-island-rail-road/2026-07-02/grade_change</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/long-island-rail-road/"/>
+    <updated>2026-07-02T00:00:00Z</updated>
+    <category term="grade_change"/>
+    <summary>Grade went C to B, correctness rose 10 points.</summary>
+  </entry>
+</feed>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fix: many trips do not run in the next 7 days — GTFS Scorecard</title>
+  <meta name="description" content="Code: trip_coverage_not_active_for_next7_days (MobilityData validator)">
+  <link rel="canonical" href="https://gtfsscorecard.org/fix/trip_coverage_not_active_for_next7_days/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Fix: many trips do not run in the next 7 days — GTFS Scorecard">
+  <meta property="og:description" content="Code: trip_coverage_not_active_for_next7_days (MobilityData validator)">
+  <meta property="og:url" content="https://gtfsscorecard.org/fix/trip_coverage_not_active_for_next7_days/">
+  <meta property="og:image" content="https://gtfsscorecard.org/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f5efe2'/%3E%3C/svg%3E">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Fix: many trips do not run in the next 7 days","description":"Code: trip_coverage_not_active_for_next7_days (MobilityData validator)","url":"https://gtfsscorecard.org/fix/trip_coverage_not_active_for_next7_days/","about":{"@type":"Thing","name":"GTFS validator notice trip_coverage_not_active_for_next7_days"},"publisher":{"@type":"Organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org"}}</script>
+  <script>
+    /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
+    try {
+      var t = localStorage.getItem("scorecard-theme");
+      if (t && ["light", "contrast", "dark"].indexOf(t) >= 0)
+        document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+  <script src="/src/theme.js" defer></script>
+  <script src="/src/nav.js" defer></script>
+  <script src="/analytics.js" defer></script>
+  <noscript><style>
+    /* Without JS the menu button cannot expand the collapsed nav, so show the
+       stacked nav permanently and hide the button (content stays operable
+       without scripting). nav.js never runs here, so nothing double-toggles. */
+    @media (max-width: 1400px) {
+      .nav-menu-btn { display: none !important; }
+      .nav-cluster { display: flex !important; position: static; }
+    }
+  </style></noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header"><div class="wrap"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">GTFS&nbsp;Scorecard</span></a><button class="nav-menu-btn" type="button" aria-expanded="false" aria-controls="nav-cluster"><span aria-hidden="true">☰</span> Menu</button><div class="nav-cluster" id="nav-cluster"><nav class="nav-stops" aria-label="Primary"><a class="nav-stop" href="/agencies/" aria-current="page"><span class="pip" aria-hidden="true"></span>Agencies</a><a class="nav-stop" href="/pulse/"><span class="pip" aria-hidden="true"></span>National pulse</a><a class="nav-stop" href="/focus/"><span class="pip" aria-hidden="true"></span>Focus areas</a><a class="nav-stop" href="/tools/"><span class="pip" aria-hidden="true"></span>Tools</a><a class="nav-stop" href="/how-to-read/"><span class="pip" aria-hidden="true"></span>How to read</a><a class="nav-stop" href="/about/"><span class="pip" aria-hidden="true"></span>About</a></nav><div id="theme-control"></div></div></div></header>
+  <main id="main" class="wrap" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/agencies/">All agencies</a></li><li><span aria-current="page">Fix: trip_coverage_not_active_for_next7_days</span></li></ol></nav>
+    <a class="backlink" href="/agencies/">&larr; All agencies</a>
+    <article class="feed-details"><h1>Fix: many trips do not run in the next 7 days</h1>
+<p>Code: <code>trip_coverage_not_active_for_next7_days</code> (MobilityData validator)</p>
+<h2 class="section-title">What this means</h2>
+<p>A large share of the trips in your feed are not scheduled to run on any of the</p>
+<p>next seven days. The trips exist in <code>trips.txt</code>, but their calendars place them</p>
+<p>in the past or in a future window, so a rider looking at this week sees little</p>
+<p>of the service the feed describes.</p>
+<h2 class="section-title">Why it matters</h2>
+<p>Most often this means old service periods are still in the export: last</p>
+<p>season&#x27;s trips are riding along beside the current ones, inflating the feed and</p>
+<p>making it harder to check. In the worst case it is the early sign of a feed</p>
+<p>about to expire, where almost nothing runs next week because the current</p>
+<p>calendar is lapsing and a new one has not been published. Either way, the trips</p>
+<p>a rider can actually take should dominate the feed, not the trips they cannot.</p>
+<h2 class="section-title">How to fix it</h2>
+<ul>
+<li><strong>Trim past service periods</strong> in your export settings (&quot;only export active</li>
+</ul>
+<p>  service&quot; or a service-window date range). This usually clears most of the</p>
+<p>  inactive trips at once.</p>
+<ul>
+<li><strong>Confirm current service is published.</strong> If little runs next week because the</li>
+</ul>
+<p>  next pick or season has not been exported yet, publish the current schedule so</p>
+<p>  the feed covers the coming weeks.</p>
+<ul>
+<li>This finding often travels with</li>
+</ul>
+<p>  <a href="/fix/expired_calendar/"><code>expired_calendar</code></a>; fixing the expired calendars</p>
+<p>  usually moves this one too.</p>
+<h2 class="section-title">How long it usually takes</h2>
+<p>One export setting in most tools. If the cause is that current service has not</p>
+<p>been published yet, the work is running the export for the current schedule.</p>
+<h2 class="section-title">Authoritative rule</h2>
+<p><code>trip_coverage_not_active_for_next7_days</code> is a canonical MobilityData GTFS Validator notice, the same rule behind the statewide GTFS quality reports. <a class="rule-ref" href="https://gtfs-validator.mobilitydata.org/rules.html#trip_coverage_not_active_for_next7_days-rule">Read the authoritative rule for trip_coverage_not_active_for_next7_days in the GTFS Validator rules</a>.<span class="visually-hidden"> (opens on an external site)</span></p></article>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>An open-source data quality tool for small and rural transit agencies.</p>
+      <p><strong>Agencies:</strong>
+      <a href="/agencies/">Directory</a> ·
+      <a href="/app/">Interactive app</a> ·
+      <a href="/map/">Map</a> · <a href="/routes/">All routes</a></p>
+      <p><strong>The nation:</strong>
+      <a href="/pulse/">National pulse</a> ·
+      <a href="/problems/">Common problems</a> ·
+      <a href="/ntd/">NTD readiness</a> ·
+      <a href="/realtime/">Realtime</a> · <a href="/equity/">Equity</a> ·
+      <a href="/adoption/">What feeds publish</a></p>
+      <p><strong>Tools:</strong>
+      <a href="/compare/">Compare two agencies</a> ·
+      <a href="/check/">Check a feed before you publish</a> ·
+      <a href="/try.html">Score any feed now</a> ·
+      <a href="/query/">Query the dataset</a> ·
+      <a href="/subscribe.html">Feed-health alerts</a> ·
+      <a href="/submit.html">Add your agency</a> ·
+      <a href="/procurement/">For agencies: procurement</a></p>
+      <p><a href="/about/">About</a> ·
+      <a href="/how-to-read/">How to read a scorecard</a> ·
+      <a href="/how-to-read/#glossary">Glossary</a> ·
+      <a href="/press/">For reporters</a> ·
+      <a href="/data/">Open data</a> ·
+      <a href="/accessibility/">Accessibility</a> ·
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a> ·
+      Built by <a href="https://chelseakr.com">Chelsea Kelly-Reif</a></p>
+    </div>
+  </footer>
+</body>
+</html>

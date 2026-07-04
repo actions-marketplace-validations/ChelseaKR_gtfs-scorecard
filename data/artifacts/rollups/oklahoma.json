@@ -1,0 +1,93 @@
+{
+  "agency_count": 4,
+  "average_score": 55.6,
+  "common_fixes": [
+    {
+      "agencies": 3,
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "agencies": 2,
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
+    },
+    {
+      "agencies": 2,
+      "code": "scorecard_feed_expired",
+      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "agencies": 2,
+      "code": "mixed_case_recommended_field",
+      "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE')."
+    }
+  ],
+  "expired": {
+    "lapsed": 0,
+    "stale": 2,
+    "total": 2
+  },
+  "generated_at": "2026-07-03T15:51:50+00:00",
+  "grade_distribution": {
+    "B": 1,
+    "D": 1,
+    "F": 2
+  },
+  "members": [
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1049,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "metropolitan-tulsa-transit-authority-mtta",
+      "name": "Metropolitan Tulsa Transit Authority (MTTA)",
+      "needs_attention": true,
+      "score": 28.3,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -944,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "embark",
+      "name": "Embark",
+      "needs_attention": true,
+      "score": 43.7,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 26844,
+      "expiry_status": "current",
+      "grade": "D",
+      "id": "campus-area-rapid-transit-cart",
+      "name": "Campus Area Rapid Transit (CART)",
+      "needs_attention": false,
+      "score": 66.9,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "attention_reason": null,
+      "days_until_expiry": 364,
+      "expiry_status": "current",
+      "grade": "B",
+      "id": "embark-2062",
+      "name": "Embark",
+      "needs_attention": false,
+      "score": 83.6,
+      "snapshot_date": "2026-07-03",
+      "top_fix": "Review the rule documentation for 'missing_bike_allowance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
+    }
+  ],
+  "needs_attention": 2,
+  "rollup": {
+    "id": "oklahoma",
+    "name": "Oklahoma agencies"
+  },
+  "schema_version": "1.4"
+}

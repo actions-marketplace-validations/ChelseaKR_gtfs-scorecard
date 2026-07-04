@@ -1,0 +1,129 @@
+name: Intraday refresh
+
+# The cheap half of the two-tier cadence (ADR 0010). The daily "Daily scorecard"
+# job re-validates every feed; this job runs more often and does only the cheap
+# work: detect which feeds changed or went down (a conditional GET, no validator),
+# re-score just those, and refresh every feed's expiry countdown from the calendar
+# data already on hand. Cost stays flat as the registry grows because the Java
+# validator only runs on the handful of feeds that actually changed.
+
+on:
+  schedule:
+    # Hourly. Cadence tiers (ADR 0010) decide which feeds are actually checked
+    # each hour: priority feeds (realtime, near expiry) every cycle, the stable
+    # long tail spread once per six-hour period.
+    - cron: "23 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # commit + push refreshed artifacts
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Select the feeds due this cycle
+        working-directory: pipeline
+        run: uv run scorecard cadence --out "$RUNNER_TEMP/due.txt"
+
+      - name: Detect changed and unreachable feeds (due subset)
+        working-directory: pipeline
+        run: |
+          uv run scorecard liveness --apply \
+            --only "$RUNNER_TEMP/due.txt" \
+            --changed-out "$RUNNER_TEMP/changed.txt"
+
+      - name: Refresh expiry from calendar data (no fetch, no validator)
+        working-directory: pipeline
+        run: uv run scorecard freshness-sweep --apply
+
+      - name: Re-score only the feeds that changed
+        working-directory: pipeline
+        run: |
+          changed="$RUNNER_TEMP/changed.txt"
+          [ -s "$changed" ] || { echo "No changed feeds to re-score."; exit 0; }
+          # A single feed's vendor outage must not abort the batch; warn and move on.
+          while read -r id; do
+            [ -n "$id" ] || continue
+            echo "::group::rescore $id"
+            uv run scorecard run --agency "$id" \
+              || echo "::warning title=rescore failed::$id kept its last good artifact"
+            echo "::endgroup::"
+          done < "$changed"
+
+      - name: Rebuild index, rollups, and static pages
+        working-directory: pipeline
+        run: |
+          uv run scorecard reindex
+          uv run scorecard rollups
+          uv run scorecard render-site
+
+      - name: Commit the refresh
+        run: |
+          git config user.name "scorecard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # The generated web/ roots come from the manifest render-site emitted
+          # (build/render-manifest.txt), so a newly added page is always published
+          # and can never be silently dropped by a hand-typed list that drifts
+          # (a missing root broke a publish once). data/artifacts + liveness are
+          # added explicitly: they are scoring outputs, not render-site's. The
+          # manifest only ever lists generated paths, so hand-authored web/src, the
+          # static *.html, web/app, and web/tiles stay excluded and a concurrent
+          # merge to them is preserved by the replay.
+          test -s build/render-manifest.txt || { echo "render manifest missing; render-site did not run"; exit 1; }
+          paths="data/artifacts data/liveness.json $(tr '\n' ' ' < build/render-manifest.txt)"
+          git add $paths
+          if git diff --cached --quiet; then
+            echo "No changes this cycle."
+            exit 0
+          fi
+          git commit -m "chore(data): intraday refresh"
+          # main can move during the run (the daily job, a merge). Do NOT rebase:
+          # these are wholesale-regenerated artifacts (and binaries) that both this
+          # run and whatever moved main rewrite, so a 3-way rebase conflicts on
+          # essentially every file. Instead reset onto latest main and replay only
+          # our generated paths; main's non-artifact changes are preserved because
+          # we only re-add the generated paths. (Mirrors scorecard.yml.)
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "push rejected (main moved); replaying generated files onto latest main ($attempt)"
+            git fetch origin main
+            ours=$(git rev-parse HEAD)
+            git reset --hard origin/main
+            # Replay our generated tree onto latest main. git restore (no-overlay)
+            # re-applies modifications, additions, AND deletions for these paths, so
+            # a page/artifact this cycle pruned is actually removed; a plain
+            # `git checkout -- $paths` is overlay-only and would leave it behind.
+            git restore --source="$ours" --staged --worktree -- $paths
+            if git diff --cached --quiet; then
+              echo "latest main already carries these artifacts; nothing to push."
+              exit 0
+            fi
+            git commit -m "chore(data): intraday refresh"
+            sleep 3
+          done
+          echo "still rejected after 5 retries; failing so the lost cycle is visible."
+          exit 1
+
+  # GITHUB_TOKEN pushes do not trigger the push-driven Pages workflow, so deploy
+  # explicitly after the refresh.
+  deploy:
+    needs: refresh
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml

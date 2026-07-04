@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>GTFS Scorecard: feed quality changes</title>
+  <subtitle>Transit agencies whose GTFS data quality grade or score moved since their last check.</subtitle>
+  <id>tag:gtfsscorecard.org,2026:changes</id>
+  <link rel="self" type="application/atom+xml" href="https://gtfsscorecard.org/changes/feed.xml"/>
+  <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/pulse/#changes"/>
+  <updated>2026-07-03T00:00:00Z</updated>
+  <author><name>GTFS Scorecard</name></author>
+  <generator uri="https://gtfsscorecard.org">GTFS Scorecard</generator>
+  <entry>
+    <title>Flex: grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/upper-arkansas-area-council-of-governments/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/upper-arkansas-area-council-of-governments/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Flex's GTFS data quality went from 60.4 (D) to 60.0 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Spirit Bus: score rose 2.3 points</title>
+    <id>tag:gtfsscorecard.org,2026:agency/spirit-bus-2202/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/spirit-bus-2202/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="score_rise"/>
+    <summary>On 2026-07-03, Spirit Bus's GTFS data quality went from 64.4 (D) to 66.7 (D). A step in the right direction.</summary>
+  </entry>
+  <entry>
+    <title>Bus: grade improved F to D</title>
+    <id>tag:gtfsscorecard.org,2026:agency/southeastern-pennsylvania-transportation-authority-septa/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/southeastern-pennsylvania-transportation-authority-septa/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_rise"/>
+    <summary>On 2026-07-03, Bus's GTFS data quality went from 56.6 (F) to 63.2 (D). A step in the right direction.</summary>
+  </entry>
+  <entry>
+    <title>Rail: score rose 4.3 points</title>
+    <id>tag:gtfsscorecard.org,2026:agency/southeastern-pennsylvania-transportation-authority-septa-503/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/southeastern-pennsylvania-transportation-authority-septa-503/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="score_rise"/>
+    <summary>On 2026-07-03, Rail's GTFS data quality went from 71.7 (C) to 76.0 (C). A step in the right direction.</summary>
+  </entry>
+  <entry>
+    <title>Sonoma County Transit (SCT): grade dropped C to D</title>
+    <id>tag:gtfsscorecard.org,2026:agency/sonoma-county-transit-sct/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/sonoma-county-transit-sct/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Sonoma County Transit (SCT)'s GTFS data quality went from 70.3 (C) to 69.8 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Sonoma County Transit (SCT): grade dropped C to D</title>
+    <id>tag:gtfsscorecard.org,2026:agency/sonoma-county-transit-sct-70/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/sonoma-county-transit-sct-70/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Sonoma County Transit (SCT)'s GTFS data quality went from 70.3 (C) to 69.8 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Static feed for realtime: score rose 1.0 points</title>
+    <id>tag:gtfsscorecard.org,2026:agency/sandy-area-metro-sam-2739/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/sandy-area-metro-sam-2739/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="score_rise"/>
+    <summary>On 2026-07-03, Static feed for realtime's GTFS data quality went from 62.9 (D) to 63.9 (D). A step in the right direction.</summary>
+  </entry>
+  <entry>
+    <title>San Francisco Bay Area Water Emergency Transportation Authority (WETA): grade dropped A to B</title>
+    <id>tag:gtfsscorecard.org,2026:agency/san-francisco-bay-area-water-emergency-transportation-authority-weta-3143/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/san-francisco-bay-area-water-emergency-transportation-authority-weta-3143/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, San Francisco Bay Area Water Emergency Transportation Authority (WETA)'s GTFS data quality went from 90.3 (A) to 88.6 (B). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>NY Waterway: grade dropped B to C</title>
+    <id>tag:gtfsscorecard.org,2026:agency/ny-waterway-3192/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/ny-waterway-3192/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, NY Waterway's GTFS data quality went from 80.2 (B) to 78.8 (C). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Local Bus: grade dropped C to D</title>
+    <id>tag:gtfsscorecard.org,2026:agency/maryland-transit-administration/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/maryland-transit-administration/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Local Bus's GTFS data quality went from 70.0 (C) to 69.6 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Franklin County Public Transportation: grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/franklin-county-public-transportation/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/franklin-county-public-transportation/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Franklin County Public Transportation's GTFS data quality went from 60.0 (D) to 59.6 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Static feed for realtime: grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/clackco-connects-clackamas-county-2740/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/clackco-connects-clackamas-county-2740/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Static feed for realtime's GTFS data quality went from 67.5 (D) to 59.2 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Catholic Community Services: grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/catholic-community-services/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/catholic-community-services/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Catholic Community Services's GTFS data quality went from 60.4 (D) to 60.0 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Catholic Community Services: grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/catholic-community-services-2160/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/catholic-community-services-2160/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Catholic Community Services's GTFS data quality went from 60.4 (D) to 60.0 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Catholic Community Services: grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/catholic-community-services-2159/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/catholic-community-services-2159/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Catholic Community Services's GTFS data quality went from 60.4 (D) to 60.0 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Broward County Transit: grade improved B to A</title>
+    <id>tag:gtfsscorecard.org,2026:agency/broward-county-transit/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/broward-county-transit/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_rise"/>
+    <summary>On 2026-07-03, Broward County Transit's GTFS data quality went from 86.9 (B) to 90.4 (A). A step in the right direction.</summary>
+  </entry>
+  <entry>
+    <title>Boxcar Commuter Bus: grade improved C to B</title>
+    <id>tag:gtfsscorecard.org,2026:agency/boxcar/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/boxcar/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_rise"/>
+    <summary>On 2026-07-03, Boxcar Commuter Bus's GTFS data quality went from 71.7 (C) to 81.1 (B). A step in the right direction.</summary>
+  </entry>
+  <entry>
+    <title>Blacksburg Transit: grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/blacksburg-transit/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/blacksburg-transit/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-03, Blacksburg Transit's GTFS data quality went from 60.3 (D) to 59.9 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Bay Area Transportation Authority: score rose 1.8 points</title>
+    <id>tag:gtfsscorecard.org,2026:agency/bay-area-transportation-authority-2254/2026-07-03</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/bay-area-transportation-authority-2254/"/>
+    <updated>2026-07-03T00:00:00Z</updated>
+    <category term="score_rise"/>
+    <summary>On 2026-07-03, Bay Area Transportation Authority's GTFS data quality went from 55.0 (F) to 56.8 (F). A step in the right direction.</summary>
+  </entry>
+</feed>

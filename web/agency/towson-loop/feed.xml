@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>GTFS Scorecard: Towson Loop feed quality changes</title>
+  <subtitle>Grade moves, expiry warnings, and score swings for Towson Loop's GTFS feed.</subtitle>
+  <id>tag:gtfsscorecard.org,2026:agency/towson-loop/changes</id>
+  <link rel="self" type="application/atom+xml" href="https://gtfsscorecard.org/agency/towson-loop/feed.xml"/>
+  <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/towson-loop/"/>
+  <updated>2026-06-29T00:00:00Z</updated>
+  <author><name>GTFS Scorecard</name></author>
+  <generator uri="https://gtfsscorecard.org">GTFS Scorecard</generator>
+  <entry>
+    <title>Towson Loop: Grade went C to D, realtime fell 22 points.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/towson-loop/2026-06-29/grade_change</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/towson-loop/"/>
+    <updated>2026-06-29T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>Grade went C to D, realtime fell 22 points.</summary>
+  </entry>
+  <entry>
+    <title>Towson Loop: Grade went D to C, realtime rose 31 points.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/towson-loop/2026-06-28/grade_change</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/towson-loop/"/>
+    <updated>2026-06-28T00:00:00Z</updated>
+    <category term="grade_change"/>
+    <summary>Grade went D to C, realtime rose 31 points.</summary>
+  </entry>
+  <entry>
+    <title>Towson Loop: Grade went C to D, realtime fell 14 points.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/towson-loop/2026-06-22/grade_change</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/towson-loop/"/>
+    <updated>2026-06-22T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>Grade went C to D, realtime fell 14 points.</summary>
+  </entry>
+  <entry>
+    <title>Towson Loop: Grade went D to C, realtime rose 16 points.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/towson-loop/2026-06-21/grade_change</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/towson-loop/"/>
+    <updated>2026-06-21T00:00:00Z</updated>
+    <category term="grade_change"/>
+    <summary>Grade went D to C, realtime rose 16 points.</summary>
+  </entry>
+  <entry>
+    <title>Towson Loop: Score rose 5 points, realtime rose 25 points.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/towson-loop/2026-06-20/score_move</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/towson-loop/"/>
+    <updated>2026-06-20T00:00:00Z</updated>
+    <category term="score_move"/>
+    <summary>Score rose 5 points, realtime rose 25 points.</summary>
+  </entry>
+</feed>

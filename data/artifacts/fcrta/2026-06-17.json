@@ -1,0 +1,159 @@
+{
+  "agency": {
+    "id": "fcrta",
+    "name": "Fresno County Rural Transit Agency (FCRTA)"
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 10.5,
+          "stop_names": 15.0,
+          "wheelchair_stops": 0.0,
+          "wheelchair_trips": 15.0
+        },
+        "has_fares": true,
+        "headsign_pct": 70.0,
+        "mixed_case_stop_name_pct": 100.0,
+        "stops": 83,
+        "trips": 40,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 0.0,
+        "wheelchair_marked_accessible_pct": 0.0
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 83,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "severity": "WARNING",
+          "what": "83 of 83 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_missing_headsigns",
+          "count": 12,
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Populate trip_headsign to match what the bus displays.",
+          "severity": "WARNING",
+          "what": "12 of 40 trips have no headsign.",
+          "why": "Riders at the stop can't tell which direction a bus is going."
+        }
+      ],
+      "name": "completeness",
+      "score": 70.5,
+      "status": "measured",
+      "summary": "0% of stops state wheelchair accessibility (0% marked accessible). Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 2,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 31,
+          "WARNING": 0
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "unknown_column",
+          "count": 26,
+          "effort": "A quick look at the flagged files.",
+          "fix": "Check the flagged column names for misspellings of standard GTFS fields; remove them if they are vendor extras.",
+          "severity": "INFO",
+          "what": "Some files contain columns that are not part of the GTFS spec.",
+          "why": "Harmless to riders, but apps ignore these columns and they can hide typos in real column names."
+        },
+        {
+          "code": "unknown_file",
+          "count": 5,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "severity": "INFO",
+          "what": "Unknown file (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 98.8,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 2 kinds of issues: 0 error, 0 warning, and 31 informational instances in total.",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 197,
+        "feed_end_date": "2026-12-31",
+        "feed_start_date": "2025-01-01",
+        "feed_version": "UTC: 18-Dec-2025 16:09",
+        "has_feed_info": true,
+        "last_service_date": "2026-12-31"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 197 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "feed": {
+    "license_note": "No stated data license in the Mobility Database; verify before publishing.",
+    "reachable": true,
+    "sha256": "f217283505b5aa8d55ab7fc7272063b4de8c0e255dbaf4edb0158b6c1118f07a",
+    "size_bytes": 44752,
+    "static_url": "https://rapid.nationalrtap.org/GTFSFileManagement/UserUploadFiles/7869/google_transit.zip"
+  },
+  "generated_at": "2026-06-17T00:00:00+00:00",
+  "overall": {
+    "grade": "A",
+    "score": 90.2
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.2",
+  "snapshot_date": "2026-06-17",
+  "top_fixes": [
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 83,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "83 of 83 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    },
+    {
+      "code": "scorecard_missing_headsigns",
+      "count": 12,
+      "effort": "Usually a bulk edit in your scheduling software.",
+      "fix": "Populate trip_headsign to match what the bus displays.",
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "12 of 40 trips have no headsign.",
+      "why": "Riders at the stop can't tell which direction a bus is going."
+    },
+    {
+      "code": "unknown_column",
+      "count": 26,
+      "effort": "A quick look at the flagged files.",
+      "fix": "Check the flagged column names for misspellings of standard GTFS fields; remove them if they are vendor extras.",
+      "rank": 3,
+      "severity": "INFO",
+      "what": "Some files contain columns that are not part of the GTFS spec.",
+      "why": "Harmless to riders, but apps ignore these columns and they can hide typos in real column names."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

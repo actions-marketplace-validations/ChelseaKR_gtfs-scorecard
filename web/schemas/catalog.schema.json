@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gtfsscorecard.org/schemas/catalog.schema.json",
+  "title": "GTFS Scorecard catalog",
+  "description": "Flat list of every scored agency. Additive within a major schema_version: tolerate unknown fields.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "agencies"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "format": "uri"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "rubric_version": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "attribution": {
+      "type": "string"
+    },
+    "agencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/agency"
+      }
+    }
+  },
+  "$defs": {
+    "agency": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "grade",
+        "score"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "grade": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "F"
+          ]
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "size_tier": {
+          "type": "string",
+          "enum": [
+            "small",
+            "medium",
+            "large",
+            "unknown"
+          ]
+        },
+        "national_percentile": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "peer_percentile": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "snapshot_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "days_until_expiry": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "expiry_status": {
+          "type": "string",
+          "enum": [
+            "current",
+            "expiring_soon",
+            "lapsed",
+            "stale",
+            "unknown"
+          ]
+        },
+        "mdb_id": {
+          "type": "string"
+        },
+        "validator_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rubric_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retrieved_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "feed_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "feed_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "top_fix": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scorecard_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "ntd_ready": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "ready",
+            "at_risk",
+            "not_ready",
+            null
+          ],
+          "description": "Readiness for the FTA NTD GTFS requirement, rolled up from the published/valid/current pillars. A data-quality heads-up, never an official determination: ready = all three pillars hold; at_risk = a recoverable gap (validator errors, expiring soon); not_ready = unreachable or lapsed. NTD is a US-federal concept, so this is null for non-US agencies (ADR 0026)."
+        },
+        "google_gate": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "at_risk",
+            "fail"
+          ],
+          "description": "Whether the feed clears the Google/Apple Maps four-week service-coverage bar: pass = four or more weeks ahead; at_risk = under four weeks; fail = expired."
+        },
+        "stops": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Boardable stop count read from the feed's stops.txt."
+        },
+        "country": {
+          "type": "string",
+          "enum": [
+            "US",
+            "CA"
+          ],
+          "description": "ISO 3166-1 alpha-2 country code; US unless the agency is Canadian."
+        }
+      }
+    }
+  }
+}

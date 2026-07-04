@@ -1,0 +1,26 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "missing_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "fieldName": "feed_start_date",
+            "filename": "feed_info.txt"
+          },
+          {
+            "csvRowNumber": 2,
+            "fieldName": "feed_end_date",
+            "filename": "feed_info.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "bb67a276c413f87ffa58014f221bcfb3b573d03b408949053683c9c563769f55",
+  "validator_version": "8.0.1"
+}

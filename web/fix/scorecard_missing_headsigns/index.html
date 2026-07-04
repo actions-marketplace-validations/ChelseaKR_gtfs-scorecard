@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fix: trips don&#x27;t say where they&#x27;re headed — GTFS Scorecard</title>
+  <meta name="description" content="Code: scorecard_missing_headsigns">
+  <link rel="canonical" href="https://gtfsscorecard.org/fix/scorecard_missing_headsigns/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Fix: trips don&#x27;t say where they&#x27;re headed — GTFS Scorecard">
+  <meta property="og:description" content="Code: scorecard_missing_headsigns">
+  <meta property="og:url" content="https://gtfsscorecard.org/fix/scorecard_missing_headsigns/">
+  <meta property="og:image" content="https://gtfsscorecard.org/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f5efe2'/%3E%3C/svg%3E">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Fix: trips don't say where they're headed","description":"Code: scorecard_missing_headsigns","url":"https://gtfsscorecard.org/fix/scorecard_missing_headsigns/","about":{"@type":"Thing","name":"GTFS validator notice scorecard_missing_headsigns"},"publisher":{"@type":"Organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org"}}</script>
+  <script>
+    /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
+    try {
+      var t = localStorage.getItem("scorecard-theme");
+      if (t && ["light", "contrast", "dark"].indexOf(t) >= 0)
+        document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+  <script src="/src/theme.js" defer></script>
+  <script src="/src/nav.js" defer></script>
+  <script src="/analytics.js" defer></script>
+  <noscript><style>
+    /* Without JS the menu button cannot expand the collapsed nav, so show the
+       stacked nav permanently and hide the button (content stays operable
+       without scripting). nav.js never runs here, so nothing double-toggles. */
+    @media (max-width: 1400px) {
+      .nav-menu-btn { display: none !important; }
+      .nav-cluster { display: flex !important; position: static; }
+    }
+  </style></noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header"><div class="wrap"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">GTFS&nbsp;Scorecard</span></a><button class="nav-menu-btn" type="button" aria-expanded="false" aria-controls="nav-cluster"><span aria-hidden="true">☰</span> Menu</button><div class="nav-cluster" id="nav-cluster"><nav class="nav-stops" aria-label="Primary"><a class="nav-stop" href="/agencies/" aria-current="page"><span class="pip" aria-hidden="true"></span>Agencies</a><a class="nav-stop" href="/pulse/"><span class="pip" aria-hidden="true"></span>National pulse</a><a class="nav-stop" href="/focus/"><span class="pip" aria-hidden="true"></span>Focus areas</a><a class="nav-stop" href="/tools/"><span class="pip" aria-hidden="true"></span>Tools</a><a class="nav-stop" href="/how-to-read/"><span class="pip" aria-hidden="true"></span>How to read</a><a class="nav-stop" href="/about/"><span class="pip" aria-hidden="true"></span>About</a></nav><div id="theme-control"></div></div></div></header>
+  <main id="main" class="wrap" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/agencies/">All agencies</a></li><li><span aria-current="page">Fix: scorecard_missing_headsigns</span></li></ol></nav>
+    <a class="backlink" href="/agencies/">&larr; All agencies</a>
+    <article class="feed-details"><h1>Fix: trips don&#x27;t say where they&#x27;re headed</h1>
+<p>Code: <code>scorecard_missing_headsigns</code></p>
+<h2 class="section-title">What this means</h2>
+<p>A trip&#x27;s destination comes from <code>trip_headsign</code> in <code>trips.txt</code> (or</p>
+<p><code>stop_headsign</code> in <code>stop_times.txt</code> for parts of a trip). Many of your trips</p>
+<p>leave it blank, so the feed says which route a bus is on but not where it is</p>
+<p>going.</p>
+<h2 class="section-title">Why it matters</h2>
+<p>The headsign is the &quot;to Downtown&quot; or &quot;to Transit Center&quot; a rider reads on the</p>
+<p>front of the bus and in the app. Without it, a trip planner shows &quot;Route 5&quot; with</p>
+<p>no direction, and a rider at a stop served in both directions cannot tell which</p>
+<p>bus is theirs. It is one of the most visible gaps in an otherwise working feed.</p>
+<h2 class="section-title">How to fix it</h2>
+<ul>
+<li><strong>Set <code>trip_headsign</code> on every trip</strong> to the public destination, the same text</li>
+</ul>
+<p>  riders see on the bus head sign (for example &quot;Downtown via Main St&quot;).</p>
+<ul>
+<li><strong>In most scheduling tools</strong> this is a field on the trip or the route pattern;</li>
+</ul>
+<p>  set it once per pattern and every trip on that pattern inherits it.</p>
+<ul>
+<li><strong>Use <code>stop_headsign</code></strong> only where the destination changes partway through a</li>
+</ul>
+<p>  trip (a branch or a short-turn); otherwise <code>trip_headsign</code> is enough.</p>
+<h2 class="section-title">How long it usually takes</h2>
+<p>Usually one value per route pattern, so a short pass even for a large system.</p>
+<h2 class="section-title">Authoritative rule</h2>
+<p>The GTFS Validator does not flag this (the field is valid GTFS when left empty), so the expectation comes from the community GTFS Best Practices. <a class="rule-ref" href="https://gtfs.org/schedule/best-practices/#tripstxt">Read the relevant GTFS Best Practice</a>.<span class="visually-hidden"> (opens on an external site)</span></p></article>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>An open-source data quality tool for small and rural transit agencies.</p>
+      <p><strong>Agencies:</strong>
+      <a href="/agencies/">Directory</a> ·
+      <a href="/app/">Interactive app</a> ·
+      <a href="/map/">Map</a> · <a href="/routes/">All routes</a></p>
+      <p><strong>The nation:</strong>
+      <a href="/pulse/">National pulse</a> ·
+      <a href="/problems/">Common problems</a> ·
+      <a href="/ntd/">NTD readiness</a> ·
+      <a href="/realtime/">Realtime</a> · <a href="/equity/">Equity</a> ·
+      <a href="/adoption/">What feeds publish</a></p>
+      <p><strong>Tools:</strong>
+      <a href="/compare/">Compare two agencies</a> ·
+      <a href="/check/">Check a feed before you publish</a> ·
+      <a href="/try.html">Score any feed now</a> ·
+      <a href="/query/">Query the dataset</a> ·
+      <a href="/subscribe.html">Feed-health alerts</a> ·
+      <a href="/submit.html">Add your agency</a> ·
+      <a href="/procurement/">For agencies: procurement</a></p>
+      <p><a href="/about/">About</a> ·
+      <a href="/how-to-read/">How to read a scorecard</a> ·
+      <a href="/how-to-read/#glossary">Glossary</a> ·
+      <a href="/press/">For reporters</a> ·
+      <a href="/data/">Open data</a> ·
+      <a href="/accessibility/">Accessibility</a> ·
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a> ·
+      Built by <a href="https://chelseakr.com">Chelsea Kelly-Reif</a></p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,62 @@
+name: Realtime archive (high cadence)
+
+# A high-cadence realtime archiving session (ADR 0012). Where rt-monitor takes a
+# small burst every few hours, this polls one agency's realtime feeds on the
+# spec's cadence for a bounded window in a single job, recording a high-resolution
+# observation per round. Run it by hand for a feed under scrutiny; the always-on
+# worker fleet is the further escalation that this session shape feeds.
+
+on:
+  workflow_dispatch:
+    inputs:
+      agency:
+        description: "agency id to archive"
+        required: true
+      duration:
+        description: "session length in seconds"
+        default: "600"
+      interval:
+        description: "seconds between polls (>= 15)"
+        default: "20"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rt-archive
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+      - name: Run the archiving session
+        working-directory: pipeline
+        env:
+          AGENCY: ${{ github.event.inputs.agency }}
+          DURATION: ${{ github.event.inputs.duration }}
+          INTERVAL: ${{ github.event.inputs.interval }}
+        run: |
+          uv run scorecard rt-archive --agency "$AGENCY" \
+            --duration "$DURATION" --interval "$INTERVAL"
+      - name: Commit observations
+        run: |
+          git config user.name "scorecard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/rt-health
+          if git diff --cached --quiet; then
+            echo "No observations recorded."
+          else
+            git commit -m "chore(rt): high-cadence archive session"
+            for attempt in 1 2 3 4 5; do
+              if git push origin HEAD:main; then break; fi
+              git fetch origin main
+              git rebase origin/main || { git rebase --abort; exit 1; }
+              sleep 3
+            done
+          fi

@@ -1,0 +1,97 @@
+name: OTP routing QA
+
+# Weekly routing QA against a containerized OpenTripPlanner (ADR 0014). The
+# select job picks the best and worst scored feeds from the committed index —
+# the same ranking the national pulse shows — and fans out one job per feed.
+# Each job downloads that feed, builds an OTP graph with the public container,
+# serves it, and asserts that sample origin/destination trips return
+# itineraries. OTP is a heavy Java service, so this stays a small weekly batch
+# (a handful of feeds, a few pairs each), never part of the daily run. Also
+# dispatchable by hand to widen the sample.
+
+on:
+  schedule:
+    # 14:07 UTC Mondays, after the weekend's daily runs have settled the index.
+    - cron: "7 14 * * 1"
+  workflow_dispatch:
+    inputs:
+      count:
+        description: "feeds per cohort (best and worst)"
+        default: "2"
+      pairs:
+        description: "number of origin/destination pairs to test per feed"
+        default: "5"
+
+permissions:
+  contents: read
+
+env:
+  OTP_IMAGE: docker.io/opentripplanner/opentripplanner:2.5.0
+
+jobs:
+  select:
+    runs-on: ubuntu-latest
+    outputs:
+      feeds: ${{ steps.select.outputs.feeds }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+      - name: Pick the best and worst scored feeds
+        id: select
+        working-directory: pipeline
+        env:
+          COUNT: ${{ github.event.inputs.count || '2' }}
+        run: echo "feeds=$(uv run scorecard otp-batch --select best-worst --count "$COUNT")" >> "$GITHUB_OUTPUT"
+
+  route:
+    needs: select
+    runs-on: ubuntu-latest
+    # Graph build + server start for a small feed is minutes; the timeout only
+    # guards against a hung container.
+    timeout-minutes: 30
+    strategy:
+      # One feed failing to route is exactly the signal this batch exists to
+      # catch; it must not cancel the other feeds' runs.
+      fail-fast: false
+      matrix:
+        feed: ${{ fromJSON(needs.select.outputs.feeds) }}
+    name: route (${{ matrix.feed.cohort }} ${{ matrix.feed.feed_id }})
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+      - name: Fetch the feed
+        env:
+          FEED_URL: ${{ matrix.feed.feed_url }}
+        run: |
+          mkdir -p otp-work
+          curl -fsSL --retry 3 "$FEED_URL" -o otp-work/feed.zip
+      - name: Build the OTP graph
+        run: |
+          docker run --rm -v "$PWD/otp-work:/var/opentripplanner" "$OTP_IMAGE" --build --save
+      - name: Serve the graph
+        run: |
+          docker run -d --name otp -p 8080:8080 \
+            -v "$PWD/otp-work:/var/opentripplanner" "$OTP_IMAGE" --load --serve
+          for _ in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/otp >/dev/null 2>&1; then
+              echo "OTP is up"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "OTP never became ready"
+          docker logs otp
+          exit 1
+      - name: Plan sample trips through OTP
+        working-directory: pipeline
+        env:
+          PAIRS: ${{ github.event.inputs.pairs || '5' }}
+        run: |
+          uv run scorecard otp --base http://localhost:8080 --feed ../otp-work/feed.zip --pairs "$PAIRS"
+      - name: OTP logs on failure
+        if: failure()
+        run: docker logs otp || true

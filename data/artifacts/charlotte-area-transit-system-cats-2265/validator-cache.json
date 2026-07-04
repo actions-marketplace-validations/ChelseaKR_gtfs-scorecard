@@ -1,0 +1,64 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "missing_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "fieldName": "agency_id",
+            "filename": "routes.txt"
+          },
+          {
+            "csvRowNumber": 3,
+            "fieldName": "agency_id",
+            "filename": "routes.txt"
+          },
+          {
+            "csvRowNumber": 4,
+            "fieldName": "agency_id",
+            "filename": "routes.txt"
+          },
+          {
+            "csvRowNumber": 5,
+            "fieldName": "agency_id",
+            "filename": "routes.txt"
+          },
+          {
+            "csvRowNumber": 6,
+            "fieldName": "agency_id",
+            "filename": "routes.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 64
+      },
+      {
+        "code": "missing_recommended_file",
+        "sample_notices": [
+          {
+            "filename": "feed_info.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "mixed_case_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 40,
+            "fieldName": "route_long_name",
+            "fieldValue": "URP/CIC",
+            "filename": "routes.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "7018a9b371a944a8e8038b2ebdec53a15531a1c7e3b500623edb1f1fbd787da9",
+  "validator_version": "8.0.1"
+}

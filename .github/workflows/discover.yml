@@ -1,0 +1,81 @@
+name: Discover moved feeds
+
+# Weekly check of every expired feed's URL against the Mobility Database
+# (docs/feature-roadmap.md, "discover on a schedule"). The report is always
+# uploaded as an artifact. When a feed's canonical URL has actually moved, the
+# job rewrites agencies.yaml and opens a pull request for a human to review;
+# it never edits the registry on its own.
+
+on:
+  schedule:
+    # Mondays 14:00 UTC, after the daily scorecard refresh
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # commit the registry/report change on a branch
+      pull-requests: write # open the review PR
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+        working-directory: pipeline
+
+      - name: Check expired feeds against the Mobility Database
+        working-directory: pipeline
+        run: uv run scorecard discover --expired --apply --out ../docs/feed-discovery.md
+
+      # Report-only: orphaned artifact directories (agency removed from the
+      # registry, pages still live). Deletion stays a curator decision per
+      # docs/listing-policy.md; this keeps the drift visible weekly.
+      - name: Report orphaned artifact directories
+        working-directory: pipeline
+        run: |
+          echo "## Orphaned artifact directories" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          uv run scorecard prune >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the discovery report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: feed-discovery-report
+          path: docs/feed-discovery.md
+          retention-days: 30
+
+      # The report's run date changes every week; only a real feed move (an
+      # agencies.yaml edit) is worth a pull request. Discard a report-only diff
+      # so the job stays quiet on weeks with nothing to do.
+      - name: Keep the refreshed report only when a feed moved
+        id: changes
+        run: |
+          if git diff --quiet -- agencies.yaml; then
+            echo "moved=false" >> "$GITHUB_OUTPUT"
+            git checkout -- docs/feed-discovery.md
+          else
+            echo "moved=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open a pull request for the moved feeds
+        if: steps.changes.outputs.moved == 'true'
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
+        with:
+          branch: chore/feed-discovery
+          title: "chore(data): update feed URLs that moved in the Mobility Database"
+          commit-message: "chore(data): update feed URLs that moved in the Mobility Database"
+          body: |
+            The weekly feed-discovery check found one or more tracked feeds whose
+            canonical download URL has moved in the Mobility Database, and updated
+            `static_gtfs_url` to match. Review each change against the catalog
+            before merging; the full report is regenerated in `docs/feed-discovery.md`.
+          labels: data, automated
+          add-paths: |
+            agencies.yaml
+            docs/feed-discovery.md

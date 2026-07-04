@@ -1,0 +1,419 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "mixed_case_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 113,
+            "fieldName": "route_long_name",
+            "fieldValue": "DOWNTOWN DIRECT",
+            "filename": "routes.txt"
+          },
+          {
+            "csvRowNumber": 114,
+            "fieldName": "route_long_name",
+            "fieldValue": "METRORAIL RED LINE",
+            "filename": "routes.txt"
+          },
+          {
+            "csvRowNumber": 115,
+            "fieldName": "route_long_name",
+            "fieldValue": "METRORAIL GREEN LINE",
+            "filename": "routes.txt"
+          },
+          {
+            "csvRowNumber": 116,
+            "fieldName": "route_long_name",
+            "fieldValue": "METRORAIL PURPLE LINE",
+            "filename": "routes.txt"
+          },
+          {
+            "csvRowNumber": 2,
+            "fieldName": "trip_headsign",
+            "fieldValue": "TMC TC",
+            "filename": "trips.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 19734
+      },
+      {
+        "code": "equal_shape_distance_diff_coordinates_distance_below_threshold",
+        "sample_notices": [
+          {
+            "actualDistanceBetweenShapePoints": 0.730082908055616,
+            "csvRowNumber": 29356,
+            "prevCsvRowNumber": 29355,
+            "prevShapeDistTraveled": 5.5325,
+            "prevShapePtSequence": 153,
+            "shapeDistTraveled": 5.5325,
+            "shapeId": "284219",
+            "shapePtSequence": 154
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.8964515412160818,
+            "csvRowNumber": 29358,
+            "prevCsvRowNumber": 29357,
+            "prevShapeDistTraveled": 5.6265,
+            "prevShapePtSequence": 155,
+            "shapeDistTraveled": 5.6265,
+            "shapeId": "284219",
+            "shapePtSequence": 156
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.8767057875818797,
+            "csvRowNumber": 106905,
+            "prevCsvRowNumber": 106904,
+            "prevShapeDistTraveled": 13.9524,
+            "prevShapePtSequence": 327,
+            "shapeDistTraveled": 13.9524,
+            "shapeId": "284339",
+            "shapePtSequence": 328
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.29462447070197967,
+            "csvRowNumber": 106907,
+            "prevCsvRowNumber": 106906,
+            "prevShapeDistTraveled": 14.0364,
+            "prevShapePtSequence": 329,
+            "shapeDistTraveled": 14.0364,
+            "shapeId": "284339",
+            "shapePtSequence": 330
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.11119510161714974,
+            "csvRowNumber": 188908,
+            "prevCsvRowNumber": 188907,
+            "prevShapeDistTraveled": 17.98,
+            "prevShapePtSequence": 416,
+            "shapeDistTraveled": 17.98,
+            "shapeId": "284459",
+            "shapePtSequence": 417
+          }
+        ],
+        "severity": "WARNING",
+        "total": 210
+      },
+      {
+        "code": "same_name_and_description_for_stop",
+        "sample_notices": [
+          {
+            "csvRowNumber": 557,
+            "stopDesc": "ALMEDA MALL",
+            "stopId": "929"
+          },
+          {
+            "csvRowNumber": 1438,
+            "stopDesc": "HOUSTON NORTHWEST HOSPITAL",
+            "stopId": "2360"
+          },
+          {
+            "csvRowNumber": 1439,
+            "stopDesc": "HOUSTON NORTHWEST HOSPITAL",
+            "stopId": "2361"
+          },
+          {
+            "csvRowNumber": 4546,
+            "stopDesc": "LSC UNIVERSITY PARK 2",
+            "stopId": "6809"
+          },
+          {
+            "csvRowNumber": 7098,
+            "stopDesc": "HOBBY AIRPORT",
+            "stopId": "10567"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 56
+      },
+      {
+        "code": "unused_shape",
+        "sample_notices": [
+          {
+            "csvRowNumber": 217458,
+            "shapeId": "284523"
+          },
+          {
+            "csvRowNumber": 217703,
+            "shapeId": "284524"
+          },
+          {
+            "csvRowNumber": 217943,
+            "shapeId": "284525"
+          },
+          {
+            "csvRowNumber": 218071,
+            "shapeId": "284526"
+          },
+          {
+            "csvRowNumber": 218192,
+            "shapeId": "284527"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 17
+      },
+      {
+        "code": "stop_too_far_from_shape_using_user_distance",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 185.4480956487263,
+            "match": [
+              29.64358000000001,
+              -95.38333000000002
+            ],
+            "shapeId": "284337",
+            "stopId": "13222",
+            "stopName": "Airport Blvd @ Park South View",
+            "stopTimeCsvRowNumber": 396542,
+            "tripCsvRowNumber": 4946,
+            "tripId": "11767518"
+          },
+          {
+            "geoDistanceToShape": 170.82446629762458,
+            "match": [
+              29.85372923118595,
+              -95.33976600012859
+            ],
+            "shapeId": "284326",
+            "stopId": "4928",
+            "stopName": "Jensen Dr @ Skippy St",
+            "stopTimeCsvRowNumber": 368422,
+            "tripCsvRowNumber": 4614,
+            "tripId": "11766437"
+          },
+          {
+            "geoDistanceToShape": 113.73299761779877,
+            "match": [
+              29.698371699313444,
+              -95.38914883294593
+            ],
+            "shapeId": "284492",
+            "stopId": "11297",
+            "stopName": "VA Hospital",
+            "stopTimeCsvRowNumber": 1484488,
+            "tripCsvRowNumber": 23602,
+            "tripId": "11773056"
+          },
+          {
+            "geoDistanceToShape": 586.4442709603716,
+            "match": [
+              29.70235698332741,
+              -95.38981351285702
+            ],
+            "shapeId": "284490",
+            "stopId": "12695",
+            "stopName": "Old Spanish Trail @ Cambridge St",
+            "stopTimeCsvRowNumber": 1484211,
+            "tripCsvRowNumber": 23568,
+            "tripId": "11773022"
+          },
+          {
+            "geoDistanceToShape": 1195.110368054377,
+            "match": [
+              29.70254981914865,
+              -95.38610991773363
+            ],
+            "shapeId": "284490",
+            "stopId": "13203",
+            "stopName": "Old Spanish Trail @ Robertson Rd",
+            "stopTimeCsvRowNumber": 1484212,
+            "tripCsvRowNumber": 23568,
+            "tripId": "11773022"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 11
+      },
+      {
+        "code": "stop_without_stop_time",
+        "sample_notices": [
+          {
+            "csvRowNumber": 4791,
+            "stopId": "7076",
+            "stopName": "Knox St @ Rachel St"
+          },
+          {
+            "csvRowNumber": 4792,
+            "stopId": "7080",
+            "stopName": "De Priest St @ Dillard St"
+          },
+          {
+            "csvRowNumber": 8684,
+            "stopId": "13108",
+            "stopName": "North Freeway @ West Rd"
+          },
+          {
+            "csvRowNumber": 8687,
+            "stopId": "13111",
+            "stopName": "SH 6 @ Wal Mart"
+          },
+          {
+            "csvRowNumber": 8725,
+            "stopId": "13164",
+            "stopName": "Shepherd Dr @ Mayfair Park Apt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 6
+      },
+      {
+        "code": "stop_too_far_from_shape",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 116.33963145668325,
+            "match": [
+              29.762091449394003,
+              -95.36606048447321
+            ],
+            "shapeId": "284437",
+            "stopId": "669",
+            "stopName": "Smith St @ Prairie St",
+            "stopTimeCsvRowNumber": 1476430,
+            "tripCsvRowNumber": 22973,
+            "tripId": "11772041"
+          },
+          {
+            "geoDistanceToShape": 108.70955057508498,
+            "match": [
+              29.876984,
+              -95.41425500000001
+            ],
+            "shapeId": "284352",
+            "stopId": "83",
+            "stopName": "North Shepherd Park & Ride",
+            "stopTimeCsvRowNumber": 411182,
+            "tripCsvRowNumber": 5202,
+            "tripId": "11768355"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      },
+      {
+        "code": "feed_expiration_date30_days",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "currentDate": "20260621",
+            "feedEndDate": "20260711",
+            "suggestedExpirationDate": "20260721"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "missing_feed_contact_email_and_url",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "trip_headsign_matches_intermediate_stop",
+        "sample_notices": [
+          {
+            "csvRowNumber": 4978,
+            "stopId1": "10567",
+            "stopId2": "13195",
+            "stopSequence": 49,
+            "tripHeadsign": "HOBBY AIRPORT",
+            "tripId": "11767632"
+          },
+          {
+            "csvRowNumber": 4979,
+            "stopId1": "10567",
+            "stopId2": "13195",
+            "stopSequence": 49,
+            "tripHeadsign": "HOBBY AIRPORT",
+            "tripId": "11767633"
+          },
+          {
+            "csvRowNumber": 4980,
+            "stopId1": "10567",
+            "stopId2": "13195",
+            "stopSequence": 49,
+            "tripHeadsign": "HOBBY AIRPORT",
+            "tripId": "11767631"
+          },
+          {
+            "csvRowNumber": 4981,
+            "stopId1": "10567",
+            "stopId2": "13195",
+            "stopSequence": 49,
+            "tripHeadsign": "HOBBY AIRPORT",
+            "tripId": "11767634"
+          },
+          {
+            "csvRowNumber": 4982,
+            "stopId1": "10567",
+            "stopId2": "13195",
+            "stopSequence": 49,
+            "tripHeadsign": "HOBBY AIRPORT",
+            "tripId": "11767630"
+          }
+        ],
+        "severity": "INFO",
+        "total": 35
+      },
+      {
+        "code": "service_window_outside_feed_period",
+        "sample_notices": [
+          {
+            "daysAfterFeedEnd": 14,
+            "daysBeforeFeedStart": 0,
+            "serviceId": "4",
+            "serviceWindowEndDate": "2026-07-25",
+            "serviceWindowStartDate": "2026-06-13"
+          },
+          {
+            "daysAfterFeedEnd": 8,
+            "daysBeforeFeedStart": 0,
+            "serviceId": "5",
+            "serviceWindowEndDate": "2026-07-19",
+            "serviceWindowStartDate": "2026-06-07"
+          },
+          {
+            "daysAfterFeedEnd": 13,
+            "daysBeforeFeedStart": 0,
+            "serviceId": "6",
+            "serviceWindowEndDate": "2026-07-24",
+            "serviceWindowStartDate": "2026-06-08"
+          }
+        ],
+        "severity": "INFO",
+        "total": 3
+      },
+      {
+        "code": "unknown_column",
+        "sample_notices": [
+          {
+            "fieldName": "ots_trip_short_name",
+            "filename": "trips.txt",
+            "index": 11
+          }
+        ],
+        "severity": "INFO",
+        "total": 1
+      },
+      {
+        "code": "unknown_file",
+        "sample_notices": [
+          {
+            "filename": "direction_names_exceptions.txt"
+          }
+        ],
+        "severity": "INFO",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "8ca8a966ed339a963cec64612ffe82b8c08068ccac128c8b16672e8d195003aa",
+  "validator_version": "8.0.1"
+}

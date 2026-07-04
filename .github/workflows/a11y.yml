@@ -1,0 +1,44 @@
+name: Accessibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+      - name: Install the pipeline
+        working-directory: pipeline
+        run: uv sync --locked
+      - name: Render the static site
+        working-directory: pipeline
+        run: uv run scorecard render-site
+      - name: Assemble the Pages site (mirrors pages.yml)
+        run: |
+          mkdir -p _site/data
+          cp -r web/. _site/
+          cp -r data/artifacts _site/data/artifacts
+      # axe-core at WCAG 2.0 AA (the Section 508 technical bar) on representative
+      # routes. Contrast is owned by the dedicated token gate
+      # (pipeline/scripts/check_contrast.py), which verifies AAA across every theme
+      # and sees through the gradient/texture backgrounds that axe cannot, so the
+      # color-contrast rule is ignored here to avoid double-counting false positives.
+      # The /map/ MapLibre canvas is aria-hidden and out of the tab order with no
+      # on-canvas controls, so the page is axe-tested like the rest; its filterable
+      # agency table is the conformant primary (docs/vpat.md).
+      - name: axe on representative pages
+        run: |
+          python3 -m http.server 8080 --directory _site &
+          SRV=$!
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8080/ >/dev/null && break; sleep 1; done
+          npx --yes pa11y-ci@3 --config .pa11yci.json
+          kill $SRV

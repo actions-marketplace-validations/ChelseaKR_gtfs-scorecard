@@ -1,0 +1,79 @@
+name: Watchdog
+
+# Independent uptime + freshness check. It runs on GitHub's own infrastructure
+# and does NOT touch AWS, so it still fires when Route 53, the domain, or the AWS
+# account is the thing that broke. On a problem it exits non-zero; GitHub then
+# emails the repo owner about the failed scheduled run (keep Actions failure
+# notifications on in your GitHub settings).
+
+on:
+  schedule:
+    - cron: "23 */6 * * *" # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read # read the Daily scorecard run history
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: The site answers over HTTPS
+        run: |
+          set -uo pipefail
+          fail=0
+          for url in "https://gtfsscorecard.org/" "https://gtfsscorecard.org/data/artifacts/index.json"; do
+            code=000
+            # Retry so a single transient blip does not page you.
+            for attempt in 1 2 3; do
+              code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 25 "$url" 2>/dev/null || echo 000)
+              [ "$code" = "200" ] && break
+              sleep 12
+            done
+            echo "$url -> $code"
+            if [ "$code" != "200" ]; then
+              echo "::error::$url did not return 200 (got $code). DNS, the domain, GitHub Pages, or TLS may be down."
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: The daily refresh has a recent success
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow scorecard.yml \
+            --branch main --status success --limit 1 --json updatedAt 2>/dev/null || echo '[]')
+          updated=$(echo "$run" | jq -r '.[0].updatedAt // empty')
+          if [ -z "$updated" ]; then
+            echo "::error::No successful Daily scorecard run found. The pipeline may never have published."
+            exit 1
+          fi
+          age=$(( ( $(date -u +%s) - $(date -u -d "$updated" +%s) ) / 3600 ))
+          echo "last successful Daily scorecard run was ${age}h ago ($updated)"
+          # 26h flags a slipped 13:23 UTC run within the same clock day,
+          # instead of letting stale data sit through a day of agency calls.
+          if [ "$age" -gt 26 ]; then
+            echo "::error::No successful Daily scorecard run in ${age}h (>26h). The published data is going stale."
+            exit 1
+          fi
+
+      - name: The most recent daily run did not fail
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # The staleness check above tolerates one bad run inside its window;
+          # this pages on the first failure, so a red daily is known within six
+          # hours rather than after the data ages past the threshold.
+          latest=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow scorecard.yml \
+            --branch main --event schedule --limit 1 --json conclusion,status 2>/dev/null || echo '[]')
+          conclusion=$(echo "$latest" | jq -r '.[0].conclusion // empty')
+          status=$(echo "$latest" | jq -r '.[0].status // empty')
+          echo "most recent scheduled Daily scorecard run: status=$status conclusion=$conclusion"
+          if [ "$conclusion" = "failure" ] || [ "$conclusion" = "timed_out" ]; then
+            echo "::error::The most recent scheduled Daily scorecard run ended '$conclusion'. Investigate before the published data goes stale."
+            exit 1
+          fi

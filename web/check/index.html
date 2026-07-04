@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Check a GTFS feed before you publish — GTFS Scorecard</title>
+  <meta name="description" content="Drop a GTFS zip in and get the five pre-publish questions answered in your browser: required files, expiry, wheelchair fields, fares, and stop names. Nothing is uploaded.">
+  <link rel="canonical" href="https://gtfsscorecard.org/check/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Check a GTFS feed before you publish — GTFS Scorecard">
+  <meta property="og:description" content="Drop a GTFS zip in and get the five pre-publish questions answered in your browser: required files, expiry, wheelchair fields, fares, and stop names. Nothing is uploaded.">
+  <meta property="og:url" content="https://gtfsscorecard.org/check/">
+  <meta property="og:image" content="https://gtfsscorecard.org/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f5efe2'/%3E%3C/svg%3E">
+  <script>
+    /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
+    try {
+      var t = localStorage.getItem("scorecard-theme");
+      if (t && ["light", "contrast", "dark"].indexOf(t) >= 0)
+        document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+  <script src="/src/theme.js" defer></script>
+  <script src="/src/nav.js" defer></script>
+  <script src="/analytics.js" defer></script>
+  <noscript><style>
+    /* Without JS the menu button cannot expand the collapsed nav, so show the
+       stacked nav permanently and hide the button (content stays operable
+       without scripting). nav.js never runs here, so nothing double-toggles. */
+    @media (max-width: 1400px) {
+      .nav-menu-btn { display: none !important; }
+      .nav-cluster { display: flex !important; position: static; }
+    }
+  </style></noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header"><div class="wrap"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">GTFS&nbsp;Scorecard</span></a><button class="nav-menu-btn" type="button" aria-expanded="false" aria-controls="nav-cluster"><span aria-hidden="true">☰</span> Menu</button><div class="nav-cluster" id="nav-cluster"><nav class="nav-stops" aria-label="Primary"><a class="nav-stop" href="/agencies/"><span class="pip" aria-hidden="true"></span>Agencies</a><a class="nav-stop" href="/pulse/"><span class="pip" aria-hidden="true"></span>National pulse</a><a class="nav-stop" href="/focus/"><span class="pip" aria-hidden="true"></span>Focus areas</a><a class="nav-stop" href="/tools/" aria-current="page"><span class="pip" aria-hidden="true"></span>Tools</a><a class="nav-stop" href="/how-to-read/"><span class="pip" aria-hidden="true"></span>How to read</a><a class="nav-stop" href="/about/"><span class="pip" aria-hidden="true"></span>About</a></nav><div id="theme-control"></div></div></div></header>
+  <main id="main" class="wrap" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><span aria-current="page">Check a feed before you publish</span></li></ol></nav>
+    <a class="backlink" href="/">&larr; Home</a>
+    <h1 class="page-title">Check a feed before you publish.</h1>
+    <p class="page-lede">About to publish a GTFS export? Drop the zip here first and get
+    the five questions that matter answered in seconds: required files, expiry,
+    wheelchair fields, fares, and stop names. Your feed never leaves this page; it is
+    read entirely in your browser and nothing is uploaded anywhere.</p>
+    <div id="check-drop" class="feed-details">
+      <label for="check-file"><strong>Choose your GTFS zip</strong> (or drag it onto this
+        box)</label>
+      <p><input type="file" id="check-file" accept=".zip,application/zip"></p>
+    </div>
+    <p id="check-status" role="status"></p>
+    <div id="check-result"></div>
+    <noscript><p>Reading a zip in the page needs JavaScript. You can run the full check
+    instead: <a href="/try.html">score a feed now</a>.</p></noscript>
+    <p class="fineprint">A preview, not the full validation. The canonical
+    <a href="https://github.com/MobilityData/gtfs-validator">MobilityData validator</a>
+    stays the authority; <a href="/try.html">score a feed now</a> runs it over the whole
+    feed, and <a href="/subscribe.html">subscribe</a> to hear before a published feed
+    expires.</p>
+    <script>
+      (function () {
+        var input = document.getElementById("check-file");
+        var zone = document.getElementById("check-drop");
+        var statusEl = document.getElementById("check-status");
+        var result = document.getElementById("check-result");
+
+        function el(tag, text) {
+          var e = document.createElement(tag);
+          if (text !== undefined) e.textContent = text;
+          return e;
+        }
+
+        // A small CSV reader: quoted fields, embedded commas/newlines, CRLF,
+        // BOM. Returns row objects keyed by the header line.
+        function parseCsv(text, maxRows) {
+          if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+          var rows = [], field = "", row = [], inQ = false, i = 0, n = text.length;
+          while (i < n) {
+            var ch = text[i];
+            if (inQ) {
+              if (ch === '"') {
+                if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+                inQ = false; i++; continue;
+              }
+              field += ch; i++; continue;
+            }
+            if (ch === '"') { inQ = true; i++; continue; }
+            if (ch === ",") { row.push(field); field = ""; i++; continue; }
+            if (ch === "\n" || ch === "\r") {
+              if (ch === "\r" && text[i + 1] === "\n") i++;
+              row.push(field); field = "";
+              if (row.length > 1 || row[0] !== "") rows.push(row);
+              row = []; i++;
+              if (maxRows && rows.length > maxRows) break;
+              continue;
+            }
+            field += ch; i++;
+          }
+          if (field !== "" || row.length) { row.push(field); rows.push(row); }
+          if (!rows.length) return [];
+          var header = rows[0].map(function (h) { return h.trim(); });
+          return rows.slice(1).map(function (r) {
+            var o = {};
+            header.forEach(function (h, j) { o[h] = (r[j] || "").trim(); });
+            return o;
+          });
+        }
+
+        function ymd(s) {
+          if (!/^\d{8}$/.test(s)) return null;
+          return new Date(Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)));
+        }
+
+        function daysFromToday(d) {
+          var today = new Date();
+          var t = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+          return Math.round((d.getTime() - t) / 86400000);
+        }
+
+        // The five pre-publish questions, each {q, status, note}; status is
+        // "good", "attention", or "unknown" and is always rendered as text.
+        function assess(files) {
+          var out = [];
+          var names = Object.keys(files);
+          function has(f) { return names.indexOf(f) >= 0; }
+          function read(f, maxRows) {
+            return has(f)
+              ? parseCsv(new TextDecoder("utf-8").decode(files[f]), maxRows)
+              : [];
+          }
+
+          var required = ["agency.txt", "stops.txt", "routes.txt", "trips.txt", "stop_times.txt"];
+          var missing = required.filter(function (f) { return !has(f); });
+          var hasCal = has("calendar.txt") || has("calendar_dates.txt");
+          if (!missing.length && hasCal) {
+            out.push({ q: "Does it have the required files?", status: "good",
+              note: "All required files are present, including a service calendar." });
+          } else {
+            var what = missing.slice();
+            if (!hasCal) what.push("calendar.txt or calendar_dates.txt");
+            out.push({ q: "Does it have the required files?", status: "attention",
+              note: "Missing: " + what.join(", ") +
+                ". Trip planners cannot load the feed without these." });
+          }
+
+          var end = null, source = "";
+          read("feed_info.txt", 5).forEach(function (r) {
+            var d = ymd(r.feed_end_date || "");
+            if (d && (!end || d > end)) { end = d; source = "feed_info.txt"; }
+          });
+          if (!end) {
+            read("calendar.txt", 5000).forEach(function (r) {
+              var d = ymd(r.end_date || "");
+              if (d && (!end || d > end)) { end = d; source = "calendar.txt"; }
+            });
+          }
+          if (!end) {
+            read("calendar_dates.txt", 200000).forEach(function (r) {
+              var d = ymd(r.date || "");
+              if (d && (!end || d > end)) { end = d; source = "calendar_dates.txt"; }
+            });
+          }
+          if (!end) {
+            out.push({ q: "When does the service data run out?", status: "unknown",
+              note: "No end date could be read. Add feed_info.txt with a feed_end_date " +
+                "so consumers can tell." });
+          } else {
+            var days = daysFromToday(end);
+            if (days < 0) {
+              out.push({ q: "When does the service data run out?", status: "attention",
+                note: "The " + source + " end date passed " + (-days) + " days ago. Trip " +
+                  "planners treat this feed as expired; re-export with current dates " +
+                  "before publishing." });
+            } else if (days < 30) {
+              out.push({ q: "When does the service data run out?", status: "attention",
+                note: "Only " + days + " days of service left (" + source + "). Extend the " +
+                  "calendar before publishing; consumers want weeks of future coverage." });
+            } else {
+              out.push({ q: "When does the service data run out?", status: "good",
+                note: days + " days of service ahead (" + source + ")." });
+            }
+          }
+
+          var stops = read("stops.txt", 200000);
+          if (!stops.length) {
+            out.push({ q: "Do stops state wheelchair accessibility?", status: "unknown",
+              note: "stops.txt could not be read." });
+          } else {
+            var stated = stops.filter(function (r) {
+              return r.wheelchair_boarding === "1" || r.wheelchair_boarding === "2";
+            }).length;
+            var pct = Math.round(stated / stops.length * 100);
+            out.push({
+              q: "Do stops state wheelchair accessibility?",
+              status: stated ? "good" : "attention",
+              note: stated
+                ? pct + "% of " + stops.length + " stops state wheelchair_boarding. This " +
+                  "states what is published, not whether a stop is physically usable."
+                : "No stop states wheelchair_boarding. Riders using wheelchairs cannot " +
+                  "tell from apps which stops work for them; this data usually lives in " +
+                  "your scheduling software already."
+            });
+          }
+
+          if (has("fare_products.txt") || has("fare_leg_rules.txt")) {
+            out.push({ q: "Is fare data included?", status: "good",
+              note: "Fares v2 files are present." });
+          } else if (has("fare_attributes.txt")) {
+            out.push({ q: "Is fare data included?", status: "good",
+              note: "Fares v1 files are present." });
+          } else {
+            out.push({ q: "Is fare data included?", status: "attention",
+              note: "No fare files. Riders cannot see what a trip costs; if the service " +
+                "is fare-free, saying so in fare data is still worth it." });
+          }
+
+          if (stops.length) {
+            var named = stops.filter(function (r) { return (r.stop_name || "").length > 0; });
+            var mixed = named.filter(function (r) { return /[a-z]/.test(r.stop_name); });
+            if (named.length < stops.length) {
+              out.push({ q: "Are stop names readable?", status: "attention",
+                note: (stops.length - named.length) + " stops have no name at all." });
+            } else if (mixed.length < named.length / 2) {
+              out.push({ q: "Are stop names readable?", status: "attention",
+                note: "Most stop names are ALL CAPS. Mixed case reads better in apps and " +
+                  "for screen readers; usually one export setting." });
+            } else {
+              out.push({ q: "Are stop names readable?", status: "good",
+                note: "Stops are named in readable mixed case." });
+            }
+          } else {
+            out.push({ q: "Are stop names readable?", status: "unknown",
+              note: "stops.txt could not be read." });
+          }
+          return out;
+        }
+
+        var LABELS = { good: "Looks good", attention: "Needs attention", unknown: "Can't tell yet" };
+
+        function render(checks, fileName) {
+          var table = el("table");
+          table.className = "leaderboard";
+          table.appendChild(el("caption", "Pre-publish check of " + fileName + "."));
+          var thead = el("thead"), hr = el("tr");
+          ["Question", "Status", "What we saw"].forEach(function (h) {
+            hr.appendChild(el("th", h)).setAttribute("scope", "col");
+          });
+          thead.appendChild(hr);
+          table.appendChild(thead);
+          var tbody = el("tbody");
+          checks.forEach(function (c) {
+            var tr = el("tr");
+            tr.appendChild(el("th", c.q)).setAttribute("scope", "row");
+            tr.appendChild(el("td", LABELS[c.status] || c.status));
+            tr.appendChild(el("td", c.note));
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          result.textContent = "";
+          result.appendChild(table);
+          var next = el("p");
+          next.appendChild(document.createTextNode(
+            "This previews five things, not everything. "));
+          var a = el("a", "Get the full scorecard");
+          a.href = "/try.html";
+          next.appendChild(a);
+          next.appendChild(document.createTextNode(
+            " to run the canonical MobilityData validator over the whole feed."));
+          result.appendChild(next);
+          var attention = checks.filter(function (c) { return c.status === "attention"; }).length;
+          statusEl.textContent = attention
+            ? "Checked " + fileName + ": " + attention + " of " + checks.length +
+              " questions need attention."
+            : "Checked " + fileName + ": all " + checks.length + " questions look good.";
+        }
+
+        async function handle(file) {
+          if (!file) return;
+          if (file.size > 300 * 1024 * 1024) {
+            statusEl.textContent =
+              "That file is over 300 MB; this preview is built for small-agency feeds.";
+            return;
+          }
+          statusEl.textContent = "Reading " + file.name + " in your browser…";
+          try {
+            if (!window.fflate) {
+              await new Promise(function (resolve, reject) {
+                var s = document.createElement("script");
+                s.src = "https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js";
+                s.onload = resolve;
+                s.onerror = function () {
+                  reject(new Error("could not load the unzip library"));
+                };
+                document.head.appendChild(s);
+              });
+            }
+            var buf = new Uint8Array(await file.arrayBuffer());
+            var files = window.fflate.unzipSync(buf);
+            // Feeds are sometimes zipped inside a folder; flatten one level.
+            var flat = {};
+            Object.keys(files).forEach(function (k) {
+              var base = k.split("/").pop();
+              if (base && base.slice(-4) === ".txt" && !(base in flat)) flat[base] = files[k];
+            });
+            render(assess(flat), file.name);
+          } catch (err) {
+            statusEl.textContent = "That zip could not be read: " + err.message +
+              ". Is it the GTFS zip your scheduling software exported?";
+          }
+        }
+
+        input.addEventListener("change", function () { handle(input.files[0]); });
+        if (zone) {
+          ["dragover", "dragenter"].forEach(function (evName) {
+            zone.addEventListener(evName, function (ev) { ev.preventDefault(); });
+          });
+          zone.addEventListener("drop", function (ev) {
+            ev.preventDefault();
+            var f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+            handle(f);
+          });
+        }
+      })();
+    </script>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>An open-source data quality tool for small and rural transit agencies.</p>
+      <p><strong>Agencies:</strong>
+      <a href="/agencies/">Directory</a> ·
+      <a href="/app/">Interactive app</a> ·
+      <a href="/map/">Map</a> · <a href="/routes/">All routes</a></p>
+      <p><strong>The nation:</strong>
+      <a href="/pulse/">National pulse</a> ·
+      <a href="/problems/">Common problems</a> ·
+      <a href="/ntd/">NTD readiness</a> ·
+      <a href="/realtime/">Realtime</a> · <a href="/equity/">Equity</a> ·
+      <a href="/adoption/">What feeds publish</a></p>
+      <p><strong>Tools:</strong>
+      <a href="/compare/">Compare two agencies</a> ·
+      <a href="/check/">Check a feed before you publish</a> ·
+      <a href="/try.html">Score any feed now</a> ·
+      <a href="/query/">Query the dataset</a> ·
+      <a href="/subscribe.html">Feed-health alerts</a> ·
+      <a href="/submit.html">Add your agency</a> ·
+      <a href="/procurement/">For agencies: procurement</a></p>
+      <p><a href="/about/">About</a> ·
+      <a href="/how-to-read/">How to read a scorecard</a> ·
+      <a href="/how-to-read/#glossary">Glossary</a> ·
+      <a href="/press/">For reporters</a> ·
+      <a href="/data/">Open data</a> ·
+      <a href="/accessibility/">Accessibility</a> ·
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a> ·
+      Built by <a href="https://chelseakr.com">Chelsea Kelly-Reif</a></p>
+    </div>
+  </footer>
+</body>
+</html>

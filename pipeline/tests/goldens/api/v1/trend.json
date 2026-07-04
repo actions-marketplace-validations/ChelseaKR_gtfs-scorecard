@@ -1,0 +1,56 @@
+{
+  "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
+  "license": "CC-BY-4.0",
+  "points": [
+    {
+      "agency_count": 3,
+      "average_score": 78.5,
+      "date": "2026-07-01",
+      "expired_pct": 0.0,
+      "grade_distribution": {
+        "A": 0,
+        "B": 2,
+        "C": 1,
+        "D": 0,
+        "F": 0
+      }
+    },
+    {
+      "agency_count": 3,
+      "average_score": 78.5,
+      "date": "2026-07-02",
+      "expired_pct": 0.0,
+      "grade_distribution": {
+        "A": 0,
+        "B": 2,
+        "C": 1,
+        "D": 0,
+        "F": 0
+      }
+    }
+  ],
+  "summary": {
+    "first": {
+      "average_score": 78.5,
+      "date": "2026-07-01"
+    },
+    "last": {
+      "average_score": 78.5,
+      "date": "2026-07-02"
+    },
+    "points": 2,
+    "score_delta": 0.0
+  },
+  "top_improvers": [
+    {
+      "date_end": "2026-07-02",
+      "date_start": "2026-06-11",
+      "delta": 8.6,
+      "grade_end": "B",
+      "id": "unitrans",
+      "name": "Unitrans (ASUCD / City of Davis)",
+      "score_end": 80.8,
+      "score_start": 72.2
+    }
+  ]
+}

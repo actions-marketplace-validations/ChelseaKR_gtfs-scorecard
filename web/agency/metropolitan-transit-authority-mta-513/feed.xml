@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>GTFS Scorecard: Manhattan Bus feed quality changes</title>
+  <subtitle>Grade moves, expiry warnings, and score swings for Manhattan Bus's GTFS feed.</subtitle>
+  <id>tag:gtfsscorecard.org,2026:agency/metropolitan-transit-authority-mta-513/changes</id>
+  <link rel="self" type="application/atom+xml" href="https://gtfsscorecard.org/agency/metropolitan-transit-authority-mta-513/feed.xml"/>
+  <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/metropolitan-transit-authority-mta-513/"/>
+  <updated>2026-06-23T00:00:00Z</updated>
+  <author><name>GTFS Scorecard</name></author>
+  <generator uri="https://gtfsscorecard.org">GTFS Scorecard</generator>
+  <entry>
+    <title>Manhattan Bus: Grade went F to C, freshness rose 100 points.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/metropolitan-transit-authority-mta-513/2026-06-23/grade_change</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/metropolitan-transit-authority-mta-513/"/>
+    <updated>2026-06-23T00:00:00Z</updated>
+    <category term="grade_change"/>
+    <summary>Grade went F to C, freshness rose 100 points.</summary>
+  </entry>
+  <entry>
+    <title>Manhattan Bus: Score fell 4 points, correctness fell 8 points.</title>
+    <id>tag:gtfsscorecard.org,2026:agency/metropolitan-transit-authority-mta-513/2026-06-21/score_move</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/metropolitan-transit-authority-mta-513/"/>
+    <updated>2026-06-21T00:00:00Z</updated>
+    <category term="score_move"/>
+    <summary>Score fell 4 points, correctness fell 8 points.</summary>
+  </entry>
+</feed>

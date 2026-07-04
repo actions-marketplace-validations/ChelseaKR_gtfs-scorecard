@@ -1,0 +1,56 @@
+# raw feed snapshots and downloaded tools are reproducible; artifacts are committed
+data/raw/
+data/cache/
+
+# corrected feeds the autofix step writes per agency: binary, regenerated each
+# run, and synced to the CDN by the workflow, so they stay out of git history
+data/artifacts/**/corrected.zip
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+dist/
+.coverage
+.coverage.*
+htmlcov/
+
+# advisory mutation testing (mutmut): the mutants/ working copy, cache, and the
+# per-run report files are all regenerated on every run; the committed artifact
+# is docs/mutation-testing.md
+pipeline/mutants/
+.mutmut-cache
+mutmut-stats.json
+pipeline/mutation-report.txt
+pipeline/mutation-stats.json
+
+# terraform: provider binaries and state/secrets are local; the lockfile is committed
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# lambda build zips and saved terraform plans (reproducible / transient)
+infra/**/*.zip
+infra/**/tfplan
+
+# editors / os
+.DS_Store
+
+# private, never-committed notes (strategy, context). CLAUDE.local.md included.
+*.local.md
+.claude/worktrees/
+
+# Local Pages assembly for the a11y workflow
+_site/
+
+# Scratch dir for the national-routes tile build (intermediate GeoJSONL).
+# The PMTiles archive output lives at web/tiles/ and IS committed (ADR 0023).
+/build/
+infra/submit/build/
+infra/submit/submit.tfplan
+*.tfplan

@@ -1,0 +1,27 @@
+{
+  "feeds": {
+    "unitrans": {
+      "changed_at": "2026-06-21T06:11:15+00:00",
+      "checked_at": "2026-06-30T18:09:14+00:00",
+      "consecutive_failures": 0,
+      "content_length": 262411,
+      "etag": null,
+      "last_modified": "Tue, 16 Jun 2026 23:37:33 GMT",
+      "sha256": "3ddba2ca939679b1ba87d34babcd7f8715faab7f08c5241dc3f1d5277cf4f39d",
+      "status": 304,
+      "url": "https://unitrans.ucdavis.edu/media/gtfs/Unitrans_GTFS.zip"
+    },
+    "yolobus": {
+      "changed_at": "2026-06-21T01:39:09+00:00",
+      "checked_at": "2026-07-02T01:10:02+00:00",
+      "consecutive_failures": 0,
+      "content_length": 485777,
+      "etag": "\"b86f29b63efdc1:0\"",
+      "last_modified": "Fri, 29 May 2026 00:40:13 GMT",
+      "sha256": "946c49a1b1dae9b4788e9984a983b1a0c9105eecd337f65f60e5650256eca937",
+      "status": 304,
+      "url": "https://avl.yctd.org/RealTime/google_transit.zip"
+    }
+  },
+  "schema_version": "1.0"
+}

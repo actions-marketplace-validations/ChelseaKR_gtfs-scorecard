@@ -1,0 +1,54 @@
+{
+  "generated_fields": [
+    "id",
+    "name",
+    "date",
+    "grade",
+    "score",
+    "correctness",
+    "freshness",
+    "completeness",
+    "realtime",
+    "days_until_expiry"
+  ],
+  "pipeline_schema_version": "1.4",
+  "rows": [
+    {
+      "completeness": 45.0,
+      "correctness": 76.0,
+      "date": "2026-07-02",
+      "days_until_expiry": 121,
+      "freshness": 100.0,
+      "grade": "C",
+      "id": "barrie-transit",
+      "name": "Barrie Transit (Ontario)",
+      "realtime": null,
+      "score": 72.3
+    },
+    {
+      "completeness": 60.0,
+      "correctness": 84.8,
+      "date": "2026-07-02",
+      "days_until_expiry": 82,
+      "freshness": 100.0,
+      "grade": "B",
+      "id": "unitrans",
+      "name": "Unitrans (ASUCD / City of Davis)",
+      "realtime": null,
+      "score": 80.8
+    },
+    {
+      "completeness": 62.4,
+      "correctness": 90.0,
+      "date": "2026-07-02",
+      "days_until_expiry": 67,
+      "freshness": 85.0,
+      "grade": "B",
+      "id": "yolobus",
+      "name": "Yolobus (Yolo County Transportation District)",
+      "realtime": 92.2,
+      "score": 82.5
+    }
+  ],
+  "schema_version": "1.0"
+}

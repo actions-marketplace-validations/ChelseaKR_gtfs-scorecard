@@ -1,0 +1,74 @@
+name: National route tiles
+
+# Rebuild the national all-routes PMTiles archive (web/tiles/national-routes.pmtiles).
+#
+# tippecanoe is NOT in the daily render image, so this is deliberately a manual,
+# on-demand workflow: it never runs on the daily cron and so cannot break the
+# daily Pages deploy. Trigger it from the Actions tab after the per-agency route
+# geometry has changed enough to be worth re-tiling. See docs/decisions/0023.
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "Commit the rebuilt archive back to the branch"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-tiles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Build tippecanoe from a pinned source tag
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch 2.78.0 https://github.com/felt/tippecanoe.git /tmp/tippecanoe
+          make -C /tmp/tippecanoe -j2
+          sudo make -C /tmp/tippecanoe install
+          tippecanoe --version
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the pipeline
+        working-directory: pipeline
+        run: uv sync --locked
+
+      - name: Aggregate routes and build the PMTiles archive
+        working-directory: pipeline
+        run: uv run python scripts/build_national_pmtiles.py
+
+      - name: Report archive size
+        run: |
+          ls -lh web/tiles/national-routes.pmtiles
+          SIZE=$(stat -c%s web/tiles/national-routes.pmtiles)
+          echo "Archive is $SIZE bytes. Threshold for committing to web/ is 25 MB (ADR 0023)."
+          if [ "$SIZE" -gt 26214400 ]; then
+            echo "::warning title=tiles too large::Archive exceeds 25 MB; move it to S3+CloudFront per ADR 0023 instead of committing."
+          fi
+
+      - name: Upload archive as a workflow artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: national-routes-pmtiles
+          path: web/tiles/national-routes.pmtiles
+
+      - name: Commit the rebuilt archive
+        if: ${{ inputs.commit }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- web/tiles/national-routes.pmtiles; then
+            echo "Archive unchanged; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/tiles/national-routes.pmtiles
+          git commit -m "chore(tiles): rebuild national-routes PMTiles archive"
+          git push

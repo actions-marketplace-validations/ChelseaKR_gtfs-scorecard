@@ -1,0 +1,390 @@
+{
+  "bottom": [
+    {
+      "grade": "F",
+      "id": "adirondack-trailways-pine-hill-trailways",
+      "name": "Adirondack Trailways Pine Hill Trailways",
+      "score": 2.3
+    },
+    {
+      "grade": "F",
+      "id": "madison-county-transit-1145",
+      "name": "Madison County Transit",
+      "score": 7.0
+    },
+    {
+      "grade": "F",
+      "id": "chatham-area-transit-cat",
+      "name": "Chatham Area Transit (CAT)",
+      "score": 8.7
+    },
+    {
+      "grade": "F",
+      "id": "thebus",
+      "name": "TheBus",
+      "score": 9.5
+    },
+    {
+      "grade": "F",
+      "id": "wichita-transit",
+      "name": "Wichita Transit",
+      "score": 11.7
+    },
+    {
+      "grade": "F",
+      "id": "via-metropolitan-transit-via",
+      "name": "VIA Metropolitan Transit (VIA)",
+      "score": 12.4
+    },
+    {
+      "grade": "F",
+      "id": "lehigh-and-northampton-transportation-authority-lanta",
+      "name": "Lehigh and Northampton Transportation Authority (LANTA)",
+      "score": 14.1
+    },
+    {
+      "grade": "F",
+      "id": "new-york-trailways",
+      "name": "New York Trailways",
+      "score": 14.6
+    },
+    {
+      "grade": "F",
+      "id": "city-of-tracy-tracer-877",
+      "name": "City of Tracy (TRACER)",
+      "score": 14.6
+    },
+    {
+      "grade": "F",
+      "id": "city-of-tracy-tracer",
+      "name": "City of Tracy (TRACER)",
+      "score": 14.6
+    },
+    {
+      "grade": "F",
+      "id": "transit-authority-of-river-city-tarc",
+      "name": "Transit Authority of River City (TARC)",
+      "score": 16.4
+    },
+    {
+      "grade": "F",
+      "id": "western-reserve-transit-authority",
+      "name": "Western Reserve Transit Authority",
+      "score": 16.9
+    },
+    {
+      "grade": "F",
+      "id": "auburn-transit-217",
+      "name": "Auburn Transit",
+      "score": 17.5
+    },
+    {
+      "grade": "F",
+      "id": "auburn-transit",
+      "name": "Auburn Transit",
+      "score": 17.5
+    },
+    {
+      "grade": "F",
+      "id": "steuben-area-rides",
+      "name": "Steuben Area Rides",
+      "score": 18.2
+    },
+    {
+      "grade": "F",
+      "id": "microsoft-shuttles",
+      "name": "Microsoft Shuttles",
+      "score": 18.9
+    },
+    {
+      "grade": "F",
+      "id": "potomac-and-rappahannock-transportation-commission-prtc",
+      "name": "Potomac and Rappahannock Transportation Commission (PRTC)",
+      "score": 19.0
+    },
+    {
+      "grade": "F",
+      "id": "birmingham-jefferson-county-transit-authority",
+      "name": "Birmingham Jefferson County Transit Authority",
+      "score": 19.1
+    },
+    {
+      "grade": "F",
+      "id": "ridgerunner-311",
+      "name": "Ridgerunner",
+      "score": 19.5
+    },
+    {
+      "grade": "F",
+      "id": "ridgerunner",
+      "name": "Ridgerunner",
+      "score": 19.5
+    },
+    {
+      "grade": "F",
+      "id": "mountain-line-1148",
+      "name": "Mountain Line",
+      "score": 19.5
+    },
+    {
+      "grade": "F",
+      "id": "uta",
+      "name": "UTA",
+      "score": 19.6
+    },
+    {
+      "grade": "F",
+      "id": "greater-glens-falls-transit",
+      "name": "Greater Glens Falls Transit",
+      "score": 20.2
+    },
+    {
+      "grade": "F",
+      "id": "sunline-transit-agency",
+      "name": "SunLine Transit Agency",
+      "score": 20.3
+    },
+    {
+      "grade": "F",
+      "id": "norwalk-transit-district",
+      "name": "Norwalk Transit District",
+      "score": 20.8
+    }
+  ],
+  "most_declined": [
+    {
+      "date": "2026-07-03",
+      "grade": "F",
+      "id": "clackco-connects-clackamas-county-2740",
+      "name": "Static feed for realtime",
+      "score": 59.2,
+      "score_delta": -8.3
+    },
+    {
+      "date": "2026-07-03",
+      "grade": "B",
+      "id": "san-francisco-bay-area-water-emergency-transportation-authority-weta-3143",
+      "name": "San Francisco Bay Area Water Emergency Transportation Authority (WETA)",
+      "score": 88.6,
+      "score_delta": -1.7
+    },
+    {
+      "date": "2026-07-03",
+      "grade": "C",
+      "id": "ny-waterway-3192",
+      "name": "NY Waterway",
+      "score": 78.8,
+      "score_delta": -1.4
+    }
+  ],
+  "most_improved": [
+    {
+      "date": "2026-07-03",
+      "grade": "B",
+      "id": "boxcar",
+      "name": "Boxcar Commuter Bus",
+      "score": 81.1,
+      "score_delta": 9.4
+    },
+    {
+      "date": "2026-07-03",
+      "grade": "D",
+      "id": "southeastern-pennsylvania-transportation-authority-septa",
+      "name": "Bus",
+      "score": 63.2,
+      "score_delta": 6.6
+    },
+    {
+      "date": "2026-07-03",
+      "grade": "C",
+      "id": "southeastern-pennsylvania-transportation-authority-septa-503",
+      "name": "Rail",
+      "score": 76.0,
+      "score_delta": 4.3
+    },
+    {
+      "date": "2026-07-03",
+      "grade": "A",
+      "id": "broward-county-transit",
+      "name": "Broward County Transit",
+      "score": 90.4,
+      "score_delta": 3.5
+    },
+    {
+      "date": "2026-07-03",
+      "grade": "D",
+      "id": "spirit-bus-2202",
+      "name": "Spirit Bus",
+      "score": 66.7,
+      "score_delta": 2.3
+    },
+    {
+      "date": "2026-07-03",
+      "grade": "F",
+      "id": "bay-area-transportation-authority-2254",
+      "name": "Bay Area Transportation Authority",
+      "score": 56.8,
+      "score_delta": 1.8
+    },
+    {
+      "date": "2026-07-03",
+      "grade": "D",
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "score": 63.9,
+      "score_delta": 1.0
+    }
+  ],
+  "top": [
+    {
+      "grade": "A",
+      "id": "patco-speedline-3035",
+      "name": "PATCO Speedline",
+      "score": 100.0
+    },
+    {
+      "grade": "A",
+      "id": "dry-tortugas-national-park",
+      "name": "DRTO Ferry Service",
+      "score": 99.8
+    },
+    {
+      "grade": "A",
+      "id": "sedona-shuttle",
+      "name": "Sedona Shuttle",
+      "score": 99.8
+    },
+    {
+      "grade": "A",
+      "id": "bisbee-bus",
+      "name": "Bisbee Bus",
+      "score": 99.4
+    },
+    {
+      "grade": "A",
+      "id": "sonoma-marin-area-rail-transit-smart",
+      "name": "Sonoma-Marin Area Rail Transit (SMART)",
+      "score": 98.9
+    },
+    {
+      "grade": "A",
+      "id": "sonoma-marin-area-rail-transit-smart-815",
+      "name": "Sonoma-Marin Area Rail Transit (SMART)",
+      "score": 98.9
+    },
+    {
+      "grade": "A",
+      "id": "black-ball-ferry-line",
+      "name": "Black Ball Ferry Line",
+      "score": 98.2
+    },
+    {
+      "grade": "A",
+      "id": "black-ball-ferry-line-286",
+      "name": "Black Ball Ferry Line",
+      "score": 98.2
+    },
+    {
+      "grade": "A",
+      "id": "boston-harbor-islands-ferry",
+      "name": "Boston Harbor Islands Ferry",
+      "score": 98.2
+    },
+    {
+      "grade": "A",
+      "id": "grand-canyon-national-park",
+      "name": "South Rim Shuttle",
+      "score": 98.2
+    },
+    {
+      "grade": "A",
+      "id": "gulf-islands-national-seashore-3210",
+      "name": "Ship Island Excursions",
+      "score": 98.2
+    },
+    {
+      "grade": "A",
+      "id": "gunnison-valley-transportation-authority-rta",
+      "name": "Gunnison Valley Transportation Authority (RTA)",
+      "score": 98.2
+    },
+    {
+      "grade": "A",
+      "id": "gunnison-valley-transportation-authority-rta-163",
+      "name": "Gunnison Valley Transportation Authority (RTA)",
+      "score": 98.2
+    },
+    {
+      "grade": "A",
+      "id": "jefferson-transit-authority",
+      "name": "Jefferson Transit Authority",
+      "score": 98.0
+    },
+    {
+      "grade": "A",
+      "id": "jefferson-transit-authority-838",
+      "name": "Jefferson Transit Authority",
+      "score": 98.0
+    },
+    {
+      "grade": "A",
+      "id": "etrans",
+      "name": "eTrans",
+      "score": 96.7
+    },
+    {
+      "grade": "A",
+      "id": "etrans-65",
+      "name": "eTrans",
+      "score": 96.7
+    },
+    {
+      "grade": "A",
+      "id": "gulf-islands-national-seashore",
+      "name": "Pensacola Bay City Ferry",
+      "score": 96.5
+    },
+    {
+      "grade": "A",
+      "id": "santa-ynez-valley-transit",
+      "name": "Santa Ynez Valley Transit",
+      "score": 96.5
+    },
+    {
+      "grade": "A",
+      "id": "santa-ynez-valley-transit-813",
+      "name": "Santa Ynez Valley Transit",
+      "score": 96.5
+    },
+    {
+      "grade": "A",
+      "id": "patco-speedline",
+      "name": "PATCO Speedline",
+      "score": 96.1
+    },
+    {
+      "grade": "A",
+      "id": "boston-harbor-islands-ferries-2073",
+      "name": "Boston Harbor Islands Ferries",
+      "score": 95.3
+    },
+    {
+      "grade": "A",
+      "id": "grays-harbor-transit",
+      "name": "Grays Harbor Transit",
+      "score": 95.0
+    },
+    {
+      "grade": "A",
+      "id": "grays-harbor-transit-263",
+      "name": "Grays Harbor Transit",
+      "score": 95.0
+    },
+    {
+      "grade": "A",
+      "id": "phlash",
+      "name": "Philly PHLASH",
+      "score": 95.0
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+"""Validator-result cache keyed by feed content hash.
+
+The MobilityData Java validator is the most expensive step in a score, and the
+daily run re-validates every feed even though most feeds are byte-identical to
+the day before. This caches the normalized validator report next to a feed's
+artifacts, keyed by the feed's sha256 and the validator version. A re-score whose
+bytes and validator version both match the cache reuses the report and skips the
+Java run entirely; anything else re-validates and refreshes the cache.
+
+The cache lives at data/artifacts/<id>/validator-cache.json so it rides the same
+upload-and-commit path as the artifacts and is ignored by the index and rollup
+walkers (which only read dated files and latest.json). One file per agency,
+overwritten when the feed changes, so the cache stays bounded.
+
+Optional S3 tier. The local file works because data/artifacts is committed, so
+every CI checkout carries yesterday's cache. When artifacts move off git to S3
+(docs/roadmap.md, Year 1), that git-carried copy goes cold, so this module also
+keeps the cache in S3 when ``VALIDATOR_CACHE_BUCKET`` (or ``ARTIFACTS_BUCKET``)
+is set: the local file stays the fast first tier, S3 is the durable second tier,
+and an S3 hit writes through to the local file. The S3 path is best-effort by
+design: boto3 is imported lazily and every S3 error is swallowed, so a missing
+dependency, missing credentials, or a transient failure never fails a score, it
+just falls back to running the validator. With no bucket set (local dev, forks)
+the behaviour is exactly the committed-file cache it has always been.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+from pathlib import Path
+from typing import Any
+
+from .config import artifacts_dir
+from .validate import NoticeGroup, ValidationReport
+
+log = logging.getLogger(__name__)
+
+
+def _report_to_json(report: ValidationReport) -> dict[str, Any]:
+    return {
+        "validator_version": report.validator_version,
+        "notices": [
+            {
+                "code": g.code,
+                "severity": g.severity,
+                "total": g.total,
+                "sample_notices": g.sample_notices,
+            }
+            for g in report.notices
+        ],
+    }
+
+
+def _report_from_json(data: dict[str, Any]) -> ValidationReport:
+    notices = [
+        NoticeGroup(
+            code=str(n.get("code", "unknown")),
+            severity=str(n.get("severity", "INFO")),
+            total=int(n.get("total", 0)),
+            sample_notices=list(n.get("sample_notices", [])),
+        )
+        for n in data.get("notices", [])
+    ]
+    return ValidationReport(
+        validator_version=str(data.get("validator_version", "unknown")), notices=notices
+    )
+
+
+def cache_path(agency_id: str) -> Path:
+    return artifacts_dir() / agency_id / "validator-cache.json"
+
+
+def _matching_report(data: Any, sha256: str, validator_version: str) -> ValidationReport | None:
+    """The stored report when both the feed bytes and validator version match.
+
+    A mismatch on either (the feed changed, or the validator was upgraded and may
+    emit different notices) is a miss, so the caller re-validates."""
+    if not isinstance(data, dict):
+        return None
+    if data.get("sha256") != sha256 or data.get("validator_version") != validator_version:
+        return None
+    report = data.get("report")
+    if not isinstance(report, dict):
+        return None
+    return _report_from_json(report)
+
+
+def _write_local(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    tmp.replace(path)
+
+
+# --- Optional S3 tier -------------------------------------------------------
+
+
+def _cache_bucket() -> str | None:
+    """Bucket for the durable cache tier, or None to stay file-only.
+
+    ``VALIDATOR_CACHE_BUCKET`` lets the cache live in a different bucket than the
+    public artifacts; absent that, it reuses ``ARTIFACTS_BUCKET`` under a private
+    prefix so one variable turns both on together."""
+    return os.environ.get("VALIDATOR_CACHE_BUCKET") or os.environ.get("ARTIFACTS_BUCKET") or None
+
+
+def _s3_key(agency_id: str) -> str:
+    # A prefix outside data/artifacts/ keeps the cache off the public CDN mirror
+    # and away from the index/rollup walkers.
+    return f"cache/validator/{agency_id}.json"
+
+
+def _s3_client() -> Any:  # pragma: no cover - thin boto3 wrapper, faked in tests
+    # Lazy: boto3 is an optional dependency, present only when caching to S3.
+    import boto3  # type: ignore[import-not-found]  # noqa: PLC0415 - lazy, optional dep
+
+    return boto3.client("s3", region_name=os.environ.get("AWS_REGION") or "us-west-2")
+
+
+def _s3_load(bucket: str, agency_id: str) -> dict[str, Any] | None:
+    try:
+        obj = _s3_client().get_object(Bucket=bucket, Key=_s3_key(agency_id))
+        data = json.loads(obj["Body"].read())
+        return data if isinstance(data, dict) else None
+    except Exception as exc:  # noqa: BLE001 - cache is best-effort; never fail a score
+        log.debug("validator cache S3 read miss for %s: %s", agency_id, exc)
+        return None
+
+
+def _s3_store(bucket: str, agency_id: str, payload: dict[str, Any]) -> None:
+    try:
+        _s3_client().put_object(
+            Bucket=bucket,
+            Key=_s3_key(agency_id),
+            Body=(json.dumps(payload, sort_keys=True) + "\n").encode(),
+            ContentType="application/json",
+        )
+    except Exception as exc:  # noqa: BLE001 - a cache write failure must not fail a score
+        log.warning("validator cache S3 write failed for %s: %s", agency_id, exc)
+
+
+# --- Public API -------------------------------------------------------------
+
+
+def load_cached(agency_id: str, sha256: str, validator_version: str) -> ValidationReport | None:
+    """The cached report when bytes and validator version match, else None.
+
+    Checks the local file first (fast, no network), then the S3 tier if a bucket
+    is configured. An S3 hit is written through to the local file so the rest of
+    this run, and any commit or upload step, sees it."""
+    path = cache_path(agency_id)
+    try:
+        local = json.loads(path.read_text())
+    except (FileNotFoundError, ValueError):
+        local = None
+    hit = _matching_report(local, sha256, validator_version)
+    if hit is not None:
+        return hit
+
+    bucket = _cache_bucket()
+    if bucket:
+        remote = _s3_load(bucket, agency_id)
+        hit = _matching_report(remote, sha256, validator_version)
+        if hit is not None and isinstance(remote, dict):
+            _write_local(path, remote)
+            return hit
+    return None
+
+
+def store_cached(
+    agency_id: str, sha256: str, validator_version: str, report: ValidationReport
+) -> Path:
+    """Write the report to the local file and, if configured, the S3 tier."""
+    payload = {
+        "sha256": sha256,
+        "validator_version": validator_version,
+        "report": _report_to_json(report),
+    }
+    path = cache_path(agency_id)
+    _write_local(path, payload)
+
+    bucket = _cache_bucket()
+    if bucket:
+        _s3_store(bucket, agency_id, payload)
+    return path

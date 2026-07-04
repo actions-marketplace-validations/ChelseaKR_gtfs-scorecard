@@ -1,0 +1,76 @@
+name: Mutation (advisory)
+
+# ADVISORY mutation testing of the scoring logic (pipeline/src/scorecard_pipeline/
+# score.py: the grade ladder + fix-priority tiers). Line/branch coverage of that
+# module is 100%, so this measures the next thing coverage cannot: do the tests'
+# assertions actually catch a regression, or do they just run the line?
+#
+# This is a REVIEW-GATE, not a merge gate (CODE-QUALITY-STANDARD.md §10). It runs
+# ONLY on a weekly schedule and on manual dispatch -- never on pull_request or
+# push -- so it can never block a PR. It also does not fail on surviving mutants;
+# it publishes the score and the survivor list for triage. Baseline + accepted
+# survivors are documented in docs/mutation-testing.md.
+
+on:
+  schedule:
+    - cron: "17 7 * * 1" # Mondays 07:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+
+      # Mutate score.py only and run tests/test_score.py as the kill signal
+      # (scope + config in pyproject.toml [tool.mutmut]). Seconds, not minutes.
+      - name: Run mutmut on the scoring logic
+        run: uv run mutmut run
+
+      # Machine-readable score + human-readable survivor list, saved for triage.
+      - name: Collect results
+        if: always()
+        run: |
+          uv run mutmut export-cicd-stats
+          uv run mutmut results > mutation-report.txt || true
+          cp mutants/mutmut-cicd-stats.json mutation-stats.json
+
+      # Surface the score in the run's summary. Advisory: below-target does not
+      # fail the job, it flags survivors to triage against docs/mutation-testing.md.
+      - name: Summarize
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+          s = json.loads(pathlib.Path("mutation-stats.json").read_text())
+          killed, total = s["killed"], s["total"] or 1
+          pct = 100.0 * killed / total
+          print("## Mutation testing (advisory) — scoring logic")
+          print()
+          print(f"**Score: {pct:.1f}%** ({killed}/{total} mutants killed, "
+                f"{s['survived']} survived)")
+          print()
+          print("Target is >=70% killed on core safety modules "
+                "(CODE-QUALITY-STANDARD.md §10). This gate is advisory: it never "
+                "blocks a PR. Triage survivors against `docs/mutation-testing.md`.")
+          PY
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: mutation-report
+          path: |
+            pipeline/mutation-report.txt
+            pipeline/mutation-stats.json
+          if-no-files-found: warn

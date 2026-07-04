@@ -1,0 +1,38 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.chelseakr/gtfs-scorecard",
+  "description": "Read-only transit data quality scorecards: search 1,400+ US and Canadian agencies, get plain-language findings and fixes, and national GTFS quality stats.",
+  "repository": {
+    "url": "https://github.com/ChelseaKR/gtfs-scorecard",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "scorecard-pipeline",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeHint": "uvx",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "--from",
+          "valueHint": "--from"
+        },
+        {
+          "type": "positional",
+          "value": "git+https://github.com/ChelseaKR/gtfs-scorecard#subdirectory=pipeline",
+          "valueHint": "package source"
+        },
+        {
+          "type": "positional",
+          "value": "scorecard-mcp",
+          "valueHint": "entry point"
+        }
+      ]
+    }
+  ]
+}

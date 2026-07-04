@@ -1,0 +1,259 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "unused_shape",
+        "sample_notices": [
+          {
+            "csvRowNumber": 150312,
+            "shapeId": "740420001"
+          },
+          {
+            "csvRowNumber": 150788,
+            "shapeId": "740420002"
+          },
+          {
+            "csvRowNumber": 151216,
+            "shapeId": "740425001"
+          },
+          {
+            "csvRowNumber": 151884,
+            "shapeId": "740425002"
+          },
+          {
+            "csvRowNumber": 152475,
+            "shapeId": "740436001"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 76
+      },
+      {
+        "code": "equal_shape_distance_same_coordinates",
+        "sample_notices": [
+          {
+            "csvRowNumber": 172179,
+            "prevCsvRowNumber": 172178,
+            "prevShapeDistTraveled": 28184.078,
+            "prevShapePtSequence": 280066,
+            "shapeDistTraveled": 28184.078,
+            "shapeId": "740447002",
+            "shapePtSequence": 280067
+          },
+          {
+            "csvRowNumber": 171398,
+            "prevCsvRowNumber": 171397,
+            "prevShapeDistTraveled": 28184.078,
+            "prevShapePtSequence": 280066,
+            "shapeDistTraveled": 28184.078,
+            "shapeId": "740447001",
+            "shapePtSequence": 280067
+          },
+          {
+            "csvRowNumber": 315832,
+            "prevCsvRowNumber": 315831,
+            "prevShapeDistTraveled": 16661.93,
+            "prevShapePtSequence": 130038,
+            "shapeDistTraveled": 16661.93,
+            "shapeId": "740901002",
+            "shapePtSequence": 140002
+          },
+          {
+            "csvRowNumber": 317223,
+            "prevCsvRowNumber": 317222,
+            "prevShapeDistTraveled": 19593.928,
+            "prevShapePtSequence": 190038,
+            "shapeDistTraveled": 19593.928,
+            "shapeId": "740901006",
+            "shapePtSequence": 200002
+          },
+          {
+            "csvRowNumber": 316426,
+            "prevCsvRowNumber": 316425,
+            "prevShapeDistTraveled": 15933.835,
+            "prevShapePtSequence": 120038,
+            "shapeDistTraveled": 15933.835,
+            "shapeId": "740901004",
+            "shapePtSequence": 130002
+          }
+        ],
+        "severity": "WARNING",
+        "total": 21
+      },
+      {
+        "code": "same_name_and_description_for_route",
+        "sample_notices": [
+          {
+            "csvRowNumber": 3,
+            "routeDesc": "Blue Line Bus",
+            "routeId": "991",
+            "specifiedField": "route_long_name"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "trip_coverage_not_active_for_next7_days",
+        "sample_notices": [
+          {
+            "currentDate": "20260627",
+            "serviceWindowEndDate": "20260814",
+            "serviceWindowStartDate": "20260629"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "unsorted_stop_times",
+        "sample_notices": [
+          {
+            "endCsvRowNumber": 1101286,
+            "startCsvRowNumber": 37649,
+            "tripId": "476298"
+          },
+          {
+            "endCsvRowNumber": 792898,
+            "startCsvRowNumber": 542045,
+            "tripId": "1243968"
+          },
+          {
+            "endCsvRowNumber": 1086905,
+            "startCsvRowNumber": 1587,
+            "tripId": "1241308"
+          },
+          {
+            "endCsvRowNumber": 1106439,
+            "startCsvRowNumber": 447,
+            "tripId": "1243960"
+          },
+          {
+            "endCsvRowNumber": 1114918,
+            "startCsvRowNumber": 6819,
+            "tripId": "1241306"
+          }
+        ],
+        "severity": "INFO",
+        "total": 24910
+      },
+      {
+        "code": "platform_without_parent_station",
+        "sample_notices": [
+          {
+            "csvRowNumber": 1144,
+            "stopId": "5020",
+            "stopName": "Maplewood Mall Transit Center & Gate A"
+          },
+          {
+            "csvRowNumber": 1464,
+            "stopId": "6767",
+            "stopName": "Co Rd 73 P&R & A Bay"
+          },
+          {
+            "csvRowNumber": 1471,
+            "stopId": "6784",
+            "stopName": "Wayzata Blvd P&R & Gate A"
+          },
+          {
+            "csvRowNumber": 1507,
+            "stopId": "6990",
+            "stopName": "Wayzata Blvd P&R & Gate B"
+          },
+          {
+            "csvRowNumber": 1515,
+            "stopId": "7004",
+            "stopName": "Co Rd 73 P&R & B Bay"
+          }
+        ],
+        "severity": "INFO",
+        "total": 120
+      },
+      {
+        "code": "unknown_column",
+        "sample_notices": [
+          {
+            "fieldName": "cover_type",
+            "filename": "pathways.txt",
+            "index": 6
+          },
+          {
+            "fieldName": "max_stair_flight",
+            "filename": "pathways.txt",
+            "index": 9
+          },
+          {
+            "fieldName": "mechanical_stair_count",
+            "filename": "pathways.txt",
+            "index": 10
+          },
+          {
+            "fieldName": "pathway_code",
+            "filename": "pathways.txt",
+            "index": 11
+          },
+          {
+            "fieldName": "direction",
+            "filename": "trips.txt",
+            "index": 6
+          }
+        ],
+        "severity": "INFO",
+        "total": 7
+      },
+      {
+        "code": "big_gap_in_service",
+        "sample_notices": [
+          {
+            "gapDurationDays": 26,
+            "gapEndDate": "2026-07-27",
+            "gapStartDate": "2026-06-30",
+            "serviceId": "11"
+          },
+          {
+            "gapDurationDays": 33,
+            "gapEndDate": "2026-08-01",
+            "gapStartDate": "2026-06-28",
+            "serviceId": "12"
+          },
+          {
+            "gapDurationDays": 26,
+            "gapEndDate": "2026-07-27",
+            "gapStartDate": "2026-06-30",
+            "serviceId": "14"
+          },
+          {
+            "gapDurationDays": 34,
+            "gapEndDate": "2026-08-01",
+            "gapStartDate": "2026-06-27",
+            "serviceId": "16"
+          },
+          {
+            "gapDurationDays": 34,
+            "gapEndDate": "2026-08-02",
+            "gapStartDate": "2026-06-28",
+            "serviceId": "18"
+          }
+        ],
+        "severity": "INFO",
+        "total": 6
+      },
+      {
+        "code": "unknown_file",
+        "sample_notices": [
+          {
+            "filename": "linked_datasets.txt"
+          },
+          {
+            "filename": "vehicles.txt"
+          }
+        ],
+        "severity": "INFO",
+        "total": 2
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "79b0cbca38e756a25ad442ec2b49735fb39a995df7d6046e67f59c5e76ee078f",
+  "validator_version": "8.0.1"
+}

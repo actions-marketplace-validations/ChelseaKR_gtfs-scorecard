@@ -1,0 +1,42 @@
+{
+  "agency_count": 3,
+  "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
+  "average_accessible_pct": 0.0,
+  "average_boarding_pct": 33.2,
+  "bands": {
+    "most": 1,
+    "none": 2,
+    "some": 0
+  },
+  "license": "CC-BY-4.0",
+  "most_complete": [
+    {
+      "id": "yolobus",
+      "name": "Yolobus (Yolo County Transportation District)",
+      "pct": 99.5,
+      "state": "Unlocated"
+    }
+  ],
+  "no_data_count": 2,
+  "states": [
+    {
+      "agencies": 3,
+      "average_boarding_pct": 33.2,
+      "most": 1,
+      "none": 2,
+      "state": "Unlocated"
+    }
+  ],
+  "to_improve_sample": [
+    {
+      "id": "barrie-transit",
+      "name": "Barrie Transit (Ontario)",
+      "state": "Unlocated"
+    },
+    {
+      "id": "unitrans",
+      "name": "Unitrans (ASUCD / City of Davis)",
+      "state": "Unlocated"
+    }
+  ]
+}

@@ -1,0 +1,579 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "trip_distance_exceeds_shape_distance",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 14.195225959916115,
+            "maxShapeDistanceTraveled": 5.803,
+            "maxTripDistanceTraveled": 5.804,
+            "shapeId": "202_8_35",
+            "tripId": "19153436"
+          },
+          {
+            "geoDistanceToShape": 14.195225959916115,
+            "maxShapeDistanceTraveled": 5.803,
+            "maxTripDistanceTraveled": 5.804,
+            "shapeId": "202_8_35",
+            "tripId": "19157980"
+          },
+          {
+            "geoDistanceToShape": 14.195225959916115,
+            "maxShapeDistanceTraveled": 5.803,
+            "maxTripDistanceTraveled": 5.804,
+            "shapeId": "202_8_35",
+            "tripId": "19159738"
+          },
+          {
+            "geoDistanceToShape": 14.195225959916115,
+            "maxShapeDistanceTraveled": 5.803,
+            "maxTripDistanceTraveled": 5.804,
+            "shapeId": "202_8_35",
+            "tripId": "19165270"
+          },
+          {
+            "geoDistanceToShape": 14.195225959916115,
+            "maxShapeDistanceTraveled": 5.803,
+            "maxTripDistanceTraveled": 5.804,
+            "shapeId": "202_8_35",
+            "tripId": "19167028"
+          }
+        ],
+        "severity": "ERROR",
+        "total": 819
+      },
+      {
+        "code": "equal_shape_distance_diff_coordinates",
+        "sample_notices": [
+          {
+            "actualDistanceBetweenShapePoints": 37.11623150312349,
+            "csvRowNumber": 25755,
+            "prevCsvRowNumber": 25754,
+            "prevShapeDistTraveled": 1.321,
+            "prevShapePtSequence": 70006,
+            "shapeDistTraveled": 1.321,
+            "shapeId": "290_0_20",
+            "shapePtSequence": 80001
+          },
+          {
+            "actualDistanceBetweenShapePoints": 1.4889392745780912,
+            "csvRowNumber": 28807,
+            "prevCsvRowNumber": 28806,
+            "prevShapeDistTraveled": 1.951,
+            "prevShapePtSequence": 100001,
+            "shapeDistTraveled": 1.951,
+            "shapeId": "35_2_53",
+            "shapePtSequence": 100002
+          },
+          {
+            "actualDistanceBetweenShapePoints": 37.11623150312349,
+            "csvRowNumber": 121458,
+            "prevCsvRowNumber": 121457,
+            "prevShapeDistTraveled": 1.321,
+            "prevShapePtSequence": 70006,
+            "shapeDistTraveled": 1.321,
+            "shapeId": "S2_290_0_21",
+            "shapePtSequence": 80001
+          },
+          {
+            "actualDistanceBetweenShapePoints": 1.2720719568698924,
+            "csvRowNumber": 86300,
+            "prevCsvRowNumber": 86299,
+            "prevShapeDistTraveled": 6.606,
+            "prevShapePtSequence": 270004,
+            "shapeDistTraveled": 6.606,
+            "shapeId": "932_1_77",
+            "shapePtSequence": 270005
+          },
+          {
+            "actualDistanceBetweenShapePoints": 1.696837243717635,
+            "csvRowNumber": 13965,
+            "prevCsvRowNumber": 13964,
+            "prevShapeDistTraveled": 2.55,
+            "prevShapePtSequence": 70011,
+            "shapeDistTraveled": 2.55,
+            "shapeId": "202_8_36",
+            "shapePtSequence": 70012
+          }
+        ],
+        "severity": "ERROR",
+        "total": 134
+      },
+      {
+        "code": "equal_shape_distance_same_coordinates",
+        "sample_notices": [
+          {
+            "csvRowNumber": 7440,
+            "prevCsvRowNumber": 7439,
+            "prevShapeDistTraveled": 0.481,
+            "prevShapePtSequence": 10008,
+            "shapeDistTraveled": 0.481,
+            "shapeId": "120_1_139",
+            "shapePtSequence": 20001
+          },
+          {
+            "csvRowNumber": 7459,
+            "prevCsvRowNumber": 7458,
+            "prevShapeDistTraveled": 0.812,
+            "prevShapePtSequence": 20019,
+            "shapeDistTraveled": 0.812,
+            "shapeId": "120_1_139",
+            "shapePtSequence": 30001
+          },
+          {
+            "csvRowNumber": 7498,
+            "prevCsvRowNumber": 7497,
+            "prevShapeDistTraveled": 2.47,
+            "prevShapePtSequence": 30039,
+            "shapeDistTraveled": 2.47,
+            "shapeId": "120_1_139",
+            "shapePtSequence": 40001
+          },
+          {
+            "csvRowNumber": 7504,
+            "prevCsvRowNumber": 7503,
+            "prevShapeDistTraveled": 2.602,
+            "prevShapePtSequence": 40006,
+            "shapeDistTraveled": 2.602,
+            "shapeId": "120_1_139",
+            "shapePtSequence": 50001
+          },
+          {
+            "csvRowNumber": 7512,
+            "prevCsvRowNumber": 7511,
+            "prevShapeDistTraveled": 3.11,
+            "prevShapePtSequence": 50008,
+            "shapeDistTraveled": 3.11,
+            "shapeId": "120_1_139",
+            "shapePtSequence": 60001
+          }
+        ],
+        "severity": "WARNING",
+        "total": 16995
+      },
+      {
+        "code": "trip_distance_exceeds_shape_distance_below_threshold",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 10.48184225596442,
+            "maxShapeDistanceTraveled": 4.914,
+            "maxTripDistanceTraveled": 4.915,
+            "shapeId": "13_0_198",
+            "tripId": "19159051"
+          },
+          {
+            "geoDistanceToShape": 10.48184225596442,
+            "maxShapeDistanceTraveled": 4.914,
+            "maxTripDistanceTraveled": 4.915,
+            "shapeId": "13_0_198",
+            "tripId": "19166341"
+          },
+          {
+            "geoDistanceToShape": 10.48184225596442,
+            "maxShapeDistanceTraveled": 4.914,
+            "maxTripDistanceTraveled": 4.915,
+            "shapeId": "S2_13_0_198",
+            "tripId": "19449709"
+          },
+          {
+            "geoDistanceToShape": 5.132990918169265,
+            "maxShapeDistanceTraveled": 18.676001,
+            "maxTripDistanceTraveled": 18.677,
+            "shapeId": "20_1_264",
+            "tripId": "19156847"
+          },
+          {
+            "geoDistanceToShape": 5.132990918169265,
+            "maxShapeDistanceTraveled": 18.676001,
+            "maxTripDistanceTraveled": 18.677,
+            "shapeId": "20_1_264",
+            "tripId": "19160699"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 485
+      },
+      {
+        "code": "missing_bike_allowance",
+        "sample_notices": [
+          {
+            "csvRowNumber": 43446,
+            "routeId": "COR",
+            "tripId": "15331417"
+          },
+          {
+            "csvRowNumber": 43447,
+            "routeId": "COR",
+            "tripId": "15331418"
+          },
+          {
+            "csvRowNumber": 43448,
+            "routeId": "COR",
+            "tripId": "15331419"
+          },
+          {
+            "csvRowNumber": 43449,
+            "routeId": "COR",
+            "tripId": "15331420"
+          },
+          {
+            "csvRowNumber": 43450,
+            "routeId": "COR",
+            "tripId": "15331421"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 258
+      },
+      {
+        "code": "equal_shape_distance_diff_coordinates_distance_below_threshold",
+        "sample_notices": [
+          {
+            "actualDistanceBetweenShapePoints": 0.7131925397344271,
+            "csvRowNumber": 61368,
+            "prevCsvRowNumber": 61367,
+            "prevShapeDistTraveled": 84.292,
+            "prevShapePtSequence": 530008,
+            "shapeDistTraveled": 84.292,
+            "shapeId": "888_3_31",
+            "shapePtSequence": 530009
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.8309851656747858,
+            "csvRowNumber": 183315,
+            "prevCsvRowNumber": 183314,
+            "prevShapeDistTraveled": 6.81,
+            "prevShapePtSequence": 340003,
+            "shapeDistTraveled": 6.81,
+            "shapeId": "S2_934_8_68",
+            "shapePtSequence": 340004
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.8309851656747858,
+            "csvRowNumber": 183023,
+            "prevCsvRowNumber": 183022,
+            "prevShapeDistTraveled": 6.81,
+            "prevShapePtSequence": 340003,
+            "shapeDistTraveled": 6.81,
+            "shapeId": "S2_934_8_65",
+            "shapePtSequence": 340004
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.830408577718655,
+            "csvRowNumber": 28838,
+            "prevCsvRowNumber": 28837,
+            "prevShapeDistTraveled": 3.05,
+            "prevShapePtSequence": 160005,
+            "shapeDistTraveled": 3.05,
+            "shapeId": "35_2_53",
+            "shapePtSequence": 160006
+          },
+          {
+            "actualDistanceBetweenShapePoints": 0.4247652868477425,
+            "csvRowNumber": 76842,
+            "prevCsvRowNumber": 76841,
+            "prevShapeDistTraveled": 5.082,
+            "prevShapePtSequence": 150001,
+            "shapeDistTraveled": 5.082,
+            "shapeId": "8_0_67",
+            "shapePtSequence": 150002
+          }
+        ],
+        "severity": "WARNING",
+        "total": 253
+      },
+      {
+        "code": "stop_too_far_from_shape_using_user_distance",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 112.52754588723332,
+            "match": [
+              32.58387457405288,
+              -117.1064143867522
+            ],
+            "shapeId": "S2_934_8_69",
+            "stopId": "60078",
+            "stopName": "Palm Av & 13th St",
+            "stopTimeCsvRowNumber": 1024713,
+            "tripCsvRowNumber": 33435,
+            "tripId": "19388344"
+          },
+          {
+            "geoDistanceToShape": 112.4004925381044,
+            "match": [
+              32.583859534815566,
+              -117.10088886675058
+            ],
+            "shapeId": "S2_934_8_69",
+            "stopId": "60034",
+            "stopName": "Palm Av & 16th St",
+            "stopTimeCsvRowNumber": 1024714,
+            "tripCsvRowNumber": 33435,
+            "tripId": "19388344"
+          },
+          {
+            "geoDistanceToShape": 111.47513940228343,
+            "match": [
+              32.58385163338282,
+              -117.09829217336808
+            ],
+            "shapeId": "S2_934_8_69",
+            "stopId": "60036",
+            "stopName": "Palm Av & Thermal Av",
+            "stopTimeCsvRowNumber": 1024715,
+            "tripCsvRowNumber": 33435,
+            "tripId": "19388344"
+          },
+          {
+            "geoDistanceToShape": 112.49255183149025,
+            "match": [
+              32.58384323252588,
+              -117.09521514663999
+            ],
+            "shapeId": "S2_934_8_69",
+            "stopId": "60040",
+            "stopName": "Palm Av & Saturn Bl",
+            "stopTimeCsvRowNumber": 1024716,
+            "tripCsvRowNumber": 33435,
+            "tripId": "19388344"
+          },
+          {
+            "geoDistanceToShape": 112.24644955952348,
+            "match": [
+              32.58379409929042,
+              -117.08548555323756
+            ],
+            "shapeId": "S2_934_8_69",
+            "stopId": "60042",
+            "stopName": "Palm Av & Hollister St (Trolley)",
+            "stopTimeCsvRowNumber": 1024717,
+            "tripCsvRowNumber": 33435,
+            "tripId": "19388344"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 208
+      },
+      {
+        "code": "expired_calendar",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "serviceId": "72985-0000001-0"
+          },
+          {
+            "csvRowNumber": 3,
+            "serviceId": "72986-0000010-0"
+          },
+          {
+            "csvRowNumber": 4,
+            "serviceId": "72987-1111100-0"
+          },
+          {
+            "csvRowNumber": 5,
+            "serviceId": "7298753-1111100-53"
+          },
+          {
+            "csvRowNumber": 6,
+            "serviceId": "7298755-1111100-55"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 44
+      },
+      {
+        "code": "stop_without_stop_time",
+        "sample_notices": [
+          {
+            "csvRowNumber": 1640,
+            "stopId": "94036",
+            "stopName": "Fashion Valley Transit Center"
+          },
+          {
+            "csvRowNumber": 3815,
+            "stopId": "76900",
+            "stopName": "SIGNAL O38"
+          },
+          {
+            "csvRowNumber": 3816,
+            "stopId": "76901",
+            "stopName": "SIGNAL O38"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 3
+      },
+      {
+        "code": "service_has_no_active_day_of_the_week",
+        "sample_notices": [
+          {
+            "csvRowNumber": 10,
+            "serviceId": "8644157-1111100-58"
+          },
+          {
+            "csvRowNumber": 76,
+            "serviceId": "S2_8761163-0000010-63"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      },
+      {
+        "code": "stop_too_far_from_shape",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 170.787723590667,
+            "match": [
+              32.82497406,
+              -116.90238189999998
+            ],
+            "shapeId": "S2_864_2_180",
+            "stopId": "41158",
+            "stopName": "Camino Canada & Walmart",
+            "stopTimeCsvRowNumber": 786814,
+            "tripCsvRowNumber": 27257,
+            "tripId": "19376566"
+          },
+          {
+            "geoDistanceToShape": 170.787723590667,
+            "match": [
+              32.82497406,
+              -116.90238189999998
+            ],
+            "shapeId": "S2_838_3_12",
+            "stopId": "41158",
+            "stopName": "Camino Canada & Walmart",
+            "stopTimeCsvRowNumber": 731986,
+            "tripCsvRowNumber": 25382,
+            "tripId": "19381555"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      },
+      {
+        "code": "unused_shape",
+        "sample_notices": [
+          {
+            "csvRowNumber": 193189,
+            "shapeId": "S2_AIR_9_246"
+          },
+          {
+            "csvRowNumber": 193415,
+            "shapeId": "S2_AIR_9_247"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      },
+      {
+        "code": "route_long_name_contains_short_name",
+        "sample_notices": [
+          {
+            "csvRowNumber": 102,
+            "routeId": "540",
+            "routeLongName": "Event Shuttle",
+            "routeShortName": "Event"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "unknown_column",
+        "sample_notices": [
+          {
+            "fieldName": "intersection_code",
+            "filename": "stops.txt",
+            "index": 11
+          },
+          {
+            "fieldName": "reference_place",
+            "filename": "stops.txt",
+            "index": 12
+          },
+          {
+            "fieldName": "stop_name_short",
+            "filename": "stops.txt",
+            "index": 13
+          },
+          {
+            "fieldName": "stop_place",
+            "filename": "stops.txt",
+            "index": 14
+          },
+          {
+            "fieldName": "route_group",
+            "filename": "routes.txt",
+            "index": 9
+          }
+        ],
+        "severity": "INFO",
+        "total": 20
+      },
+      {
+        "code": "big_gap_in_service",
+        "sample_notices": [
+          {
+            "gapDurationDays": 21,
+            "gapEndDate": "2026-02-17",
+            "gapStartDate": "2026-01-26",
+            "serviceId": "8644157-1111100-58"
+          },
+          {
+            "gapDurationDays": 44,
+            "gapEndDate": "2026-04-06",
+            "gapStartDate": "2026-02-20",
+            "serviceId": "8644157-1111100-58"
+          },
+          {
+            "gapDurationDays": 55,
+            "gapEndDate": "2026-06-05",
+            "gapStartDate": "2026-04-10",
+            "serviceId": "8644157-1111100-58"
+          },
+          {
+            "gapDurationDays": 16,
+            "gapEndDate": "2026-04-06",
+            "gapStartDate": "2026-03-20",
+            "serviceId": "8644761-1111100-61"
+          },
+          {
+            "gapDurationDays": 16,
+            "gapEndDate": "2026-03-30",
+            "gapStartDate": "2026-03-13",
+            "serviceId": "8663521-1111100-21"
+          }
+        ],
+        "severity": "INFO",
+        "total": 7
+      },
+      {
+        "code": "unknown_file",
+        "sample_notices": [
+          {
+            "filename": "fare_capping.txt"
+          }
+        ],
+        "severity": "INFO",
+        "total": 1
+      },
+      {
+        "code": "unused_station",
+        "sample_notices": [
+          {
+            "csvRowNumber": 87,
+            "stopId": "svcoas",
+            "stopName": "Sorrento Valley COASTER Station"
+          }
+        ],
+        "severity": "INFO",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "fff2479d4deb7cf3d7a4146c09dc2e6a307f02034dee7310abb0937edefa47f7",
+  "validator_version": "8.0.1"
+}

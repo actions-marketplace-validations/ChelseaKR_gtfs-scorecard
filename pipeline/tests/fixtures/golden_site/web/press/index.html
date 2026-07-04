@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Writing about this data — GTFS Scorecard</title>
+  <meta name="description" content="How reporters can use GTFS Scorecard data: attribution, the claims the numbers support and the ones they do not, and story-ready downloads.">
+  <link rel="canonical" href="https://gtfsscorecard.org/press/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Writing about this data — GTFS Scorecard">
+  <meta property="og:description" content="How reporters can use GTFS Scorecard data: attribution, the claims the numbers support and the ones they do not, and story-ready downloads.">
+  <meta property="og:url" content="https://gtfsscorecard.org/press/">
+  <meta property="og:image" content="https://gtfsscorecard.org/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f5efe2'/%3E%3C/svg%3E">
+  <script>
+    /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
+    try {
+      var t = localStorage.getItem("scorecard-theme");
+      if (t && ["light", "contrast", "dark"].indexOf(t) >= 0)
+        document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+  <script src="/src/theme.js" defer></script>
+  <script src="/src/nav.js" defer></script>
+  <script src="/analytics.js" defer></script>
+  <noscript><style>
+    /* Without JS the menu button cannot expand the collapsed nav, so show the
+       stacked nav permanently and hide the button (content stays operable
+       without scripting). nav.js never runs here, so nothing double-toggles. */
+    @media (max-width: 1400px) {
+      .nav-menu-btn { display: none !important; }
+      .nav-cluster { display: flex !important; position: static; }
+    }
+  </style></noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header"><div class="wrap"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">GTFS&nbsp;Scorecard</span></a><button class="nav-menu-btn" type="button" aria-expanded="false" aria-controls="nav-cluster"><span aria-hidden="true">☰</span> Menu</button><div class="nav-cluster" id="nav-cluster"><nav class="nav-stops" aria-label="Primary"><a class="nav-stop" href="/agencies/"><span class="pip" aria-hidden="true"></span>Agencies</a><a class="nav-stop" href="/pulse/"><span class="pip" aria-hidden="true"></span>National pulse</a><a class="nav-stop" href="/focus/"><span class="pip" aria-hidden="true"></span>Focus areas</a><a class="nav-stop" href="/tools/"><span class="pip" aria-hidden="true"></span>Tools</a><a class="nav-stop" href="/how-to-read/" aria-current="page"><span class="pip" aria-hidden="true"></span>How to read</a><a class="nav-stop" href="/about/"><span class="pip" aria-hidden="true"></span>About</a></nav><div id="theme-control"></div></div></div></header>
+  <main id="main" class="wrap" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><span aria-current="page">For reporters</span></li></ol></nav>
+    <a class="backlink" href="/">&larr; Home</a>
+    <h1 class="page-title">Writing about this data.</h1>
+    <p class="page-lede">Everything here is free to use with attribution
+    (<abbr title="Creative Commons Attribution 4.0">CC BY 4.0</abbr>): "GTFS Scorecard
+    (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator." This page says
+    what the numbers can and cannot support, so a story built on them holds up.</p>
+
+    <section class="feed-details"><h2 class="section-title">Claims the data supports</h2>
+    <ul>
+      <li>"Agency X's published schedule data expired on [date], so trip planners like
+      Google Maps stop showing its service." Expiry is read directly from the feed.</li>
+      <li>"N of the M feeds tracked in [state] have expired." Counts over the covered
+      set, with the state named.</li>
+      <li>"Agency X's feed does not say which stops are wheelchair accessible." A statement
+      about published data, and usually a one-setting fix in the agency's software.</li>
+      <li>"Nationally, [pct]% of tracked feeds look ready for the federal
+      <abbr title="National Transit Database">NTD</abbr> GTFS requirement."</li>
+    </ul></section>
+
+    <section class="feed-details"><h2 class="section-title">Claims it does not support</h2>
+    <ul>
+      <li><strong>"The worst transit agency in America."</strong> The scorecard covers the
+      feeds it tracks, not every agency; absence means not covered, never failing, and a
+      position on a list here is not a national rank.</li>
+      <li><strong>"Agency X's buses are inaccessible."</strong> The accessibility number
+      measures whether the data is published, never whether a stop or vehicle is usable.</li>
+      <li><strong>"Agency X is out of compliance."</strong> Nothing here is an official
+      determination; the readiness signals map data quality onto requirements, and the
+      official checks belong to the agencies and their regulators.</li>
+      <li><strong>Grade comparisons across sizes without saying so.</strong> A 10-bus rural
+      system and a metro network face different capacity; the per-agency pages show peer
+      percentiles within size bands for that reason.</li>
+    </ul></section>
+
+    <section class="feed-details"><h2 class="section-title">Story-ready data</h2>
+    <p>Every number on this site is downloadable. For a local story, start with your
+    state: the <a href="/pulse/">national pulse</a> for the picture, your state's
+    program page (linked from any agency in it) for the portfolio, and the per-state
+    rows in <a href="/api/v1/by-state.json">the by-state API</a>. For a citable
+    snapshot, use a dated
+    <a href="https://github.com/ChelseaKR/gtfs-scorecard/releases">dataset release</a>
+    rather than the live site, which changes daily. Methodology, rubric weights, and
+    the validator version are all published:
+    <a href="/how-to-read/">how to read a scorecard</a> and
+    <a href="/data/">the open dataset</a>.</p></section>
+
+    <p class="fineprint">Questions about a specific number, or a correction? Open an
+    issue on <a href="https://github.com/ChelseaKR/gtfs-scorecard">the repository</a>;
+    the data and the code that produced it are both public.</p>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>An open-source data quality tool for small and rural transit agencies.</p>
+      <p><strong>Agencies:</strong>
+      <a href="/agencies/">Directory</a> ·
+      <a href="/app/">Interactive app</a> ·
+      <a href="/map/">Map</a> · <a href="/routes/">All routes</a></p>
+      <p><strong>The nation:</strong>
+      <a href="/pulse/">National pulse</a> ·
+      <a href="/problems/">Common problems</a> ·
+      <a href="/ntd/">NTD readiness</a> ·
+      <a href="/realtime/">Realtime</a> · <a href="/equity/">Equity</a> ·
+      <a href="/adoption/">What feeds publish</a></p>
+      <p><strong>Tools:</strong>
+      <a href="/compare/">Compare two agencies</a> ·
+      <a href="/check/">Check a feed before you publish</a> ·
+      <a href="/try.html">Score any feed now</a> ·
+      <a href="/query/">Query the dataset</a> ·
+      <a href="/subscribe.html">Feed-health alerts</a> ·
+      <a href="/submit.html">Add your agency</a> ·
+      <a href="/procurement/">For agencies: procurement</a></p>
+      <p><a href="/about/">About</a> ·
+      <a href="/how-to-read/">How to read a scorecard</a> ·
+      <a href="/how-to-read/#glossary">Glossary</a> ·
+      <a href="/press/">For reporters</a> ·
+      <a href="/data/">Open data</a> ·
+      <a href="/accessibility/">Accessibility</a> ·
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a> ·
+      Built by <a href="https://chelseakr.com">Chelsea Kelly-Reif</a></p>
+    </div>
+  </footer>
+</body>
+</html>

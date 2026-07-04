@@ -1,0 +1,130 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "fast_travel_between_consecutive_stops",
+        "sample_notices": [
+          {
+            "arrivalTime2": "06:59:06",
+            "csvRowNumber1": 4958,
+            "csvRowNumber2": 4959,
+            "departureTime1": "06:59:00",
+            "distanceKm": 0.2716561648364509,
+            "routeId": "13",
+            "speedKph": 162.99369890187054,
+            "stopId1": "35",
+            "stopId2": "1535",
+            "stopName1": "Harrodsburg @ Turfland Mall IB",
+            "stopName2": "Harrodsburg @ 1946 Inbound",
+            "stopSequence1": 420,
+            "stopSequence2": 426,
+            "tripCsvRowNumber": 627,
+            "tripId": "t28C-b83-sl13"
+          },
+          {
+            "arrivalTime2": "06:59:06",
+            "csvRowNumber1": 4958,
+            "csvRowNumber2": 4959,
+            "departureTime1": "06:59:00",
+            "distanceKm": 0.2716561648364509,
+            "routeId": "13",
+            "speedKph": 162.99369890187054,
+            "stopId1": "35",
+            "stopId2": "1535",
+            "stopName1": "Harrodsburg @ Turfland Mall IB",
+            "stopName2": "Harrodsburg @ 1946 Inbound",
+            "stopSequence1": 420,
+            "stopSequence2": 426,
+            "tripCsvRowNumber": 594,
+            "tripId": "t28C-b83-sl12"
+          },
+          {
+            "arrivalTime2": "06:59:17",
+            "csvRowNumber1": 4959,
+            "csvRowNumber2": 4960,
+            "departureTime1": "06:59:06",
+            "distanceKm": 0.5251880752027108,
+            "routeId": "13",
+            "speedKph": 171.87973370270535,
+            "stopId1": "1535",
+            "stopId2": "1536",
+            "stopName1": "Harrodsburg @ 1946 Inbound",
+            "stopName2": "Harrodsburg @ Clays Mill Inbound",
+            "stopSequence1": 426,
+            "stopSequence2": 437,
+            "tripCsvRowNumber": 627,
+            "tripId": "t28C-b83-sl13"
+          },
+          {
+            "arrivalTime2": "06:59:17",
+            "csvRowNumber1": 4959,
+            "csvRowNumber2": 4960,
+            "departureTime1": "06:59:06",
+            "distanceKm": 0.5251880752027108,
+            "routeId": "13",
+            "speedKph": 171.87973370270535,
+            "stopId1": "1535",
+            "stopId2": "1536",
+            "stopName1": "Harrodsburg @ 1946 Inbound",
+            "stopName2": "Harrodsburg @ Clays Mill Inbound",
+            "stopSequence1": 426,
+            "stopSequence2": 437,
+            "tripCsvRowNumber": 594,
+            "tripId": "t28C-b83-sl12"
+          },
+          {
+            "arrivalTime2": "06:59:26",
+            "csvRowNumber1": 4960,
+            "csvRowNumber2": 4961,
+            "departureTime1": "06:59:17",
+            "distanceKm": 0.3940643110331851,
+            "routeId": "13",
+            "speedKph": 157.62572441327404,
+            "stopId1": "1536",
+            "stopId2": "1537",
+            "stopName1": "Harrodsburg @ Clays Mill Inbound",
+            "stopName2": "Harrodsburg @ Saint Joseph Hosp Inbound",
+            "stopSequence1": 437,
+            "stopSequence2": 446,
+            "tripCsvRowNumber": 627,
+            "tripId": "t28C-b83-sl13"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 36
+      },
+      {
+        "code": "mixed_case_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 107,
+            "fieldName": "stop_name",
+            "fieldValue": "3rd @ 478",
+            "filename": "stops.txt"
+          },
+          {
+            "csvRowNumber": 209,
+            "fieldName": "stop_name",
+            "fieldValue": "3rd @ 424",
+            "filename": "stops.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      },
+      {
+        "code": "missing_feed_contact_email_and_url",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "0b651a48773a1eee9e3d577265469e109f1a96a181311628e0d423cd3134530b",
+  "validator_version": "8.0.1"
+}

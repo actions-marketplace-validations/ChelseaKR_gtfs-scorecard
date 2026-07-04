@@ -1,0 +1,170 @@
+"""Tests for the read-only MCP server (protocol handling and tool logic)."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from scorecard_pipeline.mcp_server import TOOLS, call_tool, handle_request
+
+_CATALOG = {
+    "agencies": [
+        {
+            "id": "unitrans",
+            "name": "Unitrans (ASUCD / City of Davis)",
+            "grade": "B",
+            "score": 80.8,
+            "state": "California",
+            "days_until_expiry": 83,
+            "ntd_ready": "ready",
+            "scorecard_url": "https://gtfsscorecard.org/agency/unitrans/",
+        },
+        {
+            "id": "barrie-transit",
+            "name": "Barrie Transit (Ontario)",
+            "grade": "C",
+            "score": 71.0,
+            "state": "Ontario",
+            "days_until_expiry": 40,
+            "ntd_ready": "not_ready",
+            "scorecard_url": "https://gtfsscorecard.org/agency/barrie-transit/",
+        },
+    ]
+}
+
+_ARTIFACT = {
+    "agency": {"id": "unitrans", "name": "Unitrans"},
+    "snapshot_date": "2026-07-01",
+    "overall": {"grade": "B", "score": 80.8},
+    "categories": {
+        "correctness": {
+            "status": "measured",
+            "score": 84.8,
+            "summary": "4 kinds of issue.",
+            "findings": [
+                {
+                    "severity": "WARNING",
+                    "count": 72,
+                    "what": "Stops far from shape.",
+                    "why": "Riders get pointed to the wrong corner.",
+                    "fix": "Re-snap stops in your export tool.",
+                    "effort": "An afternoon.",
+                    "code": "stop_too_far_from_shape",
+                }
+            ],
+        },
+        "realtime": {"status": "not_yet_measured", "summary": "Needs a key."},
+    },
+    "top_fixes": [{"fix": "Re-snap stops."}],
+    "ntd_readiness": {"status": "ready"},
+}
+
+
+def _fetch(url: str) -> Any:
+    if url.endswith("/catalog.json"):
+        return _CATALOG
+    if url.endswith("/data/artifacts/unitrans/latest.json"):
+        return _ARTIFACT
+    if url.endswith("/api/v1/stats.json"):
+        return {"agencies": 2}
+    if url.endswith("/ntd.json"):
+        return {"pct_ready": 50.0}
+    raise AssertionError(f"unexpected fetch: {url}")
+
+
+def test_initialize_and_tools_list_shape() -> None:
+    init = handle_request({"jsonrpc": "2.0", "id": 1, "method": "initialize"}, _fetch)
+    assert init is not None
+    assert init["result"]["serverInfo"]["name"] == "gtfs-scorecard"
+    assert "tools" in init["result"]["capabilities"]
+    listed = handle_request({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}, _fetch)
+    assert listed is not None
+    names = {t["name"] for t in listed["result"]["tools"]}
+    assert names == {t["name"] for t in TOOLS}
+    assert {"search_agencies", "get_scorecard", "national_stats"} <= names
+    # Every tool carries a JSON schema, the contract a client codes against.
+    assert all("inputSchema" in t for t in listed["result"]["tools"])
+
+
+def test_notifications_get_no_reply_and_unknown_methods_error() -> None:
+    assert handle_request({"jsonrpc": "2.0", "method": "notifications/initialized"}, _fetch) is None
+    bad = handle_request({"jsonrpc": "2.0", "id": 3, "method": "nope"}, _fetch)
+    assert bad is not None and bad["error"]["code"] == -32601
+
+
+def test_search_agencies_filters_by_state_and_grade() -> None:
+    ontario = call_tool("search_agencies", {"state": "Ontario"}, _fetch)
+    assert [a["id"] for a in ontario["agencies"]] == ["barrie-transit"]
+    graded = call_tool("search_agencies", {"grade": "b"}, _fetch)
+    assert [a["id"] for a in graded["agencies"]] == ["unitrans"]
+    named = call_tool("search_agencies", {"query": "davis"}, _fetch)
+    assert named["total"] == 1
+
+
+def test_get_scorecard_trims_and_frames_as_fixes() -> None:
+    card = call_tool("get_scorecard", {"agency_id": "unitrans"}, _fetch)
+    assert card["overall"]["grade"] == "B"
+    # Unmeasured categories keep their neutral summary, never a zero.
+    assert card["categories"]["realtime"]["status"] == "not_yet_measured"
+    f = card["findings"][0]
+    assert f["fix"].startswith("Re-snap")
+    assert f["fix_guide_url"].endswith("/fix/stop_too_far_from_shape/")
+    assert "not an official compliance determination" in card["note"]
+
+
+def test_tools_call_wraps_payload_and_errors_in_content() -> None:
+    ok = handle_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {"name": "national_stats", "arguments": {}},
+        },
+        _fetch,
+    )
+    assert ok is not None
+    assert ok["result"]["content"][0]["type"] == "text"
+    assert "pct_ready" in ok["result"]["content"][0]["text"]
+    missing = handle_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {"name": "get_scorecard", "arguments": {}},
+        },
+        _fetch,
+    )
+    assert missing is not None
+    assert missing["result"]["isError"] is True
+
+
+def test_search_limit_zero_returns_none_and_catalog_is_cached() -> None:
+    import scorecard_pipeline.mcp_server as mcp
+
+    calls = {"n": 0}
+
+    def counting_fetch(url: str) -> Any:
+        calls["n"] += 1
+        return _fetch(url)
+
+    mcp._catalog_cache.clear()
+    none = call_tool("search_agencies", {"limit": 0}, counting_fetch)
+    assert none["agencies"] == [] and none["total"] == 2
+    # A second search within the TTL reuses the cached catalog: one fetch total.
+    call_tool("search_agencies", {"query": "davis"}, counting_fetch)
+    assert calls["n"] == 1
+    mcp._catalog_cache.clear()
+
+
+def test_search_rows_carry_the_documented_readiness_fields() -> None:
+    # The MCP slim row must not lag the documented catalog contract (api.md):
+    # readiness and percentile fields ride along so an agent never has to
+    # refetch the raw catalog for them.
+    row = call_tool("search_agencies", {"query": "davis"}, _fetch)["agencies"][0]
+    for field in (
+        "expiry_status",
+        "national_percentile",
+        "peer_percentile",
+        "ntd_ready",
+        "google_gate",
+    ):
+        assert field in row, field

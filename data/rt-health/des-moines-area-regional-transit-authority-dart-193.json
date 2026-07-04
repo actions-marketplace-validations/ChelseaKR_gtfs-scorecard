@@ -1,0 +1,20 @@
+{
+  "agency_id": "des-moines-area-regional-transit-authority-dart-193",
+  "observations": [
+    {
+      "coverage_pct": null,
+      "kinds_reachable": 3,
+      "kinds_total": 3,
+      "ts": 1782796246,
+      "worst_lag_seconds": 74318
+    }
+  ],
+  "summary": {
+    "first_ts": 1782796246,
+    "last_ts": 1782796246,
+    "median_coverage_pct": null,
+    "median_lag_seconds": 74318,
+    "observations": 1,
+    "uptime_pct": 100.0
+  }
+}

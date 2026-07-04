@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: GTFS Scorecard
+abstract: "A plain-language data-quality scorecard for small and rural transit agencies' GTFS Schedule and GTFS-Realtime feeds."
+type: software
+authors:
+  - given-names: Chelsea
+    family-names: Kelly-Reif
+    alias: ChelseaKR
+repository-code: "https://github.com/ChelseaKR/gtfs-scorecard"
+url: "https://gtfsscorecard.org"
+license: Apache-2.0
+version: 0.1.0
+date-released: "2026-06-30"
+keywords:
+  - gtfs
+  - transit
+  - data-quality
+  - open-data
+  - accessibility
+  - civic-tech

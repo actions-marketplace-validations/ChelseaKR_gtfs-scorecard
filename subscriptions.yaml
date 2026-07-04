@@ -1,0 +1,24 @@
+# Opt-in feed-health alerts. Each subscriber gets a digest of only the agencies
+# they follow and the alert kinds they chose, and only when one needs attention.
+# An all-clear sends nothing.
+#
+# Consent is a hard gate: a subscriber is emailed only when verified is true. New
+# addresses start unverified and stay silent until the address is confirmed
+# (double opt-in). See docs/decisions/0004-opt-in-alerts.md.
+#
+# The addresses here are examples; they are unverified, so nothing is sent. The
+# digest is built and sent by the daily run (scorecard notify).
+#
+# Fields per subscriber:
+#   email      where the digest goes (required)
+#   agencies   list of agency ids to follow
+#   all: true  follow every tracked agency (e.g. a statewide program liaison)
+#   kinds      which alerts to receive: [expiry], [regression], or both. Omit for
+#              every kind. "expiry" warns before a feed expires (the expiry opt-in).
+#   verified   true only after the address is confirmed; unverified is never sent.
+subscribers:
+  - email: liaison@example.org
+    all: true
+    kinds:
+      - expiry
+    verified: false

@@ -1,0 +1,244 @@
+{
+  "report": {
+    "notices": [
+      {
+        "code": "stop_without_stop_time",
+        "sample_notices": [
+          {
+            "csvRowNumber": 4,
+            "stopId": "9430",
+            "stopName": "3rd Ave/Downey St NB"
+          },
+          {
+            "csvRowNumber": 5,
+            "stopId": "9375",
+            "stopName": "3rd Ave/Downey St SB"
+          },
+          {
+            "csvRowNumber": 6,
+            "stopId": "9429",
+            "stopName": "3rd Ave/Fairfax St NB"
+          },
+          {
+            "csvRowNumber": 7,
+            "stopId": "9376",
+            "stopName": "3rd Ave/Fairfax St SB"
+          },
+          {
+            "csvRowNumber": 9,
+            "stopId": "9381",
+            "stopName": "6th St/Scott St SB"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 53
+      },
+      {
+        "code": "stop_too_far_from_shape_using_user_distance",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 126.99190038102226,
+            "match": [
+              37.10721953031889,
+              -80.5853967763465
+            ],
+            "shapeId": "62261",
+            "stopId": "9363",
+            "stopName": "Riverbend Apts",
+            "stopTimeCsvRowNumber": 5730,
+            "tripCsvRowNumber": 326,
+            "tripId": "893534"
+          },
+          {
+            "geoDistanceToShape": 147.85401934407386,
+            "match": [
+              37.10826506491665,
+              -80.5867898773509
+            ],
+            "shapeId": "62261",
+            "stopId": "9364",
+            "stopName": "2nd St/Highland Ave",
+            "stopTimeCsvRowNumber": 5731,
+            "tripCsvRowNumber": 326,
+            "tripId": "893534"
+          },
+          {
+            "geoDistanceToShape": 141.09172800477026,
+            "match": [
+              37.109157887776064,
+              -80.5885757246233
+            ],
+            "shapeId": "62261",
+            "stopId": "9365",
+            "stopName": "Main St/Cowan St EB",
+            "stopTimeCsvRowNumber": 5732,
+            "tripCsvRowNumber": 326,
+            "tripId": "893534"
+          },
+          {
+            "geoDistanceToShape": 168.3020940262119,
+            "match": [
+              37.11059891085552,
+              -80.59043376656498
+            ],
+            "shapeId": "62261",
+            "stopId": "9366",
+            "stopName": "Deli Mart EB",
+            "stopTimeCsvRowNumber": 5733,
+            "tripCsvRowNumber": 326,
+            "tripId": "893534"
+          },
+          {
+            "geoDistanceToShape": 181.38958771891583,
+            "match": [
+              37.113896474862294,
+              -80.59037818826539
+            ],
+            "shapeId": "62261",
+            "stopId": "9367",
+            "stopName": "Main St/Custis St EB",
+            "stopTimeCsvRowNumber": 5734,
+            "tripCsvRowNumber": 326,
+            "tripId": "893534"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 12
+      },
+      {
+        "code": "stops_match_shape_out_of_order",
+        "sample_notices": [
+          {
+            "match1": [
+              37.140990699935934,
+              -80.55148934202299
+            ],
+            "match2": [
+              37.133793538259425,
+              -80.54111563343379
+            ],
+            "shapeId": "70379",
+            "stopId1": "9325",
+            "stopId2": "9338",
+            "stopName1": "CHBS",
+            "stopName2": "Burlington Lot",
+            "stopTimeCsvRowNumber1": 6203,
+            "stopTimeCsvRowNumber2": 6202,
+            "tripCsvRowNumber": 366,
+            "tripId": "1049530"
+          },
+          {
+            "match1": [
+              37.13379410512825,
+              -80.54111642504307
+            ],
+            "match2": [
+              37.139525,
+              -80.548977
+            ],
+            "shapeId": "70383",
+            "stopId1": "9338",
+            "stopId2": "196230",
+            "stopName1": "Burlington Lot",
+            "stopName2": "Artis",
+            "stopTimeCsvRowNumber1": 6340,
+            "stopTimeCsvRowNumber2": 6339,
+            "tripCsvRowNumber": 379,
+            "tripId": "1049911"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      },
+      {
+        "code": "expired_calendar",
+        "sample_notices": [
+          {
+            "csvRowNumber": 2,
+            "serviceId": "3884.4566"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "mixed_case_recommended_field",
+        "sample_notices": [
+          {
+            "csvRowNumber": 10,
+            "fieldName": "route_short_name",
+            "fieldValue": "40 LN",
+            "filename": "routes.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "stop_too_far_from_shape",
+        "sample_notices": [
+          {
+            "geoDistanceToShape": 149.46049133985275,
+            "match": [
+              37.13504743811649,
+              -80.54031409907377
+            ],
+            "shapeId": "70377",
+            "stopId": "9338",
+            "stopName": "Burlington Lot",
+            "stopTimeCsvRowNumber": 5950,
+            "tripCsvRowNumber": 343,
+            "tripId": "1049224"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "service_window_outside_feed_period",
+        "sample_notices": [
+          {
+            "daysAfterFeedEnd": 516,
+            "daysBeforeFeedStart": 545,
+            "serviceId": "70364.199502",
+            "serviceWindowEndDate": "2027-12-31",
+            "serviceWindowStartDate": "2025-01-03"
+          },
+          {
+            "daysAfterFeedEnd": 510,
+            "daysBeforeFeedStart": 544,
+            "serviceId": "70364.199505",
+            "serviceWindowEndDate": "2027-12-25",
+            "serviceWindowStartDate": "2025-01-04"
+          },
+          {
+            "daysAfterFeedEnd": 515,
+            "daysBeforeFeedStart": 547,
+            "serviceId": "70377.199543",
+            "serviceWindowEndDate": "2027-12-30",
+            "serviceWindowStartDate": "2025-01-01"
+          },
+          {
+            "daysAfterFeedEnd": 516,
+            "daysBeforeFeedStart": 547,
+            "serviceId": "70225.199258",
+            "serviceWindowEndDate": "2027-12-31",
+            "serviceWindowStartDate": "2025-01-01"
+          },
+          {
+            "daysAfterFeedEnd": 516,
+            "daysBeforeFeedStart": 545,
+            "serviceId": "70378.199571",
+            "serviceWindowEndDate": "2027-12-31",
+            "serviceWindowStartDate": "2025-01-03"
+          }
+        ],
+        "severity": "INFO",
+        "total": 7
+      }
+    ],
+    "validator_version": "8.0.1"
+  },
+  "sha256": "6dbe09f40f2691659d1a16daa10c89cf9091d03d4cc0de83c3c32e5899220d59",
+  "validator_version": "8.0.1"
+}

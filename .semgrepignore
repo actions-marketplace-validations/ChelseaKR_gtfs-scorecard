@@ -1,0 +1,14 @@
+# Paths excluded from the Semgrep SAST gate (security.yml). These are data,
+# not code: the "API keys" Semgrep's secrets rules flag here are access keys
+# that transit agencies publish inside their public GTFS/GTFS-RT feed URLs
+# (sourced from the Mobility Database registry) — see .gitleaks.toml for the
+# matching secret-scan allowlist. Hand-written source stays in scope.
+agencies.yaml
+data/
+web/
+pipeline/tests/fixtures/
+
+# Standard housekeeping (mirrors Semgrep's built-in default ignore list,
+# which a repo-level .semgrepignore replaces rather than extends).
+.git/
+:include .gitignore

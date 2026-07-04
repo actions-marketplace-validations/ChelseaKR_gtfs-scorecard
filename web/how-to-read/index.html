@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to read your scorecard — GTFS Scorecard</title>
+  <meta name="description" content="A plain-language guide to the GTFS Scorecard: what it checks, what the A-F grades mean, and what to do first.">
+  <link rel="canonical" href="https://gtfsscorecard.org/how-to-read/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="How to read your scorecard — GTFS Scorecard">
+  <meta property="og:description" content="A plain-language guide to the GTFS Scorecard: what it checks, what the A-F grades mean, and what to do first.">
+  <meta property="og:url" content="https://gtfsscorecard.org/how-to-read/">
+  <meta property="og:image" content="https://gtfsscorecard.org/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f5efe2'/%3E%3C/svg%3E">
+  <script>
+    /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
+    try {
+      var t = localStorage.getItem("scorecard-theme");
+      if (t && ["light", "contrast", "dark"].indexOf(t) >= 0)
+        document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+  <script src="/src/theme.js" defer></script>
+  <script src="/src/nav.js" defer></script>
+  <script src="/analytics.js" defer></script>
+  <noscript><style>
+    /* Without JS the menu button cannot expand the collapsed nav, so show the
+       stacked nav permanently and hide the button (content stays operable
+       without scripting). nav.js never runs here, so nothing double-toggles. */
+    @media (max-width: 1400px) {
+      .nav-menu-btn { display: none !important; }
+      .nav-cluster { display: flex !important; position: static; }
+    }
+  </style></noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header"><div class="wrap"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">GTFS&nbsp;Scorecard</span></a><button class="nav-menu-btn" type="button" aria-expanded="false" aria-controls="nav-cluster"><span aria-hidden="true">☰</span> Menu</button><div class="nav-cluster" id="nav-cluster"><nav class="nav-stops" aria-label="Primary"><a class="nav-stop" href="/agencies/"><span class="pip" aria-hidden="true"></span>Agencies</a><a class="nav-stop" href="/pulse/"><span class="pip" aria-hidden="true"></span>National pulse</a><a class="nav-stop" href="/focus/"><span class="pip" aria-hidden="true"></span>Focus areas</a><a class="nav-stop" href="/tools/"><span class="pip" aria-hidden="true"></span>Tools</a><a class="nav-stop" href="/how-to-read/" aria-current="page"><span class="pip" aria-hidden="true"></span>How to read</a><a class="nav-stop" href="/about/"><span class="pip" aria-hidden="true"></span>About</a></nav><div id="theme-control"></div></div></div></header>
+  <main id="main" class="wrap" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/agencies/">All agencies</a></li><li><span aria-current="page">How to read your scorecard</span></li></ol></nav>
+    <a class="backlink" href="/agencies/">&larr; All agencies</a>
+    <h1 class="page-title">How to read your scorecard</h1>
+    <p class="page-lede">No jargon. Here is what the page is telling you and what to do about it.</p>
+
+    <div class="route-rule" role="presentation"><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span></div>
+    <section><h2 class="section-title">What this checks</h2>
+    <p>Transit apps and trip planners read a file your agency publishes, called a
+    <dfn><abbr title="General Transit Feed Specification">GTFS</abbr></dfn> feed.
+    It lists your stops, routes, and schedule. This tool downloads that feed every day, runs the
+    same validator the State and the apps use, and turns the result into a grade and a short list
+    of fixes. It does not look at your buses or your service, only the data file.
+    New to the terms? Jump to the <a href="#glossary">glossary</a>.</p>
+    <p>The grade blends four things: <strong>Correctness</strong> (does the data follow the rules),
+    <strong>Freshness</strong> (is the feed about to expire), <strong>Rider experience</strong>
+    (are accessibility, fares, and destinations filled in), and <strong>Realtime quality</strong>
+    (if you publish live arrivals, sometimes called
+    <abbr title="GTFS Realtime">GTFS-RT</abbr>). If you do not publish realtime, that is fine and
+    does not count against you.</p></section>
+
+    <div class="route-rule" role="presentation"><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span></div>
+    <section><h2 class="section-title">What the grades mean</h2>
+    <ul class="legend"><li class="legend-row"><span class="grade-chip grade-a">A</span> <span>Solid. The feed is current and well filled in.</span></li><li class="legend-row"><span class="grade-chip grade-b">B</span> <span>Good, with a few optional fields to add.</span></li><li class="legend-row"><span class="grade-chip grade-c">C</span> <span>Working, but with real gaps worth fixing.</span></li><li class="legend-row"><span class="grade-chip grade-d">D</span> <span>Several gaps; start with the top fix.</span></li><li class="legend-row"><span class="grade-chip grade-f">F</span> <span>Usually the feed has expired or is missing required data, so trip planners may have dropped it. This is the urgent one.</span></li></ul>
+    <p class="page-lede">Most small and rural feeds we check land between F and B. A grade is a
+    starting point for a conversation, not a verdict on your agency.</p></section>
+
+    <div class="route-rule" role="presentation"><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span></div>
+    <section><h2 class="section-title">Grade margins and weight sensitivity</h2>
+    <p>Letter grades have edges, and a score can sit right next to one: 89.9 is a B and 90.1 is
+    an A, yet they are nearly the same feed. So every scorecard artifact states its distance to
+    those edges: <code>margin_to_next_band</code> is how many points to the next letter up
+    (&ldquo;a B, 0.4 points from an A&rdquo; &mdash; null for an A, which has no higher band), and
+    <code>margin_to_lower_band</code> is how far the score sits above the floor of its current
+    band. A small upward margin is encouragement, not a warning: it means the next letter is
+    within reach, often with a single fix.</p>
+    <p>The category weights behind the score are documented judgment calls, so we also measure
+    their consequences the same way: rescoring all 1449 tracked agencies under every &plusmn;20% single-weight change, at most 8.1% of letter grades move, studied 2026-07-02. Full numbers, per perturbation: <a href="/data/artifacts/sensitivity.json">sensitivity.json</a>.</p></section>
+
+    <div class="route-rule" role="presentation"><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span></div>
+    <section><h2 class="section-title">What to do</h2>
+    <p>Start at the top of "Top things to fix." We put the most rider-affecting fix first. If your
+    feed has expired, that will be fix number one, because an expired feed is invisible to riders
+    even while your buses run. Each fix says roughly how long it takes. You do not have to do them
+    all; doing the first one and re-publishing is a real win.</p>
+    <p>If you did not make the feed yourself, the agency or vendor that exports your GTFS is who
+    makes these changes. Hand them the top fix.</p></section>
+
+    <div class="route-rule" role="presentation"><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span></div>
+    <section><h2 class="section-title">What this is not</h2>
+    <p>This is a data-quality lens to help you improve the feed. It is not an official compliance
+    determination from any transit program, and a low grade does not mean your service is bad. See the
+    <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">listing
+    and removal policy</a> for how a listing can be corrected or removed.</p></section>
+
+    <div class="route-rule" role="presentation"><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span></div>
+    <section aria-labelledby="methodology-h"><h2 class="section-title" id="methodology-h">Methodology and versions</h2>
+    <p>Every grade is computed by scorecard rubric <strong>v1.1</strong> on top of the
+    MobilityData <abbr title="GTFS Schedule Validator">gtfs-validator</abbr> <strong>8.0.1</strong>,
+    anchored to the California Transit Data Guidelines v4.0. The same validator and rubric version are
+    stamped on each agency's scorecard, so any grade is traceable to what produced it. The full method,
+    with citations, is in the <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/rubric.md">scoring rubric</a>.</p>
+    <p>When the rubric changes we log it here with the date it took effect, so a score change is never a
+    silent rule change:</p>
+    <dl class="standards-list"><dt>Rubric v1.1 <span class="ntd-status ntd-unknown">Effective 2026-06-16</span></dt><dd>The most rider-affecting fix is ranked first, and every grade now carries the validator and rubric version that produced it, so a trend can tell a feed change apart from a methodology change.</dd><dt>Rubric v1.0 <span class="ntd-status ntd-unknown">Effective 2026-06-11</span></dt><dd>First published rubric: four weighted categories (Correctness 35%, Freshness 20%, Rider experience 25%, Realtime 20%), A-F grade bands, scored on the MobilityData gtfs-validator and anchored to the California Transit Data Guidelines v4.0.</dd></dl></section>
+
+    <div class="route-rule" role="presentation"><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span></div>
+    <section aria-labelledby="glossary-h"><h2 class="section-title" id="glossary-h">Glossary</h2>
+    <p class="page-lede">Plain-language definitions for the abbreviations and jargon used across
+    the scorecard. Each term is also defined inline the first time it appears on a page.</p>
+    <dl class="standards-list">
+      <dt><dfn id="g-gtfs"><abbr title="General Transit Feed Specification">GTFS</abbr></dfn></dt>
+      <dd>The standard data file an agency publishes so apps can show its stops, routes, and schedule.</dd>
+      <dt><dfn id="g-gtfs-rt"><abbr title="GTFS Realtime">GTFS-RT</abbr> (GTFS-Realtime)</dfn></dt>
+      <dd>The live companion to GTFS: real-time trip updates, vehicle positions, and service alerts.</dd>
+      <dt><dfn id="g-rt"><abbr title="realtime">RT</abbr></dfn></dt>
+      <dd>Short for realtime: live arrival and position data, as opposed to the static schedule.</dd>
+      <dt><dfn id="g-ntd"><abbr title="National Transit Database">NTD</abbr></dfn></dt>
+      <dd>The Federal Transit Administration's national reporting system for transit agencies.</dd>
+      <dt><dfn id="g-fta"><abbr title="Federal Transit Administration">FTA</abbr></dfn></dt>
+      <dd>The federal agency that funds transit and runs the National Transit Database.</dd>
+      <dt><dfn id="g-d10"><abbr title="FTA NTD certification form D-10">D-10</abbr></dfn></dt>
+      <dd>The annual NTD certification form on which an agency certifies its GTFS feed.</dd>
+      <dt><dfn id="g-acs"><abbr title="American Community Survey">ACS</abbr></dfn></dt>
+      <dd>The Census Bureau survey used for the equity overlay's poverty and access indicators.</dd>
+      <dt><dfn id="g-mdb"><abbr title="Mobility Database">MDB</abbr></dfn></dt>
+      <dd>The Mobility Database, the open catalog of transit feeds the scorecard discovers feeds from.</dd>
+      <dt><dfn id="g-gbfs"><abbr title="General Bikeshare Feed Specification">GBFS</abbr></dfn></dt>
+      <dd>A sibling open spec for shared bikes and scooters, related to but separate from GTFS.</dd>
+      <dt><dfn id="g-yaml">YAML</dfn></dt>
+      <dd>The plain-text config format used to add an agency in the repository (no YAML needed via the form).</dd>
+      <dt><dfn id="g-ci"><abbr title="continuous integration">CI</abbr></dfn></dt>
+      <dd>Continuous integration: automated checks that run on every change, including the feed grader.</dd>
+      <dt><dfn id="g-sha"><abbr title="Secure Hash Algorithm, 256-bit">SHA-256</abbr></dfn></dt>
+      <dd>A fingerprint of the exact feed bytes scored, so a grade is reproducible and citeable.</dd>
+    </dl></section>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>An open-source data quality tool for small and rural transit agencies.</p>
+      <p><strong>Agencies:</strong>
+      <a href="/agencies/">Directory</a> ·
+      <a href="/app/">Interactive app</a> ·
+      <a href="/map/">Map</a> · <a href="/routes/">All routes</a></p>
+      <p><strong>The nation:</strong>
+      <a href="/pulse/">National pulse</a> ·
+      <a href="/problems/">Common problems</a> ·
+      <a href="/ntd/">NTD readiness</a> ·
+      <a href="/realtime/">Realtime</a> · <a href="/equity/">Equity</a> ·
+      <a href="/adoption/">What feeds publish</a></p>
+      <p><strong>Tools:</strong>
+      <a href="/compare/">Compare two agencies</a> ·
+      <a href="/check/">Check a feed before you publish</a> ·
+      <a href="/try.html">Score any feed now</a> ·
+      <a href="/query/">Query the dataset</a> ·
+      <a href="/subscribe.html">Feed-health alerts</a> ·
+      <a href="/submit.html">Add your agency</a> ·
+      <a href="/procurement/">For agencies: procurement</a></p>
+      <p><a href="/about/">About</a> ·
+      <a href="/how-to-read/">How to read a scorecard</a> ·
+      <a href="/how-to-read/#glossary">Glossary</a> ·
+      <a href="/press/">For reporters</a> ·
+      <a href="/data/">Open data</a> ·
+      <a href="/accessibility/">Accessibility</a> ·
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a> ·
+      Built by <a href="https://chelseakr.com">Chelsea Kelly-Reif</a></p>
+    </div>
+  </footer>
+</body>
+</html>

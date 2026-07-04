@@ -1,0 +1,397 @@
+{
+  "rollups": [
+    {
+      "agency_count": 1449,
+      "average_score": 61.0,
+      "expired": 617,
+      "id": "all",
+      "name": "All tracked agencies",
+      "needs_attention": 919
+    },
+    {
+      "agency_count": 135,
+      "average_score": 62.2,
+      "expired": 65,
+      "id": "california",
+      "name": "California agencies",
+      "needs_attention": 87
+    },
+    {
+      "agency_count": 2,
+      "average_score": 81.7,
+      "expired": 0,
+      "id": "yolo-county",
+      "name": "Yolo County",
+      "needs_attention": 0
+    },
+    {
+      "agency_count": 10,
+      "average_score": 56.8,
+      "expired": 6,
+      "id": "alabama",
+      "name": "Alabama agencies",
+      "needs_attention": 6
+    },
+    {
+      "agency_count": 9,
+      "average_score": 72.4,
+      "expired": 2,
+      "id": "alaska",
+      "name": "Alaska agencies",
+      "needs_attention": 4
+    },
+    {
+      "agency_count": 30,
+      "average_score": 61.2,
+      "expired": 20,
+      "id": "arizona",
+      "name": "Arizona agencies",
+      "needs_attention": 20
+    },
+    {
+      "agency_count": 3,
+      "average_score": 40.2,
+      "expired": 3,
+      "id": "arkansas",
+      "name": "Arkansas agencies",
+      "needs_attention": 3
+    },
+    {
+      "agency_count": 126,
+      "average_score": 68.0,
+      "expired": 34,
+      "id": "colorado",
+      "name": "Colorado agencies",
+      "needs_attention": 62
+    },
+    {
+      "agency_count": 15,
+      "average_score": 59.8,
+      "expired": 7,
+      "id": "connecticut",
+      "name": "Connecticut agencies",
+      "needs_attention": 8
+    },
+    {
+      "agency_count": 6,
+      "average_score": 42.5,
+      "expired": 6,
+      "id": "district-of-columbia",
+      "name": "District of Columbia agencies",
+      "needs_attention": 6
+    },
+    {
+      "agency_count": 52,
+      "average_score": 53.7,
+      "expired": 30,
+      "id": "florida",
+      "name": "Florida agencies",
+      "needs_attention": 35
+    },
+    {
+      "agency_count": 18,
+      "average_score": 43.9,
+      "expired": 13,
+      "id": "georgia",
+      "name": "Georgia agencies",
+      "needs_attention": 14
+    },
+    {
+      "agency_count": 3,
+      "average_score": 34.4,
+      "expired": 2,
+      "id": "hawaii",
+      "name": "Hawaii agencies",
+      "needs_attention": 3
+    },
+    {
+      "agency_count": 4,
+      "average_score": 64.0,
+      "expired": 2,
+      "id": "idaho",
+      "name": "Idaho agencies",
+      "needs_attention": 2
+    },
+    {
+      "agency_count": 17,
+      "average_score": 54.4,
+      "expired": 6,
+      "id": "illinois",
+      "name": "Illinois agencies",
+      "needs_attention": 10
+    },
+    {
+      "agency_count": 13,
+      "average_score": 63.4,
+      "expired": 6,
+      "id": "indiana",
+      "name": "Indiana agencies",
+      "needs_attention": 7
+    },
+    {
+      "agency_count": 34,
+      "average_score": 76.1,
+      "expired": 3,
+      "id": "iowa",
+      "name": "Iowa agencies",
+      "needs_attention": 25
+    },
+    {
+      "agency_count": 6,
+      "average_score": 45.0,
+      "expired": 4,
+      "id": "kansas",
+      "name": "Kansas agencies",
+      "needs_attention": 5
+    },
+    {
+      "agency_count": 8,
+      "average_score": 52.9,
+      "expired": 3,
+      "id": "kentucky",
+      "name": "Kentucky agencies",
+      "needs_attention": 7
+    },
+    {
+      "agency_count": 3,
+      "average_score": 45.6,
+      "expired": 1,
+      "id": "louisiana",
+      "name": "Louisiana agencies",
+      "needs_attention": 1
+    },
+    {
+      "agency_count": 7,
+      "average_score": 48.3,
+      "expired": 4,
+      "id": "maine",
+      "name": "Maine agencies",
+      "needs_attention": 5
+    },
+    {
+      "agency_count": 36,
+      "average_score": 52.3,
+      "expired": 21,
+      "id": "maryland",
+      "name": "Maryland agencies",
+      "needs_attention": 26
+    },
+    {
+      "agency_count": 67,
+      "average_score": 63.5,
+      "expired": 26,
+      "id": "massachusetts",
+      "name": "Massachusetts agencies",
+      "needs_attention": 50
+    },
+    {
+      "agency_count": 22,
+      "average_score": 57.2,
+      "expired": 12,
+      "id": "michigan",
+      "name": "Michigan agencies",
+      "needs_attention": 18
+    },
+    {
+      "agency_count": 9,
+      "average_score": 64.9,
+      "expired": 2,
+      "id": "minnesota",
+      "name": "Minnesota agencies",
+      "needs_attention": 8
+    },
+    {
+      "agency_count": 4,
+      "average_score": 65.0,
+      "expired": 2,
+      "id": "mississippi",
+      "name": "Mississippi agencies",
+      "needs_attention": 3
+    },
+    {
+      "agency_count": 6,
+      "average_score": 46.0,
+      "expired": 3,
+      "id": "missouri",
+      "name": "Missouri agencies",
+      "needs_attention": 5
+    },
+    {
+      "agency_count": 9,
+      "average_score": 57.8,
+      "expired": 6,
+      "id": "montana",
+      "name": "Montana agencies",
+      "needs_attention": 6
+    },
+    {
+      "agency_count": 5,
+      "average_score": 58.1,
+      "expired": 3,
+      "id": "nebraska",
+      "name": "Nebraska agencies",
+      "needs_attention": 4
+    },
+    {
+      "agency_count": 9,
+      "average_score": 66.1,
+      "expired": 3,
+      "id": "nevada",
+      "name": "Nevada agencies",
+      "needs_attention": 4
+    },
+    {
+      "agency_count": 3,
+      "average_score": 53.8,
+      "expired": 2,
+      "id": "new-hampshire",
+      "name": "New Hampshire agencies",
+      "needs_attention": 3
+    },
+    {
+      "agency_count": 7,
+      "average_score": 66.1,
+      "expired": 2,
+      "id": "new-jersey",
+      "name": "New Jersey agencies",
+      "needs_attention": 3
+    },
+    {
+      "agency_count": 20,
+      "average_score": 59.6,
+      "expired": 16,
+      "id": "new-mexico",
+      "name": "New Mexico agencies",
+      "needs_attention": 17
+    },
+    {
+      "agency_count": 87,
+      "average_score": 54.8,
+      "expired": 33,
+      "id": "new-york",
+      "name": "New York agencies",
+      "needs_attention": 49
+    },
+    {
+      "agency_count": 36,
+      "average_score": 55.6,
+      "expired": 24,
+      "id": "north-carolina",
+      "name": "North Carolina agencies",
+      "needs_attention": 29
+    },
+    {
+      "agency_count": 3,
+      "average_score": 52.2,
+      "expired": 2,
+      "id": "north-dakota",
+      "name": "North Dakota agencies",
+      "needs_attention": 2
+    },
+    {
+      "agency_count": 21,
+      "average_score": 56.6,
+      "expired": 9,
+      "id": "ohio",
+      "name": "Ohio agencies",
+      "needs_attention": 15
+    },
+    {
+      "agency_count": 4,
+      "average_score": 55.6,
+      "expired": 2,
+      "id": "oklahoma",
+      "name": "Oklahoma agencies",
+      "needs_attention": 2
+    },
+    {
+      "agency_count": 92,
+      "average_score": 64.0,
+      "expired": 35,
+      "id": "oregon",
+      "name": "Oregon agencies",
+      "needs_attention": 54
+    },
+    {
+      "agency_count": 16,
+      "average_score": 53.4,
+      "expired": 9,
+      "id": "pennsylvania",
+      "name": "Pennsylvania agencies",
+      "needs_attention": 11
+    },
+    {
+      "agency_count": 5,
+      "average_score": 71.4,
+      "expired": 1,
+      "id": "rhode-island",
+      "name": "Rhode Island agencies",
+      "needs_attention": 1
+    },
+    {
+      "agency_count": 7,
+      "average_score": 53.5,
+      "expired": 4,
+      "id": "south-carolina",
+      "name": "South Carolina agencies",
+      "needs_attention": 7
+    },
+    {
+      "agency_count": 11,
+      "average_score": 53.4,
+      "expired": 6,
+      "id": "tennessee",
+      "name": "Tennessee agencies",
+      "needs_attention": 9
+    },
+    {
+      "agency_count": 17,
+      "average_score": 57.1,
+      "expired": 4,
+      "id": "texas",
+      "name": "Texas agencies",
+      "needs_attention": 11
+    },
+    {
+      "agency_count": 5,
+      "average_score": 45.6,
+      "expired": 2,
+      "id": "utah",
+      "name": "Utah agencies",
+      "needs_attention": 4
+    },
+    {
+      "agency_count": 28,
+      "average_score": 64.2,
+      "expired": 8,
+      "id": "vermont",
+      "name": "Vermont agencies",
+      "needs_attention": 14
+    },
+    {
+      "agency_count": 75,
+      "average_score": 62.9,
+      "expired": 14,
+      "id": "virginia",
+      "name": "Virginia agencies",
+      "needs_attention": 47
+    },
+    {
+      "agency_count": 95,
+      "average_score": 70.7,
+      "expired": 26,
+      "id": "washington",
+      "name": "Washington agencies",
+      "needs_attention": 43
+    },
+    {
+      "agency_count": 22,
+      "average_score": 63.1,
+      "expired": 8,
+      "id": "wisconsin",
+      "name": "Wisconsin agencies",
+      "needs_attention": 10
+    }
+  ],
+  "schema_version": "1.4"
+}

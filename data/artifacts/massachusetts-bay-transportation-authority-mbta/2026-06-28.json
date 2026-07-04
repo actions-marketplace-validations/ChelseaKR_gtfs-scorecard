@@ -1,0 +1,516 @@
+{
+  "agency": {
+    "id": "massachusetts-bay-transportation-authority-mbta",
+    "name": "Massachusetts Bay Transportation Authority (MBTA)"
+  },
+  "autofix": {
+    "available": true,
+    "download_path": "data/artifacts/massachusetts-bay-transportation-authority-mbta/corrected.zip",
+    "fixes": [
+      {
+        "code": "autofix_trim_whitespace",
+        "count": 3,
+        "examples": [
+          "'stop_name': 'Public Garden ' -> 'Public Garden'",
+          "'stop_desc': 'Public Garden ' -> 'Public Garden'",
+          "'stop_desc': 'Quincy Adams - Ground level of Elevator 806 ' -> 'Quincy Adams - Ground level of Elevator 806'"
+        ],
+        "label": "Trimmed surrounding whitespace"
+      }
+    ],
+    "total": 3
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "accessibility": {
+          "measures": "presence_not_usability",
+          "score": 97.1,
+          "stops_marked_accessible_pct": 91.9,
+          "stops_marked_not_accessible_pct": 3.4,
+          "stops_stated_pct": 95.3,
+          "trips_stated_pct": 100.0
+        },
+        "accessibility_measures": "presence_not_usability",
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 15.0,
+          "stop_names": 15.0,
+          "wheelchair_stops": 23.8,
+          "wheelchair_trips": 15.0
+        },
+        "fare_free": false,
+        "fares": {
+          "applied": true,
+          "has_leg_rules": true,
+          "has_products": true,
+          "has_transfer_rules": true,
+          "model": "v2",
+          "product_count": 119
+        },
+        "flex": {
+          "booking_reachable": false,
+          "booking_rule_count": 0,
+          "has_booking_rules": false,
+          "has_flex": false
+        },
+        "has_fares": true,
+        "headsign_pct": 100.0,
+        "mixed_case_stop_name_pct": 100.0,
+        "pathways": {
+          "has_entrances": true,
+          "has_levels": true,
+          "has_pathways": true,
+          "has_stations": true,
+          "has_step_free": true,
+          "pathway_count": 9317
+        },
+        "stops": 10308,
+        "trips": 121935,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 95.3,
+        "wheelchair_marked_accessible_pct": 91.9,
+        "wheelchair_marked_not_accessible_pct": 3.4
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 486,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "owner": "Likely your team",
+          "points": 1.2,
+          "severity": "WARNING",
+          "what": "486 of 10308 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_station_pathways",
+          "count": 9317,
+          "effort": "None.",
+          "fix": "No action needed.",
+          "owner": "",
+          "points": 0.0,
+          "severity": "INFO",
+          "what": "This feed describes station pathways, including step-free (elevator) routes.",
+          "why": "Riders can be routed through the station, and wheelchair users can see whether a step-free route exists."
+        }
+      ],
+      "name": "completeness",
+      "score": 98.8,
+      "status": "measured",
+      "summary": "95% of stops state wheelchair accessibility (92% marked accessible, 3% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 14,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 2352,
+          "WARNING": 838
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "same_name_and_description_for_stop",
+          "count": 331,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'same_name_and_description_for_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Same name and description for stop (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "route_short_name_too_long",
+          "count": 217,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'route_short_name_too_long' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Route short name too long (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "stop_without_stop_time",
+          "count": 139,
+          "effort": "A review pass in your scheduling software.",
+          "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+          "owner": "Likely your export tool",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Some stops exist in the feed but no trip ever stops at them.",
+          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+        },
+        {
+          "code": "fast_travel_between_consecutive_stops",
+          "count": 67,
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the flagged stop times for transposed minutes.",
+          "owner": "",
+          "points": 8.0,
+          "severity": "WARNING",
+          "what": "Some scheduled trips travel implausibly fast between stops.",
+          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+        },
+        {
+          "code": "fast_travel_between_far_stops",
+          "count": 35,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'fast_travel_between_far_stops' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Fast travel between far stops (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "service_has_no_active_day_of_the_week",
+          "count": 17,
+          "effort": "A few minutes in your scheduling software.",
+          "fix": "Delete the empty calendars or set their service days.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some service calendars have no days of the week switched on.",
+          "why": "Trips tied to these calendars never run; they are dead data that can mask real schedule problems."
+        },
+        {
+          "code": "stop_too_far_from_shape",
+          "count": 13,
+          "effort": "A few minutes per flagged stop.",
+          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some stops sit far from the route line they belong to.",
+          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        },
+        {
+          "code": "expired_calendar",
+          "count": 12,
+          "effort": "One setting in most export tools.",
+          "fix": "Remove past service periods the next time you export the feed.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some service calendars in the feed have already expired.",
+          "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
+        },
+        {
+          "code": "unusable_trip",
+          "count": 7,
+          "effort": "Worth a vendor question if it appears often.",
+          "fix": "Check the flagged trips in your scheduling software; remove them or restore their missing stops.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some trips serve fewer than two stops.",
+          "why": "A trip with one stop can't be ridden; planners ignore it and it may signal an export problem."
+        },
+        {
+          "code": "trip_headsign_matches_intermediate_stop",
+          "count": 2290,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'trip_headsign_matches_intermediate_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 1.0,
+          "severity": "INFO",
+          "what": "Trip headsign matches intermediate stop (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unknown_column",
+          "count": 29,
+          "effort": "A quick look at the flagged files.",
+          "fix": "Check the flagged column names for misspellings of standard GTFS fields; remove them if they are vendor extras.",
+          "owner": "",
+          "points": 0.8,
+          "severity": "INFO",
+          "what": "Some files contain columns that are not part of the GTFS spec.",
+          "why": "Harmless to riders, but apps ignore these columns and they can hide typos in real column names."
+        },
+        {
+          "code": "big_gap_in_service",
+          "count": 17,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.8,
+          "severity": "INFO",
+          "what": "Big gap in service (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unknown_file",
+          "count": 12,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.8,
+          "severity": "INFO",
+          "what": "Unknown file (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "platform_without_parent_station",
+          "count": 4,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'platform_without_parent_station' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.5,
+          "severity": "INFO",
+          "what": "Platform without parent station (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 34.2,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 14 kinds of issue across 3190 instances (0 error, 838 warning, 2352 informational).",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 69,
+        "feed_end_date": "2026-09-05",
+        "feed_start_date": "2026-06-19",
+        "feed_version": "Summer 2026, 2026-06-26T19:57:52+00:00, version D",
+        "has_feed_info": true,
+        "last_service_date": "2026-09-05",
+        "service_type": "fixed"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 69 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "details": {
+        "coverage_pct": 94.6,
+        "covered_trips": 283,
+        "drift": {
+          "median_seconds": 94,
+          "observations": 18251,
+          "on_time_share_pct": 59.2,
+          "p90_abs_seconds": 511
+        },
+        "kinds_reachable": 3,
+        "rt_freshness": "fresh",
+        "samples": 9,
+        "scheduled_trips_in_window": 299,
+        "vehicles_checked": 955,
+        "vehicles_on_route_pct": 97.3,
+        "worst_lag_seconds": 3
+      },
+      "findings": [
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 16,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "owner": "",
+          "points": 1.9,
+          "severity": "WARNING",
+          "what": "16 of 299 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        }
+      ],
+      "name": "realtime",
+      "score": 97.7,
+      "status": "measured",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 94.6% of scheduled trips had live predictions; 97.3% of vehicles on their route; predictions ran a median of 94s behind schedule.",
+      "weight": 0.2
+    }
+  },
+  "conformance": {
+    "awarded": true,
+    "criteria": [
+      {
+        "detail": "Passes validation with no errors.",
+        "key": "valid",
+        "met": true
+      },
+      {
+        "detail": "Service data covers the next 69 days.",
+        "key": "current",
+        "met": true
+      },
+      {
+        "detail": "States wheelchair access on 95% of stops and 100% of trips.",
+        "key": "accessible",
+        "met": true
+      }
+    ],
+    "status": "awarded",
+    "summary": "This feed earns the conformance mark: valid, current, and stating wheelchair access on nearly every stop and trip."
+  },
+  "feed": {
+    "license_note": "License: https://www.mass.gov/files/documents/2017/10/27/develop_license_agree_0.pdf",
+    "reachable": true,
+    "sha256": "de972117c994b308ff6cbfc1404b80f10d86c6367d0dfa55a237ce33e7424297",
+    "size_bytes": 25895858,
+    "static_url": "https://cdn.mbta.com/MBTA_GTFS.zip"
+  },
+  "generated_at": "2026-06-28T00:00:00+00:00",
+  "geo": {
+    "bbox": [
+      -71.84849,
+      41.58109,
+      -70.27658,
+      42.79784
+    ],
+    "lat": 42.35642,
+    "lon": -71.07411,
+    "stop_count": 9617
+  },
+  "ntd_id_alignment": {
+    "detail": "Your feed uses agency_id 3, 1; the NTD asks for your five-digit NTD ID (10003) so the feed lines up with your record.",
+    "feed_agency_ids": [
+      "3",
+      "1"
+    ],
+    "fix": "Change the agency_ids to 10003 in agency.txt and update the matching agency_id in routes.txt.",
+    "ntd_id": "10003",
+    "status": "mismatch"
+  },
+  "ntd_readiness": {
+    "pillars": [
+      {
+        "detail": "Published at a public URL.",
+        "key": "published",
+        "status": "ready"
+      },
+      {
+        "detail": "Passes validation with no errors.",
+        "key": "valid",
+        "status": "ready"
+      },
+      {
+        "detail": "Service data covers the next 69 days.",
+        "key": "current",
+        "status": "ready"
+      }
+    ],
+    "status": "ready",
+    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+  },
+  "overall": {
+    "grade": "C",
+    "score": 76.2
+  },
+  "recommendations": [
+    {
+      "code": "scorecard_fares_v2_no_rider_categories",
+      "count": 0,
+      "effort": "Usually a short file naming the discount groups you already publish.",
+      "fix": "Add rider_categories.txt for the fares you already offer, then reference those categories from your fare products.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "INFO",
+      "what": "The feed publishes fare products but no rider_categories.txt defining who qualifies for each fare.",
+      "why": "Without rider categories, apps can only show the full adult fare and can't surface senior, youth, or student discounts a rider may be eligible for."
+    },
+    {
+      "code": "scorecard_route_color_low_contrast",
+      "count": 16,
+      "effort": "A per-route color setting in your scheduling software.",
+      "fix": "Adjust route_color or route_text_color so each pair clears 4.5:1. Often switching the text between black and white is enough.",
+      "owner": "Likely your export tool",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "16 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (Orange Line, SL1, SL2, SL3, SL4, and more).",
+      "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
+    },
+    {
+      "code": "scorecard_stop_name_needs_tts",
+      "count": 7231,
+      "effort": "A short text field per affected stop; start with the busiest.",
+      "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "INFO",
+      "what": "7231 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Washington St opp Ruggles St\", \"Theo Glynn Way @ Newmarket Sq\", \"Tremont St opp Temple Pl\", and more).",
+      "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
+    }
+  ],
+  "routability": {
+    "boardable_stops": 7782,
+    "findings": [
+      {
+        "code": "scorecard_single_stop_trips",
+        "count": 7,
+        "effort": "Usually an export setting or a stop_times mapping in your software.",
+        "fix": "Check your scheduling export: every trip should list each stop it calls at, in order, with times.",
+        "owner": "Likely your export tool",
+        "points": 0.0,
+        "severity": "WARNING",
+        "what": "7 of 121935 trips list fewer than two stops.",
+        "why": "A trip with one stop has no leg a rider can ride; trip planners can't route anyone on it, so the service effectively does not exist."
+      },
+      {
+        "code": "scorecard_orphan_stops",
+        "count": 139,
+        "effort": "A cleanup pass in your scheduling software.",
+        "fix": "Remove stops no route serves, or add the trips that should call at them.",
+        "owner": "Likely your export tool",
+        "points": 0.0,
+        "severity": "INFO",
+        "what": "139 of 7782 boardable stops are never served by any trip.",
+        "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
+      }
+    ],
+    "orphan_stops": 139,
+    "single_stop_trips": 7,
+    "trips_total": 121935
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.4",
+  "snapshot_date": "2026-06-28",
+  "top_fixes": [
+    {
+      "code": "same_name_and_description_for_stop",
+      "count": 331,
+      "effort": "Varies.",
+      "fix": "Review the rule documentation for 'same_name_and_description_for_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+      "owner": "",
+      "points": 8.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Same name and description for stop (flagged by the MobilityData validator).",
+      "why": "See the linked rule for what this affects."
+    },
+    {
+      "code": "route_short_name_too_long",
+      "count": 217,
+      "effort": "Varies.",
+      "fix": "Review the rule documentation for 'route_short_name_too_long' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+      "owner": "",
+      "points": 8.0,
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "Route short name too long (flagged by the MobilityData validator).",
+      "why": "See the linked rule for what this affects."
+    },
+    {
+      "code": "stop_without_stop_time",
+      "count": 139,
+      "effort": "A review pass in your scheduling software.",
+      "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+      "owner": "Likely your export tool",
+      "points": 8.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "Some stops exist in the feed but no trip ever stops at them.",
+      "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

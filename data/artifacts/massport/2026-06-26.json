@@ -1,0 +1,407 @@
+{
+  "agency": {
+    "id": "massport",
+    "name": "Massport"
+  },
+  "autofix": {
+    "available": true,
+    "download_path": "data/artifacts/massport/corrected.zip",
+    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/massport/corrected.zip",
+    "fixes": [
+      {
+        "code": "autofix_trim_whitespace",
+        "count": 4,
+        "examples": [
+          "'tts_stop_name': 'Thank you for using the Massport Back Bay Logan Express. The Bus uses the quickest route to Logan Airport by taking the Mass Pike westbound to the Allston Brighton turnaround where it will then travel eastbound to Logan Airport. ' -> 'Thank you for using the Massport Back Bay Logan Express. The Bus uses the quickest route to Logan Airport by taking the Mass Pike westbound to the Allston Brighton turnaround where it will then travel eastbound to Logan Airport.'",
+          "'tts_stop_name': 'Framingham overflow parking lot. ' -> 'Framingham overflow parking lot.'",
+          "'tts_stop_name': 'Water Transportation Dock ' -> 'Water Transportation Dock'"
+        ],
+        "label": "Trimmed surrounding whitespace"
+      }
+    ],
+    "total": 4
+  },
+  "categories": {
+    "completeness": {
+      "details": {
+        "accessibility": {
+          "measures": "presence_not_usability",
+          "score": 92.8,
+          "stops_marked_accessible_pct": 88.5,
+          "stops_marked_not_accessible_pct": 0.0,
+          "stops_stated_pct": 88.5,
+          "trips_stated_pct": 100.0
+        },
+        "accessibility_measures": "presence_not_usability",
+        "components": {
+          "contact": 15.0,
+          "fares": 15.0,
+          "headsigns": 3.4,
+          "stop_names": 15.0,
+          "wheelchair_stops": 22.1,
+          "wheelchair_trips": 15.0
+        },
+        "fare_free": false,
+        "fares": {
+          "applied": true,
+          "has_leg_rules": false,
+          "has_products": false,
+          "has_transfer_rules": false,
+          "model": "legacy",
+          "product_count": 0
+        },
+        "flex": {
+          "booking_reachable": false,
+          "booking_rule_count": 0,
+          "has_booking_rules": false,
+          "has_flex": true
+        },
+        "has_fares": true,
+        "headsign_pct": 22.7,
+        "mixed_case_stop_name_pct": 100.0,
+        "pathways": {
+          "has_entrances": false,
+          "has_levels": false,
+          "has_pathways": false,
+          "has_stations": true,
+          "has_step_free": false,
+          "pathway_count": 0
+        },
+        "stops": 78,
+        "trips": 2347,
+        "wheelchair_accessible_pct": 100.0,
+        "wheelchair_boarding_pct": 88.5,
+        "wheelchair_marked_accessible_pct": 88.5,
+        "wheelchair_marked_not_accessible_pct": 0.0
+      },
+      "findings": [
+        {
+          "code": "scorecard_wheelchair_boarding_unknown",
+          "count": 9,
+          "effort": "A column in stops.txt; your scheduling software likely has it.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "owner": "Likely your team",
+          "points": 2.9,
+          "severity": "WARNING",
+          "what": "9 of 78 stops don't say whether a wheelchair user can board there.",
+          "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+        },
+        {
+          "code": "scorecard_missing_headsigns",
+          "count": 1814,
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Populate trip_headsign to match what the bus displays.",
+          "owner": "Likely your export tool",
+          "points": 11.6,
+          "severity": "WARNING",
+          "what": "1814 of 2347 trips have no headsign.",
+          "why": "Riders at the stop can't tell which direction a bus is going."
+        },
+        {
+          "code": "scorecard_flex_no_booking_rules",
+          "count": 1,
+          "effort": "A small file; one rule often covers the whole service.",
+          "fix": "Add booking_rules.txt saying how far ahead and how to book (phone, app, or web).",
+          "owner": "",
+          "points": 0.0,
+          "severity": "WARNING",
+          "what": "This feed describes flexible (demand-responsive) service but has no booking_rules.txt.",
+          "why": "Riders can see the service area but not how or when to reserve a trip, so they can't actually use the service."
+        },
+        {
+          "code": "scorecard_station_no_pathways",
+          "count": 1,
+          "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
+          "fix": "Add pathways.txt connecting entrances, platforms, and any elevators, with a level for each.",
+          "owner": "",
+          "points": 0.0,
+          "severity": "WARNING",
+          "what": "This feed models stations or entrances but has no pathways.txt.",
+          "why": "Trip planners can't guide riders through the station, and there is no step-free route information for wheelchair users."
+        }
+      ],
+      "name": "completeness",
+      "score": 85.5,
+      "status": "measured",
+      "summary": "88% of stops state wheelchair accessibility (88% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
+      "weight": 0.25
+    },
+    "correctness": {
+      "details": {
+        "distinct_codes": 5,
+        "instances_by_severity": {
+          "ERROR": 0,
+          "INFO": 53,
+          "WARNING": 22
+        },
+        "validator_version": "8.0.1"
+      },
+      "findings": [
+        {
+          "code": "stop_without_stop_time",
+          "count": 22,
+          "effort": "A review pass in your scheduling software.",
+          "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some stops exist in the feed but no trip ever stops at them.",
+          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+        },
+        {
+          "code": "unknown_column",
+          "count": 34,
+          "effort": "A quick look at the flagged files.",
+          "fix": "Check the flagged column names for misspellings of standard GTFS fields; remove them if they are vendor extras.",
+          "owner": "",
+          "points": 0.8,
+          "severity": "INFO",
+          "what": "Some files contain columns that are not part of the GTFS spec.",
+          "why": "Harmless to riders, but apps ignore these columns and they can hide typos in real column names."
+        },
+        {
+          "code": "service_window_outside_feed_period",
+          "count": 10,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.8,
+          "severity": "INFO",
+          "what": "Service window outside feed period (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unknown_file",
+          "count": 8,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.8,
+          "severity": "INFO",
+          "what": "Unknown file (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "unused_station",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'unused_station' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.5,
+          "severity": "INFO",
+          "what": "Unused station (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        }
+      ],
+      "name": "correctness",
+      "score": 91.2,
+      "status": "measured",
+      "summary": "The MobilityData validator flagged 5 kinds of issue across 75 instances (0 error, 22 warning, 53 informational).",
+      "weight": 0.35
+    },
+    "freshness": {
+      "details": {
+        "days_until_expiry": 66,
+        "feed_end_date": "2026-08-31",
+        "feed_start_date": "2026-06-25",
+        "feed_version": "UTC: 25-Jun-2026 15:38",
+        "has_feed_info": true,
+        "last_service_date": "2026-08-31",
+        "service_type": "fixed"
+      },
+      "findings": [],
+      "name": "freshness",
+      "score": 100.0,
+      "status": "measured",
+      "summary": "Service data covers the next 66 days.",
+      "weight": 0.2
+    },
+    "realtime": {
+      "name": "realtime",
+      "status": "not_yet_measured",
+      "summary": "Not scored yet. Nothing here counts against the grade.",
+      "weight": 0.2
+    }
+  },
+  "conformance": {
+    "awarded": false,
+    "criteria": [
+      {
+        "detail": "Passes validation with no errors.",
+        "key": "valid",
+        "met": true
+      },
+      {
+        "detail": "Service data covers the next 66 days.",
+        "key": "current",
+        "met": true
+      },
+      {
+        "detail": "States wheelchair access on 88% of stops and 100% of trips; the mark needs 90% of each.",
+        "key": "accessible",
+        "met": false
+      }
+    ],
+    "status": "not_yet",
+    "summary": "This feed is close to the conformance mark. States wheelchair access on 88% of stops and 100% of trips; the mark needs 90% of each."
+  },
+  "feed": {
+    "license_note": "License: http://www.massport.com/media/1651/massportdatalicenseagreement.pdf",
+    "reachable": true,
+    "sha256": "5b01c6ad950e1166c9175408fbb9f81149a72bf384ecde3df3ea3860ae354ff4",
+    "size_bytes": 451407,
+    "static_url": "https://data.trilliumtransit.com/gtfs/massport-ma-us/massport-ma-us.zip"
+  },
+  "generated_at": "2026-06-26T00:00:00+00:00",
+  "geo": {
+    "bbox": [
+      -71.39781,
+      42.21736,
+      -70.94143,
+      42.55491
+    ],
+    "lat": 42.36508,
+    "lon": -71.02165,
+    "stop_count": 78
+  },
+  "ntd_id_alignment": {
+    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "feed_agency_ids": [
+      "2274",
+      "2272"
+    ],
+    "status": "unknown"
+  },
+  "ntd_readiness": {
+    "pillars": [
+      {
+        "detail": "Published at a public URL.",
+        "key": "published",
+        "status": "ready"
+      },
+      {
+        "detail": "Passes validation with no errors.",
+        "key": "valid",
+        "status": "ready"
+      },
+      {
+        "detail": "Service data covers the next 66 days.",
+        "key": "current",
+        "status": "ready"
+      }
+    ],
+    "status": "ready",
+    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+  },
+  "overall": {
+    "grade": "A",
+    "score": 91.6
+  },
+  "recommendations": [
+    {
+      "code": "scorecard_flex_completeness_no_booking_rules",
+      "count": 1,
+      "effort": "A small file; one rule often covers the whole service.",
+      "fix": "Add booking_rules.txt with how far ahead and how to reserve (phone, app, or web).",
+      "owner": "",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "Flex zones are published but no booking_rules.txt is present.",
+      "why": "Riders can see the service area but not how to book, so they can't complete a trip."
+    },
+    {
+      "code": "scorecard_route_color_low_contrast",
+      "count": 1,
+      "effort": "A per-route color setting in your scheduling software.",
+      "fix": "Adjust route_color or route_text_color so each pair clears 4.5:1. Often switching the text between black and white is enough.",
+      "owner": "Likely your export tool",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "1 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (BB).",
+      "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
+    },
+    {
+      "code": "scorecard_stop_name_needs_tts",
+      "count": 2,
+      "effort": "A short text field per affected stop; start with the busiest.",
+      "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "INFO",
+      "what": "2 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Stuart St @ Dartmouth St\", \"270 Central Ave - Chelsea Garage\").",
+      "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
+    },
+    {
+      "code": "scorecard_station_missing_step_free_data",
+      "count": 2,
+      "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
+      "fix": "Add pathways.txt connecting entrances, platforms, and elevators, and levels.txt for each floor, so the step-free route is described.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "This feed models stations or entrances but has no pathways.txt and levels.txt.",
+      "why": "Without pathways and levels, a wheelchair user can't tell whether a step-free route exists inside the station, and trip planners can't route anyone through it."
+    }
+  ],
+  "routability": {
+    "boardable_stops": 77,
+    "findings": [
+      {
+        "code": "scorecard_orphan_stops",
+        "count": 22,
+        "effort": "A cleanup pass in your scheduling software.",
+        "fix": "Remove stops no route serves, or add the trips that should call at them.",
+        "owner": "Likely your export tool",
+        "points": 0.0,
+        "severity": "INFO",
+        "what": "22 of 77 boardable stops are never served by any trip.",
+        "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
+      }
+    ],
+    "orphan_stops": 22,
+    "single_stop_trips": 0,
+    "trips_total": 2347
+  },
+  "rubric_version": "1.1",
+  "schema_version": "1.4",
+  "snapshot_date": "2026-06-26",
+  "top_fixes": [
+    {
+      "code": "scorecard_missing_headsigns",
+      "count": 1814,
+      "effort": "Usually a bulk edit in your scheduling software.",
+      "fix": "Populate trip_headsign to match what the bus displays.",
+      "owner": "Likely your export tool",
+      "points": 11.6,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "1814 of 2347 trips have no headsign.",
+      "why": "Riders at the stop can't tell which direction a bus is going."
+    },
+    {
+      "code": "stop_without_stop_time",
+      "count": 22,
+      "effort": "A review pass in your scheduling software.",
+      "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+      "owner": "Likely your export tool",
+      "points": 6.0,
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "Some stops exist in the feed but no trip ever stops at them.",
+      "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+    },
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 9,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 2.9,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "9 of 78 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    }
+  ],
+  "validator_version": "8.0.1"
+}

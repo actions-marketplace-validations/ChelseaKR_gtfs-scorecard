@@ -345,10 +345,9 @@
     "static_url": "https://catchacat.org/wp-content/uploads/GTFS.zip"
   },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-georgia-chatham-area-transit-cat-gtfs-2080.zip?alt=media",
-    "max_attempts": 1,
-    "origin_error": "HTTPError",
-    "source": "mirror",
+    "final_url": "https://catchacat.org/wp-content/uploads/GTFS.zip",
+    "max_attempts": 4,
+    "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
   "generated_at": "2026-07-04T00:00:00+00:00",

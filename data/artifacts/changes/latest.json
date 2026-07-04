@@ -15,18 +15,6 @@
     },
     {
       "date": "2026-07-04",
-      "from_grade": "C",
-      "from_score": 78.4,
-      "id": "valley-regional-transit",
-      "name": "Valley Regional Transit",
-      "regressed": true,
-      "score_delta": -32.2,
-      "since": "2026-07-03",
-      "to_grade": "F",
-      "to_score": 46.2
-    },
-    {
-      "date": "2026-07-04",
       "from_grade": "D",
       "from_score": 67.8,
       "id": "palos-verdes-peninsula-transit-authority-pvpta",
@@ -56,10 +44,10 @@
       "id": "via-mobility-2395",
       "name": "Via Mobility",
       "regressed": true,
-      "score_delta": -6.7,
+      "score_delta": -7.4,
       "since": "2026-07-03",
       "to_grade": "D",
-      "to_score": 64.1
+      "to_score": 63.4
     },
     {
       "date": "2026-07-04",
@@ -72,6 +60,18 @@
       "since": "2026-07-02",
       "to_grade": "F",
       "to_score": 50.2
+    },
+    {
+      "date": "2026-07-04",
+      "from_grade": "F",
+      "from_score": 58.0,
+      "id": "frederick-county-transit-2432",
+      "name": "Frederick County TransIT",
+      "regressed": true,
+      "score_delta": -4.3,
+      "since": "2026-07-02",
+      "to_grade": "F",
+      "to_score": 53.7
     },
     {
       "date": "2026-07-04",
@@ -411,18 +411,6 @@
     },
     {
       "date": "2026-07-04",
-      "from_grade": "F",
-      "from_score": 58.0,
-      "id": "frederick-county-transit-2432",
-      "name": "Frederick County TransIT",
-      "regressed": false,
-      "score_delta": 2.5,
-      "since": "2026-07-02",
-      "to_grade": "D",
-      "to_score": 60.5
-    },
-    {
-      "date": "2026-07-04",
       "from_grade": "C",
       "from_score": 80.0,
       "id": "metro-transit",
@@ -434,8 +422,8 @@
       "to_score": 81.8
     }
   ],
-  "count": 36,
-  "generated_at": "2026-07-04T15:55:22+00:00",
+  "count": 35,
+  "generated_at": "2026-07-04T17:46:03+00:00",
   "license": "CC-BY-4.0",
   "schema_version": "1.4"
 }

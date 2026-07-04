@@ -1,11 +1,11 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
   "bands": {
-    "mostly": 2,
-    "reliable": 126,
+    "mostly": 4,
+    "reliable": 124,
     "spotty": 38
   },
-  "generated_at": "2026-07-04T10:05:32+00:00",
+  "generated_at": "2026-07-04T12:12:57+00:00",
   "license": "CC-BY-4.0",
   "median_lag_seconds": 11,
   "median_uptime_pct": 100.0,
@@ -115,8 +115,8 @@
     },
     {
       "agencies": 4,
-      "median_uptime_pct": 100.0,
-      "reliable": 3,
+      "median_uptime_pct": 96.8,
+      "reliable": 1,
       "state": "Ohio"
     },
     {
@@ -217,7 +217,7 @@
     },
     {
       "agencies": 1,
-      "median_uptime_pct": 68.4,
+      "median_uptime_pct": 68.8,
       "reliable": 0,
       "state": "Connecticut"
     },

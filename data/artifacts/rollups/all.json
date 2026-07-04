@@ -158,11 +158,6 @@
       "fix": "Review the rule documentation for 'block_trips_with_overlapping_stop_times' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
     },
     {
-      "agencies": 11,
-      "code": "unused_shape",
-      "fix": "Enable 'remove unused shapes' (or similar) in your export tool."
-    },
-    {
       "agencies": 10,
       "code": "missing_recommended_field",
       "fix": "Review the flagged fields and fill in the ones your riders would use."
@@ -171,6 +166,11 @@
       "agencies": 10,
       "code": "invalid_input_files_in_subfolder",
       "fix": "Review the rule documentation for 'invalid_input_files_in_subfolder' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
+    },
+    {
+      "agencies": 10,
+      "code": "unused_shape",
+      "fix": "Enable 'remove unused shapes' (or similar) in your export tool."
     },
     {
       "agencies": 9,
@@ -249,6 +249,11 @@
     },
     {
       "agencies": 4,
+      "code": "unused_shape",
+      "fix": "Turn on 'remove unused shapes' (or the like) in your export tool."
+    },
+    {
+      "agencies": 4,
       "code": "scorecard_no_feed_contact",
       "fix": "Add feed_contact_email to feed_info.txt."
     },
@@ -276,11 +281,6 @@
       "agencies": 3,
       "code": "missing_trip_edge",
       "fix": "Review the rule documentation for 'missing_trip_edge' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
-    },
-    {
-      "agencies": 3,
-      "code": "unused_shape",
-      "fix": "Turn on 'remove unused shapes' (or the like) in your export tool."
     },
     {
       "agencies": 3,
@@ -368,7 +368,7 @@
     "stale": 488,
     "total": 618
   },
-  "generated_at": "2026-07-04T10:05:12+00:00",
+  "generated_at": "2026-07-04T12:12:36+00:00",
   "grade_distribution": {
     "A": 52,
     "B": 243,
@@ -13507,6 +13507,18 @@
     },
     {
       "attention_reason": null,
+      "days_until_expiry": 84,
+      "expiry_status": "current",
+      "grade": "C",
+      "id": "regional-transportation-district-rtd-178",
+      "name": "Regional Transportation District (RTD)",
+      "needs_attention": false,
+      "score": 74.9,
+      "snapshot_date": "2026-07-04",
+      "top_fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
+    },
+    {
+      "attention_reason": null,
       "days_until_expiry": 63,
       "expiry_status": "current",
       "grade": "C",
@@ -13672,18 +13684,6 @@
       "score": 75.4,
       "snapshot_date": "2026-07-04",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
-    },
-    {
-      "attention_reason": null,
-      "days_until_expiry": 84,
-      "expiry_status": "current",
-      "grade": "C",
-      "id": "regional-transportation-district-rtd-178",
-      "name": "Regional Transportation District (RTD)",
-      "needs_attention": false,
-      "score": 75.4,
-      "snapshot_date": "2026-07-04",
-      "top_fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
     },
     {
       "attention_reason": null,
@@ -15067,6 +15067,18 @@
     },
     {
       "attention_reason": null,
+      "days_until_expiry": 545,
+      "expiry_status": "current",
+      "grade": "B",
+      "id": "pasadena-transit",
+      "name": "Pasadena Transit",
+      "needs_attention": false,
+      "score": 80.2,
+      "snapshot_date": "2026-07-04",
+      "top_fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request."
+    },
+    {
+      "attention_reason": null,
       "days_until_expiry": 332,
       "expiry_status": "current",
       "grade": "B",
@@ -16072,18 +16084,6 @@
       "score": 83.1,
       "snapshot_date": "2026-07-04",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
-    },
-    {
-      "attention_reason": null,
-      "days_until_expiry": 545,
-      "expiry_status": "current",
-      "grade": "B",
-      "id": "pasadena-transit",
-      "name": "Pasadena Transit",
-      "needs_attention": false,
-      "score": 83.1,
-      "snapshot_date": "2026-07-04",
-      "top_fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request."
     },
     {
       "attention_reason": null,

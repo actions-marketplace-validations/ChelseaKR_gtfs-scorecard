@@ -32,6 +32,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -155,8 +159,8 @@
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -195,7 +199,7 @@
           "code": "unused_shape",
           "count": 2,
           "effort": "One setting.",
-          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
@@ -269,7 +273,7 @@
         "days_until_expiry": 84,
         "feed_end_date": "2026-09-26",
         "feed_start_date": "2026-06-07",
-        "feed_version": "Jun26-36807-13-20-20260701-030246",
+        "feed_version": "Jun26-36807-13-20-20260704-030232",
         "has_feed_info": true,
         "last_service_date": "2026-09-26",
         "seasonal_boundary": false,
@@ -284,21 +288,21 @@
     },
     "realtime": {
       "details": {
-        "coverage_pct": 94.9,
-        "covered_trips": 376,
+        "coverage_pct": 89.5,
+        "covered_trips": 137,
         "drift": {
-          "median_seconds": 53,
-          "observations": 10852,
-          "on_time_share_pct": 87.1,
-          "p90_abs_seconds": 310
+          "median_seconds": 26,
+          "observations": 4255,
+          "on_time_share_pct": 94.6,
+          "p90_abs_seconds": 203
         },
         "kinds_reachable": 3,
         "rt_freshness": "stale",
         "samples": 9,
-        "scheduled_trips_in_window": 396,
-        "vehicles_checked": 900,
-        "vehicles_on_route_pct": 99.7,
-        "worst_lag_seconds": 172
+        "scheduled_trips_in_window": 153,
+        "vehicles_checked": 169,
+        "vehicles_on_route_pct": 98.2,
+        "worst_lag_seconds": 175
       },
       "findings": [
         {
@@ -307,27 +311,27 @@
           "effort": "A vendor configuration question.",
           "fix": "Ask your AVL vendor to publish updates at least every 20 seconds (the Caltrans guideline).",
           "owner": "",
-          "points": 5.2,
+          "points": 5.3,
           "severity": "WARNING",
-          "what": "Realtime data was up to 172 seconds old when sampled.",
+          "what": "Realtime data was up to 175 seconds old when sampled.",
           "why": "Stale positions and predictions are worse than none: riders watch a bus that already left."
         },
         {
           "code": "scorecard_rt_trip_coverage",
-          "count": 20,
+          "count": 16,
           "effort": "A vendor data-mapping question.",
           "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
           "owner": "",
-          "points": 1.8,
+          "points": 3.7,
           "severity": "WARNING",
-          "what": "20 of 396 trips scheduled during the sampling window had no live predictions.",
+          "what": "16 of 153 trips scheduled during the sampling window had no live predictions.",
           "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
-      "score": 93.0,
+      "score": 90.7,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 94.9% of scheduled trips had live predictions; 99.7% of vehicles on their route; predictions ran a median of 53s behind schedule.",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 89.5% of scheduled trips had live predictions; 98.2% of vehicles on their route; predictions ran a median of 26s behind schedule.",
       "weight": 0.2
     }
   },
@@ -340,7 +344,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 87 days.",
+        "detail": "Service data covers the next 84 days.",
         "key": "current",
         "met": true
       },
@@ -356,11 +360,17 @@
   "feed": {
     "license_note": "License: https://www.rtd-denver.com/business-center/open-spatial-data/gtfs-license-agreement",
     "reachable": true,
-    "sha256": "bb737129b20d3e3451cd422c458d3c5daf284a56a664bbd40134e0bc15682f96",
-    "size_bytes": 8358964,
+    "sha256": "72ec2de5dbd7a14596c48ee55e126cd48bbc7d854e969120290209d4141e3c47",
+    "size_bytes": 8357509,
     "static_url": "https://www.rtd-denver.com/files/gtfs/google_transit.zip"
   },
-  "generated_at": "2026-07-01T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.rtd-denver.com/files/gtfs/google_transit.zip",
+    "max_attempts": 4,
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -105.52548,
@@ -373,11 +383,11 @@
     "stop_count": 7570
   },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id RTD; the NTD asks for your five-digit NTD ID (80006) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is RTD; your National Transit Database ID is 80006. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
     "feed_agency_ids": [
       "RTD"
     ],
-    "fix": "Change the agency_id to 80006 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Optionally set the agency_id for your service to 80006 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
     "ntd_id": "80006",
     "status": "mismatch"
   },
@@ -394,19 +404,19 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 87 days.",
+        "detail": "Service data covers the next 84 days.",
         "key": "current",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 5.4,
-    "margin_to_next_band": 4.6,
-    "score": 75.4
+    "margin_to_lower_band": 4.9,
+    "margin_to_next_band": 5.1,
+    "score": 74.9
   },
   "recommendations": [
     {
@@ -443,11 +453,6 @@
       "why": "Without pathways and levels, a wheelchair user can't tell whether a step-free route exists inside the station, and trip planners can't route anyone through it."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 7439,
     "findings": [
@@ -1900,8 +1905,8 @@
       "points": 8.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Some scheduled trips travel implausibly fast between stops.",
-      "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+      "what": "Some scheduled trips move faster between stops than a bus can.",
+      "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
     }
   ],
   "validator_version": "8.0.1"

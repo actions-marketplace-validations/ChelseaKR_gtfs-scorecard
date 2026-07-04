@@ -51,6 +51,18 @@
     },
     {
       "date": "2026-07-04",
+      "from_grade": "B",
+      "from_score": 83.1,
+      "id": "pasadena-transit",
+      "name": "Pasadena Transit",
+      "regressed": true,
+      "score_delta": -2.9,
+      "since": "2026-07-02",
+      "to_grade": "B",
+      "to_score": 80.2
+    },
+    {
+      "date": "2026-07-04",
       "from_grade": "F",
       "from_score": 55.0,
       "id": "bay-area-transportation-authority-2254",
@@ -326,8 +338,8 @@
       "to_score": 81.8
     }
   ],
-  "count": 27,
-  "generated_at": "2026-07-04T10:05:28+00:00",
+  "count": 28,
+  "generated_at": "2026-07-04T12:12:54+00:00",
   "license": "CC-BY-4.0",
   "schema_version": "1.4"
 }

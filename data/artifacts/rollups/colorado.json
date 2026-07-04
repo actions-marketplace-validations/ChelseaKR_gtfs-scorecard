@@ -58,7 +58,7 @@
       "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
     },
     {
-      "agencies": 4,
+      "agencies": 3,
       "code": "unused_shape",
       "fix": "Enable 'remove unused shapes' (or similar) in your export tool."
     },
@@ -88,7 +88,7 @@
     "stale": 28,
     "total": 34
   },
-  "generated_at": "2026-07-04T10:05:12+00:00",
+  "generated_at": "2026-07-04T12:12:36+00:00",
   "grade_distribution": {
     "A": 2,
     "B": 29,
@@ -975,6 +975,18 @@
     },
     {
       "attention_reason": null,
+      "days_until_expiry": 84,
+      "expiry_status": "current",
+      "grade": "C",
+      "id": "regional-transportation-district-rtd-178",
+      "name": "Regional Transportation District (RTD)",
+      "needs_attention": false,
+      "score": 74.9,
+      "snapshot_date": "2026-07-04",
+      "top_fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
+    },
+    {
+      "attention_reason": null,
       "days_until_expiry": 300,
       "expiry_status": "current",
       "grade": "C",
@@ -996,18 +1008,6 @@
       "score": 75.4,
       "snapshot_date": "2026-07-04",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
-    },
-    {
-      "attention_reason": null,
-      "days_until_expiry": 84,
-      "expiry_status": "current",
-      "grade": "C",
-      "id": "regional-transportation-district-rtd-178",
-      "name": "Regional Transportation District (RTD)",
-      "needs_attention": false,
-      "score": 75.4,
-      "snapshot_date": "2026-07-04",
-      "top_fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
     },
     {
       "attention_reason": null,

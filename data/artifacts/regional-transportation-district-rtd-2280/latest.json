@@ -18,6 +18,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -115,7 +119,7 @@
           "code": "unused_shape",
           "count": 8,
           "effort": "One setting.",
-          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
@@ -178,7 +182,7 @@
         "days_until_expiry": 84,
         "feed_end_date": "2026-09-26",
         "feed_start_date": "2026-06-07",
-        "feed_version": "Jun26-36807-13-20-20260701-040207",
+        "feed_version": "Jun26-36807-13-20-20260704-040323",
         "has_feed_info": true,
         "last_service_date": "2026-09-26",
         "seasonal_boundary": false,
@@ -207,7 +211,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 87 days.",
+        "detail": "Service data covers the next 84 days.",
         "key": "current",
         "met": true
       },
@@ -223,11 +227,17 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "24d01a1a8a08e6f0d1d9bf8985d249db15b434f9c391c7202550f054b7968077",
-    "size_bytes": 804890,
+    "sha256": "032b872405deaaf268a8d7a4cfd9fcf3f8a4dc3a2e3128a51f999788251bf08b",
+    "size_bytes": 804888,
     "static_url": "https://www.rtd-denver.com/files/gtfs/bustang-co-us.zip"
   },
-  "generated_at": "2026-07-01T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.rtd-denver.com/files/gtfs/bustang-co-us.zip",
+    "max_attempts": 4,
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -108.564,
@@ -259,7 +269,7 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 87 days.",
+        "detail": "Service data covers the next 84 days.",
         "key": "current",
         "status": "ready"
       }
@@ -297,11 +307,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-04",
-    "feed_fetched_date": "2026-07-03",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 53,
     "findings": [
@@ -429,7 +434,7 @@
       "code": "unused_shape",
       "count": 8,
       "effort": "One setting.",
-      "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+      "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
       "owner": "Likely your export tool",
       "points": 6.0,
       "rank": 3,

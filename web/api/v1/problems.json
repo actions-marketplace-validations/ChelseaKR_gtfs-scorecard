@@ -1,7 +1,7 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
   "distinct_problems": 117,
-  "generated_at": "2026-07-04T10:05:32+00:00",
+  "generated_at": "2026-07-04T12:12:57+00:00",
   "license": "CC-BY-4.0",
   "prevalence_by_code": {
     "bidirectional_exit_gate": {
@@ -100,8 +100,8 @@
       "prevalence_pct": 1.2
     },
     "future_calendar": {
-      "agencies": 27,
-      "instances": 27,
+      "agencies": 28,
+      "instances": 28,
       "prevalence_pct": 1.9
     },
     "future_feed": {
@@ -411,7 +411,7 @@
     },
     "scorecard_rt_trip_coverage": {
       "agencies": 47,
-      "instances": 1613,
+      "instances": 1614,
       "prevalence_pct": 3.2
     },
     "scorecard_rt_trip_updates_unreachable": {
@@ -446,7 +446,7 @@
     },
     "scorecard_wheelchair_accessible_unknown": {
       "agencies": 1239,
-      "instances": 2144943,
+      "instances": 2144001,
       "prevalence_pct": 85.5
     },
     "scorecard_wheelchair_boarding_unknown": {
@@ -525,9 +525,9 @@
       "prevalence_pct": 6.9
     },
     "trip_coverage_not_active_for_next7_days": {
-      "agencies": 644,
-      "instances": 644,
-      "prevalence_pct": 44.4
+      "agencies": 645,
+      "instances": 645,
+      "prevalence_pct": 44.5
     },
     "trip_distance_exceeds_shape_distance": {
       "agencies": 41,
@@ -608,7 +608,7 @@
       "code": "scorecard_wheelchair_accessible_unknown",
       "effort": "Often one default setting in your export.",
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
-      "instances": 2144943,
+      "instances": 2144001,
       "prevalence_pct": 85.5,
       "severity": "WARNING",
       "source": "scorecard",
@@ -688,12 +688,12 @@
       "why": "Riders may walk to a stop where no bus is scheduled to arrive."
     },
     {
-      "agencies": 644,
+      "agencies": 645,
       "code": "trip_coverage_not_active_for_next7_days",
       "effort": "One setting in most export tools.",
       "fix": "Trim past service periods the next time you export.",
-      "instances": 644,
-      "prevalence_pct": 44.4,
+      "instances": 645,
+      "prevalence_pct": 44.5,
       "severity": "WARNING",
       "source": "validator",
       "what": "Many of the feed's trips don't run at all in the next 7 days.",

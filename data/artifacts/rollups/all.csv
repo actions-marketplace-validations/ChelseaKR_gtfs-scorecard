@@ -1093,6 +1093,7 @@ blackstone-area-bus-service,Blackstone Area Bus Service,C,74.8,2026-07-04,curren
 blackstone-area-bus-service-235,Blackstone Area Bus Service,C,74.8,2026-07-04,current,240,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 loudoun-county-transit,Loudoun County Transit,C,74.8,2026-07-04,current,266,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 people-mover,People Mover,C,74.8,2026-07-04,current,150,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+regional-transportation-district-rtd-178,Regional Transportation District (RTD),C,74.9,2026-07-04,current,84,no,,"Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
 london-transit-commission,London Transit Commission (Ontario),C,75.0,2026-07-04,current,63,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 fort-worth-transit-authority,Fort Worth Transit Authority,C,75.1,2026-07-04,current,84,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 trinity-metro,Trinity Metro,C,75.1,2026-07-04,current,84,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
@@ -1107,7 +1108,6 @@ bloomington-transit-2066,Bloomington Transit,C,75.3,2026-07-04,current,353,no,,S
 maryland-transit-administration-metro-subway,Metro SubwayLink,C,75.3,2026-07-04,current,180,no,,Add feed_info.txt with feed_start_date and feed_end_date to your export.
 colorado-mountain-express,Colorado Mountain Express,C,75.4,2026-07-04,current,300,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 colorado-mountain-express-172,Colorado Mountain Express,C,75.4,2026-07-04,current,300,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
-regional-transportation-district-rtd-178,Regional Transportation District (RTD),C,75.4,2026-07-04,current,84,no,,"Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
 alexandria-dot,City of Alexandria,C,75.5,2026-07-04,current,150,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 burns-paiute-tribal-transit,Burns Paiute Tribal Transit,C,75.5,2026-07-04,current,89,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 discover-goodwill,Flex v2 included,C,75.5,2026-07-04,current,89,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
@@ -1223,6 +1223,7 @@ makah-public-transit-2196,Makah Public Transit,B,80.2,2026-07-04,current,120,no,
 mountain-empire-transit,Flex,B,80.2,2026-07-04,current,89,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 needles-area-transit,Needles Area Transit,B,80.2,2026-07-04,current,362,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 needles-area-transit-583,Needles Area Transit,B,80.2,2026-07-04,current,362,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
+pasadena-transit,Pasadena Transit,B,80.2,2026-07-04,current,545,no,,Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.
 san-joaquin-regional-transit-district,San Joaquin Regional Transit District,B,80.2,2026-07-04,current,332,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 skamania-county-transit,Skamania County Transit,B,80.2,2026-07-04,current,120,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 transfort,Flex,B,80.2,2026-07-04,current,89,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
@@ -1307,7 +1308,6 @@ kern-transit,Kern Transit,B,83.1,2026-07-04,current,176,no,,Set wheelchair_board
 kern-transit-47,Kern Transit,B,83.1,2026-07-04,current,176,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 oregon-department-of-transportation,Oregon Department of Transportation,B,83.1,2026-07-04,current,89,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 oregon-department-of-transportation-800,Oregon Department of Transportation,B,83.1,2026-07-04,current,89,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
-pasadena-transit,Pasadena Transit,B,83.1,2026-07-04,current,545,no,,Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.
 rural-community-transportation-rct,Rural Community Transportation (RCT),B,83.1,2026-07-04,current,179,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 shoreline-metro,Shoreline Metro,B,83.1,2026-07-04,current,545,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.
 shoreline-metro-399,Shoreline Metro,B,83.1,2026-07-04,current,545,no,,Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.

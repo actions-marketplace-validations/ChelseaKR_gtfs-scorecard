@@ -1,6 +1,6 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
-  "generated_at": "2026-07-04T17:46:08+00:00",
+  "generated_at": "2026-07-04T20:02:45+00:00",
   "license": "CC-BY-4.0",
   "points": [
     {
@@ -59,13 +59,13 @@
       "agency_count": 1449,
       "average_score": 60.8,
       "date": "2026-07-04",
-      "expired_pct": 42.7,
+      "expired_pct": 42.6,
       "grade_distribution": {
         "A": 52,
         "B": 243,
-        "C": 268,
+        "C": 269,
         "D": 171,
-        "F": 715
+        "F": 714
       }
     }
   ],
@@ -101,6 +101,16 @@
       "name": "Roaring Fork Transportation Authority",
       "score_end": 83.7,
       "score_start": 49.2
+    },
+    {
+      "date_end": "2026-07-04",
+      "date_start": "2026-06-19",
+      "delta": 31.7,
+      "grade_end": "C",
+      "id": "detroit-department-of-transportation-ddot",
+      "name": "Detroit Department of Transportation (DDOT)",
+      "score_end": 73.5,
+      "score_start": 41.8
     },
     {
       "date_end": "2026-07-04",
@@ -171,16 +181,6 @@
       "name": "Queens Bus",
       "score_end": 69.5,
       "score_start": 43.5
-    },
-    {
-      "date_end": "2026-07-04",
-      "date_start": "2026-06-19",
-      "delta": 26.0,
-      "grade_end": "D",
-      "id": "metropolitan-transit-authority-mta-514",
-      "name": "Staten Island Bus",
-      "score_end": 69.2,
-      "score_start": 43.2
     }
   ]
 }

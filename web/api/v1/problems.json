@@ -1,7 +1,7 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
   "distinct_problems": 118,
-  "generated_at": "2026-07-04T17:46:08+00:00",
+  "generated_at": "2026-07-04T20:02:45+00:00",
   "license": "CC-BY-4.0",
   "prevalence_by_code": {
     "bidirectional_exit_gate": {
@@ -15,9 +15,9 @@
       "prevalence_pct": 10.8
     },
     "block_trips_with_overlapping_stop_times": {
-      "agencies": 14,
-      "instances": 45761,
-      "prevalence_pct": 1.0
+      "agencies": 13,
+      "instances": 45657,
+      "prevalence_pct": 0.9
     },
     "decreasing_or_equal_stop_time_distance": {
       "agencies": 35,
@@ -71,7 +71,7 @@
     },
     "fast_travel_between_consecutive_stops": {
       "agencies": 232,
-      "instances": 171310,
+      "instances": 171340,
       "prevalence_pct": 16.0
     },
     "fast_travel_between_far_stops": {
@@ -80,9 +80,9 @@
       "prevalence_pct": 4.7
     },
     "feed_expiration_date30_days": {
-      "agencies": 22,
-      "instances": 22,
-      "prevalence_pct": 1.5
+      "agencies": 21,
+      "instances": 21,
+      "prevalence_pct": 1.4
     },
     "feed_expiration_date7_days": {
       "agencies": 508,
@@ -340,9 +340,9 @@
       "prevalence_pct": 0.2
     },
     "scorecard_feed_expired": {
-      "agencies": 616,
-      "instances": 616,
-      "prevalence_pct": 42.5
+      "agencies": 615,
+      "instances": 615,
+      "prevalence_pct": 42.4
     },
     "scorecard_feed_expiring_soon": {
       "agencies": 108,
@@ -400,9 +400,9 @@
       "prevalence_pct": 1.1
     },
     "scorecard_rt_predictions_implausible": {
-      "agencies": 4,
-      "instances": 2284,
-      "prevalence_pct": 0.3
+      "agencies": 3,
+      "instances": 2199,
+      "prevalence_pct": 0.2
     },
     "scorecard_rt_service_alerts_unreachable": {
       "agencies": 32,
@@ -416,7 +416,7 @@
     },
     "scorecard_rt_trip_coverage": {
       "agencies": 51,
-      "instances": 1645,
+      "instances": 1663,
       "prevalence_pct": 3.5
     },
     "scorecard_rt_trip_updates_unreachable": {
@@ -451,7 +451,7 @@
     },
     "scorecard_wheelchair_accessible_unknown": {
       "agencies": 1239,
-      "instances": 2145298,
+      "instances": 2145476,
       "prevalence_pct": 85.5
     },
     "scorecard_wheelchair_boarding_unknown": {
@@ -470,9 +470,9 @@
       "prevalence_pct": 3.7
     },
     "service_window_outside_feed_period": {
-      "agencies": 724,
-      "instances": 3066,
-      "prevalence_pct": 50.0
+      "agencies": 723,
+      "instances": 3063,
+      "prevalence_pct": 49.9
     },
     "single_shape_point": {
       "agencies": 8,
@@ -613,7 +613,7 @@
       "code": "scorecard_wheelchair_accessible_unknown",
       "effort": "Often one default setting in your export.",
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
-      "instances": 2145298,
+      "instances": 2145476,
       "prevalence_pct": 85.5,
       "severity": "WARNING",
       "source": "scorecard",
@@ -657,12 +657,12 @@
       "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
     },
     {
-      "agencies": 724,
+      "agencies": 723,
       "code": "service_window_outside_feed_period",
       "effort": "Varies.",
       "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "instances": 3066,
-      "prevalence_pct": 50.0,
+      "instances": 3063,
+      "prevalence_pct": 49.9,
       "severity": "INFO",
       "source": "validator",
       "what": "Service window outside feed period (flagged by the MobilityData validator).",
@@ -705,12 +705,12 @@
       "why": "It usually means old service periods are still in the export, making the feed bigger and harder to check."
     },
     {
-      "agencies": 616,
+      "agencies": 615,
       "code": "scorecard_feed_expired",
       "effort": "Usually one export setting; export on a schedule so it never lapses again.",
       "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
-      "instances": 616,
-      "prevalence_pct": 42.5,
+      "instances": 615,
+      "prevalence_pct": 42.4,
       "severity": "ERROR",
       "source": "scorecard",
       "what": "Service data ended 2741 day(s) ago.",
@@ -805,7 +805,7 @@
       "code": "fast_travel_between_consecutive_stops",
       "effort": "A few minutes per flagged trip.",
       "fix": "Check the flagged stop times for transposed minutes.",
-      "instances": 171310,
+      "instances": 171340,
       "prevalence_pct": 16.0,
       "severity": "WARNING",
       "source": "validator",

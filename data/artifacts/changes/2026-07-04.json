@@ -3,18 +3,6 @@
   "changes": [
     {
       "date": "2026-07-04",
-      "from_grade": "C",
-      "from_score": 73.4,
-      "id": "detroit-department-of-transportation-ddot",
-      "name": "Detroit Department of Transportation (DDOT)",
-      "regressed": true,
-      "score_delta": -37.4,
-      "since": "2026-07-02",
-      "to_grade": "F",
-      "to_score": 36.0
-    },
-    {
-      "date": "2026-07-04",
       "from_grade": "D",
       "from_score": 67.8,
       "id": "palos-verdes-peninsula-transit-authority-pvpta",
@@ -44,10 +32,10 @@
       "id": "via-mobility-2395",
       "name": "Via Mobility",
       "regressed": true,
-      "score_delta": -7.4,
+      "score_delta": -6.7,
       "since": "2026-07-03",
       "to_grade": "D",
-      "to_score": 63.4
+      "to_score": 64.1
     },
     {
       "date": "2026-07-04",
@@ -99,6 +87,18 @@
     },
     {
       "date": "2026-07-04",
+      "from_grade": "D",
+      "from_score": 63.9,
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "regressed": true,
+      "score_delta": -2.4,
+      "since": "2026-07-03",
+      "to_grade": "D",
+      "to_score": 61.5
+    },
+    {
+      "date": "2026-07-04",
       "from_grade": "F",
       "from_score": 55.0,
       "id": "bay-area-transportation-authority-2254",
@@ -132,18 +132,6 @@
       "since": "2026-07-02",
       "to_grade": "D",
       "to_score": 66.5
-    },
-    {
-      "date": "2026-07-04",
-      "from_grade": "D",
-      "from_score": 63.9,
-      "id": "sandy-area-metro-sam-2739",
-      "name": "Static feed for realtime",
-      "regressed": true,
-      "score_delta": -1.9,
-      "since": "2026-07-03",
-      "to_grade": "D",
-      "to_score": 62.0
     },
     {
       "date": "2026-07-04",
@@ -422,8 +410,8 @@
       "to_score": 81.8
     }
   ],
-  "count": 35,
-  "generated_at": "2026-07-04T17:46:03+00:00",
+  "count": 34,
+  "generated_at": "2026-07-04T20:02:40+00:00",
   "license": "CC-BY-4.0",
   "schema_version": "1.4"
 }

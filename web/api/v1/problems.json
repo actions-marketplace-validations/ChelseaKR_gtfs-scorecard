@@ -1,7 +1,7 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
   "distinct_problems": 118,
-  "generated_at": "2026-07-04T20:02:45+00:00",
+  "generated_at": "2026-07-04T21:37:35+00:00",
   "license": "CC-BY-4.0",
   "prevalence_by_code": {
     "bidirectional_exit_gate": {
@@ -416,7 +416,7 @@
     },
     "scorecard_rt_trip_coverage": {
       "agencies": 51,
-      "instances": 1663,
+      "instances": 1659,
       "prevalence_pct": 3.5
     },
     "scorecard_rt_trip_updates_unreachable": {

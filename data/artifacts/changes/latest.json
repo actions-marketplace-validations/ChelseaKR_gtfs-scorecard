@@ -32,10 +32,10 @@
       "id": "via-mobility-2395",
       "name": "Via Mobility",
       "regressed": true,
-      "score_delta": -6.7,
+      "score_delta": -6.6,
       "since": "2026-07-03",
       "to_grade": "D",
-      "to_score": 64.1
+      "to_score": 64.2
     },
     {
       "date": "2026-07-04",
@@ -92,10 +92,10 @@
       "id": "sandy-area-metro-sam-2739",
       "name": "Static feed for realtime",
       "regressed": true,
-      "score_delta": -2.4,
+      "score_delta": -2.8,
       "since": "2026-07-03",
       "to_grade": "D",
-      "to_score": 61.5
+      "to_score": 61.1
     },
     {
       "date": "2026-07-04",
@@ -411,7 +411,7 @@
     }
   ],
   "count": 34,
-  "generated_at": "2026-07-04T20:02:40+00:00",
+  "generated_at": "2026-07-04T21:37:31+00:00",
   "license": "CC-BY-4.0",
   "schema_version": "1.4"
 }

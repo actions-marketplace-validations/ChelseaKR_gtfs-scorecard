@@ -93,7 +93,7 @@
     "stale": 30,
     "total": 35
   },
-  "generated_at": "2026-07-04T20:02:23+00:00",
+  "generated_at": "2026-07-04T21:37:14+00:00",
   "grade_distribution": {
     "B": 26,
     "C": 20,
@@ -553,7 +553,7 @@
       "id": "sandy-area-metro-sam-2739",
       "name": "Static feed for realtime",
       "needs_attention": true,
-      "score": 61.5,
+      "score": 61.1,
       "snapshot_date": "2026-07-04",
       "top_fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs."
     },

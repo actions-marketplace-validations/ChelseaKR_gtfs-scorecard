@@ -130,14 +130,38 @@ Full scorecard: https://gtfsscorecard.org/agency/unitrans/</textarea><button typ
         }
 
         // Hover on desktop; tap to pin on touch (no hover there). Rows carry no
-        // links, so a click only toggles the highlight.
+        // links, so a click only toggles the highlight. The rows are also the
+        // keyboard surface (the canvas stays aria-hidden and untabbable): each
+        // becomes focusable here, not in the markup, so a page without this
+        // script gains no inert tab stops, focus brushes its line, and Enter
+        // or Space toggles the pin, mirroring the click.
+        function togglePin(key) {
+          pinned = (pinned === key) ? null : key;
+          highlight(pinned);
+          // Reflect the pin on each row so a screen reader announces the toggle
+          // state, not just that a control was activated.
+          Object.keys(rows).forEach(function (k) {
+            rows[k].setAttribute("aria-pressed", k === pinned ? "true" : "false");
+          });
+        }
         Object.keys(rows).forEach(function (key) {
           var tr = rows[key];
+          tr.setAttribute("tabindex", "0");
+          // The row is an operable toggle (focus brushes its route; Enter/Space
+          // pins it), so give it a button role, a pressed state, and an
+          // accessible name so assistive tech perceives it as actionable. Its
+          // cell text (route name and detail) supplies the name.
+          tr.setAttribute("role", "button");
+          tr.setAttribute("aria-pressed", "false");
           tr.addEventListener("mouseenter", function () { highlight(key); });
           tr.addEventListener("mouseleave", function () { highlight(pinned); });
-          tr.addEventListener("click", function () {
-            pinned = (pinned === key) ? null : key;
-            highlight(pinned);
+          tr.addEventListener("focus", function () { highlight(key); });
+          tr.addEventListener("blur", function () { highlight(pinned); });
+          tr.addEventListener("click", function () { togglePin(key); });
+          tr.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault();  // Space must pin, never scroll the page
+            togglePin(key);
           });
         });
 

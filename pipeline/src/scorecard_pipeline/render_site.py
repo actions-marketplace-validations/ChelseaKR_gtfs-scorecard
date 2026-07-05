@@ -900,8 +900,11 @@ _AGENCY_MAP_STOP_LIST_CAP = 250
 # The agency map's client script. Kept as a plain string with a JSON-encoded
 # placeholder for the geometry URL, so the JavaScript braces don't need doubling
 # the way an f-string would force. Linked brushing ties each map line to its row
-# in the route table below; the table stays the accessible primary, so brushing
-# adds no tab stops and the canvas remains aria-hidden.
+# in the route table below; the table stays the accessible primary and the canvas
+# remains aria-hidden. The table is also the keyboard surface: the script makes
+# each drawable route's row focusable (so a page without the script gains no
+# inert tab stops), focus brushes its line, and Enter or Space pins it, the
+# keyboard equivalent of hovering and clicking a line on the canvas.
 _AGENCY_MAP_JS = r"""      (function () {
         if (!window.maplibregl) return;
         var geoUrl = __GEO_URL_JSON__;
@@ -934,14 +937,38 @@ _AGENCY_MAP_JS = r"""      (function () {
         }
 
         // Hover on desktop; tap to pin on touch (no hover there). Rows carry no
-        // links, so a click only toggles the highlight.
+        // links, so a click only toggles the highlight. The rows are also the
+        // keyboard surface (the canvas stays aria-hidden and untabbable): each
+        // becomes focusable here, not in the markup, so a page without this
+        // script gains no inert tab stops, focus brushes its line, and Enter
+        // or Space toggles the pin, mirroring the click.
+        function togglePin(key) {
+          pinned = (pinned === key) ? null : key;
+          highlight(pinned);
+          // Reflect the pin on each row so a screen reader announces the toggle
+          // state, not just that a control was activated.
+          Object.keys(rows).forEach(function (k) {
+            rows[k].setAttribute("aria-pressed", k === pinned ? "true" : "false");
+          });
+        }
         Object.keys(rows).forEach(function (key) {
           var tr = rows[key];
+          tr.setAttribute("tabindex", "0");
+          // The row is an operable toggle (focus brushes its route; Enter/Space
+          // pins it), so give it a button role, a pressed state, and an
+          // accessible name so assistive tech perceives it as actionable. Its
+          // cell text (route name and detail) supplies the name.
+          tr.setAttribute("role", "button");
+          tr.setAttribute("aria-pressed", "false");
           tr.addEventListener("mouseenter", function () { highlight(key); });
           tr.addEventListener("mouseleave", function () { highlight(pinned); });
-          tr.addEventListener("click", function () {
-            pinned = (pinned === key) ? null : key;
-            highlight(pinned);
+          tr.addEventListener("focus", function () { highlight(key); });
+          tr.addEventListener("blur", function () { highlight(pinned); });
+          tr.addEventListener("click", function () { togglePin(key); });
+          tr.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault();  // Space must pin, never scroll the page
+            togglePin(key);
           });
         });
 
@@ -1038,8 +1065,10 @@ def _agency_map_script(geo_url: str) -> str:
     visual enhancement marked aria-hidden; the route table below it is the
     operable, screen-reader equivalent, so the canvas is taken out of the tab
     order and no zoom/pan controls are added. Hovering (or tapping) a line brushes
-    its row in the table and the reverse; clicking names the route or stop. Loads
-    only on pages that have geometry."""
+    its row in the table and the reverse; clicking names the route or stop. The
+    same rows carry the keyboard model: the script makes each drawable route's
+    row focusable, focusing it brushes its line, and Enter or Space pins the
+    selection exactly as a click does. Loads only on pages that have geometry."""
     js = _AGENCY_MAP_JS.replace("__GEO_URL_JSON__", json.dumps(geo_url))
     return (
         f'    <script src="https://unpkg.com/maplibre-gl@{_MAP_LIB_VERSION}/dist/maplibre-gl.js"></script>\n'
@@ -3886,7 +3915,15 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
     list' bypass before the map; the same grade and state selectors filter the
     map and the table together. The MapLibre canvas is marked aria-hidden and
     kept out of the tab order, so a keyboard or screen-reader user works the
-    table, never the canvas (docs/vpat.md)."""
+    table, never the canvas (docs/vpat.md).
+
+    Linked brushing ties each point to its row: hovering a point lights up its
+    row (scrolled into view unless reduced motion is set), and hovering or
+    focusing a row enlarges its point through a highlight layer, mirroring the
+    agency map's routes-hi pattern. The rows' existing agency links are the tab
+    stops (no extra tabindex); Space pins the highlight, Enter keeps its meaning
+    and follows the link. After a user-driven filter, focus moves to the results
+    region so a keyboard or screen-reader user lands on the updated count."""
     count = len(features)
     legend_items = "".join(
         f'<li><span class="map-dot" style="background:{color}">'
@@ -3911,8 +3948,11 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
         ),
         key=lambda r: r["name"].lower(),
     )
+    # data-id ties the row to its map point (the GeoJSON feature's ``id``
+    # property) for the linked brushing the page script wires up.
     table_rows = "".join(
-        f'<tr data-grade="{esc(r["grade"])}" data-state="{esc(r["state"])}" '
+        f'<tr data-id="{esc(r["id"])}" data-grade="{esc(r["grade"])}" '
+        f'data-state="{esc(r["state"])}" '
         f'data-country="{esc(r["country"])}" '
         f'data-has-flex="{str(r["has_flex"]).lower()}" '
         f'data-name="{esc(r["name"].lower())}">'
@@ -4004,6 +4044,12 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
           if (countEl) countEl.textContent = shown;
         }}
 
+        // A changed filter updates the count in its role="status" live region
+        // (see #map-result-count), which a screen reader announces on its own,
+        // and the "Skip to the agency list" link jumps there on demand. So the
+        // filter never moves focus: on a native <select>, keyboard arrow keys
+        // fire "change" per option, and moving focus then would yank the caret
+        // out of the control mid-choice (WCAG 3.2.2 On Input).
         if (!window.maplibregl) {{
           gradeEl.addEventListener("change", filterTable);
           stateEl.addEventListener("change", filterTable);
@@ -4026,6 +4072,60 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
         // No on-canvas controls: the canvas is aria-hidden and out of the tab
         // order, so it must hold nothing focusable. Scroll/pinch zooms; clicking
         // a cluster zooms in; the table is the operable primary.
+
+        var NONE = "__none__";  // sentinel agency id; no real feature matches
+
+        // Agency id -> table row, so a hovered map point can light up its row
+        // and the reverse. Visual only: the row text is the accessible source.
+        var rowById = {{}};
+        rows.forEach(function (tr) {{
+          var id = tr.getAttribute("data-id");
+          if (id) rowById[id] = tr;
+        }});
+        var current = null;   // agency id currently brushed, or null
+        var pinned = null;    // sticky selection from Space or a row tap, or null
+        var hiReady = false;  // the highlight layer exists once the map loads
+
+        function paintRow(id, on) {{
+          var tr = rowById[id];
+          if (tr) tr.classList.toggle("is-brushed", on);
+        }}
+        function highlight(id) {{
+          if (id === current) return;
+          if (current !== null) paintRow(current, false);
+          current = id;
+          if (hiReady) {{
+            map.setFilter("agencies-hi", ["==", ["get", "id"], id === null ? NONE : id]);
+          }}
+          if (id !== null) paintRow(id, true);
+        }}
+        function togglePin(id) {{
+          pinned = (pinned === id) ? null : id;
+          highlight(pinned);
+        }}
+
+        // Row -> point: hovering or focusing a row enlarges its point. The
+        // row's existing agency link is the tab stop (no tabindex added), so
+        // focus reaching it brushes through focusin; Space pins the highlight,
+        // while Enter keeps its meaning and follows the link. A click outside
+        // the link pins too, for touch.
+        rows.forEach(function (tr) {{
+          var id = tr.getAttribute("data-id");
+          if (!id) return;
+          tr.addEventListener("mouseenter", function () {{ highlight(id); }});
+          tr.addEventListener("mouseleave", function () {{ highlight(pinned); }});
+          tr.addEventListener("focusin", function () {{ highlight(id); }});
+          tr.addEventListener("focusout", function () {{ highlight(pinned); }});
+          tr.addEventListener("click", function (e) {{
+            if (e.target && e.target.closest && e.target.closest("a")) return;
+            togglePin(id);
+          }});
+          tr.addEventListener("keydown", function (e) {{
+            if (e.key !== " ") return;
+            e.preventDefault();  // Space pins, never scrolls the page
+            togglePin(id);
+          }});
+        }});
 
         function filtered() {{
           if (!all) return {{ type: "FeatureCollection", features: [] }};
@@ -4079,6 +4179,18 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
               "circle-stroke-width": 1, "circle-stroke-color": "#ffffff"
             }}
           }});
+          // Highlight layer above the base points, empty until brushing sets
+          // its filter to one agency id, enlarging just that point (the agency
+          // map's routes-hi pattern). Added before the grade letters so the
+          // letter still draws on top of the enlarged disc.
+          map.addLayer({{
+            id: "agencies-hi", type: "circle", source: "agencies",
+            filter: ["==", ["get", "id"], NONE],
+            paint: {{
+              "circle-radius": 12, "circle-color": ["get", "color"],
+              "circle-stroke-width": 2, "circle-stroke-color": "#ffffff"
+            }}
+          }});
           // The grade letter, drawn on every point so grade reads without colour.
           map.addLayer({{
             id: "agency-grade", type: "symbol", source: "agencies",
@@ -4092,6 +4204,10 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
               "text-halo-color": "#1c1c1c", "text-halo-width": 0.8
             }}
           }});
+          hiReady = true;
+          if (current !== null) {{
+            map.setFilter("agencies-hi", ["==", ["get", "id"], current]);
+          }}
           fetch("/map.geojson").then(function (r) {{ return r.json(); }})
             .then(function (gj) {{ all = gj; applyFilter(); }})
             .catch(function () {{}});
@@ -4118,14 +4234,29 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
             div.appendChild(link);
             new maplibregl.Popup().setLngLat(e.lngLat).setDOMContent(div).addTo(map);
           }});
-          ["clusters", "agencies"].forEach(function (layer) {{
-            map.on("mouseenter", layer, function () {{ map.getCanvas().style.cursor = "pointer"; }});
-            map.on("mouseleave", layer, function () {{ map.getCanvas().style.cursor = ""; }});
+          // Point -> row: hovering a point brushes its row and scrolls it into
+          // view (skipped under prefers-reduced-motion); leaving falls back to
+          // the pinned selection (or clears).
+          map.on("mousemove", "agencies", function (e) {{
+            map.getCanvas().style.cursor = "pointer";
+            var id = e.features[0].properties.id;
+            highlight(id);
+            var tr = rowById[id];
+            if (tr && !tr.hidden && !reduce) {{
+              tr.scrollIntoView({{ block: "nearest" }});
+            }}
           }});
+          map.on("mouseleave", "agencies", function () {{
+            map.getCanvas().style.cursor = "";
+            highlight(pinned);
+          }});
+          map.on("mouseenter", "clusters", function () {{ map.getCanvas().style.cursor = "pointer"; }});
+          map.on("mouseleave", "clusters", function () {{ map.getCanvas().style.cursor = ""; }});
         }});
-        gradeEl.addEventListener("change", applyFilter);
-        stateEl.addEventListener("change", applyFilter);
-        if (flexEl) flexEl.addEventListener("change", applyFilter);
+        function onFilterChange() {{ applyFilter(); }}
+        gradeEl.addEventListener("change", onFilterChange);
+        stateEl.addEventListener("change", onFilterChange);
+        if (flexEl) flexEl.addEventListener("change", onFilterChange);
       }})();
     </script>"""
     head_extra = (

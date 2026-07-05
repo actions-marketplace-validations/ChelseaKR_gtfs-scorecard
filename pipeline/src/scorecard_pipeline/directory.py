@@ -21,6 +21,7 @@ from __future__ import annotations
 from typing import Any
 
 from . import DATA_ATTRIBUTION, DATA_LICENSE, SCHEMA_VERSION
+from ._stats import _percentile
 
 # Size tiers by number of stops in the feed. The breakpoints sort the long tail
 # of small and rural systems (the audience) away from the big-city feeds, so a
@@ -43,18 +44,6 @@ def size_tier(stops: int | None) -> str:
         if stops < ceiling:
             return key
     return "large"
-
-
-def _percentile(score: float, peers: list[float]) -> int:
-    """Percent of peers this score is at least as good as (0–100).
-
-    Defined inclusively so the best score reads as 100 and ties don't punish an
-    agency for sharing a common score. Peers includes the agency itself.
-    """
-    if not peers:
-        return 0
-    at_or_below = sum(1 for p in peers if p <= score)
-    return round(100 * at_or_below / len(peers))
 
 
 def _median(values: list[float]) -> float | None:

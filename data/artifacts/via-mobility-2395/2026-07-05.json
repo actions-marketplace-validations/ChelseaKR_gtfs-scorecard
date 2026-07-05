@@ -220,26 +220,38 @@
     "realtime": {
       "details": {
         "coverage_pct": 100.0,
-        "covered_trips": 8,
+        "covered_trips": 9,
         "drift": {
-          "median_seconds": -76,
-          "observations": 84,
-          "on_time_share_pct": 45.2,
-          "p90_abs_seconds": 260
+          "median_seconds": -65,
+          "observations": 86,
+          "on_time_share_pct": 45.3,
+          "p90_abs_seconds": 248
         },
         "kinds_reachable": 3,
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 8,
-        "vehicles_checked": 22,
-        "vehicles_on_route_pct": 100.0,
+        "scheduled_trips_in_window": 9,
+        "vehicles_checked": 29,
+        "vehicles_on_route_pct": 89.7,
         "worst_lag_seconds": 4
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_rt_vehicles_off_route",
+          "count": 3,
+          "effort": "A vendor support ticket with the trip ids attached.",
+          "fix": "Ask your AVL vendor to check vehicle-to-trip assignments for the flagged trips.",
+          "owner": "",
+          "points": 1.6,
+          "severity": "WARNING",
+          "what": "3 of 29 sampled vehicle positions were far from their assigned route (worst: 423 m).",
+          "why": "A bus shown off its route usually means a wrong trip assignment; riders watch their bus drive the wrong streets."
+        }
+      ],
       "name": "realtime",
-      "score": 100.0,
+      "score": 98.4,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 100.0% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 76s ahead of schedule.",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 100.0% of scheduled trips had live predictions; 89.7% of vehicles on their route; predictions ran a median of 65s ahead of schedule.",
       "weight": 0.2
     }
   },
@@ -281,7 +293,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "4353bbd7e53321d5469f7268a1d4e86638a4fd43cb2910dd4185439a78b833d7",
+    "sha256": "359b9a5ec5448d2430fba1c74fa992a164b00148fc26e5fe8dc6706ecf79b3d3",
     "size_bytes": 217793,
     "static_url": "https://passio3.com/viaboulder/passioTransit/gtfs/google_transit.zip"
   },
@@ -333,9 +345,9 @@
   },
   "overall": {
     "grade": "D",
-    "margin_to_lower_band": 6.7,
-    "margin_to_next_band": 3.3,
-    "score": 66.7
+    "margin_to_lower_band": 6.4,
+    "margin_to_next_band": 3.6,
+    "score": 66.4
   },
   "recommendations": [
     {

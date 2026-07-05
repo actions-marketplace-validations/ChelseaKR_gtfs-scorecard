@@ -26,6 +26,7 @@ from typing import Any
 import yaml
 
 from . import SCHEMA_VERSION
+from ._stats import _percentile
 from .alerts import build_digest
 from .config import artifacts_dir, repo_root
 from .metrics import expiry_status
@@ -322,10 +323,33 @@ def publish_rollups(generated_at: dt.datetime | None = None) -> list[Path]:
 
     ridership = load_ridership(repo_root() / "data" / "ntd-ridership.csv")
 
+    # Pass 1: build every payload first. A cross-program percentile (below)
+    # needs every state's average_score before any one of them can be scored
+    # against the rest, the same reason directory.add_percentiles works in two
+    # passes over agencies.
+    built = [(rollup, build_rollup(rollup, when, attention, ridership)) for rollup in rollups]
+
+    # A neutral "how this program compares" read (E12/03-A7), scoped to genuine
+    # per-state cohorts only (Rollup.state is set): "all tracked agencies" and a
+    # named cohort like a single county are not peers of a 50-state programme,
+    # so mixing them in would misstate what the percentile is against. Framed
+    # the same way the per-agency page already does ("ahead of N% of..."), never
+    # as a rank, per the standing no-shaming constraint on any distribution view.
+    state_scores = [
+        payload["average_score"]
+        for rollup, payload in built
+        if rollup.state and payload["average_score"] is not None
+    ]
+    for rollup, payload in built:
+        payload["state_percentile"] = (
+            _percentile(payload["average_score"], state_scores)
+            if rollup.state and payload["average_score"] is not None
+            else None
+        )
+
     written: list[Path] = []
     index: list[dict[str, Any]] = []
-    for rollup in rollups:
-        payload = build_rollup(rollup, when, attention, ridership)
+    for rollup, payload in built:
         path = out_dir / f"{rollup.id}.json"
         _write_json(path, payload)
         written.append(path)

@@ -26,6 +26,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from ._stats import _GRADES
 from .anomaly import latest_anomaly
 from .atomfeed import agency_change_feed, site_change_feed
 from .config import artifacts_dir
@@ -36,7 +37,7 @@ from .feeddiff import FeedDiff, diff_artifacts
 from .findings_national import agency_findings, plain_language_coverage
 from .fixlog import load_fixlog
 from .google_gate import from_artifact as google_from_artifact
-from .metrics import expiry_status
+from .metrics import expiry_status, operating_signal
 from .mobilitydb import canonical_state
 from .ntd import assess as ntd_assess
 from .pages_tools import (
@@ -2570,6 +2571,235 @@ def _conformance_section(artifact: dict[str, Any], agency_id: str, agency_name: 
     )
 
 
+def _numeric_percent(value: Any) -> float | None:
+    """``value`` as a percentage, or None when it isn't really one.
+
+    Excludes bool even though ``isinstance(True, int)`` is True in Python: a
+    future refactor that stores a plain "meets the floor" flag under a details
+    key this reads must not silently pass as a percentage here.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int | float):
+        return float(value)
+    return None
+
+
+def _california_guideline_checklist(artifact: dict[str, Any]) -> list[dict[str, Any]]:
+    """The California Minimum GTFS Guidelines v2.0 Data Process Checklist, item
+    by item, scored from data this scorecard already computes -- no new metric,
+    per E11/03-A7's own scope. Each item's ``met`` is True/False when this tool
+    can honestly check it, or None when it cannot (the guideline covers ground
+    the scorecard does not, by design: it wraps the canonical validator and
+    scores rider-facing completeness, it does not run a second GTFS-Realtime
+    validator or track publish-cadence history). Wording and grouping mirror
+    the checklist's own three sections (fetched and verified 2026-07-05; see
+    docs/crosswalk.md) so a reader can match an item back to the source.
+    """
+    comp = artifact.get("categories", {}).get("completeness", {})
+    comp_measured = comp.get("status") == "measured"
+    comp_codes = {f.get("code") for f in comp.get("findings", [])} if comp_measured else set()
+    comp_details = comp.get("details", {}) if comp_measured else {}
+
+    correctness = artifact.get("categories", {}).get("correctness", {})
+    errors: int | None = None
+    if correctness.get("status") == "measured":
+        errors = sum(
+            1
+            for f in correctness.get("findings", [])
+            if str(f.get("severity", "")).upper() == "ERROR"
+        )
+
+    reachable = artifact.get("feed", {}).get("reachable")
+
+    access = comp_details.get("accessibility") or {}
+    stops_num = _numeric_percent(access.get("stops_stated_pct"))
+    trips_num = _numeric_percent(access.get("trips_stated_pct"))
+    wheelchair_met: bool | None = None
+    wheelchair_detail = "Accessibility completeness has not been measured."
+    if stops_num is not None and trips_num is not None:
+        wheelchair_met = stops_num >= 90 and trips_num >= 90
+        wheelchair_detail = (
+            f"States wheelchair access on {round(stops_num)}% of stops and "
+            f"{round(trips_num)}% of trips."
+        )
+
+    shapes = _current_shapes_readiness(artifact)
+    shapes_met = shapes.get("status") == "ready" if shapes else None
+
+    has_fares = comp_details.get("has_fares") if comp_measured else None
+    fare_free = comp_details.get("fare_free") if comp_measured else None
+    fares_met = True if fare_free else (bool(has_fares) if has_fares is not None else None)
+
+    contact_met = "scorecard_no_feed_contact" not in comp_codes if comp_measured else None
+
+    return [
+        {
+            "section": "GTFS Schedule",
+            "label": "Publish GTFS Schedule at a stable, automatically-fetchable URL",
+            "met": bool(reachable) if reachable is not None else None,
+            "detail": "The published feed URL downloaded at the last check."
+            if reachable
+            else "The published feed URL did not download at the last check."
+            if reachable is False
+            else "This feed has not yet been checked for reachability.",
+        },
+        {
+            "section": "GTFS Schedule",
+            "label": "Implement required fields: Fares v2, text-to-speech stop names, "
+            "shapes.txt, wheelchair_boarding, and Pathways where applicable",
+            "met": None,
+            "detail": "This scorecard measures wheelchair_boarding, shapes.txt coverage, "
+            "fare data, and station pathways separately, below; it does not check the "
+            "Fares v2 format specifically or text-to-speech stop names.",
+        },
+        {
+            "section": "GTFS Schedule",
+            "label": "Achieve a passing score in every category of the MobilityData GTFS "
+            "Grading Scheme v1",
+            "met": None,
+            "detail": "This scorecard automates a proxy for the Grading Scheme's rider-"
+            "facing fields (see the standards crosswalk) rather than running the scheme "
+            "itself, which grades by comparison to the real world by hand.",
+        },
+        {
+            "section": "GTFS Schedule",
+            "label": "Publish changes to the base schedule at least one week ahead of "
+            "every service change",
+            "met": None,
+            "detail": "This scorecard does not track a feed's publish history, so advance "
+            "notice cannot be checked.",
+        },
+        {
+            "section": "GTFS Schedule",
+            "label": "Produce no critical errors in the MobilityData GTFS Validator",
+            "met": (errors == 0) if errors is not None else None,
+            "detail": "Passes validation with no errors."
+            if errors == 0
+            else f"{errors} validator error{'s' if errors != 1 else ''} to resolve."
+            if errors
+            else "Validation has not run for this feed yet.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Publish Trip Updates, Vehicle Positions, and Alerts feeds",
+            "met": None,
+            "detail": "This scorecard checks realtime reachability and freshness overall; "
+            "it does not check for all three feed types individually.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Update Trip Updates and Vehicle Positions at least every 20 seconds",
+            "met": None,
+            "detail": "This scorecard samples realtime freshness; it does not check this "
+            "specific 20-second cadence.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Publish information for at least 99% of vehicles in service",
+            "met": None,
+            "detail": "This scorecard measures the share of scheduled trips represented "
+            "in TripUpdates, a related but different figure than vehicle coverage.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Keep 100% of trip_ids consistent between Schedule and Realtime",
+            "met": None,
+            "detail": "This scorecard does not currently check trip_id consistency "
+            "between the Schedule and Realtime feeds.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Produce no critical errors in the Center for Urban Transportation "
+            "Research realtime validator",
+            "met": None,
+            "detail": "This scorecard does not run the CUTR realtime validator.",
+        },
+        {
+            "section": "Data Access & Maintenance",
+            "label": "Publish accessible feed links on the agency or regional partner website",
+            "met": None,
+            "detail": "This scorecard does not check the agency's own website.",
+        },
+        {
+            "section": "Data Access & Maintenance",
+            "label": "Register GTFS and GTFS-Realtime feeds with transit.land and the "
+            "Mobility Database",
+            "met": None,
+            "detail": "This scorecard does not currently check aggregator registration "
+            "for this section.",
+        },
+        {
+            "section": "Data Access & Maintenance",
+            "label": "Designate a technical contact in feed_info.txt's feed_contact_email",
+            "met": contact_met,
+            "detail": "feed_info.txt states a technical contact."
+            if contact_met
+            else "feed_info.txt has no feed_contact_email or feed_contact_url."
+            if contact_met is False
+            else "Contact completeness has not been measured.",
+        },
+        {
+            "section": "Rider experience (measured elsewhere on this checklist's behalf)",
+            "label": "wheelchair_boarding stated on stops and trips",
+            "met": wheelchair_met,
+            "detail": wheelchair_detail,
+        },
+        {
+            "section": "Rider experience (measured elsewhere on this checklist's behalf)",
+            "label": "shapes.txt with a shape for every trip",
+            "met": shapes_met,
+            "detail": str(shapes.get("detail", ""))
+            if shapes
+            else "Shape coverage has not been measured for this feed.",
+        },
+        {
+            "section": "Rider experience (measured elsewhere on this checklist's behalf)",
+            "label": "Fare data published, or the service marked fare-free",
+            "met": fares_met,
+            "detail": "This service is marked fare-free."
+            if fare_free
+            else "Fare data is published."
+            if fares_met
+            else "No fare data is published."
+            if fares_met is False
+            else "Fare completeness has not been measured.",
+        },
+    ]
+
+
+def _california_guideline_html(artifact: dict[str, Any]) -> str:
+    """The California checklist, rendered as a labelled list grouped by the
+    guideline's own three sections. A pass/gap/not-measured read, never a
+    compliance determination -- the official checklist and its own reporting
+    are the authoritative source (docs/crosswalk.md)."""
+    items = _california_guideline_checklist(artifact)
+    measured = [i for i in items if i["met"] is not None]
+    met_count = sum(1 for i in items if i["met"])
+    rows = []
+    for item in items:
+        if item["met"] is True:
+            mark, cls = "Meets", "ntd-ready"
+        elif item["met"] is False:
+            mark, cls = "Gap", "ntd-not_ready"
+        else:
+            mark, cls = "Not measured here", "ntd-unknown"
+        rows.append(
+            f'<li><span class="ntd-status {cls}">{esc(mark)}</span> '
+            f"<strong>{esc(item['label'])}</strong>"
+            f'<p class="fineprint">{esc(item["detail"])}</p></li>'
+        )
+    return (
+        '<details class="confidence-how"><summary>California Minimum GTFS Guidelines '
+        f"checklist ({met_count} of {len(measured)} measured items met)</summary>"
+        '<p class="fineprint">The state\'s own Data Process Checklist, matched item by '
+        'item to what this scorecard already measures. An item marked "not measured '
+        'here" is real ground the checklist covers that this tool does not check; see '
+        "the official checklist for the full picture.</p>"
+        f'<ul class="autofix-list">{"".join(rows)}</ul></details>'
+    )
+
+
 def _standards_section(artifact: dict[str, Any], state: str = "") -> str:
     """How this agency's category scores line up with the standards it relates to.
 
@@ -2618,6 +2848,8 @@ def _standards_section(artifact: dict[str, Any], state: str = "") -> str:
                 "industry ones below; the score maps to those."
             )
         state_html += "</p>"
+        if state_std.get("kind") == "guideline":
+            state_html += _california_guideline_html(artifact)
     return (
         '<section aria-labelledby="standards-h" class="feed-details">'
         '<h2 class="section-title" id="standards-h">How this agency maps to the standards</h2>'
@@ -2664,7 +2896,7 @@ def _index_card(aid: str, a: dict[str, Any], note: str = "") -> str:
     )
 
 
-def _render_agency_index(index: dict[str, Any]) -> str:
+def _render_agency_index(index: dict[str, Any], liveness: dict[str, dict[str, Any]]) -> str:
     canonical = f"{BASE_URL}/agencies/"
     agencies = sorted(index["agencies"].items(), key=lambda kv: kv[1]["name"].lower())
 
@@ -2672,9 +2904,17 @@ def _render_agency_index(index: dict[str, Any]) -> str:
     # buried in a long alphabetical wall of grade F. Split them: a recently
     # lapsed feed is a one-line re-export the agency can still fix; a feed that
     # has been dead for over a year usually means the URL itself is stale and the
-    # canonical endpoint should be re-checked in the Mobility Database.
+    # canonical endpoint should be re-checked in the Mobility Database. Within
+    # "expired over a year", a further automatic split (metrics.operating_signal,
+    # from the intraday liveness check, not a curator's manual note): a feed
+    # whose URL has itself failed every check for a sustained month reads
+    # differently in a caseload view than one whose stale calendar sits on a
+    # still-answering host. Neither is "the agency stopped" -- that stays a
+    # human call -- but a liaison should not have to guess which one they are
+    # looking at from the same one-line caption.
     lapsed: list[tuple[str, dict[str, Any], int]] = []
-    stale: list[tuple[str, dict[str, Any], int]] = []
+    stale_reachable: list[tuple[str, dict[str, Any], int]] = []
+    stale_unreachable: list[tuple[str, dict[str, Any], int]] = []
     graded: list[tuple[str, dict[str, Any]]] = []
     for aid, a in agencies:
         last = a["history"][-1]
@@ -2683,18 +2923,24 @@ def _render_agency_index(index: dict[str, Any]) -> str:
         if status == "lapsed":
             lapsed.append((aid, a, int(days)))
         elif status == "stale":
-            stale.append((aid, a, int(days)))
+            failures = int((liveness.get(aid) or {}).get("consecutive_failures") or 0)
+            if operating_signal(status, failures) == "unreachable":
+                stale_unreachable.append((aid, a, int(days)))
+            else:
+                stale_reachable.append((aid, a, int(days)))
         else:
             graded.append((aid, a))
     # Most recently expired first: the closest to recovery, and the most likely
     # to still be operating.
     lapsed.sort(key=lambda t: t[2], reverse=True)
-    stale.sort(key=lambda t: t[2], reverse=True)
+    stale_reachable.sort(key=lambda t: t[2], reverse=True)
+    stale_unreachable.sort(key=lambda t: t[2], reverse=True)
+    stale_total = len(stale_reachable) + len(stale_unreachable)
 
     nav = []
     expired_section = ""
-    if lapsed or stale:
-        nav.append(f'<a href="#expired">Expired ({len(lapsed) + len(stale)})</a>')
+    if lapsed or stale_total:
+        nav.append(f'<a href="#expired">Expired ({len(lapsed) + stale_total})</a>')
         groups = []
         if lapsed:
             rows = "".join(
@@ -2711,27 +2957,46 @@ def _render_agency_index(index: dict[str, Any]) -> str:
                 "reaches further out brings them back into trip planners.</p>"
                 f'<ul class="agency-list">{rows}</ul></section>'
             )
-        if stale:
+        if stale_reachable:
             rows = "".join(
                 _index_card(aid, a, f"Feed expired {_expired_ago(d)} · check the feed URL")
-                for aid, a, d in stale
+                for aid, a, d in stale_reachable
             )
             groups.append(
                 '<section aria-labelledby="stale-h">'
                 '<h3 class="section-sub" id="stale-h">Expired over a year ago '
-                f'<span class="grade-count">{len(stale)} '
-                f"{'agency' if len(stale) == 1 else 'agencies'}</span></h3>"
+                f'<span class="grade-count">{len(stale_reachable)} '
+                f"{'agency' if len(stale_reachable) == 1 else 'agencies'}</span></h3>"
                 '<p class="group-note">Expired more than a year ago. For these, the feed URL on '
                 "file is still the one listed in the Mobility Database, so the stale data is at "
                 "the source: the agency or its vendor stopped refreshing the export. Worth "
                 "confirming the agency still runs before reading the grade as a current failure.</p>"
                 f'<ul class="agency-list">{rows}</ul></section>'
             )
+        if stale_unreachable:
+            rows = "".join(
+                _index_card(
+                    aid, a, f"Feed expired {_expired_ago(d)} · link unreachable for 30+ checks"
+                )
+                for aid, a, d in stale_unreachable
+            )
+            groups.append(
+                '<section aria-labelledby="unreachable-h">'
+                '<h3 class="section-sub" id="unreachable-h">Long unreachable '
+                f'<span class="grade-count">{len(stale_unreachable)} '
+                f"{'agency' if len(stale_unreachable) == 1 else 'agencies'}</span></h3>"
+                '<p class="group-note">Expired more than a year ago, and the feed URL itself '
+                "has not answered the last 30 checks in a row &mdash; a stronger signal than "
+                "an old calendar alone. This may mean the feed moved, the listing is stale, or "
+                "service has changed; we cannot tell which from here. Worth confirming directly "
+                "before reading it either way.</p>"
+                f'<ul class="agency-list">{rows}</ul></section>'
+            )
         expired_section = (
             '<section class="expired-panel" aria-labelledby="expired">'
             '<h2 class="section-title" id="expired">Expired feeds '
-            f'<span class="grade-count">{len(lapsed) + len(stale)} '
-            f"{'agency' if len(lapsed) + len(stale) == 1 else 'agencies'}</span></h2>"
+            f'<span class="grade-count">{len(lapsed) + stale_total} '
+            f"{'agency' if len(lapsed) + stale_total == 1 else 'agencies'}</span></h2>"
             '<p class="page-lede">A feed whose calendar has run out is invisible to trip '
             "planners even when the buses keep running. These are pulled out of the grade list "
             "below so the fixable ones are easy to find.</p>"
@@ -2783,6 +3048,45 @@ def _render_agency_index(index: dict[str, Any]) -> str:
     )
 
 
+def _grade_distribution_bar(dist: dict[str, Any], total: int) -> str:
+    """One labelled segment per grade, sized by share -- the Python twin of
+    app.js's gradeDistributionBar, so the static program page shows the same
+    shape crawlers and no-JS visitors get everywhere else. Decorative fill, but
+    each segment is a labelled list item so the same information (grade,
+    count, share) is available without color; empty when there is nothing to
+    show a distribution over."""
+    if not total:
+        return ""
+    segs = []
+    for g in _GRADES:
+        raw = dist.get(g)
+        n = raw if isinstance(raw, int) and not isinstance(raw, bool) else 0
+        if not n:
+            continue
+        pct = round(100 * n / total)
+        segs.append(
+            f'<li class="grade-seg {_grade_class(g)}" style="--share:{pct}" '
+            f'title="{n} graded {g} ({pct}%)"><span class="seg-fill" aria-hidden="true">'
+            f'</span><span class="seg-label">{g} <span class="seg-n">{n}</span></span></li>'
+        )
+    return (
+        '<ul class="grade-distribution" aria-label="Grade distribution across this program">'
+        f"{''.join(segs)}</ul>"
+    )
+
+
+def _rollup_percentile_context(payload: dict[str, Any]) -> str:
+    """How this program's average score compares to other state programs, the
+    rollup-level twin of the per-agency _peer_context. A neutral distribution
+    read ("ahead of N% of..."), never a rank -- and None (rendered as nothing)
+    for "all tracked agencies" and named cohorts, which are not peers of a
+    50-state comparison (rollups.publish_rollups)."""
+    pct = payload.get("state_percentile")
+    if pct is None:
+        return ""
+    return f'<p class="peer-context">This program\'s average score is ahead of {pct}% of tracked state programs.</p>'
+
+
 def _render_rollup(rollup: dict[str, Any]) -> str:
     rid = rollup["rollup"]["id"]
     rname = rollup["rollup"]["name"]
@@ -2808,6 +3112,16 @@ def _render_rollup(rollup: dict[str, Any]) -> str:
         )
     rows = "".join(rows_parts)
     avg = "—" if rollup.get("average_score") is None else f"{rollup['average_score']} out of 100"
+    percentile_context = _rollup_percentile_context(rollup)
+    dist_bar = _grade_distribution_bar(
+        rollup.get("grade_distribution") or {}, rollup["agency_count"]
+    )
+    dist_section = (
+        f'<section aria-labelledby="dist-h"><h2 class="section-title visually-hidden" '
+        f'id="dist-h">Grade distribution</h2>{dist_bar}</section>'
+        if dist_bar
+        else ""
+    )
     expired_section = _rollup_expired_section(rollup)
     shapes_section = _rollup_shapes_section(rollup)
     crumb = _breadcrumb([("Home", "/"), ("All agencies", "/agencies/"), (rname, None)])
@@ -2818,9 +3132,11 @@ def _render_rollup(rollup: dict[str, Any]) -> str:
         <h1 class="page-title">{esc(rname)}</h1>
         <p class="overall"><strong>{rollup["agency_count"]} agencies</strong> ·
           {avg} average · {rollup["needs_attention"]} need attention</p>
+        {percentile_context}
       </div>
     </div>
     {_route_rule()}
+    {dist_section}
     {expired_section}
     {shapes_section}
     <section aria-labelledby="members-h">
@@ -5611,7 +5927,11 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:
         str(aid): (entry or {}).get("history") or []
         for aid, entry in (index.get("agencies") or {}).items()
     }
-    write("agencies/index.html", _render_agency_index(index))
+    # Per-feed change-detection freshness from the intraday refresh; loaded once,
+    # early, so both the directory's expired-feed split and each agency page
+    # (below) read the same state.
+    liveness_state = _load_liveness()
+    write("agencies/index.html", _render_agency_index(index, liveness_state))
     states = _states_by_agency()
     from .config import AGENCIES
 
@@ -5741,10 +6061,8 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:
     # copies, so the interactive widget and the pipeline agree by construction.
     write("api/v1/scoring.json", scoring_json)
 
-    # Per-feed change-detection freshness from the intraday refresh, shown on each
-    # page so a reader can see how current the monitoring is. Absent until the
-    # refresh has run, in which case the note is simply omitted.
-    liveness_state = _load_liveness()
+    # liveness_state was loaded earlier (with the directory page); each agency
+    # page below reuses that same read.
 
     # Pass 2: render each agency page with its directory record, so the static
     # page shows the same peer line as the interactive view (crawlers and no-JS

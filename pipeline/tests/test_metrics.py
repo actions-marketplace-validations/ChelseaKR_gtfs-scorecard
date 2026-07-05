@@ -5,7 +5,14 @@ from __future__ import annotations
 import datetime as dt
 
 from scorecard_pipeline.gtfs import FeedDates
-from scorecard_pipeline.metrics import STALE_FEED_DAYS, correctness, expiry_status, freshness
+from scorecard_pipeline.metrics import (
+    STALE_FEED_DAYS,
+    UNREACHABLE_STREAK_CHECKS,
+    correctness,
+    expiry_status,
+    freshness,
+    operating_signal,
+)
 from scorecard_pipeline.validate import NoticeGroup, ValidationReport
 
 TODAY = dt.date(2026, 6, 11)
@@ -209,6 +216,21 @@ class TestExpiryStatus:
     def test_stale_past_a_year(self) -> None:
         assert expiry_status(-STALE_FEED_DAYS) == "stale"
         assert expiry_status(-1628) == "stale"
+
+
+class TestOperatingSignal:
+    def test_empty_for_a_current_or_expiring_feed(self) -> None:
+        assert operating_signal("current", 0) == ""
+        assert operating_signal("expiring_soon", 40) == ""
+        assert operating_signal("unknown", 0) == ""
+
+    def test_reachable_when_failures_below_the_streak(self) -> None:
+        assert operating_signal("lapsed", 0) == "reachable"
+        assert operating_signal("stale", UNREACHABLE_STREAK_CHECKS - 1) == "reachable"
+
+    def test_unreachable_at_the_streak_threshold(self) -> None:
+        assert operating_signal("stale", UNREACHABLE_STREAK_CHECKS) == "unreachable"
+        assert operating_signal("lapsed", UNREACHABLE_STREAK_CHECKS + 10) == "unreachable"
 
 
 def test_finding_to_json_carries_point_value() -> None:

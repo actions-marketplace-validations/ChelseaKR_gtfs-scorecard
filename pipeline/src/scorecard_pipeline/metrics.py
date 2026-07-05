@@ -201,6 +201,42 @@ def expiry_status(days_until_expiry: int | None) -> str:
     return "stale"
 
 
+# 30 consecutive failed liveness checks (liveness.py) is long enough that "the
+# server had a bad day" stops being the likely explanation, while staying clear
+# of an ordinary blip -- an outage, a lapsed certificate -- that recovers within
+# a few checks. Deliberately a check *count*, not a calendar duration: a stale
+# feed is "standard" cadence tier (cadence.py), checked a few times a day, not
+# once, so "30 failures" is roughly a week, not a month -- and the exact
+# elapsed time depends on cadence.py's tiering, which this module does not
+# import and should not assume. Callers should describe this as a streak of
+# checks, not translate it into a specific number of days.
+UNREACHABLE_STREAK_CHECKS = 30
+
+
+def operating_signal(status: str, consecutive_failures: int) -> str:
+    """Whether an expired feed's URL is itself still being served, a neutral
+    read that stops short of guessing at the agency's operating status.
+
+    Only meaningful once a feed has already expired (``status`` "lapsed" or
+    "stale", from `expiry_status`); returns "" for a current or expiring-soon
+    feed, since there is nothing to classify yet. The distinction this adds is
+    not "is the agency running" -- that is exactly the guess this stays
+    neutral about -- but a narrower, automatic, already-observed fact:
+
+    - ``"reachable"``   the feed's URL still answers; only the calendar went
+                        stale, not the hosting behind it.
+    - ``"unreachable"`` the URL itself has failed every check for at least
+                        `UNREACHABLE_STREAK_CHECKS` running: a stronger and
+                        separate signal from an old calendar, worth reading
+                        differently in a caseload view. Still not proof the
+                        agency stopped -- a moved feed URL or a dropped
+                        Mobility Database listing look the same from here.
+    """
+    if status not in ("lapsed", "stale"):
+        return ""
+    return "unreachable" if consecutive_failures >= UNREACHABLE_STREAK_CHECKS else "reachable"
+
+
 def freshness(dates: FeedDates, today: dt.date, service_type: str = "fixed") -> CategoryResult:
     """Score how far into the future the feed remains usable.
 

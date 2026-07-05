@@ -66,6 +66,8 @@ Correctness (validator notices):
 
 Freshness (scorecard codes):
 
+- [`scorecard_feed_expired`](scorecard_feed_expired.md)
+- [`scorecard_feed_expiring_soon`](scorecard_feed_expiring_soon.md)
 - [`scorecard_missing_feed_info_dates`](scorecard_missing_feed_info_dates.md)
 
 Rider experience completeness (scorecard codes):
@@ -74,6 +76,8 @@ Rider experience completeness (scorecard codes):
 - [`scorecard_missing_headsigns`](scorecard_missing_headsigns.md)
 - [`scorecard_no_fare_data`](scorecard_no_fare_data.md)
 - [`scorecard_no_feed_contact`](scorecard_no_feed_contact.md)
+- [`scorecard_station_no_pathways`](scorecard_station_no_pathways.md)
+- [`scorecard_stop_names_all_caps`](scorecard_stop_names_all_caps.md)
 - [`scorecard_wheelchair_accessible_unknown`](scorecard_wheelchair_accessible_unknown.md)
 - [`scorecard_wheelchair_boarding_unknown`](scorecard_wheelchair_boarding_unknown.md)
 

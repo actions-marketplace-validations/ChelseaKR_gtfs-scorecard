@@ -13,7 +13,11 @@ from pathlib import Path
 import pytest
 
 from scorecard_pipeline.rule_links import (
+    BEST_PRACTICE,
     BEST_PRACTICES_PAGE,
+    REALTIME_REFERENCE,
+    REALTIME_REFERENCE_PAGE,
+    REFERENCE,
     RULE_LINKS,
     SCHEDULE_REFERENCE_PAGE,
     VALIDATOR,
@@ -21,6 +25,12 @@ from scorecard_pipeline.rule_links import (
     rule_link_for,
     validator_rule_url,
 )
+
+_NON_VALIDATOR_BASE_BY_KIND = {
+    BEST_PRACTICE: BEST_PRACTICES_PAGE,
+    REFERENCE: SCHEDULE_REFERENCE_PAGE,
+    REALTIME_REFERENCE: REALTIME_REFERENCE_PAGE,
+}
 
 FIXES_DIR = Path(__file__).resolve().parents[2] / "docs" / "fixes"
 
@@ -64,7 +74,7 @@ def test_non_validator_links_point_to_gtfs_org_sections() -> None:
     for code, link in RULE_LINKS.items():
         if link.kind == VALIDATOR:
             continue
-        base = BEST_PRACTICES_PAGE if link.kind == "best_practice" else SCHEDULE_REFERENCE_PAGE
+        base = _NON_VALIDATOR_BASE_BY_KIND[link.kind]
         assert link.url.startswith(f"{base}#"), code
 
 
@@ -97,5 +107,5 @@ def test_fallback_returns_curated_entry_when_present() -> None:
 @pytest.mark.parametrize("code", sorted(RULE_LINKS))
 def test_table_entries_are_frozen_and_complete(code: str) -> None:
     link = RULE_LINKS[code]
-    assert link.kind in {"validator", "best_practice", "reference"}
+    assert link.kind in {VALIDATOR, BEST_PRACTICE, REFERENCE, REALTIME_REFERENCE}
     assert link.url

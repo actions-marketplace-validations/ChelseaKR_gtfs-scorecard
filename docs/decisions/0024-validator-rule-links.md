@@ -94,6 +94,20 @@ fold into) carries a `#booking_rulestxt` anchor; the Best Practices page has no
 dedicated GTFS-Flex section, so `REFERENCE` rather than `BEST_PRACTICE` is the
 honest kind.
 
+**2026-07-05 addition (3):** added a fourth authority, `REALTIME_REFERENCE`
+(`gtfs.org/documentation/realtime/reference/`), for the four `scorecard_rt_*`
+findings (rt.py). These score GTFS-Realtime, which the canonical gtfs-validator
+does not check and GTFS Best Practices does not cover, so neither existing
+non-validator authority is honest for them; the message-definition anchors were
+fetched and verified live: `#message-tripupdate`, `#message-vehicleposition`,
+and `#message-alert` each resolve to that message's own heading.
+`scorecard_rt_trip_coverage` also maps to `#message-tripupdate`: the reference
+defines what a TripUpdate is but does not itself state a "100% of operating
+trips" expectation (that figure is Caltrans v4.0 guidance, already cited in
+rt.py's docstring and named on the fix page), so the message definition is the
+closest honest spec anchor rather than a claim that the reference states the
+coverage expectation directly.
+
 ## Maintenance
 
 When a fix page is added under `docs/fixes/`, add its `RULE_LINKS` entry in the

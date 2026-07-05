@@ -70,6 +70,15 @@ non-validator links point at gtfs.org sections. The live URLs are intentionally
 not fetched in CI (no network); re-verify them when the validator's rules page
 layout changes.
 
+**2026-07-05 addition:** `stop_too_far_from_shape` is a straight validator-
+notice alias (its anchor is built the same deterministic way as every other
+validator entry, so no separate live check was needed). `scorecard_flex_no_
+booking_rules` was fetched and verified live: the Schedule reference page
+(`gtfs.org/schedule/reference/`, the same page the Flex extension's fields
+fold into) carries a `#booking_rulestxt` anchor; the Best Practices page has no
+dedicated GTFS-Flex section, so `REFERENCE` rather than `BEST_PRACTICE` is the
+honest kind.
+
 ## Maintenance
 
 When a fix page is added under `docs/fixes/`, add its `RULE_LINKS` entry in the

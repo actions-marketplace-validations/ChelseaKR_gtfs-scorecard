@@ -27,6 +27,10 @@ The mismatch is between three things; check which is off for the flagged trips:
   measurements are off, regenerate them. Many tools compute `shape_dist_traveled`
   automatically; re-running that step usually clears this.
 
+See [a stop far from the shape by raw geometric distance](stop_too_far_from_shape.md)
+for the related case where the shape and the stop simply disagree in space,
+with no `shape_dist_traveled` measurement involved.
+
 ## How long it usually takes
 
 Often a regeneration step in your scheduling tool rather than hand-editing. If a

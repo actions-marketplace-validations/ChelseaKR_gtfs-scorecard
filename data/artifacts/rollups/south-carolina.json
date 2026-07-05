@@ -33,7 +33,7 @@
     "stale": 4,
     "total": 4
   },
-  "generated_at": "2026-07-05T05:03:30+00:00",
+  "generated_at": "2026-07-05T08:43:02+00:00",
   "grade_distribution": {
     "C": 1,
     "D": 2,
@@ -144,12 +144,13 @@
     "id": "south-carolina",
     "name": "South Carolina agencies"
   },
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "shapes_readiness": {
     "at_risk": 0,
     "not_measured": 7,
     "not_ready": 0,
     "ready": 0,
     "total": 7
-  }
+  },
+  "state_percentile": 30
 }

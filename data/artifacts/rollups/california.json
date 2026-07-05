@@ -143,7 +143,7 @@
     "stale": 44,
     "total": 65
   },
-  "generated_at": "2026-07-05T05:03:30+00:00",
+  "generated_at": "2026-07-05T08:43:02+00:00",
   "grade_distribution": {
     "A": 6,
     "B": 34,
@@ -2048,12 +2048,13 @@
     "id": "california",
     "name": "California agencies"
   },
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "shapes_readiness": {
     "at_risk": 0,
     "not_measured": 135,
     "not_ready": 0,
     "ready": 0,
     "total": 135
-  }
+  },
+  "state_percentile": null
 }

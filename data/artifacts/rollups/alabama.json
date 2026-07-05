@@ -38,7 +38,7 @@
     "stale": 5,
     "total": 6
   },
-  "generated_at": "2026-07-05T05:03:30+00:00",
+  "generated_at": "2026-07-05T08:43:02+00:00",
   "grade_distribution": {
     "B": 1,
     "C": 3,
@@ -191,12 +191,13 @@
     "id": "alabama",
     "name": "Alabama agencies"
   },
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "shapes_readiness": {
     "at_risk": 0,
     "not_measured": 10,
     "not_ready": 0,
     "ready": 0,
     "total": 10
-  }
+  },
+  "state_percentile": 52
 }

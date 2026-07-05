@@ -5,33 +5,33 @@
         "code": "missing_bike_allowance",
         "sample_notices": [
           {
-            "csvRowNumber": 55,
+            "csvRowNumber": 377,
             "routeId": "AS",
-            "tripId": "277"
+            "tripId": "987"
           },
           {
-            "csvRowNumber": 56,
+            "csvRowNumber": 378,
             "routeId": "AS",
-            "tripId": "278"
+            "tripId": "988"
           },
           {
-            "csvRowNumber": 57,
+            "csvRowNumber": 379,
             "routeId": "AS",
-            "tripId": "279"
+            "tripId": "989"
           },
           {
-            "csvRowNumber": 58,
+            "csvRowNumber": 380,
             "routeId": "AS",
-            "tripId": "280"
+            "tripId": "990"
           },
           {
-            "csvRowNumber": 59,
+            "csvRowNumber": 381,
             "routeId": "AS",
-            "tripId": "281"
+            "tripId": "991"
           }
         ],
         "severity": "WARNING",
-        "total": 650
+        "total": 569
       },
       {
         "code": "missing_feed_contact_email_and_url",
@@ -55,22 +55,10 @@
         ],
         "severity": "WARNING",
         "total": 1
-      },
-      {
-        "code": "trip_coverage_not_active_for_next7_days",
-        "sample_notices": [
-          {
-            "currentDate": "20260704",
-            "serviceWindowEndDate": "20271226",
-            "serviceWindowStartDate": "20260705"
-          }
-        ],
-        "severity": "WARNING",
-        "total": 1
       }
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "8853beda98a0e0cf902f3ab4f3f6c67710ccb9b564584d1c0bea835f115eb1fd",
+  "sha256": "c28cdf72cde39a5fb02a437c5732a3d487ce55d830719ae6f2c5d0004c635693",
   "validator_version": "8.0.1"
 }

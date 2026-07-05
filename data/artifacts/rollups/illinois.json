@@ -53,7 +53,7 @@
     "stale": 4,
     "total": 6
   },
-  "generated_at": "2026-07-05T05:03:30+00:00",
+  "generated_at": "2026-07-05T08:43:02+00:00",
   "grade_distribution": {
     "B": 1,
     "C": 3,
@@ -305,12 +305,13 @@
     "id": "illinois",
     "name": "Illinois agencies"
   },
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "shapes_readiness": {
     "at_risk": 0,
     "not_measured": 17,
     "not_ready": 0,
     "ready": 0,
     "total": 17
-  }
+  },
+  "state_percentile": 39
 }

@@ -48,7 +48,7 @@
     "stale": 7,
     "total": 8
   },
-  "generated_at": "2026-07-05T05:03:30+00:00",
+  "generated_at": "2026-07-05T08:43:02+00:00",
   "grade_distribution": {
     "B": 7,
     "C": 3,
@@ -370,12 +370,13 @@
     "id": "wisconsin",
     "name": "Wisconsin agencies"
   },
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "shapes_readiness": {
     "at_risk": 0,
     "not_measured": 22,
     "not_ready": 0,
     "ready": 0,
     "total": 22
-  }
+  },
+  "state_percentile": 70
 }

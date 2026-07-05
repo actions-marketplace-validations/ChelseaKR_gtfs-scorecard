@@ -93,7 +93,7 @@
     "stale": 20,
     "total": 33
   },
-  "generated_at": "2026-07-05T05:03:30+00:00",
+  "generated_at": "2026-07-05T08:43:02+00:00",
   "grade_distribution": {
     "A": 6,
     "B": 2,
@@ -1326,12 +1326,13 @@
     "id": "new-york",
     "name": "New York agencies"
   },
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "shapes_readiness": {
     "at_risk": 0,
     "not_measured": 87,
     "not_ready": 0,
     "ready": 0,
     "total": 87
-  }
+  },
+  "state_percentile": 41
 }

@@ -48,6 +48,16 @@
         "total": 2
       },
       {
+        "code": "missing_recommended_file",
+        "sample_notices": [
+          {
+            "filename": "feed_info.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
         "code": "stop_without_stop_time",
         "sample_notices": [
           {
@@ -63,8 +73,8 @@
         "code": "trip_coverage_not_active_for_next7_days",
         "sample_notices": [
           {
-            "currentDate": "20260704",
-            "serviceWindowEndDate": "20260803",
+            "currentDate": "20260705",
+            "serviceWindowEndDate": "20260804",
             "serviceWindowStartDate": "20260706"
           }
         ],
@@ -72,23 +82,10 @@
         "total": 1
       },
       {
-        "code": "feed_valid_beyond_total_service_window",
-        "sample_notices": [
-          {
-            "feedEndDate": "2026-11-22",
-            "feedStartDate": "2026-06-05",
-            "serviceWindowEndDate": "2026-08-03",
-            "serviceWindowStartDate": "2026-07-06"
-          }
-        ],
-        "severity": "INFO",
-        "total": 1
-      },
-      {
         "code": "future_calendar",
         "sample_notices": [
           {
-            "currentDate": "2026-07-04",
+            "currentDate": "2026-07-05",
             "minServiceStartDate": "2026-07-06"
           }
         ],
@@ -110,6 +107,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "03854b0307f8c028bbd55b38187fd69e7689523c6c6bbb942612f7b3eab59213",
+  "sha256": "1937fc840c6f8181218e36a5e5f2a750310c895cfc379e76d499fcdf3437009d",
   "validator_version": "8.0.1"
 }

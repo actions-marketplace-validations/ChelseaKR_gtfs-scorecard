@@ -19,10 +19,37 @@
         "total": 2
       },
       {
+        "code": "unused_shape",
+        "sample_notices": [
+          {
+            "csvRowNumber": 8729,
+            "shapeId": "15_3423000_3423001"
+          },
+          {
+            "csvRowNumber": 8833,
+            "shapeId": "15_3423001_3423000"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 2
+      },
+      {
         "code": "missing_recommended_file",
         "sample_notices": [
           {
             "filename": "feed_info.txt"
+          }
+        ],
+        "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "trip_coverage_not_active_for_next7_days",
+        "sample_notices": [
+          {
+            "currentDate": "20260705",
+            "serviceWindowEndDate": "20260805",
+            "serviceWindowStartDate": "20260706"
           }
         ],
         "severity": "WARNING",
@@ -43,6 +70,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "443dfa262822757eb43393594ece6bfe7169179a7787359df3b87698961c40e9",
+  "sha256": "feeed2b3735ff40cf504a9f009c526884531057318c7722d01e52f30b13b8282",
   "validator_version": "8.0.1"
 }

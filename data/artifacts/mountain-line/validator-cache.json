@@ -2,33 +2,6 @@
   "report": {
     "notices": [
       {
-        "code": "stop_without_stop_time",
-        "sample_notices": [
-          {
-            "csvRowNumber": 86,
-            "stopId": "138",
-            "stopName": "S Higgins Ave & S 5th St"
-          },
-          {
-            "csvRowNumber": 87,
-            "stopId": "455",
-            "stopName": "Lewis & Clark Villages"
-          },
-          {
-            "csvRowNumber": 88,
-            "stopId": "456",
-            "stopName": "Dornblaser"
-          },
-          {
-            "csvRowNumber": 89,
-            "stopId": "457",
-            "stopName": "Missoula Farmer's Market"
-          }
-        ],
-        "severity": "WARNING",
-        "total": 4
-      },
-      {
         "code": "missing_feed_contact_email_and_url",
         "sample_notices": [
           {
@@ -37,34 +10,10 @@
         ],
         "severity": "WARNING",
         "total": 1
-      },
-      {
-        "code": "route_color_contrast",
-        "sample_notices": [
-          {
-            "csvRowNumber": 8,
-            "routeColor": "#AD0101",
-            "routeId": "4",
-            "routeTextColor": "#000000"
-          }
-        ],
-        "severity": "WARNING",
-        "total": 1
-      },
-      {
-        "code": "unused_shape",
-        "sample_notices": [
-          {
-            "csvRowNumber": 11459,
-            "shapeId": "shp-5102-02"
-          }
-        ],
-        "severity": "WARNING",
-        "total": 1
       }
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "bf4f4ada4e8b2bc4026947cd56ca96dec2d2c7514268b78a45bbbdf70440af72",
+  "sha256": "3d4c2bd604e4cfd3458b701582b7a2dec2c78778cda75dbb224f7d681ee22c97",
   "validator_version": "8.0.1"
 }

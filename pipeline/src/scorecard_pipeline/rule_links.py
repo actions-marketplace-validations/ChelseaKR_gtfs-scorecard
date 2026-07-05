@@ -7,7 +7,7 @@ California statewide GTFS quality reports are structured around exactly those),
 so every finding earns credibility by pointing back to its authoritative rule.
 
 This module is the single source of truth for that finding -> rule mapping. It
-keys each finding code the scorecard renders a fix page for to one of three
+keys each finding code the scorecard renders a fix page for to one of four
 authorities:
 
 - ``VALIDATOR`` — a canonical gtfs-validator notice. The scorecard's code is
@@ -20,6 +20,11 @@ authorities:
   valid GTFS, just poorer rider experience).
 - ``REFERENCE`` — the GTFS Schedule reference section that defines the field,
   used where no Best Practice states the expectation but the spec field does.
+- ``REALTIME_REFERENCE`` — the GTFS-Realtime reference's message definitions,
+  for the scorecard's realtime-quality findings. The canonical gtfs-validator
+  runs against GTFS Schedule only, so no validator notice applies to a
+  realtime finding; Best Practices is Schedule-scoped too, so the message spec
+  itself is the honest authority.
 
 Findings with no honest mapping are left out of the table rather than linked to
 a tenuous one. ``docs/decisions/0024-validator-rule-links.md`` records why and
@@ -37,17 +42,20 @@ from dataclasses import dataclass
 VALIDATOR_RULES_PAGE = "https://gtfs-validator.mobilitydata.org/rules.html"
 BEST_PRACTICES_PAGE = "https://gtfs.org/schedule/best-practices/"
 SCHEDULE_REFERENCE_PAGE = "https://gtfs.org/schedule/reference/"
+REALTIME_REFERENCE_PAGE = "https://gtfs.org/documentation/realtime/reference/"
 
 # RuleLink.kind values.
 VALIDATOR = "validator"
 BEST_PRACTICE = "best_practice"
 REFERENCE = "reference"
+REALTIME_REFERENCE = "realtime_reference"
 
 # Human label for each authority, shown next to the link.
 AUTHORITY_LABELS = {
     VALIDATOR: "MobilityData GTFS Validator rules",
     BEST_PRACTICE: "GTFS Best Practices",
     REFERENCE: "GTFS Schedule reference",
+    REALTIME_REFERENCE: "GTFS-Realtime reference",
 }
 
 
@@ -172,6 +180,27 @@ RULE_LINKS: dict[str, RuleLink] = {
     # Practice, so REFERENCE is the honest kind.
     "scorecard_flex_no_booking_rules": RuleLink(
         kind=REFERENCE, url=f"{SCHEDULE_REFERENCE_PAGE}#booking_rulestxt"
+    ),
+    # Realtime quality (rt.py): reachability of each of the three GTFS-Realtime
+    # feed types, and how much of the schedule TripUpdates actually covers. The
+    # canonical validator scores GTFS Schedule only, so these have no validator
+    # notice or Best Practice to alias; the message spec itself is the honest
+    # authority for each feed type.
+    "scorecard_rt_trip_updates_unreachable": RuleLink(
+        kind=REALTIME_REFERENCE, url=f"{REALTIME_REFERENCE_PAGE}#message-tripupdate"
+    ),
+    "scorecard_rt_vehicle_positions_unreachable": RuleLink(
+        kind=REALTIME_REFERENCE, url=f"{REALTIME_REFERENCE_PAGE}#message-vehicleposition"
+    ),
+    "scorecard_rt_service_alerts_unreachable": RuleLink(
+        kind=REALTIME_REFERENCE, url=f"{REALTIME_REFERENCE_PAGE}#message-alert"
+    ),
+    # Trip coverage: the reference defines TripUpdate but does not itself state
+    # a "100% of operating trips" expectation (that figure is Caltrans v4.0
+    # guidance, cited in rt.py and shown on the fix page); the message
+    # definition is still the closest spec anchor for what a TripUpdate is.
+    "scorecard_rt_trip_coverage": RuleLink(
+        kind=REALTIME_REFERENCE, url=f"{REALTIME_REFERENCE_PAGE}#message-tripupdate"
     ),
 }
 

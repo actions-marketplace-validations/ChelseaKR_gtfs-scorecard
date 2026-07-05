@@ -46,7 +46,14 @@ from .pages_tools import (
     _render_query_page,
     _render_tools_page,
 )
-from .rule_links import RULE_LINKS, RuleLink, rule_link_for
+from .rule_links import (
+    BEST_PRACTICE,
+    REALTIME_REFERENCE,
+    REFERENCE,
+    RULE_LINKS,
+    RuleLink,
+    rule_link_for,
+)
 from .score import letter_grade
 from .site_shell import (  # noqa: F401  (re-exported: the site's shared shell)
     BASE_URL,
@@ -70,6 +77,17 @@ from .timemachine import grade_story, history_events
 from .tool_profiles import detect_tool
 
 FIX_CODES_WITH_PAGES: set[str] = set()  # filled in by render_fixes()
+
+# Non-validator RuleLink.kind -> the phrase naming that authority, for the
+# "Validator rule" line's visually-hidden context. A dict, not an if/elif
+# chain, so a kind added to rule_links.py without an entry here raises a
+# KeyError instead of silently falling through to the wrong authority name
+# (exactly the kind of drift ADR 0024 exists to prevent).
+_NON_VALIDATOR_WHERE = {
+    BEST_PRACTICE: "GTFS Best Practices",
+    REFERENCE: "the GTFS Schedule reference",
+    REALTIME_REFERENCE: "the GTFS-Realtime reference",
+}
 
 
 def _route_rule() -> str:
@@ -96,11 +114,7 @@ def _rule_ref_link(code: str) -> str:
     link = rule_link_for(code)
     if link is None:
         return ""
-    where = (
-        "GTFS Best Practices"
-        if link.kind == "best_practice"
-        else ("the GTFS Schedule reference" if link.kind == "reference" else "the validator rules")
-    )
+    where = "the validator rules" if link.is_validator else _NON_VALIDATOR_WHERE[link.kind]
     text = f"See {link.authority}"
     return f' · <a class="rule-ref" href="{esc(link.url)}">{esc(text)}</a><span class="visually-hidden"> (opens {esc(where)} on an external site)</span>'
 
@@ -130,13 +144,20 @@ def _fix_rule_reference(code: str) -> str:
                 f"quality reports."
             )
         link_text = f"Read the authoritative rule for {notice} in the GTFS Validator rules"
-    elif link.kind == "best_practice":
+    elif link.kind == BEST_PRACTICE:
         lead = (
             "The GTFS Validator does not flag this (the field is valid GTFS when "
             "left empty), so the expectation comes from the community GTFS Best "
             "Practices."
         )
         link_text = "Read the relevant GTFS Best Practice"
+    elif link.kind == REALTIME_REFERENCE:
+        lead = (
+            "This scores GTFS-Realtime, which the GTFS Validator does not check "
+            "(it validates GTFS Schedule), so the expectation comes from the "
+            "GTFS-Realtime reference's message definition."
+        )
+        link_text = "Read the relevant GTFS-Realtime reference section"
     else:  # reference
         lead = (
             "The GTFS Validator does not flag this, so the expectation comes from "

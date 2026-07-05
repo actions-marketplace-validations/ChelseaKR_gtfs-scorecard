@@ -77,6 +77,7 @@ export const VALIDATOR_RULES_PAGE = "https://gtfs-validator.mobilitydata.org/rul
 
 export const AUTHORITY_LABELS = {
   "best_practice": "GTFS Best Practices",
+  "realtime_reference": "GTFS-Realtime reference",
   "reference": "GTFS Schedule reference",
   "validator": "MobilityData GTFS Validator rules"
 };
@@ -201,6 +202,30 @@ export const RULE_LINKS = {
     "canonical": "missing_feed_contact_email_and_url",
     "kind": "validator",
     "url": "https://gtfs-validator.mobilitydata.org/rules.html#missing_feed_contact_email_and_url-rule"
+  },
+  "scorecard_rt_service_alerts_unreachable": {
+    "authority": "GTFS-Realtime reference",
+    "canonical": null,
+    "kind": "realtime_reference",
+    "url": "https://gtfs.org/documentation/realtime/reference/#message-alert"
+  },
+  "scorecard_rt_trip_coverage": {
+    "authority": "GTFS-Realtime reference",
+    "canonical": null,
+    "kind": "realtime_reference",
+    "url": "https://gtfs.org/documentation/realtime/reference/#message-tripupdate"
+  },
+  "scorecard_rt_trip_updates_unreachable": {
+    "authority": "GTFS-Realtime reference",
+    "canonical": null,
+    "kind": "realtime_reference",
+    "url": "https://gtfs.org/documentation/realtime/reference/#message-tripupdate"
+  },
+  "scorecard_rt_vehicle_positions_unreachable": {
+    "authority": "GTFS-Realtime reference",
+    "canonical": null,
+    "kind": "realtime_reference",
+    "url": "https://gtfs.org/documentation/realtime/reference/#message-vehicleposition"
   },
   "scorecard_station_no_pathways": {
     "authority": "GTFS Schedule reference",

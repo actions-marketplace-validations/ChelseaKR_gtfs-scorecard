@@ -81,5 +81,12 @@ Rider experience completeness (scorecard codes):
 - [`scorecard_wheelchair_accessible_unknown`](scorecard_wheelchair_accessible_unknown.md)
 - [`scorecard_wheelchair_boarding_unknown`](scorecard_wheelchair_boarding_unknown.md)
 
+Realtime quality (scorecard codes):
+
+- [`scorecard_rt_service_alerts_unreachable`](scorecard_rt_service_alerts_unreachable.md)
+- [`scorecard_rt_trip_coverage`](scorecard_rt_trip_coverage.md)
+- [`scorecard_rt_trip_updates_unreachable`](scorecard_rt_trip_updates_unreachable.md)
+- [`scorecard_rt_vehicle_positions_unreachable`](scorecard_rt_vehicle_positions_unreachable.md)
+
 The backlog is the rest of the MobilityData notice taxonomy: a code gets a page
 as soon as it shows up in a tracked agency's findings.

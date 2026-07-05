@@ -809,14 +809,20 @@ _COPY_SCRIPT = (
 )
 
 
-def _embed_section(agency_id: str, agency_name: str) -> str:
+def _embed_section(agency_id: str, agency_name: str, grade: str) -> str:
     """A copy-paste embed so an agency can show its live grade on its own site or
     feed README. The badge image regenerates daily, so the embed stays current
-    with zero backend, and it links back to the full scorecard."""
+    with zero backend, and it links back to the full scorecard. The copied
+    Markdown's alt text names the agency and its current grade, not a generic
+    "GTFS data quality", so a reader who can't see the image (a screen reader,
+    a client that strips images) still gets the badge's actual content, and an
+    agency pasting it into a README gets human-readable anchor text instead of
+    an opaque image link with none."""
     badge_svg = f"{BASE_URL}/data/artifacts/{agency_id}/badge.svg"
     badge_json = f"{BASE_URL}/data/artifacts/{agency_id}/badge.json"
     page = f"{BASE_URL}/agency/{agency_id}/"
-    markdown = f"[![GTFS data quality]({badge_svg})]({page})"
+    alt_text = f"{agency_name} GTFS data quality grade: {grade}"
+    markdown = f"[![{alt_text}]({badge_svg})]({page})"
     shields = f"https://img.shields.io/endpoint?url={badge_json}"
     return (
         '<section class="embed" id="embed" aria-labelledby="embed-h">'
@@ -824,7 +830,7 @@ def _embed_section(agency_id: str, agency_name: str) -> str:
         '<p class="page-lede">Put a live badge on your agency site or feed README. It updates '
         "daily and links back to this scorecard.</p>"
         f'<p><img src="/data/artifacts/{esc(agency_id)}/badge.svg" '
-        f'alt="GTFS data quality grade for {esc(agency_name)}"></p>'
+        f'alt="{esc(alt_text)}"></p>'
         '<label class="visually-hidden" for="embed-md">Badge Markdown</label>'
         f'<textarea id="embed-md" class="outreach-text" rows="2" readonly>{esc(markdown)}</textarea>'
         '<button type="button" class="copy-btn" data-copy="embed-md">Copy Markdown</button>'
@@ -1491,7 +1497,7 @@ def _render_agency(
     confidence_block = f"\n    {confidence}" if confidence else ""
     _outreach_block = _outreach_section(artifact, canonical)
     _vendor_block = _vendor_section(artifact, canonical)
-    _embed_block = _embed_section(agency_id, agency_name)
+    _embed_block = _embed_section(agency_id, agency_name, str(overall["grade"]))
     # The copy script is emitted once if any copyable block (outreach, vendor,
     # embed) is present, so multiple buttons never double-bind.
     _copy_script = _COPY_SCRIPT if (_outreach_block or _vendor_block or _embed_block) else ""

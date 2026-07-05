@@ -152,10 +152,10 @@
       "id": "sandy-area-metro-sam-2739",
       "name": "Static feed for realtime",
       "regressed": false,
-      "score_delta": 3.5,
+      "score_delta": 5.3,
       "since": "2026-07-04",
       "to_grade": "D",
-      "to_score": 63.2
+      "to_score": 65.0
     },
     {
       "date": "2026-07-05",
@@ -171,7 +171,7 @@
     }
   ],
   "count": 14,
-  "generated_at": "2026-07-05T20:54:31+00:00",
+  "generated_at": "2026-07-05T22:34:46+00:00",
   "license": "CC-BY-4.0",
   "schema_version": "1.7"
 }

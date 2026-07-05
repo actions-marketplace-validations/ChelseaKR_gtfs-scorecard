@@ -1,7 +1,7 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
   "distinct_problems": 118,
-  "generated_at": "2026-07-05T20:54:37+00:00",
+  "generated_at": "2026-07-05T22:34:52+00:00",
   "license": "CC-BY-4.0",
   "prevalence_by_code": {
     "bidirectional_exit_gate": {
@@ -400,8 +400,8 @@
       "prevalence_pct": 1.1
     },
     "scorecard_rt_predictions_implausible": {
-      "agencies": 5,
-      "instances": 2425,
+      "agencies": 4,
+      "instances": 2244,
       "prevalence_pct": 0.3
     },
     "scorecard_rt_service_alerts_unreachable": {
@@ -410,13 +410,13 @@
       "prevalence_pct": 2.2
     },
     "scorecard_rt_stale": {
-      "agencies": 1,
-      "instances": 1,
+      "agencies": 2,
+      "instances": 2,
       "prevalence_pct": 0.1
     },
     "scorecard_rt_trip_coverage": {
       "agencies": 49,
-      "instances": 1797,
+      "instances": 1786,
       "prevalence_pct": 3.4
     },
     "scorecard_rt_trip_updates_unreachable": {

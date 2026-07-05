@@ -234,10 +234,10 @@
         "coverage_pct": 0.0,
         "covered_trips": 0,
         "kinds_reachable": 0,
-        "rt_freshness": null,
+        "rt_freshness": "stale",
         "samples": 9,
-        "scheduled_trips_in_window": 161,
-        "worst_lag_seconds": null
+        "scheduled_trips_in_window": 151,
+        "worst_lag_seconds": 2661
       },
       "findings": [
         {
@@ -274,14 +274,25 @@
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
         },
         {
+          "code": "scorecard_rt_stale",
+          "count": 1,
+          "effort": "A vendor configuration question.",
+          "fix": "Ask your AVL vendor to publish updates at least every 20 seconds (the Caltrans guideline).",
+          "owner": "",
+          "points": 25.0,
+          "severity": "WARNING",
+          "what": "Realtime data was up to 2661 seconds old when sampled.",
+          "why": "Stale positions and predictions are worse than none: riders watch a bus that already left."
+        },
+        {
           "code": "scorecard_rt_trip_coverage",
-          "count": 161,
+          "count": 151,
           "effort": "A vendor data-mapping question.",
           "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
           "owner": "",
           "points": 35.0,
           "severity": "WARNING",
-          "what": "161 of 161 trips scheduled during the sampling window had no live predictions.",
+          "what": "151 of 151 trips scheduled during the sampling window had no live predictions.",
           "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],

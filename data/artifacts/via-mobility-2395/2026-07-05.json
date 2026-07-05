@@ -222,10 +222,10 @@
         "coverage_pct": 85.7,
         "covered_trips": 6,
         "drift": {
-          "median_seconds": -45,
-          "observations": 79,
-          "on_time_share_pct": 41.8,
-          "p90_abs_seconds": 5068
+          "median_seconds": -116,
+          "observations": 74,
+          "on_time_share_pct": 32.4,
+          "p90_abs_seconds": 369
         },
         "kinds_reachable": 3,
         "rt_freshness": "fresh",
@@ -233,7 +233,7 @@
         "scheduled_trips_in_window": 7,
         "vehicles_checked": 23,
         "vehicles_on_route_pct": 100.0,
-        "worst_lag_seconds": 3
+        "worst_lag_seconds": 2
       },
       "findings": [
         {
@@ -246,23 +246,12 @@
           "severity": "WARNING",
           "what": "1 of 7 trips scheduled during the sampling window had no live predictions.",
           "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
-        },
-        {
-          "code": "scorecard_rt_predictions_implausible",
-          "count": 79,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Spot-check the flagged predictions against what buses actually did; raise trip-matching with your AVL vendor.",
-          "owner": "",
-          "points": 0.0,
-          "severity": "WARNING",
-          "what": "Some live predictions disagree with the schedule by more than 30 minutes.",
-          "why": "Differences that large usually mean predictions are keyed to the wrong trips, not that buses are that late."
         }
       ],
       "name": "realtime",
       "score": 95.0,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 85.7% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 45s ahead of schedule.",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 85.7% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 116s ahead of schedule.",
       "weight": 0.2
     }
   },
@@ -304,7 +293,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "f63f9ae3222a82c78e0d8ca93d07ceb300857ced36194b2c1698a66ab183ccb6",
+    "sha256": "4d8be740e8e71d4c820ab02aefcfa14a99d900a82be1c50f2b16532ea0132aa0",
     "size_bytes": 217793,
     "static_url": "https://passio3.com/viaboulder/passioTransit/gtfs/google_transit.zip"
   },

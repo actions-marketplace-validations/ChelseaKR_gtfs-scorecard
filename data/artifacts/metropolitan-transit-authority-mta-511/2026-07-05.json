@@ -272,8 +272,8 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "d95f601e4c49414952218592139a4b968adb425c1e3e6e01f41bfe7e4325563d",
-    "size_bytes": 19531213,
+    "sha256": "31f5676fca7e9232bd2dcebc19b40f0ffc6fce7492b174350c9b6a95244b90b5",
+    "size_bytes": 19530335,
     "static_url": "http://web.mta.info/developers/files/google_transit_supplemented.zip"
   },
   "fetch": {
@@ -714,11 +714,11 @@
   "rubric_version": "1.1",
   "schema_version": "1.7",
   "shapes_readiness": {
-    "detail": "70046 of 78617 trips have a shape; 8571 do not.",
+    "detail": "69985 of 78617 trips have a shape; 8632 do not.",
     "fix": "Fill in shapes.txt and trips.shape_id for the remaining trips so every trip has a path. Reduced, Rural, and Tribal NTD reporters need full coverage by Report Year 2026.",
     "status": "at_risk",
     "total_trips": 78617,
-    "trips_with_shape": 70046
+    "trips_with_shape": 69985
   },
   "snapshot_date": "2026-07-05",
   "top_fixes": [

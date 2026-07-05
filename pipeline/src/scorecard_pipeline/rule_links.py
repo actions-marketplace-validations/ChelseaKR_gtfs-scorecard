@@ -144,6 +144,26 @@ RULE_LINKS: dict[str, RuleLink] = {
     "scorecard_wheelchair_accessible_unknown": RuleLink(
         kind=REFERENCE, url=f"{SCHEDULE_REFERENCE_PAGE}#tripstxt"
     ),
+    # Freshness: the scorecard's own effective-expiry date (the later of
+    # feed_info.feed_end_date and the last calendar/calendar_dates service day),
+    # which is not the same computation as any single validator notice, so it is
+    # not aliased to expired_calendar or feed_expiration_date7/30_days. Best
+    # Practices states the expectation directly under general publishing
+    # practices: a feed should stay valid at least 7, ideally 30+, days out.
+    "scorecard_feed_expired": RuleLink(
+        kind=BEST_PRACTICE, url=f"{BEST_PRACTICES_PAGE}#dataset-publishing-general-practices"
+    ),
+    "scorecard_feed_expiring_soon": RuleLink(
+        kind=BEST_PRACTICE, url=f"{BEST_PRACTICES_PAGE}#dataset-publishing-general-practices"
+    ),
+    # Rider experience completeness: readability (mixed-case names) and station
+    # navigation, neither of which the validator flags.
+    "scorecard_stop_names_all_caps": RuleLink(
+        kind=BEST_PRACTICE, url=f"{BEST_PRACTICES_PAGE}#stopstxt"
+    ),
+    "scorecard_station_no_pathways": RuleLink(
+        kind=REFERENCE, url=f"{SCHEDULE_REFERENCE_PAGE}#pathwaystxt"
+    ),
 }
 
 

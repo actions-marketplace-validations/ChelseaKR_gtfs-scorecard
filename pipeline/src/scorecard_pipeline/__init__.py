@@ -1,5 +1,9 @@
 """Scoring pipeline for the small-agency GTFS quality scorecard."""
 
+# 1.7: additive state_percentile on per-state rollup payloads (None on "all"
+# and named-cohort rollups, which are not peers of a 50-state comparison), so a
+# program page can say how its average score compares to other states'
+# programs -- framed as a neutral distribution read, never a rank.
 # 1.6: additive measurement-confidence read on every artifact (a confidence
 # block: level, measured vs total categories, fetch source, realtime sampling
 # depth, snapshot age, plain-language notes), so a reader can tell a
@@ -13,7 +17,7 @@
 # reproducible, joinable to the Mobility Database, and reusable.
 # 1.3: additive freshness fields exposed to consumers (days_until_expiry in
 # index history, expiry_status in the catalog and rollup members).
-SCHEMA_VERSION = "1.6"
+SCHEMA_VERSION = "1.7"
 
 # The license the public scorecard data is offered under. Carried on the catalog
 # and directory documents so a consumer (OSS project, consultant, researcher)

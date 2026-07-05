@@ -26,6 +26,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from ._stats import _GRADES
 from .anomaly import latest_anomaly
 from .atomfeed import agency_change_feed, site_change_feed
 from .config import artifacts_dir
@@ -2783,6 +2784,44 @@ def _render_agency_index(index: dict[str, Any]) -> str:
     )
 
 
+def _grade_distribution_bar(dist: dict[str, Any], total: int) -> str:
+    """One labelled segment per grade, sized by share -- the Python twin of
+    app.js's gradeDistributionBar, so the static program page shows the same
+    shape crawlers and no-JS visitors get everywhere else. Decorative fill, but
+    each segment is a labelled list item so the same information (grade,
+    count, share) is available without color; empty when there is nothing to
+    show a distribution over."""
+    if not total:
+        return ""
+    segs = []
+    for g in _GRADES:
+        n = int(dist.get(g) or 0)
+        if not n:
+            continue
+        pct = round(100 * n / total)
+        segs.append(
+            f'<li class="grade-seg {_grade_class(g)}" style="--share:{pct}" '
+            f'title="{n} graded {g} ({pct}%)"><span class="seg-fill" aria-hidden="true">'
+            f'</span><span class="seg-label">{g} <span class="seg-n">{n}</span></span></li>'
+        )
+    return (
+        '<ul class="grade-distribution" aria-label="Grade distribution across this program">'
+        f"{''.join(segs)}</ul>"
+    )
+
+
+def _rollup_percentile_context(payload: dict[str, Any]) -> str:
+    """How this program's average score compares to other state programs, the
+    rollup-level twin of the per-agency _peer_context. A neutral distribution
+    read ("ahead of N% of..."), never a rank -- and None (rendered as nothing)
+    for "all tracked agencies" and named cohorts, which are not peers of a
+    50-state comparison (rollups.publish_rollups)."""
+    pct = payload.get("state_percentile")
+    if pct is None:
+        return ""
+    return f'<p class="peer-context">This program\'s average score is ahead of {pct}% of tracked state programs.</p>'
+
+
 def _render_rollup(rollup: dict[str, Any]) -> str:
     rid = rollup["rollup"]["id"]
     rname = rollup["rollup"]["name"]
@@ -2808,6 +2847,16 @@ def _render_rollup(rollup: dict[str, Any]) -> str:
         )
     rows = "".join(rows_parts)
     avg = "—" if rollup.get("average_score") is None else f"{rollup['average_score']} out of 100"
+    percentile_context = _rollup_percentile_context(rollup)
+    dist_bar = _grade_distribution_bar(
+        rollup.get("grade_distribution") or {}, rollup["agency_count"]
+    )
+    dist_section = (
+        f'<section aria-labelledby="dist-h"><h2 class="section-title visually-hidden" '
+        f'id="dist-h">Grade distribution</h2>{dist_bar}</section>'
+        if dist_bar
+        else ""
+    )
     expired_section = _rollup_expired_section(rollup)
     shapes_section = _rollup_shapes_section(rollup)
     crumb = _breadcrumb([("Home", "/"), ("All agencies", "/agencies/"), (rname, None)])
@@ -2818,9 +2867,11 @@ def _render_rollup(rollup: dict[str, Any]) -> str:
         <h1 class="page-title">{esc(rname)}</h1>
         <p class="overall"><strong>{rollup["agency_count"]} agencies</strong> ·
           {avg} average · {rollup["needs_attention"]} need attention</p>
+        {percentile_context}
       </div>
     </div>
     {_route_rule()}
+    {dist_section}
     {expired_section}
     {shapes_section}
     <section aria-labelledby="members-h">

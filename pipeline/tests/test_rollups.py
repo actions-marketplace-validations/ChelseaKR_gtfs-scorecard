@@ -6,7 +6,7 @@ import datetime as dt
 import json
 from pathlib import Path
 
-from scorecard_pipeline.config import artifacts_dir
+from scorecard_pipeline.config import artifacts_dir, repo_root
 from scorecard_pipeline.rollups import (
     Rollup,
     build_rollup,
@@ -236,6 +236,42 @@ def test_publish_rollups_writes_index_and_files() -> None:
     assert "index.json" in names
     index = json.loads((artifacts_dir() / "rollups" / "index.json").read_text())
     assert index["rollups"][0]["id"] == "all"
+
+
+def test_state_percentile_compares_states_only() -> None:
+    # Three states, cleanly ordered by average score, plus one non-state named
+    # cohort ("all") that must not be treated as a fourth peer.
+    write_latest("hi1", "HI One", 95.0, "A", state="HI")
+    write_latest("mid1", "MID One", 60.0, "D", state="MID")
+    write_latest("lo1", "LO One", 20.0, "F", state="LO")
+    config = repo_root() / "rollups.yaml"
+    config.write_text(
+        "rollups:\n"
+        "  - id: all\n    name: All\n    all: true\n"
+        "  - id: hi\n    name: HI\n    state: HI\n"
+        "  - id: mid\n    name: MID\n    state: MID\n"
+        "  - id: lo\n    name: LO\n    state: LO\n"
+    )
+    publish_rollups(generated_at=WHEN)
+    out = artifacts_dir() / "rollups"
+    hi = json.loads((out / "hi.json").read_text())
+    mid = json.loads((out / "mid.json").read_text())
+    lo = json.loads((out / "lo.json").read_text())
+    all_ = json.loads((out / "all.json").read_text())
+    # Best of three states reads 100; worst is only ahead of itself (33%);
+    # a non-state rollup ("all", which also spans every agency here) is not a
+    # peer of a state-to-state comparison and carries no percentile at all.
+    assert hi["state_percentile"] == 100
+    assert mid["state_percentile"] == 67
+    assert lo["state_percentile"] == 33
+    assert all_["state_percentile"] is None
+
+
+def test_state_percentile_absent_with_no_state_rollups() -> None:
+    write_latest("a", "A Transit", 70.0, "C")
+    publish_rollups(generated_at=WHEN)
+    payload = json.loads((artifacts_dir() / "rollups" / "all.json").read_text())
+    assert payload["state_percentile"] is None
 
 
 def test_rollup_splits_expired_into_lapsed_and_stale() -> None:

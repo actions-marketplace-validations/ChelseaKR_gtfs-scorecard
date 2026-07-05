@@ -48,16 +48,6 @@
         "total": 2
       },
       {
-        "code": "missing_recommended_file",
-        "sample_notices": [
-          {
-            "filename": "feed_info.txt"
-          }
-        ],
-        "severity": "WARNING",
-        "total": 1
-      },
-      {
         "code": "stop_without_stop_time",
         "sample_notices": [
           {
@@ -79,6 +69,19 @@
           }
         ],
         "severity": "WARNING",
+        "total": 1
+      },
+      {
+        "code": "feed_valid_beyond_total_service_window",
+        "sample_notices": [
+          {
+            "feedEndDate": "2026-11-22",
+            "feedStartDate": "2026-06-05",
+            "serviceWindowEndDate": "2026-08-04",
+            "serviceWindowStartDate": "2026-07-06"
+          }
+        ],
+        "severity": "INFO",
         "total": 1
       },
       {
@@ -107,6 +110,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "1937fc840c6f8181218e36a5e5f2a750310c895cfc379e76d499fcdf3437009d",
+  "sha256": "18460920ed07a8605276872449dc8d571297f6e74f61cb3fe2c64a63e564cb74",
   "validator_version": "8.0.1"
 }

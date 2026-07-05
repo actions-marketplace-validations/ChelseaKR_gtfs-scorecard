@@ -6,9 +6,9 @@
         "sample_notices": [
           {
             "arrivalTime": "06:40:00",
-            "csvRowNumber": 13470,
+            "csvRowNumber": 12810,
             "departureTime": "30:20:00",
-            "prevCsvRowNumber": 13468,
+            "prevCsvRowNumber": 12808,
             "tripId": "714468"
           }
         ],
@@ -24,28 +24,28 @@
             "stopName": "Avery's Restaurant"
           },
           {
+            "csvRowNumber": 44,
+            "stopId": "162837",
+            "stopName": "Ballenger Center Drive at Ballenger Creek Pike"
+          },
+          {
+            "csvRowNumber": 45,
+            "stopId": "162999",
+            "stopName": "Ballenger Center Drive at Cawley Drive"
+          },
+          {
+            "csvRowNumber": 46,
+            "stopId": "222467",
+            "stopName": "Ballenger Center Drive at FNP"
+          },
+          {
             "csvRowNumber": 67,
             "stopId": "163115",
             "stopName": "Brunswick Senior Center (12 East A Street)"
-          },
-          {
-            "csvRowNumber": 71,
-            "stopId": "162836",
-            "stopName": "Cawley Drive at shelter"
-          },
-          {
-            "csvRowNumber": 83,
-            "stopId": "162822",
-            "stopName": "Clarion Inn Frederick Event Center"
-          },
-          {
-            "csvRowNumber": 86,
-            "stopId": "162820",
-            "stopName": "Corporate Drive at New Design Road"
           }
         ],
         "severity": "WARNING",
-        "total": 40
+        "total": 53
       },
       {
         "code": "route_long_name_contains_short_name",
@@ -89,8 +89,8 @@
         "sample_notices": [
           {
             "arrivalTime2": "06:40:00",
-            "csvRowNumber1": 13468,
-            "csvRowNumber2": 13470,
+            "csvRowNumber1": 12808,
+            "csvRowNumber2": 12810,
             "departureTime1": "30:20:00",
             "distanceKm": 22.278062103667757,
             "routeId": "6163",
@@ -101,13 +101,13 @@
             "stopName2": "Church St at CVS",
             "stopSequence1": 4,
             "stopSequence2": 6,
-            "tripCsvRowNumber": 738,
+            "tripCsvRowNumber": 705,
             "tripId": "714468"
           },
           {
             "arrivalTime2": "16:55:00",
-            "csvRowNumber1": 3627,
-            "csvRowNumber2": 3634,
+            "csvRowNumber1": 2967,
+            "csvRowNumber2": 2974,
             "departureTime1": "16:55:00",
             "distanceKm": 3.3232067175815017,
             "routeId": "6156",
@@ -118,13 +118,13 @@
             "stopName2": "West South Street at Thomas Avenue",
             "stopSequence1": 1,
             "stopSequence2": 8,
-            "tripCsvRowNumber": 223,
+            "tripCsvRowNumber": 190,
             "tripId": "714028"
           },
           {
             "arrivalTime2": "15:55:00",
-            "csvRowNumber1": 3614,
-            "csvRowNumber2": 3621,
+            "csvRowNumber1": 2954,
+            "csvRowNumber2": 2961,
             "departureTime1": "15:55:00",
             "distanceKm": 3.3232067175815017,
             "routeId": "6156",
@@ -135,13 +135,13 @@
             "stopName2": "West South Street at Thomas Avenue",
             "stopSequence1": 1,
             "stopSequence2": 8,
-            "tripCsvRowNumber": 222,
+            "tripCsvRowNumber": 189,
             "tripId": "714027"
           },
           {
             "arrivalTime2": "18:55:00",
-            "csvRowNumber1": 3653,
-            "csvRowNumber2": 3660,
+            "csvRowNumber1": 2993,
+            "csvRowNumber2": 3000,
             "departureTime1": "18:55:00",
             "distanceKm": 3.3232067175815017,
             "routeId": "6156",
@@ -152,13 +152,13 @@
             "stopName2": "West South Street at Thomas Avenue",
             "stopSequence1": 1,
             "stopSequence2": 8,
-            "tripCsvRowNumber": 225,
+            "tripCsvRowNumber": 192,
             "tripId": "714030"
           },
           {
             "arrivalTime2": "17:55:00",
-            "csvRowNumber1": 3640,
-            "csvRowNumber2": 3647,
+            "csvRowNumber1": 2980,
+            "csvRowNumber2": 2987,
             "departureTime1": "17:55:00",
             "distanceKm": 3.3232067175815017,
             "routeId": "6156",
@@ -169,7 +169,7 @@
             "stopName2": "West South Street at Thomas Avenue",
             "stopSequence1": 1,
             "stopSequence2": 8,
-            "tripCsvRowNumber": 224,
+            "tripCsvRowNumber": 191,
             "tripId": "714029"
           }
         ],
@@ -188,8 +188,8 @@
             "shapeId": "51830",
             "stopId": "162939",
             "stopName": "Baughman's Lane at Walgreens",
-            "stopTimeCsvRowNumber": 14179,
-            "tripCsvRowNumber": 778,
+            "stopTimeCsvRowNumber": 13519,
+            "tripCsvRowNumber": 745,
             "tripId": "714501"
           },
           {
@@ -201,8 +201,8 @@
             "shapeId": "51830",
             "stopId": "163125",
             "stopName": "Mt. Zion Road Park and Ride",
-            "stopTimeCsvRowNumber": 14180,
-            "tripCsvRowNumber": 778,
+            "stopTimeCsvRowNumber": 13520,
+            "tripCsvRowNumber": 745,
             "tripId": "714501"
           },
           {
@@ -214,8 +214,8 @@
             "shapeId": "51830",
             "stopId": "163126",
             "stopName": "Point of Rocks MARC Train Station",
-            "stopTimeCsvRowNumber": 14181,
-            "tripCsvRowNumber": 778,
+            "stopTimeCsvRowNumber": 13521,
+            "tripCsvRowNumber": 745,
             "tripId": "714501"
           }
         ],
@@ -227,8 +227,8 @@
         "sample_notices": [
           {
             "arrivalTime2": "06:40:00",
-            "csvRowNumber1": 13468,
-            "csvRowNumber2": 13470,
+            "csvRowNumber1": 12808,
+            "csvRowNumber2": 12810,
             "departureTime1": "30:20:00",
             "distanceKm": 22.40454342506966,
             "routeId": "6163",
@@ -239,7 +239,7 @@
             "stopName2": "Church St at CVS",
             "stopSequence1": 4,
             "stopSequence2": 6,
-            "tripCsvRowNumber": 738,
+            "tripCsvRowNumber": 705,
             "tripId": "714468"
           }
         ],
@@ -258,8 +258,8 @@
             "shapeId": "51829",
             "stopId": "163156",
             "stopName": "Jefferson Tech Park (Jefferson Station Boulevard at Mary Lou Lane)",
-            "stopTimeCsvRowNumber": 12720,
-            "tripCsvRowNumber": 681,
+            "stopTimeCsvRowNumber": 12060,
+            "tripCsvRowNumber": 648,
             "tripId": "714491"
           }
         ],
@@ -283,9 +283,9 @@
             "stopId2": "162842",
             "stopName1": "Hillcrest Drive at Hill Street",
             "stopName2": "Seneca Drive at Hillcrest Drive",
-            "stopTimeCsvRowNumber1": 343,
-            "stopTimeCsvRowNumber2": 342,
-            "tripCsvRowNumber": 19,
+            "stopTimeCsvRowNumber1": 3,
+            "stopTimeCsvRowNumber2": 2,
+            "tripCsvRowNumber": 2,
             "tripId": "713825"
           }
         ],
@@ -349,7 +349,7 @@
           {
             "daysAfterFeedEnd": 514,
             "daysBeforeFeedStart": 548,
-            "serviceId": "51783.134013",
+            "serviceId": "51790.134032",
             "serviceWindowEndDate": "2027-12-31",
             "serviceWindowStartDate": "2025-01-02"
           },
@@ -367,6 +367,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "a43f882677816f063cfc6779c570997c294e1f620f7c6a5eb0b18643f28d4d13",
+  "sha256": "5633a20979d438ae51899158c3ae17d6f0dc5621d9a83668856c9853509a46d2",
   "validator_version": "8.0.1"
 }

@@ -85,6 +85,15 @@ anchor of the same name, which only defines the field). `scorecard_station_no_pa
 maps to the Schedule reference `#pathwaystxt`, since Best Practices has no
 dedicated pathways section to point to instead.
 
+**2026-07-05 addition (2):** `stop_too_far_from_shape` is a straight validator-
+notice alias (its anchor is built the same deterministic way as every other
+validator entry, so no separate live check was needed). `scorecard_flex_no_
+booking_rules` was fetched and verified live: the Schedule reference page
+(`gtfs.org/schedule/reference/`, the same page the Flex extension's fields
+fold into) carries a `#booking_rulestxt` anchor; the Best Practices page has no
+dedicated GTFS-Flex section, so `REFERENCE` rather than `BEST_PRACTICE` is the
+honest kind.
+
 ## Maintenance
 
 When a fix page is added under `docs/fixes/`, add its `RULE_LINKS` entry in the

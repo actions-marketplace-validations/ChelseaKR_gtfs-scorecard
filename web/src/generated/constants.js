@@ -172,6 +172,12 @@ export const RULE_LINKS = {
     "kind": "best_practice",
     "url": "https://gtfs.org/schedule/best-practices/#dataset-publishing-general-practices"
   },
+  "scorecard_flex_no_booking_rules": {
+    "authority": "GTFS Schedule reference",
+    "canonical": null,
+    "kind": "reference",
+    "url": "https://gtfs.org/schedule/reference/#booking_rulestxt"
+  },
   "scorecard_missing_feed_info_dates": {
     "authority": "MobilityData GTFS Validator rules",
     "canonical": "missing_feed_info_date",
@@ -231,6 +237,12 @@ export const RULE_LINKS = {
     "canonical": null,
     "kind": "validator",
     "url": "https://gtfs-validator.mobilitydata.org/rules.html#service_window_outside_feed_period-rule"
+  },
+  "stop_too_far_from_shape": {
+    "authority": "MobilityData GTFS Validator rules",
+    "canonical": null,
+    "kind": "validator",
+    "url": "https://gtfs-validator.mobilitydata.org/rules.html#stop_too_far_from_shape-rule"
   },
   "stop_too_far_from_shape_using_user_distance": {
     "authority": "MobilityData GTFS Validator rules",

@@ -55,6 +55,7 @@ Correctness (validator notices):
 - [`route_color_contrast`](route_color_contrast.md)
 - [`service_has_no_active_day_of_the_week`](service_has_no_active_day_of_the_week.md)
 - [`service_window_outside_feed_period`](service_window_outside_feed_period.md)
+- [`stop_too_far_from_shape`](stop_too_far_from_shape.md)
 - [`stop_too_far_from_shape_using_user_distance`](stop_too_far_from_shape_using_user_distance.md)
 - [`stop_without_stop_time`](stop_without_stop_time.md)
 - [`trip_coverage_not_active_for_next7_days`](trip_coverage_not_active_for_next7_days.md)
@@ -71,6 +72,7 @@ Freshness (scorecard codes):
 
 Rider experience completeness (scorecard codes):
 
+- [`scorecard_flex_no_booking_rules`](scorecard_flex_no_booking_rules.md)
 - [`scorecard_missing_headsigns`](scorecard_missing_headsigns.md)
 - [`scorecard_no_fare_data`](scorecard_no_fare_data.md)
 - [`scorecard_no_feed_contact`](scorecard_no_feed_contact.md)

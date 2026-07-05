@@ -142,7 +142,7 @@
       "grade": "F",
       "id": "norwalk-transit-district",
       "name": "Norwalk Transit District",
-      "score": 20.9
+      "score": 20.8
     },
     {
       "grade": "F",
@@ -151,178 +151,8 @@
       "score": 21.4
     }
   ],
-  "most_declined": [
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "palos-verdes-peninsula-transit-authority-pvpta",
-      "name": "Palos Verdes Peninsula Transit Authority (PVPTA)",
-      "score": 45.2,
-      "score_delta": -22.6
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "palos-verdes-peninsula-transit-authority-pvpta-35",
-      "name": "Palos Verdes Peninsula Transit Authority (PVPTA)",
-      "score": 45.2,
-      "score_delta": -22.6
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "D",
-      "id": "via-mobility-2395",
-      "name": "Via Mobility",
-      "score": 63.3,
-      "score_delta": -7.5
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "los-angeles-department-of-transportation-ladot-dash-commuter-express",
-      "name": "LADOT (DASH and Commuter Express)",
-      "score": 50.2,
-      "score_delta": -5.3
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "frederick-county-transit-2432",
-      "name": "Frederick County TransIT",
-      "score": 53.7,
-      "score_delta": -4.3
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "sandy-area-metro-sam-2739",
-      "name": "Static feed for realtime",
-      "score": 59.7,
-      "score_delta": -4.2
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "D",
-      "id": "towson-loop",
-      "name": "Towson Loop",
-      "score": 62.7,
-      "score_delta": -4.1
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "bay-area-transportation-authority-2254",
-      "name": "Bay Area Transportation Authority",
-      "score": 53.1,
-      "score_delta": -1.9
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "A",
-      "id": "capital-district-transportation-authority-cdta",
-      "name": "Capital District Transportation Authority (CDTA)",
-      "score": 91.1,
-      "score_delta": -1.9
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "D",
-      "id": "rogue-valley-transportation-district-rvtd-3219",
-      "name": "Rogue Valley Transportation District (RVTD)",
-      "score": 66.5,
-      "score_delta": -1.9
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "B",
-      "id": "golden-empire-transit-district-get",
-      "name": "Golden Empire Transit District (GET)",
-      "score": 87.3,
-      "score_delta": -1.8
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "C",
-      "id": "ny-waterway-3192",
-      "name": "NY Waterway",
-      "score": 78.8,
-      "score_delta": -1.4
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "B",
-      "id": "nyc-ferry",
-      "name": "NYC Ferry",
-      "score": 83.9,
-      "score_delta": -1.4
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "B",
-      "id": "pasadena-transit",
-      "name": "Pasadena Transit",
-      "score": 81.7,
-      "score_delta": -1.4
-    }
-  ],
-  "most_improved": [
-    {
-      "date": "2026-07-04",
-      "grade": "B",
-      "id": "boxcar",
-      "name": "Boxcar Commuter Bus",
-      "score": 80.6,
-      "score_delta": 8.9
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "capital-area-transit-system-cats",
-      "name": "Capital Area Transit System (CATS)",
-      "score": 46.2,
-      "score_delta": 8.8
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "mountain-line-1148",
-      "name": "Mountain Line",
-      "score": 28.3,
-      "score_delta": 8.8
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "F",
-      "id": "springfield-mass-transit-district-smtd",
-      "name": "Springfield Mass Transit District (SMTD)",
-      "score": 59.8,
-      "score_delta": 4.0
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "D",
-      "id": "washington-park-shuttle",
-      "name": "Washington Park Shuttle",
-      "score": 60.5,
-      "score_delta": 3.6
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "A",
-      "id": "broward-county-transit",
-      "name": "Broward County Transit",
-      "score": 90.4,
-      "score_delta": 3.5
-    },
-    {
-      "date": "2026-07-04",
-      "grade": "B",
-      "id": "metro-transit",
-      "name": "Metro Transit",
-      "score": 81.8,
-      "score_delta": 1.8
-    }
-  ],
+  "most_declined": [],
+  "most_improved": [],
   "top": [
     {
       "grade": "A",
@@ -446,15 +276,15 @@
     },
     {
       "grade": "A",
-      "id": "patco-speedline",
-      "name": "PATCO Speedline",
-      "score": 95.7
-    },
-    {
-      "grade": "A",
       "id": "boston-harbor-islands-ferries-2073",
       "name": "Boston Harbor Islands Ferries",
       "score": 95.3
+    },
+    {
+      "grade": "A",
+      "id": "patco-speedline",
+      "name": "PATCO Speedline",
+      "score": 95.2
     },
     {
       "grade": "A",

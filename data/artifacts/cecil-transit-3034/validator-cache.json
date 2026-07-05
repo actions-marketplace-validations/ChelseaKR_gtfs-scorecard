@@ -48,35 +48,35 @@
         "sample_notices": [
           {
             "daysAfterFeedEnd": 0,
-            "daysBeforeFeedStart": 579,
+            "daysBeforeFeedStart": 580,
             "serviceId": "61520.200442",
             "serviceWindowEndDate": "2026-01-27",
             "serviceWindowStartDate": "2024-12-01"
           },
           {
-            "daysAfterFeedEnd": 145,
-            "daysBeforeFeedStart": 391,
+            "daysAfterFeedEnd": 144,
+            "daysBeforeFeedStart": 392,
             "serviceId": "61466.165393",
             "serviceWindowEndDate": "2026-12-26",
             "serviceWindowStartDate": "2025-06-07"
           },
           {
             "daysAfterFeedEnd": 0,
-            "daysBeforeFeedStart": 200,
+            "daysBeforeFeedStart": 201,
             "serviceId": "61520.198852",
             "serviceWindowEndDate": "2025-12-15",
             "serviceWindowStartDate": "2025-12-15"
           },
           {
-            "daysAfterFeedEnd": 515,
-            "daysBeforeFeedStart": 548,
+            "daysAfterFeedEnd": 514,
+            "daysBeforeFeedStart": 549,
             "serviceId": "66969.184750",
             "serviceWindowEndDate": "2027-12-31",
             "serviceWindowStartDate": "2025-01-01"
           },
           {
             "daysAfterFeedEnd": 0,
-            "daysBeforeFeedStart": 579,
+            "daysBeforeFeedStart": 580,
             "serviceId": "66969.200484",
             "serviceWindowEndDate": "2024-12-01",
             "serviceWindowStartDate": "2024-12-01"
@@ -101,6 +101,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "2f57d41c85e6ed98b201c395bcbab0e92a1c0013ee564efcf84622621a516346",
+  "sha256": "6ce2f3b871bae1e8e99a24196d57c7bc18f168de9d34cfa5be381bb5e0f2b793",
   "validator_version": "8.0.1"
 }

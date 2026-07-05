@@ -131,36 +131,36 @@
         "code": "service_window_outside_feed_period",
         "sample_notices": [
           {
-            "daysAfterFeedEnd": 16,
-            "daysBeforeFeedStart": 170,
+            "daysAfterFeedEnd": 15,
+            "daysBeforeFeedStart": 171,
             "serviceId": "72718.213390",
             "serviceWindowEndDate": "2026-08-19",
             "serviceWindowStartDate": "2026-01-14"
           },
           {
-            "daysAfterFeedEnd": 15,
-            "daysBeforeFeedStart": 171,
+            "daysAfterFeedEnd": 14,
+            "daysBeforeFeedStart": 172,
             "serviceId": "72718.213389",
             "serviceWindowEndDate": "2026-08-18",
             "serviceWindowStartDate": "2026-01-13"
           },
           {
-            "daysAfterFeedEnd": 14,
-            "daysBeforeFeedStart": 172,
+            "daysAfterFeedEnd": 13,
+            "daysBeforeFeedStart": 173,
             "serviceId": "72718.213388",
             "serviceWindowEndDate": "2026-08-17",
             "serviceWindowStartDate": "2026-01-12"
           },
           {
-            "daysAfterFeedEnd": 18,
-            "daysBeforeFeedStart": 168,
+            "daysAfterFeedEnd": 17,
+            "daysBeforeFeedStart": 169,
             "serviceId": "72718.213387",
             "serviceWindowEndDate": "2026-08-21",
             "serviceWindowStartDate": "2026-01-16"
           },
           {
-            "daysAfterFeedEnd": 17,
-            "daysBeforeFeedStart": 169,
+            "daysAfterFeedEnd": 16,
+            "daysBeforeFeedStart": 170,
             "serviceId": "72718.213386",
             "serviceWindowEndDate": "2026-08-20",
             "serviceWindowStartDate": "2026-01-15"
@@ -172,6 +172,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "51d18568dae1d30ae9e4e029dd9e316079ead474abb86be6bec08ade4f9cf5df",
+  "sha256": "57a59f9b83057879f80685be6aa0bcc53f3009da348b97e4cc3cbed237f3d993",
   "validator_version": "8.0.1"
 }

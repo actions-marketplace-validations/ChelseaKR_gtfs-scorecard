@@ -23,46 +23,52 @@
     "stale": 2,
     "total": 2
   },
-  "generated_at": "2026-07-04T23:32:38+00:00",
+  "generated_at": "2026-07-05T05:03:30+00:00",
   "grade_distribution": {
     "C": 1,
     "F": 2
   },
   "members": [
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -1235,
+      "days_until_expiry": -1236,
       "expiry_status": "stale",
       "grade": "F",
       "id": "matbus",
       "name": "MATBUS",
       "needs_attention": true,
       "score": 41.2,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -703,
+      "days_until_expiry": -704,
       "expiry_status": "stale",
       "grade": "F",
       "id": "cities-area-transit",
       "name": "Cities Area Transit",
       "needs_attention": true,
-      "score": 44.4,
-      "snapshot_date": "2026-07-04",
+      "score": 44.3,
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
+      "annual_trips": null,
       "attention_reason": null,
-      "days_until_expiry": 180,
+      "days_until_expiry": 179,
       "expiry_status": "current",
       "grade": "C",
       "id": "cities-area-transit-2199",
       "name": "Cities Area Transit",
       "needs_attention": false,
       "score": 71.1,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     }
   ],
@@ -71,5 +77,12 @@
     "id": "north-dakota",
     "name": "North Dakota agencies"
   },
-  "schema_version": "1.4"
+  "schema_version": "1.6",
+  "shapes_readiness": {
+    "at_risk": 0,
+    "not_measured": 3,
+    "not_ready": 0,
+    "ready": 0,
+    "total": 3
+  }
 }

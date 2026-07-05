@@ -28,81 +28,93 @@
     "stale": 6,
     "total": 6
   },
-  "generated_at": "2026-07-04T23:32:38+00:00",
+  "generated_at": "2026-07-05T05:03:30+00:00",
   "grade_distribution": {
     "F": 6
   },
   "members": [
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -631,
+      "days_until_expiry": -632,
       "expiry_status": "stale",
       "grade": "F",
       "id": "washington-metropolitan-area-transit-authority-wmata-1847",
       "name": "Rail",
       "needs_attention": true,
       "score": 26.7,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -1554,
+      "days_until_expiry": -1555,
       "expiry_status": "stale",
       "grade": "F",
       "id": "dc-circulator",
       "name": "Service Discontinued",
       "needs_attention": true,
       "score": 39.4,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -560,
+      "days_until_expiry": -561,
       "expiry_status": "stale",
       "grade": "F",
       "id": "washington-metropolitan-area-transit-authority-wmata",
       "name": "Bus",
       "needs_attention": true,
       "score": 39.9,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -1129,
+      "days_until_expiry": -1130,
       "expiry_status": "stale",
       "grade": "F",
       "id": "dc-streetcar",
       "name": "DC Streetcar",
       "needs_attention": true,
       "score": 45.9,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -1129,
+      "days_until_expiry": -1130,
       "expiry_status": "stale",
       "grade": "F",
       "id": "dc-streetcar-487",
       "name": "DC Streetcar",
       "needs_attention": true,
       "score": 45.9,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -369,
+      "days_until_expiry": -370,
       "expiry_status": "stale",
       "grade": "F",
       "id": "dc-streetcar-2223",
       "name": "DC Streetcar",
       "needs_attention": true,
       "score": 57.2,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     }
   ],
@@ -111,5 +123,12 @@
     "id": "district-of-columbia",
     "name": "District of Columbia agencies"
   },
-  "schema_version": "1.4"
+  "schema_version": "1.6",
+  "shapes_readiness": {
+    "at_risk": 0,
+    "not_measured": 6,
+    "not_ready": 0,
+    "ready": 0,
+    "total": 6
+  }
 }

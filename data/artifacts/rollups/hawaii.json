@@ -1,6 +1,6 @@
 {
   "agency_count": 3,
-  "average_score": 34.3,
+  "average_score": 34.2,
   "common_fixes": [
     {
       "agencies": 3,
@@ -23,45 +23,51 @@
     "stale": 2,
     "total": 2
   },
-  "generated_at": "2026-07-04T23:32:38+00:00",
+  "generated_at": "2026-07-05T05:03:30+00:00",
   "grade_distribution": {
     "F": 3
   },
   "members": [
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -945,
+      "days_until_expiry": -946,
       "expiry_status": "stale",
       "grade": "F",
       "id": "thebus",
       "name": "TheBus",
       "needs_attention": true,
       "score": 9.5,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
-      "attention_reason": "Service data expires in 49 day(s)",
-      "days_until_expiry": 49,
+      "annual_trips": null,
+      "attention_reason": "Service data expires in 48 day(s)",
+      "days_until_expiry": 48,
       "expiry_status": "current",
       "grade": "F",
       "id": "thebus-2350",
       "name": "TheBus",
       "needs_attention": true,
-      "score": 41.5,
-      "snapshot_date": "2026-07-04",
+      "score": 41.1,
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-generate shape distances in your export; flag to your vendor if it persists."
     },
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -922,
+      "days_until_expiry": -923,
       "expiry_status": "stale",
       "grade": "F",
       "id": "hawai-i-mass-transit-agency-hele-on-bus",
       "name": "Hawai'i Mass Transit Agency (Hele-On Bus)",
       "needs_attention": true,
       "score": 51.9,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     }
   ],
@@ -70,5 +76,12 @@
     "id": "hawaii",
     "name": "Hawaii agencies"
   },
-  "schema_version": "1.4"
+  "schema_version": "1.6",
+  "shapes_readiness": {
+    "at_risk": 0,
+    "not_measured": 3,
+    "not_ready": 0,
+    "ready": 0,
+    "total": 3
+  }
 }

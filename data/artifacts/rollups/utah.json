@@ -1,6 +1,6 @@
 {
   "agency_count": 5,
-  "average_score": 45.4,
+  "average_score": 45.2,
   "common_fixes": [
     {
       "agencies": 4,
@@ -28,69 +28,79 @@
     "stale": 2,
     "total": 2
   },
-  "generated_at": "2026-07-04T23:32:38+00:00",
+  "generated_at": "2026-07-05T05:03:30+00:00",
   "grade_distribution": {
     "F": 5
   },
   "members": [
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -812,
+      "days_until_expiry": -813,
       "expiry_status": "stale",
       "grade": "F",
       "id": "uta",
       "name": "UTA",
       "needs_attention": true,
       "score": 19.6,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
+      "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -3320,
+      "days_until_expiry": -3321,
       "expiry_status": "stale",
       "grade": "F",
       "id": "elevated-transit",
       "name": "Elevated Transit",
       "needs_attention": true,
       "score": 47.5,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
     {
-      "attention_reason": "Service data expires in 42 day(s)",
-      "days_until_expiry": 42,
+      "annual_trips": null,
+      "attention_reason": "Service data expires in 41 day(s)",
+      "days_until_expiry": 41,
       "expiry_status": "current",
       "grade": "F",
       "id": "uta-2349",
       "name": "UTA",
       "needs_attention": true,
-      "score": 50.7,
-      "snapshot_date": "2026-07-04",
+      "score": 50.2,
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-generate shape distances in your export; flag to your vendor if it persists."
     },
     {
-      "attention_reason": "Service data expires in 42 day(s)",
-      "days_until_expiry": 42,
+      "annual_trips": null,
+      "attention_reason": "Service data expires in 41 day(s)",
+      "days_until_expiry": 41,
       "expiry_status": "current",
       "grade": "F",
       "id": "utah-transit-authority-uta",
       "name": "Utah Transit Authority (UTA)",
       "needs_attention": true,
-      "score": 50.7,
-      "snapshot_date": "2026-07-04",
+      "score": 50.2,
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Re-generate shape distances in your export; flag to your vendor if it persists."
     },
     {
+      "annual_trips": null,
       "attention_reason": null,
-      "days_until_expiry": 1671,
+      "days_until_expiry": 1670,
       "expiry_status": "current",
       "grade": "F",
       "id": "suntran-utah",
       "name": "SunTran Utah",
       "needs_attention": false,
       "score": 58.6,
-      "snapshot_date": "2026-07-04",
+      "shapes_status": null,
+      "snapshot_date": "2026-07-05",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     }
   ],
@@ -99,5 +109,12 @@
     "id": "utah",
     "name": "Utah agencies"
   },
-  "schema_version": "1.4"
+  "schema_version": "1.6",
+  "shapes_readiness": {
+    "at_risk": 0,
+    "not_measured": 5,
+    "not_ready": 0,
+    "ready": 0,
+    "total": 5
+  }
 }

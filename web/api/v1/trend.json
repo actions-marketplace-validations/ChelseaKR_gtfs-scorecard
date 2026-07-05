@@ -1,6 +1,6 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
-  "generated_at": "2026-07-04T23:32:56+00:00",
+  "generated_at": "2026-07-05T05:03:53+00:00",
   "license": "CC-BY-4.0",
   "points": [
     {
@@ -67,6 +67,19 @@
         "D": 170,
         "F": 715
       }
+    },
+    {
+      "agency_count": 1449,
+      "average_score": 60.8,
+      "date": "2026-07-05",
+      "expired_pct": 42.6,
+      "grade_distribution": {
+        "A": 50,
+        "B": 243,
+        "C": 268,
+        "D": 171,
+        "F": 717
+      }
     }
   ],
   "summary": {
@@ -76,14 +89,14 @@
     },
     "last": {
       "average_score": 60.8,
-      "date": "2026-07-04"
+      "date": "2026-07-05"
     },
-    "points": 5,
+    "points": 6,
     "score_delta": -0.2
   },
   "top_improvers": [
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-16",
       "delta": 34.9,
       "grade_end": "B",
@@ -93,7 +106,7 @@
       "score_start": 50.7
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-19",
       "delta": 34.5,
       "grade_end": "B",
@@ -103,17 +116,17 @@
       "score_start": 49.2
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-19",
-      "delta": 31.7,
+      "delta": 31.6,
       "grade_end": "C",
       "id": "detroit-department-of-transportation-ddot",
       "name": "Detroit Department of Transportation (DDOT)",
-      "score_end": 73.5,
+      "score_end": 73.4,
       "score_start": 41.8
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-19",
       "delta": 31.3,
       "grade_end": "C",
@@ -123,7 +136,7 @@
       "score_start": 39.1
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-19",
       "delta": 28.6,
       "grade_end": "B",
@@ -133,7 +146,7 @@
       "score_start": 52.7
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-19",
       "delta": 27.8,
       "grade_end": "D",
@@ -143,7 +156,7 @@
       "score_start": 41.4
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-16",
       "delta": 27.7,
       "grade_end": "B",
@@ -153,7 +166,7 @@
       "score_start": 54.2
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-19",
       "delta": 26.1,
       "grade_end": "D",
@@ -163,7 +176,7 @@
       "score_start": 37.1
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-19",
       "delta": 26.0,
       "grade_end": "D",
@@ -173,7 +186,7 @@
       "score_start": 43.1
     },
     {
-      "date_end": "2026-07-04",
+      "date_end": "2026-07-05",
       "date_start": "2026-06-19",
       "delta": 26.0,
       "grade_end": "D",

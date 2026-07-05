@@ -168,23 +168,12 @@
         "code": "trip_coverage_not_active_for_next7_days",
         "sample_notices": [
           {
-            "currentDate": "20260704",
-            "serviceWindowEndDate": "20260803",
+            "currentDate": "20260705",
+            "serviceWindowEndDate": "20260804",
             "serviceWindowStartDate": "20260706"
           }
         ],
         "severity": "WARNING",
-        "total": 1
-      },
-      {
-        "code": "future_calendar",
-        "sample_notices": [
-          {
-            "currentDate": "2026-07-04",
-            "minServiceStartDate": "2026-07-05"
-          }
-        ],
-        "severity": "INFO",
         "total": 1
       },
       {
@@ -202,6 +191,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "1807e5a507f6e28f993d99bcc714b061d3bc2a21320cdcead24666092d37edec",
+  "sha256": "bf88dd19ec9b630f44445f425ed2da37a67964dd052e55a34d4b83f523e3dcd0",
   "validator_version": "8.0.1"
 }

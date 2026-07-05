@@ -1505,6 +1505,9 @@ def test_standards_section_is_per_agency_and_includes_google() -> None:
     assert "Not yet published" in html  # realtime not measured
     assert "Google Transit" in html
     assert "not a compliance determination" in html
+    # Links the on-site crosswalk page, not the raw GitHub source file.
+    assert 'href="/crosswalk/"' in html
+    assert "docs/crosswalk.md" not in html
 
 
 # ---- national grade map (/map/) ----
@@ -2247,6 +2250,51 @@ def test_fix_guide_page_closes_the_loop_with_after_you_republish() -> None:
     assert "After you republish" in html
     assert "dated receipt" in html
     assert "the scorecard shows the fix; the agency publishes it." in html
+
+
+def test_md_to_html_renders_a_table() -> None:
+    from scorecard_pipeline.render_site import _md_to_html
+
+    md = "# Title\n\n| A | B |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |\n\nAfter.\n"
+    html, title = _md_to_html(md)
+    assert title == "Title"
+    assert '<table class="leaderboard">' in html
+    assert "<thead><tr><th>A</th><th>B</th></tr></thead>" in html
+    assert "<tr><td>1</td><td>2</td></tr>" in html
+    assert "<tr><td>3</td><td>4</td></tr>" in html
+    assert "</tbody></table>" in html
+    # The paragraph after the table still renders, so the table doesn't eat
+    # the rest of the document.
+    assert "<p>After.</p>" in html
+
+
+def test_md_to_html_renders_h3_as_a_section_subtitle() -> None:
+    from scorecard_pipeline.render_site import _md_to_html
+
+    html, _ = _md_to_html("## Section\n\n### Subsection\n\nBody.\n")
+    assert '<h3 class="section-subtitle">Subsection</h3>' in html
+
+
+def test_md_to_html_table_at_end_of_document_closes_cleanly() -> None:
+    from scorecard_pipeline.render_site import _md_to_html
+
+    html, _ = _md_to_html("# T\n\n| A |\n|---|\n| 1 |\n")
+    assert html.endswith("</tbody></table>")
+
+
+def test_render_crosswalk_page_links_the_authoritative_sources() -> None:
+    from scorecard_pipeline.render_site import _render_crosswalk_page
+
+    md = (
+        "# How the grade maps to the standards\n\n"
+        "This crosswalk explains the mapping.\n\n"
+        "## The standards\n\n"
+        "- [NTD](https://www.transit.dot.gov/ntd)\n"
+    )
+    html = _render_crosswalk_page(md)
+    assert "/crosswalk/" in html
+    assert "How the grade maps to the standards" in html
+    assert 'href="https://www.transit.dot.gov/ntd"' in html
 
 
 def test_fixlog_page_frames_receipts_as_the_end_of_the_loop() -> None:

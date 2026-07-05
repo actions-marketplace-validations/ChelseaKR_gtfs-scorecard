@@ -160,6 +160,18 @@ export const RULE_LINKS = {
     "kind": "validator",
     "url": "https://gtfs-validator.mobilitydata.org/rules.html#route_color_contrast-rule"
   },
+  "scorecard_feed_expired": {
+    "authority": "GTFS Best Practices",
+    "canonical": null,
+    "kind": "best_practice",
+    "url": "https://gtfs.org/schedule/best-practices/#dataset-publishing-general-practices"
+  },
+  "scorecard_feed_expiring_soon": {
+    "authority": "GTFS Best Practices",
+    "canonical": null,
+    "kind": "best_practice",
+    "url": "https://gtfs.org/schedule/best-practices/#dataset-publishing-general-practices"
+  },
   "scorecard_missing_feed_info_dates": {
     "authority": "MobilityData GTFS Validator rules",
     "canonical": "missing_feed_info_date",
@@ -183,6 +195,18 @@ export const RULE_LINKS = {
     "canonical": "missing_feed_contact_email_and_url",
     "kind": "validator",
     "url": "https://gtfs-validator.mobilitydata.org/rules.html#missing_feed_contact_email_and_url-rule"
+  },
+  "scorecard_station_no_pathways": {
+    "authority": "GTFS Schedule reference",
+    "canonical": null,
+    "kind": "reference",
+    "url": "https://gtfs.org/schedule/reference/#pathwaystxt"
+  },
+  "scorecard_stop_names_all_caps": {
+    "authority": "GTFS Best Practices",
+    "canonical": null,
+    "kind": "best_practice",
+    "url": "https://gtfs.org/schedule/best-practices/#stopstxt"
   },
   "scorecard_wheelchair_accessible_unknown": {
     "authority": "GTFS Schedule reference",

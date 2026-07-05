@@ -109,6 +109,7 @@ RULE_LINKS: dict[str, RuleLink] = {
     "route_color_contrast": _v("route_color_contrast"),
     "service_has_no_active_day_of_the_week": _v("service_has_no_active_day_of_the_week"),
     "service_window_outside_feed_period": _v("service_window_outside_feed_period"),
+    "stop_too_far_from_shape": _v("stop_too_far_from_shape"),
     "stop_too_far_from_shape_using_user_distance": _v(
         "stop_too_far_from_shape_using_user_distance"
     ),
@@ -143,6 +144,14 @@ RULE_LINKS: dict[str, RuleLink] = {
     ),
     "scorecard_wheelchair_accessible_unknown": RuleLink(
         kind=REFERENCE, url=f"{SCHEDULE_REFERENCE_PAGE}#tripstxt"
+    ),
+    # GTFS-Flex (docs/decisions/0007-gtfs-flex-awareness.md): zero-deduction
+    # completeness findings, so a rider can actually use a service the feed
+    # already advertises. booking_rules.txt is a Schedule reference field (the
+    # Flex extension folds into the standard reference page), not a stated Best
+    # Practice, so REFERENCE is the honest kind.
+    "scorecard_flex_no_booking_rules": RuleLink(
+        kind=REFERENCE, url=f"{SCHEDULE_REFERENCE_PAGE}#booking_rulestxt"
     ),
 }
 

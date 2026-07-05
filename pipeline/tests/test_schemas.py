@@ -111,6 +111,40 @@ def test_artifact_with_every_optional_agency_field_conforms() -> None:
     validate_artifact(make_artifact(dt.date(2026, 6, 11), agency=agency))
 
 
+def test_artifact_with_the_us_only_ntd_block_conforms() -> None:
+    """cli.py's run_agency() attaches ntd_id_alignment, shapes_readiness, and
+    ntd_readiness to a US agency's artifact *after* build_artifact() runs (they
+    need the fetched feed and, for ntd_readiness, the artifact itself) --
+    make_artifact() above never exercises that path, which is exactly the gap
+    that let shapes_readiness ship to every US agency's artifact for a full day
+    with no schema entry for it: every real run failed validate_artifact() and
+    silently kept each agency's last good artifact (the shard step's designed
+    fallback for a *transient* per-agency failure), so no committed artifact
+    ever carried the field either, and test_every_published_agency_artifact_
+    conforms() below had nothing to catch it on. Constructing the block the
+    same way run_agency() does, from plain data with no GTFS zip required,
+    closes that blind spot directly."""
+    from scorecard_pipeline.ntd import assess as assess_ntd_readiness
+    from scorecard_pipeline.ntd import assess_id_alignment, assess_shapes_readiness
+
+    artifact = make_artifact(dt.date(2026, 6, 11))
+    artifact["ntd_id_alignment"] = assess_id_alignment(["90001"], "90001").to_dict()
+    artifact["shapes_readiness"] = assess_shapes_readiness(10, 7).to_dict()
+    artifact["ntd_readiness"] = assess_ntd_readiness(artifact).to_dict()
+    validate_artifact(artifact)
+
+
+def test_shapes_readiness_conforms_in_every_status() -> None:
+    from scorecard_pipeline.ntd import assess_shapes_readiness
+
+    # not_ready (no trips), not_ready (trips but no shapes), at_risk (partial),
+    # ready (full coverage, and to_dict() then omits the optional "fix" key).
+    for total, with_shape in [(0, 0), (10, 0), (10, 7), (10, 10)]:
+        artifact = make_artifact(dt.date(2026, 6, 11))
+        artifact["shapes_readiness"] = assess_shapes_readiness(total, with_shape).to_dict()
+        validate_artifact(artifact)
+
+
 def test_validate_artifact_rejects_an_unknown_grade() -> None:
     artifact = make_artifact(dt.date(2026, 6, 11))
     artifact["overall"]["grade"] = "E"

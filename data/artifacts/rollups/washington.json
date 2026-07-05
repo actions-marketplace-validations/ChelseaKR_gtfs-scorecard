@@ -128,7 +128,7 @@
     "stale": 21,
     "total": 26
   },
-  "generated_at": "2026-07-05T18:51:14+00:00",
+  "generated_at": "2026-07-05T20:54:15+00:00",
   "grade_distribution": {
     "A": 9,
     "B": 25,
@@ -1162,20 +1162,6 @@
     {
       "annual_trips": null,
       "attention_reason": null,
-      "days_until_expiry": 76,
-      "expiry_status": "current",
-      "grade": "B",
-      "id": "spokane-transit-authority-sta",
-      "name": "Spokane Transit Authority (STA)",
-      "needs_attention": false,
-      "score": 82.4,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-05",
-      "top_fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE')."
-    },
-    {
-      "annual_trips": null,
-      "attention_reason": null,
       "days_until_expiry": 180,
       "expiry_status": "current",
       "grade": "B",
@@ -1200,6 +1186,20 @@
       "shapes_status": null,
       "snapshot_date": "2026-07-05",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+    },
+    {
+      "annual_trips": null,
+      "attention_reason": null,
+      "days_until_expiry": 76,
+      "expiry_status": "current",
+      "grade": "B",
+      "id": "spokane-transit-authority-sta",
+      "name": "Spokane Transit Authority (STA)",
+      "needs_attention": false,
+      "score": 82.5,
+      "shapes_status": "ready",
+      "snapshot_date": "2026-07-05",
+      "top_fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE')."
     },
     {
       "annual_trips": null,
@@ -1476,9 +1476,9 @@
   "schema_version": "1.7",
   "shapes_readiness": {
     "at_risk": 0,
-    "not_measured": 95,
+    "not_measured": 94,
     "not_ready": 0,
-    "ready": 0,
+    "ready": 1,
     "total": 95
   },
   "state_percentile": 93

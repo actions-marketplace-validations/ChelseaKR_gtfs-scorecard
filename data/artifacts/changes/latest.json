@@ -136,18 +136,6 @@
     {
       "date": "2026-07-05",
       "from_grade": "F",
-      "from_score": 59.7,
-      "id": "sandy-area-metro-sam-2739",
-      "name": "Static feed for realtime",
-      "regressed": false,
-      "score_delta": 7.0,
-      "since": "2026-07-04",
-      "to_grade": "D",
-      "to_score": 66.7
-    },
-    {
-      "date": "2026-07-05",
-      "from_grade": "F",
       "from_score": 53.7,
       "id": "frederick-county-transit-2432",
       "name": "Frederick County TransIT",
@@ -159,19 +147,31 @@
     },
     {
       "date": "2026-07-05",
+      "from_grade": "F",
+      "from_score": 59.7,
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "regressed": false,
+      "score_delta": 3.5,
+      "since": "2026-07-04",
+      "to_grade": "D",
+      "to_score": 63.2
+    },
+    {
+      "date": "2026-07-05",
       "from_grade": "D",
       "from_score": 63.3,
       "id": "via-mobility-2395",
       "name": "Via Mobility",
       "regressed": false,
-      "score_delta": 3.1,
+      "score_delta": 2.4,
       "since": "2026-07-04",
       "to_grade": "D",
-      "to_score": 66.4
+      "to_score": 65.7
     }
   ],
   "count": 14,
-  "generated_at": "2026-07-05T18:51:31+00:00",
+  "generated_at": "2026-07-05T20:54:31+00:00",
   "license": "CC-BY-4.0",
   "schema_version": "1.7"
 }

@@ -239,20 +239,42 @@
     },
     "realtime": {
       "details": {
-        "coverage_pct": null,
+        "coverage_pct": 100.0,
+        "covered_trips": 78,
+        "drift": {
+          "median_seconds": 26,
+          "observations": 3190,
+          "on_time_share_pct": 57.2,
+          "p90_abs_seconds": 426
+        },
         "kinds_reachable": 3,
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 0,
-        "worst_lag_seconds": 22
+        "scheduled_trips_in_window": 78,
+        "vehicles_checked": 231,
+        "vehicles_on_route_pct": 98.7,
+        "worst_lag_seconds": 29
       },
       "findings": [],
       "name": "realtime",
-      "score": 100.0,
+      "score": 99.8,
       "status": "measured",
-      "summary": "Sampled 9 times outside service hours: 3 of 3 feeds healthy.",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 100.0% of scheduled trips had live predictions; 98.7% of vehicles on their route; predictions ran a median of 26s behind schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -263,7 +285,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 70 days.",
+        "detail": "Service data covers the next 69 days.",
         "key": "current",
         "met": true
       },
@@ -289,7 +311,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -117.91555,
@@ -321,7 +343,7 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 70 days.",
+        "detail": "Service data covers the next 69 days.",
         "key": "current",
         "status": "ready"
       }
@@ -331,9 +353,9 @@
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 3.9,
-    "margin_to_next_band": 6.1,
-    "score": 73.9
+    "margin_to_lower_band": 3.8,
+    "margin_to_next_band": 6.2,
+    "score": 73.8
   },
   "recommendations": [
     {
@@ -359,11 +381,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-05",
-    "feed_fetched_date": "2026-07-04",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 2326,
     "findings": [
@@ -823,7 +840,13 @@
     "stop_points_capped": true
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 11411 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 11411,
+    "trips_with_shape": 11411
+  },
   "snapshot_date": "2026-07-05",
   "top_fixes": [
     {

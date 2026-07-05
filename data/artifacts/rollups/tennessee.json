@@ -43,7 +43,7 @@
     "stale": 4,
     "total": 6
   },
-  "generated_at": "2026-07-05T18:51:14+00:00",
+  "generated_at": "2026-07-05T20:54:15+00:00",
   "grade_distribution": {
     "C": 2,
     "D": 2,
@@ -116,7 +116,7 @@
       "name": "Muletown Trolley",
       "needs_attention": true,
       "score": 55.5,
-      "shapes_status": null,
+      "shapes_status": "not_ready",
       "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
     },
@@ -213,8 +213,8 @@
   "schema_version": "1.7",
   "shapes_readiness": {
     "at_risk": 0,
-    "not_measured": 11,
-    "not_ready": 0,
+    "not_measured": 10,
+    "not_ready": 1,
     "ready": 0,
     "total": 11
   },

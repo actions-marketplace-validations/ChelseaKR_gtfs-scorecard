@@ -172,14 +172,6 @@
     },
     {
       "date": "2026-07-05",
-      "grade": "D",
-      "id": "sandy-area-metro-sam-2739",
-      "name": "Static feed for realtime",
-      "score": 66.7,
-      "score_delta": 7.0
-    },
-    {
-      "date": "2026-07-05",
       "grade": "F",
       "id": "frederick-county-transit-2432",
       "name": "Frederick County TransIT",
@@ -189,10 +181,18 @@
     {
       "date": "2026-07-05",
       "grade": "D",
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "score": 63.2,
+      "score_delta": 3.5
+    },
+    {
+      "date": "2026-07-05",
+      "grade": "D",
       "id": "via-mobility-2395",
       "name": "Via Mobility",
-      "score": 66.4,
-      "score_delta": 3.1
+      "score": 65.7,
+      "score_delta": 2.4
     }
   ],
   "top": [

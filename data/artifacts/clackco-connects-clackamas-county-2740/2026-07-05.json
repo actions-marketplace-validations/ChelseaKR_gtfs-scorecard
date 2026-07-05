@@ -214,7 +214,7 @@
         "rt_freshness": "fresh",
         "samples": 9,
         "scheduled_trips_in_window": 0,
-        "worst_lag_seconds": 3
+        "worst_lag_seconds": 4
       },
       "findings": [],
       "name": "realtime",
@@ -262,7 +262,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "ffe0f1edaaae786641de713df9124eca4516a6dcd44e6e8fbb5a91fd359b2d15",
+    "sha256": "b8ab3494269ed0aba8717a9494ff85c9b7e94a4cefdb9ad40fa86834ac43db9d",
     "size_bytes": 82374,
     "static_url": "https://passio3.com/clackamas/passioTransit/gtfs/google_transit.zip"
   },

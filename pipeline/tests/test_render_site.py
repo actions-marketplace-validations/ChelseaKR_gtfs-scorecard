@@ -11,6 +11,7 @@ from scorecard_pipeline.render_site import (
     _changes_sections,
     _equity_choropleth,
     _fares_substat,
+    _grade_distribution_bar,
     _map_feature,
     _outreach_note,
     _outreach_section,
@@ -18,6 +19,7 @@ from scorecard_pipeline.render_site import (
     _render_board_page,
     _render_equity_page,
     _render_map_page,
+    _rollup_percentile_context,
     _route_map_section,
     _standards_section,
     _vendor_request,
@@ -240,6 +242,31 @@ def test_changes_page_has_friendly_empty_states() -> None:
     html = _changes_sections([])
     assert "No agencies improved" in html
     assert "good day" in html
+
+
+def test_grade_distribution_bar_renders_only_nonzero_grades() -> None:
+    html = _grade_distribution_bar({"A": 2, "B": 0, "C": "3", "F": None}, 5)
+    assert "grade-seg grade-a" in html
+    assert "2 graded A" in html
+    # A non-int count (a hand-edited or malformed rollup file) is treated as
+    # zero rather than crashing or rendering a bogus segment.
+    assert "grade-seg grade-c" not in html
+    assert "grade-seg grade-b" not in html
+    assert "grade-seg grade-f" not in html
+
+
+def test_grade_distribution_bar_empty_when_no_total() -> None:
+    assert _grade_distribution_bar({"A": 3}, 0) == ""
+
+
+def test_rollup_percentile_context_renders_when_populated() -> None:
+    html = _rollup_percentile_context({"state_percentile": 48})
+    assert "ahead of 48% of tracked state programs" in html
+
+
+def test_rollup_percentile_context_empty_when_absent_or_none() -> None:
+    assert _rollup_percentile_context({"state_percentile": None}) == ""
+    assert _rollup_percentile_context({}) == ""
 
 
 def test_standards_section_is_us_only() -> None:

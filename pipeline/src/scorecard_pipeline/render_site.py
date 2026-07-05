@@ -2795,7 +2795,8 @@ def _grade_distribution_bar(dist: dict[str, Any], total: int) -> str:
         return ""
     segs = []
     for g in _GRADES:
-        n = int(dist.get(g) or 0)
+        raw = dist.get(g)
+        n = raw if isinstance(raw, int) and not isinstance(raw, bool) else 0
         if not n:
             continue
         pct = round(100 * n / total)

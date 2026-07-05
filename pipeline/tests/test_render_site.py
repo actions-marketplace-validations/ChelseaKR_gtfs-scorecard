@@ -1465,6 +1465,63 @@ def test_rollup_shapes_section_empty_when_nothing_measured() -> None:
     assert _rollup_shapes_section(rollup) == ""
 
 
+def test_rollup_common_fixes_section_links_the_fix_guide_when_one_exists() -> None:
+    from scorecard_pipeline.render_site import FIX_CODES_WITH_PAGES, _rollup_common_fixes_section
+
+    FIX_CODES_WITH_PAGES.add("scorecard_no_feed_contact")
+    try:
+        rollup = {
+            "rollup": {"id": "test-state", "name": "Test State"},
+            "common_fixes": [
+                {
+                    "code": "scorecard_no_feed_contact",
+                    "fix": "Add feed_contact_email to feed_info.txt.",
+                    "agencies": 5,
+                }
+            ],
+        }
+        html = _rollup_common_fixes_section(rollup)
+        assert "Fixes shared across this group" in html
+        assert "Add feed_contact_email to feed_info.txt." in html
+        assert "Shared by 5 agencies in this group." in html
+        assert 'href="/fix/scorecard_no_feed_contact/"' in html
+    finally:
+        FIX_CODES_WITH_PAGES.discard("scorecard_no_feed_contact")
+
+
+def test_rollup_common_fixes_section_omits_the_guide_link_without_a_page() -> None:
+    from scorecard_pipeline.render_site import FIX_CODES_WITH_PAGES, _rollup_common_fixes_section
+
+    FIX_CODES_WITH_PAGES.discard("some_uncovered_code")
+    rollup = {
+        "rollup": {"id": "test-state", "name": "Test State"},
+        "common_fixes": [{"code": "some_uncovered_code", "fix": "Do the thing.", "agencies": 2}],
+    }
+    html = _rollup_common_fixes_section(rollup)
+    assert "Do the thing." in html
+    assert "fix-guide" not in html
+
+
+def test_rollup_common_fixes_section_empty_when_nothing_shared() -> None:
+    from scorecard_pipeline.render_site import _rollup_common_fixes_section
+
+    rollup = {"rollup": {"id": "test-state", "name": "Test State"}, "common_fixes": []}
+    assert _rollup_common_fixes_section(rollup) == ""
+
+
+def test_rollup_common_fixes_section_caps_at_ten_and_links_the_full_list() -> None:
+    from scorecard_pipeline.render_site import _rollup_common_fixes_section
+
+    common = [{"code": f"code_{i}", "fix": f"Fix {i}.", "agencies": 20 - i} for i in range(15)]
+    rollup = {"rollup": {"id": "big-state", "name": "Big State"}, "common_fixes": common}
+    html = _rollup_common_fixes_section(rollup)
+    assert "Fix 0." in html
+    assert "Fix 9." in html
+    assert "Fix 10." not in html
+    assert "5 more shared fixes" in html
+    assert 'href="/data/artifacts/rollups/big-state.json"' in html
+
+
 def test_liveness_note_shows_checked_and_changed_freshness() -> None:
     import datetime as dt
 

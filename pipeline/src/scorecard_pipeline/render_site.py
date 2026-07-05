@@ -2571,6 +2571,235 @@ def _conformance_section(artifact: dict[str, Any], agency_id: str, agency_name: 
     )
 
 
+def _numeric_percent(value: Any) -> float | None:
+    """``value`` as a percentage, or None when it isn't really one.
+
+    Excludes bool even though ``isinstance(True, int)`` is True in Python: a
+    future refactor that stores a plain "meets the floor" flag under a details
+    key this reads must not silently pass as a percentage here.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int | float):
+        return float(value)
+    return None
+
+
+def _california_guideline_checklist(artifact: dict[str, Any]) -> list[dict[str, Any]]:
+    """The California Minimum GTFS Guidelines v2.0 Data Process Checklist, item
+    by item, scored from data this scorecard already computes -- no new metric,
+    per E11/03-A7's own scope. Each item's ``met`` is True/False when this tool
+    can honestly check it, or None when it cannot (the guideline covers ground
+    the scorecard does not, by design: it wraps the canonical validator and
+    scores rider-facing completeness, it does not run a second GTFS-Realtime
+    validator or track publish-cadence history). Wording and grouping mirror
+    the checklist's own three sections (fetched and verified 2026-07-05; see
+    docs/crosswalk.md) so a reader can match an item back to the source.
+    """
+    comp = artifact.get("categories", {}).get("completeness", {})
+    comp_measured = comp.get("status") == "measured"
+    comp_codes = {f.get("code") for f in comp.get("findings", [])} if comp_measured else set()
+    comp_details = comp.get("details", {}) if comp_measured else {}
+
+    correctness = artifact.get("categories", {}).get("correctness", {})
+    errors: int | None = None
+    if correctness.get("status") == "measured":
+        errors = sum(
+            1
+            for f in correctness.get("findings", [])
+            if str(f.get("severity", "")).upper() == "ERROR"
+        )
+
+    reachable = artifact.get("feed", {}).get("reachable")
+
+    access = comp_details.get("accessibility") or {}
+    stops_num = _numeric_percent(access.get("stops_stated_pct"))
+    trips_num = _numeric_percent(access.get("trips_stated_pct"))
+    wheelchair_met: bool | None = None
+    wheelchair_detail = "Accessibility completeness has not been measured."
+    if stops_num is not None and trips_num is not None:
+        wheelchair_met = stops_num >= 90 and trips_num >= 90
+        wheelchair_detail = (
+            f"States wheelchair access on {round(stops_num)}% of stops and "
+            f"{round(trips_num)}% of trips."
+        )
+
+    shapes = _current_shapes_readiness(artifact)
+    shapes_met = shapes.get("status") == "ready" if shapes else None
+
+    has_fares = comp_details.get("has_fares") if comp_measured else None
+    fare_free = comp_details.get("fare_free") if comp_measured else None
+    fares_met = True if fare_free else (bool(has_fares) if has_fares is not None else None)
+
+    contact_met = "scorecard_no_feed_contact" not in comp_codes if comp_measured else None
+
+    return [
+        {
+            "section": "GTFS Schedule",
+            "label": "Publish GTFS Schedule at a stable, automatically-fetchable URL",
+            "met": bool(reachable) if reachable is not None else None,
+            "detail": "The published feed URL downloaded at the last check."
+            if reachable
+            else "The published feed URL did not download at the last check."
+            if reachable is False
+            else "This feed has not yet been checked for reachability.",
+        },
+        {
+            "section": "GTFS Schedule",
+            "label": "Implement required fields: Fares v2, text-to-speech stop names, "
+            "shapes.txt, wheelchair_boarding, and Pathways where applicable",
+            "met": None,
+            "detail": "This scorecard measures wheelchair_boarding, shapes.txt coverage, "
+            "fare data, and station pathways separately, below; it does not check the "
+            "Fares v2 format specifically or text-to-speech stop names.",
+        },
+        {
+            "section": "GTFS Schedule",
+            "label": "Achieve a passing score in every category of the MobilityData GTFS "
+            "Grading Scheme v1",
+            "met": None,
+            "detail": "This scorecard automates a proxy for the Grading Scheme's rider-"
+            "facing fields (see the standards crosswalk) rather than running the scheme "
+            "itself, which grades by comparison to the real world by hand.",
+        },
+        {
+            "section": "GTFS Schedule",
+            "label": "Publish changes to the base schedule at least one week ahead of "
+            "every service change",
+            "met": None,
+            "detail": "This scorecard does not track a feed's publish history, so advance "
+            "notice cannot be checked.",
+        },
+        {
+            "section": "GTFS Schedule",
+            "label": "Produce no critical errors in the MobilityData GTFS Validator",
+            "met": (errors == 0) if errors is not None else None,
+            "detail": "Passes validation with no errors."
+            if errors == 0
+            else f"{errors} validator error{'s' if errors != 1 else ''} to resolve."
+            if errors
+            else "Validation has not run for this feed yet.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Publish Trip Updates, Vehicle Positions, and Alerts feeds",
+            "met": None,
+            "detail": "This scorecard checks realtime reachability and freshness overall; "
+            "it does not check for all three feed types individually.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Update Trip Updates and Vehicle Positions at least every 20 seconds",
+            "met": None,
+            "detail": "This scorecard samples realtime freshness; it does not check this "
+            "specific 20-second cadence.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Publish information for at least 99% of vehicles in service",
+            "met": None,
+            "detail": "This scorecard measures the share of scheduled trips represented "
+            "in TripUpdates, a related but different figure than vehicle coverage.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Keep 100% of trip_ids consistent between Schedule and Realtime",
+            "met": None,
+            "detail": "This scorecard does not currently check trip_id consistency "
+            "between the Schedule and Realtime feeds.",
+        },
+        {
+            "section": "GTFS Realtime",
+            "label": "Produce no critical errors in the Center for Urban Transportation "
+            "Research realtime validator",
+            "met": None,
+            "detail": "This scorecard does not run the CUTR realtime validator.",
+        },
+        {
+            "section": "Data Access & Maintenance",
+            "label": "Publish accessible feed links on the agency or regional partner website",
+            "met": None,
+            "detail": "This scorecard does not check the agency's own website.",
+        },
+        {
+            "section": "Data Access & Maintenance",
+            "label": "Register GTFS and GTFS-Realtime feeds with transit.land and the "
+            "Mobility Database",
+            "met": None,
+            "detail": "This scorecard does not currently check aggregator registration "
+            "for this section.",
+        },
+        {
+            "section": "Data Access & Maintenance",
+            "label": "Designate a technical contact in feed_info.txt's feed_contact_email",
+            "met": contact_met,
+            "detail": "feed_info.txt states a technical contact."
+            if contact_met
+            else "feed_info.txt has no feed_contact_email or feed_contact_url."
+            if contact_met is False
+            else "Contact completeness has not been measured.",
+        },
+        {
+            "section": "Rider experience (measured elsewhere on this checklist's behalf)",
+            "label": "wheelchair_boarding stated on stops and trips",
+            "met": wheelchair_met,
+            "detail": wheelchair_detail,
+        },
+        {
+            "section": "Rider experience (measured elsewhere on this checklist's behalf)",
+            "label": "shapes.txt with a shape for every trip",
+            "met": shapes_met,
+            "detail": str(shapes.get("detail", ""))
+            if shapes
+            else "Shape coverage has not been measured for this feed.",
+        },
+        {
+            "section": "Rider experience (measured elsewhere on this checklist's behalf)",
+            "label": "Fare data published, or the service marked fare-free",
+            "met": fares_met,
+            "detail": "This service is marked fare-free."
+            if fare_free
+            else "Fare data is published."
+            if fares_met
+            else "No fare data is published."
+            if fares_met is False
+            else "Fare completeness has not been measured.",
+        },
+    ]
+
+
+def _california_guideline_html(artifact: dict[str, Any]) -> str:
+    """The California checklist, rendered as a labelled list grouped by the
+    guideline's own three sections. A pass/gap/not-measured read, never a
+    compliance determination -- the official checklist and its own reporting
+    are the authoritative source (docs/crosswalk.md)."""
+    items = _california_guideline_checklist(artifact)
+    measured = [i for i in items if i["met"] is not None]
+    met_count = sum(1 for i in items if i["met"])
+    rows = []
+    for item in items:
+        if item["met"] is True:
+            mark, cls = "Meets", "ntd-ready"
+        elif item["met"] is False:
+            mark, cls = "Gap", "ntd-not_ready"
+        else:
+            mark, cls = "Not measured here", "ntd-unknown"
+        rows.append(
+            f'<li><span class="ntd-status {cls}">{esc(mark)}</span> '
+            f"<strong>{esc(item['label'])}</strong>"
+            f'<p class="fineprint">{esc(item["detail"])}</p></li>'
+        )
+    return (
+        '<details class="confidence-how"><summary>California Minimum GTFS Guidelines '
+        f"checklist ({met_count} of {len(measured)} measured items met)</summary>"
+        '<p class="fineprint">The state\'s own Data Process Checklist, matched item by '
+        'item to what this scorecard already measures. An item marked "not measured '
+        'here" is real ground the checklist covers that this tool does not check; see '
+        "the official checklist for the full picture.</p>"
+        f'<ul class="autofix-list">{"".join(rows)}</ul></details>'
+    )
+
+
 def _standards_section(artifact: dict[str, Any], state: str = "") -> str:
     """How this agency's category scores line up with the standards it relates to.
 
@@ -2619,6 +2848,8 @@ def _standards_section(artifact: dict[str, Any], state: str = "") -> str:
                 "industry ones below; the score maps to those."
             )
         state_html += "</p>"
+        if state_std.get("kind") == "guideline":
+            state_html += _california_guideline_html(artifact)
     return (
         '<section aria-labelledby="standards-h" class="feed-details">'
         '<h2 class="section-title" id="standards-h">How this agency maps to the standards</h2>'

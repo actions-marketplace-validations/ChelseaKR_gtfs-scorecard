@@ -36,7 +36,7 @@ from .feeddiff import FeedDiff, diff_artifacts
 from .findings_national import agency_findings, plain_language_coverage
 from .fixlog import load_fixlog
 from .google_gate import from_artifact as google_from_artifact
-from .metrics import expiry_status
+from .metrics import expiry_status, operating_signal
 from .mobilitydb import canonical_state
 from .ntd import assess as ntd_assess
 from .pages_tools import (
@@ -2664,7 +2664,7 @@ def _index_card(aid: str, a: dict[str, Any], note: str = "") -> str:
     )
 
 
-def _render_agency_index(index: dict[str, Any]) -> str:
+def _render_agency_index(index: dict[str, Any], liveness: dict[str, dict[str, Any]]) -> str:
     canonical = f"{BASE_URL}/agencies/"
     agencies = sorted(index["agencies"].items(), key=lambda kv: kv[1]["name"].lower())
 
@@ -2672,9 +2672,17 @@ def _render_agency_index(index: dict[str, Any]) -> str:
     # buried in a long alphabetical wall of grade F. Split them: a recently
     # lapsed feed is a one-line re-export the agency can still fix; a feed that
     # has been dead for over a year usually means the URL itself is stale and the
-    # canonical endpoint should be re-checked in the Mobility Database.
+    # canonical endpoint should be re-checked in the Mobility Database. Within
+    # "expired over a year", a further automatic split (metrics.operating_signal,
+    # from the intraday liveness check, not a curator's manual note): a feed
+    # whose URL has itself failed every check for a sustained month reads
+    # differently in a caseload view than one whose stale calendar sits on a
+    # still-answering host. Neither is "the agency stopped" -- that stays a
+    # human call -- but a liaison should not have to guess which one they are
+    # looking at from the same one-line caption.
     lapsed: list[tuple[str, dict[str, Any], int]] = []
-    stale: list[tuple[str, dict[str, Any], int]] = []
+    stale_reachable: list[tuple[str, dict[str, Any], int]] = []
+    stale_unreachable: list[tuple[str, dict[str, Any], int]] = []
     graded: list[tuple[str, dict[str, Any]]] = []
     for aid, a in agencies:
         last = a["history"][-1]
@@ -2683,18 +2691,24 @@ def _render_agency_index(index: dict[str, Any]) -> str:
         if status == "lapsed":
             lapsed.append((aid, a, int(days)))
         elif status == "stale":
-            stale.append((aid, a, int(days)))
+            failures = int((liveness.get(aid) or {}).get("consecutive_failures") or 0)
+            if operating_signal(status, failures) == "unreachable":
+                stale_unreachable.append((aid, a, int(days)))
+            else:
+                stale_reachable.append((aid, a, int(days)))
         else:
             graded.append((aid, a))
     # Most recently expired first: the closest to recovery, and the most likely
     # to still be operating.
     lapsed.sort(key=lambda t: t[2], reverse=True)
-    stale.sort(key=lambda t: t[2], reverse=True)
+    stale_reachable.sort(key=lambda t: t[2], reverse=True)
+    stale_unreachable.sort(key=lambda t: t[2], reverse=True)
+    stale_total = len(stale_reachable) + len(stale_unreachable)
 
     nav = []
     expired_section = ""
-    if lapsed or stale:
-        nav.append(f'<a href="#expired">Expired ({len(lapsed) + len(stale)})</a>')
+    if lapsed or stale_total:
+        nav.append(f'<a href="#expired">Expired ({len(lapsed) + stale_total})</a>')
         groups = []
         if lapsed:
             rows = "".join(
@@ -2711,27 +2725,46 @@ def _render_agency_index(index: dict[str, Any]) -> str:
                 "reaches further out brings them back into trip planners.</p>"
                 f'<ul class="agency-list">{rows}</ul></section>'
             )
-        if stale:
+        if stale_reachable:
             rows = "".join(
                 _index_card(aid, a, f"Feed expired {_expired_ago(d)} · check the feed URL")
-                for aid, a, d in stale
+                for aid, a, d in stale_reachable
             )
             groups.append(
                 '<section aria-labelledby="stale-h">'
                 '<h3 class="section-sub" id="stale-h">Expired over a year ago '
-                f'<span class="grade-count">{len(stale)} '
-                f"{'agency' if len(stale) == 1 else 'agencies'}</span></h3>"
+                f'<span class="grade-count">{len(stale_reachable)} '
+                f"{'agency' if len(stale_reachable) == 1 else 'agencies'}</span></h3>"
                 '<p class="group-note">Expired more than a year ago. For these, the feed URL on '
                 "file is still the one listed in the Mobility Database, so the stale data is at "
                 "the source: the agency or its vendor stopped refreshing the export. Worth "
                 "confirming the agency still runs before reading the grade as a current failure.</p>"
                 f'<ul class="agency-list">{rows}</ul></section>'
             )
+        if stale_unreachable:
+            rows = "".join(
+                _index_card(
+                    aid, a, f"Feed expired {_expired_ago(d)} · link unreachable for 30+ checks"
+                )
+                for aid, a, d in stale_unreachable
+            )
+            groups.append(
+                '<section aria-labelledby="unreachable-h">'
+                '<h3 class="section-sub" id="unreachable-h">Long unreachable '
+                f'<span class="grade-count">{len(stale_unreachable)} '
+                f"{'agency' if len(stale_unreachable) == 1 else 'agencies'}</span></h3>"
+                '<p class="group-note">Expired more than a year ago, and the feed URL itself '
+                "has not answered the last 30 checks in a row &mdash; a stronger signal than "
+                "an old calendar alone. This may mean the feed moved, the listing is stale, or "
+                "service has changed; we cannot tell which from here. Worth confirming directly "
+                "before reading it either way.</p>"
+                f'<ul class="agency-list">{rows}</ul></section>'
+            )
         expired_section = (
             '<section class="expired-panel" aria-labelledby="expired">'
             '<h2 class="section-title" id="expired">Expired feeds '
-            f'<span class="grade-count">{len(lapsed) + len(stale)} '
-            f"{'agency' if len(lapsed) + len(stale) == 1 else 'agencies'}</span></h2>"
+            f'<span class="grade-count">{len(lapsed) + stale_total} '
+            f"{'agency' if len(lapsed) + stale_total == 1 else 'agencies'}</span></h2>"
             '<p class="page-lede">A feed whose calendar has run out is invisible to trip '
             "planners even when the buses keep running. These are pulled out of the grade list "
             "below so the fixable ones are easy to find.</p>"
@@ -5611,7 +5644,11 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:
         str(aid): (entry or {}).get("history") or []
         for aid, entry in (index.get("agencies") or {}).items()
     }
-    write("agencies/index.html", _render_agency_index(index))
+    # Per-feed change-detection freshness from the intraday refresh; loaded once,
+    # early, so both the directory's expired-feed split and each agency page
+    # (below) read the same state.
+    liveness_state = _load_liveness()
+    write("agencies/index.html", _render_agency_index(index, liveness_state))
     states = _states_by_agency()
     from .config import AGENCIES
 
@@ -5741,10 +5778,8 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:
     # copies, so the interactive widget and the pipeline agree by construction.
     write("api/v1/scoring.json", scoring_json)
 
-    # Per-feed change-detection freshness from the intraday refresh, shown on each
-    # page so a reader can see how current the monitoring is. Absent until the
-    # refresh has run, in which case the note is simply omitted.
-    liveness_state = _load_liveness()
+    # liveness_state was loaded earlier (with the directory page); each agency
+    # page below reuses that same read.
 
     # Pass 2: render each agency page with its directory record, so the static
     # page shows the same peer line as the interactive view (crawlers and no-JS

@@ -14,6 +14,7 @@ from scorecard_pipeline.render_site import (
     _equity_choropleth,
     _fares_substat,
     _map_feature,
+    _numeric_percent,
     _outreach_note,
     _outreach_section,
     _peer_context,
@@ -282,6 +283,17 @@ def test_standards_section_is_state_aware() -> None:
     assert "Minimum GTFS Guidelines checklist" not in tx
 
 
+def test_numeric_percent_excludes_bool() -> None:
+    assert _numeric_percent(95) == 95.0
+    assert _numeric_percent(95.5) == 95.5
+    assert _numeric_percent(None) is None
+    assert _numeric_percent("95") is None
+    # isinstance(True, int) is True in Python; a stray boolean under a details
+    # key this reads must not be treated as a percentage.
+    assert _numeric_percent(True) is None
+    assert _numeric_percent(False) is None
+
+
 def test_california_checklist_reads_measured_fields() -> None:
     art = {
         "feed": {"reachable": True},
@@ -340,13 +352,27 @@ def test_california_checklist_gaps_and_unmeasured_are_distinct() -> None:
     assert contact_item["met"] is False
     fares_item = by_label["Fare data published, or the service marked fare-free"]
     assert fares_item["met"] is False
-    # Not-yet-measured fields (no completeness category at all) render as None,
-    # not as a false gap.
+    # Not-yet-measured fields (no completeness or correctness category at all)
+    # render as None across every item they gate, not as a false gap -- a
+    # regression that dropped one of the `is not None`/`if comp_measured`
+    # guards would otherwise report a "Gap" for an agency that simply hasn't
+    # been scored yet.
     unmeasured_art: dict[str, Any] = {"feed": {}, "categories": {}}
-    wheelchair = {i["label"]: i for i in _california_guideline_checklist(unmeasured_art)}[
-        "wheelchair_boarding stated on stops and trips"
-    ]
-    assert wheelchair["met"] is None
+    unmeasured_by_label = {i["label"]: i for i in _california_guideline_checklist(unmeasured_art)}
+    assert unmeasured_by_label["wheelchair_boarding stated on stops and trips"]["met"] is None
+    assert (
+        unmeasured_by_label["Designate a technical contact in feed_info.txt's feed_contact_email"][
+            "met"
+        ]
+        is None
+    )
+    assert (
+        unmeasured_by_label["Fare data published, or the service marked fare-free"]["met"] is None
+    )
+    assert (
+        unmeasured_by_label["Produce no critical errors in the MobilityData GTFS Validator"]["met"]
+        is None
+    )
 
 
 def test_california_checklist_html_counts_only_measured_items() -> None:

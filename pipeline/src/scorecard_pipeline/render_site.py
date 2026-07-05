@@ -2570,6 +2570,20 @@ def _conformance_section(artifact: dict[str, Any], agency_id: str, agency_name: 
     )
 
 
+def _numeric_percent(value: Any) -> float | None:
+    """``value`` as a percentage, or None when it isn't really one.
+
+    Excludes bool even though ``isinstance(True, int)`` is True in Python: a
+    future refactor that stores a plain "meets the floor" flag under a details
+    key this reads must not silently pass as a percentage here.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int | float):
+        return float(value)
+    return None
+
+
 def _california_guideline_checklist(artifact: dict[str, Any]) -> list[dict[str, Any]]:
     """The California Minimum GTFS Guidelines v2.0 Data Process Checklist, item
     by item, scored from data this scorecard already computes -- no new metric,
@@ -2598,14 +2612,15 @@ def _california_guideline_checklist(artifact: dict[str, Any]) -> list[dict[str, 
     reachable = artifact.get("feed", {}).get("reachable")
 
     access = comp_details.get("accessibility") or {}
-    stops_pct, trips_pct = access.get("stops_stated_pct"), access.get("trips_stated_pct")
+    stops_num = _numeric_percent(access.get("stops_stated_pct"))
+    trips_num = _numeric_percent(access.get("trips_stated_pct"))
     wheelchair_met: bool | None = None
     wheelchair_detail = "Accessibility completeness has not been measured."
-    if isinstance(stops_pct, int | float) and isinstance(trips_pct, int | float):
-        wheelchair_met = stops_pct >= 90 and trips_pct >= 90
+    if stops_num is not None and trips_num is not None:
+        wheelchair_met = stops_num >= 90 and trips_num >= 90
         wheelchair_detail = (
-            f"States wheelchair access on {round(stops_pct)}% of stops and "
-            f"{round(trips_pct)}% of trips."
+            f"States wheelchair access on {round(stops_num)}% of stops and "
+            f"{round(trips_num)}% of trips."
         )
 
     shapes = _current_shapes_readiness(artifact)

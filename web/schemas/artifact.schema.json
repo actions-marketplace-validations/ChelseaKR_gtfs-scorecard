@@ -277,6 +277,10 @@
       "type": "object",
       "description": "NTD certification readiness (published / valid / current); US agencies only."
     },
+    "shapes_readiness": {
+      "type": "object",
+      "description": "shapes.txt trip coverage for FTA's July 2025 NTD shapes requirement (Full Reporters RY2025; Reduced, Rural, and Tribal Reporters RY2026); present only where the check ran."
+    },
     "autofix": {
       "type": "object",
       "description": "Corrected-feed offer: what the safe deterministic fixes changed, and where the patched zip lives."

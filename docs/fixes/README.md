@@ -34,40 +34,50 @@ rule mapping fails CI. See ADR 0024.
 ## Pages so far
 
 These cover the codes seen across the tracked agencies, grouped by the scorecard
-category that surfaces them.
+category that surfaces them. This list is hand-maintained (nothing in CI checks
+it against the actual page set, only against `RULE_LINKS`; see ADR 0024), so
+add a page's link here in the same change that adds the page.
 
 Correctness (validator notices):
 
 - [`expired_calendar`](expired_calendar.md)
+- [`fast_travel_between_consecutive_stops`](fast_travel_between_consecutive_stops.md)
+- [`fast_travel_between_far_stops`](fast_travel_between_far_stops.md)
 - [`feed_expiration_date7_days`](feed_expiration_date7_days.md)
 - [`feed_expiration_date30_days`](feed_expiration_date30_days.md)
-- [`service_has_no_active_day_of_the_week`](service_has_no_active_day_of_the_week.md)
-- [`trip_coverage_not_active_for_next7_days`](trip_coverage_not_active_for_next7_days.md)
-- [`service_window_outside_feed_period`](service_window_outside_feed_period.md)
-- [`missing_required_column`](missing_required_column.md)
-- [`missing_recommended_file`](missing_recommended_file.md)
+- [`invalid_currency_amount`](invalid_currency_amount.md)
 - [`missing_feed_contact_email_and_url`](missing_feed_contact_email_and_url.md)
+- [`missing_recommended_field`](missing_recommended_field.md)
+- [`missing_recommended_file`](missing_recommended_file.md)
+- [`missing_required_column`](missing_required_column.md)
+- [`missing_timepoint_value`](missing_timepoint_value.md)
 - [`mixed_case_recommended_field`](mixed_case_recommended_field.md)
 - [`route_color_contrast`](route_color_contrast.md)
-- [`invalid_currency_amount`](invalid_currency_amount.md)
-- [`fast_travel_between_consecutive_stops`](fast_travel_between_consecutive_stops.md)
+- [`service_has_no_active_day_of_the_week`](service_has_no_active_day_of_the_week.md)
+- [`service_window_outside_feed_period`](service_window_outside_feed_period.md)
 - [`stop_too_far_from_shape_using_user_distance`](stop_too_far_from_shape_using_user_distance.md)
+- [`stop_without_stop_time`](stop_without_stop_time.md)
+- [`trip_coverage_not_active_for_next7_days`](trip_coverage_not_active_for_next7_days.md)
+- [`trip_distance_exceeds_shape_distance_below_threshold`](trip_distance_exceeds_shape_distance_below_threshold.md)
 - [`unknown_column`](unknown_column.md)
 - [`unknown_file`](unknown_file.md)
 - [`unused_shape`](unused_shape.md)
-- [`stop_without_stop_time`](stop_without_stop_time.md)
+
+Freshness (scorecard codes):
+
+- [`scorecard_feed_expired`](scorecard_feed_expired.md)
+- [`scorecard_feed_expiring_soon`](scorecard_feed_expiring_soon.md)
+- [`scorecard_missing_feed_info_dates`](scorecard_missing_feed_info_dates.md)
 
 Rider experience completeness (scorecard codes):
 
 - [`scorecard_missing_headsigns`](scorecard_missing_headsigns.md)
-- [`scorecard_wheelchair_boarding_unknown`](scorecard_wheelchair_boarding_unknown.md)
-- [`scorecard_wheelchair_accessible_unknown`](scorecard_wheelchair_accessible_unknown.md)
 - [`scorecard_no_fare_data`](scorecard_no_fare_data.md)
 - [`scorecard_no_feed_contact`](scorecard_no_feed_contact.md)
-
-Freshness (scorecard codes):
-
-- [`scorecard_missing_feed_info_dates`](scorecard_missing_feed_info_dates.md)
+- [`scorecard_station_no_pathways`](scorecard_station_no_pathways.md)
+- [`scorecard_stop_names_all_caps`](scorecard_stop_names_all_caps.md)
+- [`scorecard_wheelchair_accessible_unknown`](scorecard_wheelchair_accessible_unknown.md)
+- [`scorecard_wheelchair_boarding_unknown`](scorecard_wheelchair_boarding_unknown.md)
 
 The backlog is the rest of the MobilityData notice taxonomy: a code gets a page
 as soon as it shows up in a tracked agency's findings.

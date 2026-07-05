@@ -156,6 +156,8 @@ RULE_LINKS: dict[str, RuleLink] = {
     "scorecard_feed_expiring_soon": RuleLink(
         kind=BEST_PRACTICE, url=f"{BEST_PRACTICES_PAGE}#dataset-publishing-general-practices"
     ),
+    # Rider experience completeness: readability (mixed-case names) and station
+    # navigation, neither of which the validator flags.
     "scorecard_stop_names_all_caps": RuleLink(
         kind=BEST_PRACTICE, url=f"{BEST_PRACTICES_PAGE}#stopstxt"
     ),

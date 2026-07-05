@@ -29,9 +29,11 @@ exist at all.
   read.
 
 See [the feed expires within 7 days](feed_expiration_date7_days.md) and
-[within 30 days](feed_expiration_date30_days.md) for the earlier warnings that
-precede this one, and [expired service calendars](expired_calendar.md) for
-leftover calendars an export should stop carrying forward.
+[within 30 days](feed_expiration_date30_days.md) for the validator's own
+date-based warnings on `feed_info.txt`'s `feed_end_date` (computed differently
+from this finding, so the two do not always fire in the same order), and
+[expired service calendars](expired_calendar.md) for leftover calendars an
+export should stop carrying forward.
 
 ## How long it usually takes
 

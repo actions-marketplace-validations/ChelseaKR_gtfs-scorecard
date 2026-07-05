@@ -3145,6 +3145,7 @@ def _render_rollup(rollup: dict[str, Any]) -> str:
     )
     expired_section = _rollup_expired_section(rollup)
     shapes_section = _rollup_shapes_section(rollup)
+    common_fixes_section = _rollup_common_fixes_section(rollup)
     crumb = _breadcrumb([("Home", "/"), ("All agencies", "/agencies/"), (rname, None)])
     body = f"""    {crumb}
     <a class="backlink" href="/agencies/">&larr; All agencies</a>
@@ -3160,6 +3161,7 @@ def _render_rollup(rollup: dict[str, Any]) -> str:
     {dist_section}
     {expired_section}
     {shapes_section}
+    {common_fixes_section}
     <section aria-labelledby="members-h">
       <h2 class="section-title" id="members-h">Agencies, worst first</h2>
       <ul class="program-list">{rows}</ul>
@@ -3263,6 +3265,45 @@ def _rollup_shapes_section(rollup: dict[str, Any]) -> str:
         "already). These agencies are not fully covered yet — check each one against its own "
         "NTD filing.</p>"
         f'<ul class="program-list">{rows}</ul></section>'
+    )
+
+
+def _rollup_common_fixes_section(rollup: dict[str, Any]) -> str:
+    """The fixes this program's own agencies already share, from each member's
+    top_fixes (build_rollup's common_fixes, counted the same way and already
+    published in the rollup JSON, just not previously rendered anywhere). A
+    liaison reads this as "one export setting would lift several agencies at
+    once", the same framing top_fixes already uses per agency, applied across
+    the cohort. Cross-links each code's fix guide the same way agency findings
+    do. Only codes shared by more than one member appear (build_rollup already
+    filters to that), so this is never a single agency's own list restated;
+    absent when nothing in the cohort is shared."""
+    common = rollup.get("common_fixes") or []
+    if not common:
+        return ""
+    rid = rollup["rollup"]["id"]
+    top = 10
+    shown = common[:top]
+    rows = "".join(
+        f'<li class="event"><p><strong>{esc(item["fix"])}</strong>'
+        f"{_fix_guide_link(item['code'])}</p>"
+        f'<p class="meta">Shared by {item["agencies"]} agencies in this group.</p></li>'
+        for item in shown
+    )
+    more = (
+        f'<p class="fineprint">{len(common) - top} more shared fixes not shown here; see the '
+        f'full list at <a href="/data/artifacts/rollups/{esc(rid)}.json">{esc(rid)}.json</a>.</p>'
+        if len(common) > top
+        else ""
+    )
+    return (
+        '<section aria-labelledby="rollup-common-fixes-h">'
+        '<h2 class="section-title" id="rollup-common-fixes-h">Fixes shared across this group'
+        "</h2>"
+        '<p class="page-lede">The same fix shows up in more than one agency\'s top 3 here — '
+        "often the same export setting or scheduling-software step, worth raising once with "
+        "every agency it touches.</p>"
+        f'<ul class="events">{rows}</ul>{more}</section>'
     )
 
 

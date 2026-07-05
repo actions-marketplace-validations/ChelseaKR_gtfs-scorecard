@@ -2099,6 +2099,45 @@ def _ntd_id_alignment_html(artifact: dict[str, Any]) -> str:
     )
 
 
+def _current_shapes_readiness(artifact: dict[str, Any]) -> dict[str, Any] | None:
+    """The shapes readiness block, re-worded at render time from the stored trip
+    counts, the same way ``_current_alignment`` re-words the agency_id check —
+    so a wording fix reaches every page without a rescore."""
+    shapes = artifact.get("shapes_readiness")
+    if not shapes:
+        return None
+    total = shapes.get("total_trips")
+    with_shape = shapes.get("trips_with_shape")
+    if isinstance(total, int) and isinstance(with_shape, int):
+        from .ntd import assess_shapes_readiness
+
+        return assess_shapes_readiness(total, with_shape).to_dict()
+    return dict(shapes)
+
+
+def _shapes_readiness_html(artifact: dict[str, Any]) -> str:
+    """Render the shapes.txt readiness line, when the check ran for this feed.
+
+    FTA's July 2025 final rule requires shapes.txt from Reduced, Rural, and
+    Tribal NTD reporters starting Report Year 2026 (Full Reporters, RY2025).
+    Absent for artifacts that predate the check."""
+    shapes = _current_shapes_readiness(artifact)
+    if not shapes:
+        return ""
+    status = str(shapes.get("status", "not_ready"))
+    label = _NTD_LABELS.get(status, status)
+    detail = str(shapes.get("detail", ""))
+    fix = str(shapes.get("fix", ""))
+    body = esc(detail)
+    if fix:
+        body += f" {esc(fix)}"
+    return (
+        '<dl class="standards-list">'
+        f'<dt>shapes.txt covers your trips <span class="ntd-status ntd-{status}">'
+        f"{esc(label)}</span></dt><dd>{body}</dd></dl>"
+    )
+
+
 _CIMD_TIER_PHRASE = {"high": "higher need", "moderate": "moderate need", "lower": "lower need"}
 
 
@@ -2177,6 +2216,7 @@ def _ntd_section(artifact: dict[str, Any]) -> str:
         f'<p class="page-lede">{esc(readiness.summary)}</p>'
         f'<dl class="standards-list">{"".join(rows)}</dl>'
         f"{_ntd_id_alignment_html(artifact)}"
+        f"{_shapes_readiness_html(artifact)}"
         '<p class="plain-summary"><strong>In plain words:</strong> if you report to the federal '
         "transit database, you have to publish a working, up-to-date feed and confirm it once a "
         "year. This box is a heads-up on whether yours looks ready; it is not the official "
@@ -2190,8 +2230,9 @@ def _ntd_section(artifact: dict[str, Any]) -> str:
         '<a href="https://www.federalregister.gov/documents/2025/07/10/2025-12813/'
         'national-transit-database-reporting-changes-and-clarifications-for-report-years-2025-and-2026">'
         "July 2025 final rule</a> links the two on the P-50 form rather than requiring that "
-        "feed change. Not an official determination; your certification is the official "
-        "check.</p></section>"
+        "feed change, and requires shapes.txt in the published GTFS: Full Reporters from Report "
+        "Year 2025, and Reduced, Rural, and Tribal Reporters from Report Year 2026. Not an "
+        "official determination; your certification is the official check.</p></section>"
     )
 
 
@@ -2626,6 +2667,7 @@ def _render_rollup(rollup: dict[str, Any]) -> str:
     rows = "".join(rows_parts)
     avg = "—" if rollup.get("average_score") is None else f"{rollup['average_score']} out of 100"
     expired_section = _rollup_expired_section(rollup)
+    shapes_section = _rollup_shapes_section(rollup)
     crumb = _breadcrumb([("Home", "/"), ("All agencies", "/agencies/"), (rname, None)])
     body = f"""    {crumb}
     <a class="backlink" href="/agencies/">&larr; All agencies</a>
@@ -2638,6 +2680,7 @@ def _render_rollup(rollup: dict[str, Any]) -> str:
     </div>
     {_route_rule()}
     {expired_section}
+    {shapes_section}
     <section aria-labelledby="members-h">
       <h2 class="section-title" id="members-h">Agencies, worst first</h2>
       <ul class="program-list">{rows}</ul>
@@ -2709,6 +2752,38 @@ def _rollup_expired_section(rollup: dict[str, Any]) -> str:
         '<p class="page-lede">These feeds have run out and dropped from trip planners. '
         "Start the program's outreach here.</p>"
         f"{''.join(groups)}</section>"
+    )
+
+
+def _rollup_shapes_section(rollup: dict[str, Any]) -> str:
+    """A worklist of this program's members not yet covered by shapes.txt, the
+    liaison-facing half of the per-agency NTD shapes readiness check (03-A1).
+    FTA's July 2025 final rule requires shapes.txt covering every trip for
+    Reduced, Rural, and Tribal NTD reporters by Report Year 2026 (Full
+    Reporters already, RY2025); this checks the feed itself, not each
+    agency's reporter type, so it is a heads-up to check against each
+    agency's own filing, never a claim that a listed agency is currently
+    out of compliance. Absent when nothing in the cohort has a gap, or when
+    the cohort has no measured members (all non-US, or artifacts that
+    predate the check)."""
+    shapes = rollup.get("shapes_readiness")
+    if not shapes or not (shapes["not_ready"] or shapes["at_risk"]):
+        return ""
+    gaps = [m for m in rollup["members"] if m.get("shapes_status") in ("not_ready", "at_risk")]
+    gaps.sort(key=lambda m: (m["shapes_status"] != "not_ready", m["id"]))
+    rows = "".join(
+        _rollup_member_row(m, _NTD_LABELS.get(m["shapes_status"], m["shapes_status"])) for m in gaps
+    )
+    measured = shapes["total"] - shapes["not_measured"]
+    return (
+        '<section class="expired-panel" aria-labelledby="rollup-shapes-h">'
+        '<h2 class="section-title" id="rollup-shapes-h">shapes.txt coverage '
+        f'<span class="grade-count">{shapes["ready"]} of {measured}</span></h2>'
+        '<p class="page-lede">The FTA National Transit Database requires shapes.txt covering '
+        "every trip (Reduced, Rural, and Tribal reporters by Report Year 2026; Full Reporters "
+        "already). These agencies are not fully covered yet — check each one against its own "
+        "NTD filing.</p>"
+        f'<ul class="program-list">{rows}</ul></section>'
     )
 
 

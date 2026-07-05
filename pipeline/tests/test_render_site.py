@@ -1137,6 +1137,110 @@ def test_ntd_section_renders_id_alignment_when_present() -> None:
     assert "agency_id matches your NTD ID" not in _ntd_section(base)
 
 
+def test_ntd_section_renders_shapes_readiness_when_present() -> None:
+    from scorecard_pipeline.render_site import _ntd_section
+
+    base = {
+        "feed": {"reachable": True, "static_url": "https://ex.org/g.zip"},
+        "categories": {
+            "correctness": {"status": "measured", "findings": []},
+            "freshness": {"status": "measured", "details": {"days_until_expiry": 90}},
+        },
+    }
+    partial = {
+        **base,
+        "shapes_readiness": {
+            "status": "at_risk",
+            "detail": "stale detail baked into the fixture",
+            "fix": "stale fix baked into the fixture",
+            "total_trips": 10,
+            "trips_with_shape": 6,
+        },
+    }
+    html = _ntd_section(partial)
+    assert "shapes.txt covers your trips" in html
+    assert "Needs attention" in html
+    # Recomputed at render time from the stored counts, so wording fixes reach
+    # every page without a rescore (same pattern as agency_id alignment).
+    assert "6 of 10 trips have a shape" in html
+    assert "stale detail baked into the fixture" not in html
+    # The fineprint cites the RY2025/26 shapes.txt requirement.
+    assert "Report Year 2026" in html and "Report Year 2025" in html
+
+    # Absent block (older artifacts, or a feed scored before this check shipped)
+    # renders no shapes row.
+    assert "shapes.txt covers your trips" not in _ntd_section(base)
+
+
+def _member(agency_id: str, shapes_status: str | None, grade: str = "C") -> dict[str, Any]:
+    return {
+        "id": agency_id,
+        "name": f"{agency_id.title()} Transit",
+        "grade": grade,
+        "score": 75.0,
+        "snapshot_date": "2026-06-12",
+        "shapes_status": shapes_status,
+    }
+
+
+def test_rollup_shapes_section_lists_gaps_not_ready_first() -> None:
+    from scorecard_pipeline.render_site import _rollup_shapes_section
+
+    rollup = {
+        "members": [
+            _member("ready1", "ready"),
+            _member("risk1", "at_risk"),
+            _member("notready1", "not_ready"),
+        ],
+        "shapes_readiness": {
+            "ready": 1,
+            "at_risk": 1,
+            "not_ready": 1,
+            "not_measured": 0,
+            "total": 3,
+        },
+    }
+    html = _rollup_shapes_section(rollup)
+    assert "shapes.txt coverage" in html
+    assert "1 of 3" in html
+    assert "Notready1 Transit" in html and "Risk1 Transit" in html
+    assert "Ready1 Transit" not in html  # only the gaps are listed
+    # not_ready sorts ahead of at_risk in the worklist.
+    assert html.index("Notready1 Transit") < html.index("Risk1 Transit")
+
+
+def test_rollup_shapes_section_empty_when_all_ready() -> None:
+    from scorecard_pipeline.render_site import _rollup_shapes_section
+
+    rollup = {
+        "members": [_member("a", "ready")],
+        "shapes_readiness": {
+            "ready": 1,
+            "at_risk": 0,
+            "not_ready": 0,
+            "not_measured": 0,
+            "total": 1,
+        },
+    }
+    assert _rollup_shapes_section(rollup) == ""
+
+
+def test_rollup_shapes_section_empty_when_nothing_measured() -> None:
+    from scorecard_pipeline.render_site import _rollup_shapes_section
+
+    rollup = {
+        "members": [_member("a", None)],
+        "shapes_readiness": {
+            "ready": 0,
+            "at_risk": 0,
+            "not_ready": 0,
+            "not_measured": 1,
+            "total": 1,
+        },
+    }
+    assert _rollup_shapes_section(rollup) == ""
+
+
 def test_liveness_note_shows_checked_and_changed_freshness() -> None:
     import datetime as dt
 

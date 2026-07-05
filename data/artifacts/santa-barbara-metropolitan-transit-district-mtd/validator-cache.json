@@ -6,8 +6,8 @@
         "sample_notices": [
           {
             "arrivalTime2": "17:17:04",
-            "csvRowNumber1": 297498,
-            "csvRowNumber2": 297499,
+            "csvRowNumber1": 57676,
+            "csvRowNumber2": 57677,
             "departureTime1": "17:17:00",
             "distanceKm": 0.22739377581200385,
             "routeId": "5",
@@ -18,13 +18,13 @@
             "stopName2": "Cliff & Alan",
             "stopSequence1": 17,
             "stopSequence2": 18,
-            "tripCsvRowNumber": 14660,
-            "tripId": "2055070"
+            "tripCsvRowNumber": 6750,
+            "tripId": "804010"
           },
           {
             "arrivalTime2": "17:17:04",
-            "csvRowNumber1": 297498,
-            "csvRowNumber2": 297499,
+            "csvRowNumber1": 57676,
+            "csvRowNumber2": 57677,
             "departureTime1": "17:17:00",
             "distanceKm": 0.22739377581200385,
             "routeId": "5",
@@ -35,13 +35,13 @@
             "stopName2": "Cliff & Alan",
             "stopSequence1": 17,
             "stopSequence2": 18,
-            "tripCsvRowNumber": 14706,
-            "tripId": "2055180"
+            "tripCsvRowNumber": 6811,
+            "tripId": "804120"
           },
           {
             "arrivalTime2": "17:17:04",
-            "csvRowNumber1": 297498,
-            "csvRowNumber2": 297499,
+            "csvRowNumber1": 57676,
+            "csvRowNumber2": 57677,
             "departureTime1": "17:17:00",
             "distanceKm": 0.22739377581200385,
             "routeId": "5",
@@ -52,14 +52,14 @@
             "stopName2": "Cliff & Alan",
             "stopSequence1": 17,
             "stopSequence2": 18,
-            "tripCsvRowNumber": 14543,
-            "tripId": "2055150"
+            "tripCsvRowNumber": 6777,
+            "tripId": "309070"
           },
           {
-            "arrivalTime2": "17:17:04",
-            "csvRowNumber1": 297498,
-            "csvRowNumber2": 297499,
-            "departureTime1": "17:17:00",
+            "arrivalTime2": "09:17:04",
+            "csvRowNumber1": 119722,
+            "csvRowNumber2": 119723,
+            "departureTime1": "09:17:00",
             "distanceKm": 0.22739377581200385,
             "routeId": "5",
             "speedKph": 204.65439823080345,
@@ -69,14 +69,14 @@
             "stopName2": "Cliff & Alan",
             "stopSequence1": 17,
             "stopSequence2": 18,
-            "tripCsvRowNumber": 14563,
-            "tripId": "1369100"
+            "tripCsvRowNumber": 6780,
+            "tripId": "1654070"
           },
           {
-            "arrivalTime2": "17:17:04",
-            "csvRowNumber1": 297498,
-            "csvRowNumber2": 297499,
-            "departureTime1": "17:17:00",
+            "arrivalTime2": "10:17:04",
+            "csvRowNumber1": 60217,
+            "csvRowNumber2": 60218,
+            "departureTime1": "10:17:00",
             "distanceKm": 0.22739377581200385,
             "routeId": "5",
             "speedKph": 204.65439823080345,
@@ -86,20 +86,16 @@
             "stopName2": "Cliff & Alan",
             "stopSequence1": 17,
             "stopSequence2": 18,
-            "tripCsvRowNumber": 14560,
-            "tripId": "1369190"
+            "tripCsvRowNumber": 6813,
+            "tripId": "842120"
           }
         ],
         "severity": "WARNING",
-        "total": 120
+        "total": 57
       },
       {
         "code": "expired_calendar",
         "sample_notices": [
-          {
-            "csvRowNumber": 2,
-            "serviceId": "1"
-          },
           {
             "csvRowNumber": 3,
             "serviceId": "2"
@@ -115,76 +111,18 @@
           {
             "csvRowNumber": 6,
             "serviceId": "5"
+          },
+          {
+            "csvRowNumber": 10,
+            "serviceId": "9"
           }
         ],
         "severity": "WARNING",
-        "total": 19
-      },
-      {
-        "code": "feed_expiration_date7_days",
-        "sample_notices": [
-          {
-            "csvRowNumber": 2,
-            "currentDate": "20260705",
-            "feedEndDate": "20260614",
-            "suggestedExpirationDate": "20260712"
-          }
-        ],
-        "severity": "WARNING",
-        "total": 1
-      },
-      {
-        "code": "trip_coverage_not_active_for_next7_days",
-        "sample_notices": [
-          {
-            "currentDate": "20260705",
-            "serviceWindowEndDate": "20260612",
-            "serviceWindowStartDate": "20260302"
-          }
-        ],
-        "severity": "WARNING",
-        "total": 1
-      },
-      {
-        "code": "big_gap_in_service",
-        "sample_notices": [
-          {
-            "gapDurationDays": 18,
-            "gapEndDate": "2026-04-07",
-            "gapStartDate": "2026-03-19",
-            "serviceId": "4"
-          },
-          {
-            "gapDurationDays": 100,
-            "gapEndDate": "2026-06-11",
-            "gapStartDate": "2026-03-02",
-            "serviceId": "8"
-          },
-          {
-            "gapDurationDays": 20,
-            "gapEndDate": "2026-04-08",
-            "gapStartDate": "2026-03-18",
-            "serviceId": "13"
-          },
-          {
-            "gapDurationDays": 62,
-            "gapEndDate": "2026-05-05",
-            "gapStartDate": "2026-03-03",
-            "serviceId": "16"
-          },
-          {
-            "gapDurationDays": 16,
-            "gapEndDate": "2026-04-06",
-            "gapStartDate": "2026-03-20",
-            "serviceId": "17"
-          }
-        ],
-        "severity": "INFO",
         "total": 5
       }
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "6416b18764468f8f7a3835b2d8b80ef4c359300ec7ffb78bca2bdb07c4b1d35b",
+  "sha256": "9277b0f76f6b80d96180fe28207726099726e8a98b092aa3aa994eefb8e3d51c",
   "validator_version": "8.0.1"
 }

@@ -222,32 +222,20 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 29,
-        "feed_end_date": "2026-08-03",
-        "feed_start_date": "2026-07-03",
+        "days_until_expiry": 30,
+        "feed_end_date": "2026-08-04",
+        "feed_start_date": "2026-07-04",
         "feed_version": "20250228",
         "has_feed_info": true,
         "last_service_date": "2027-12-31",
         "seasonal_boundary": false,
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expiring_soon",
-          "count": 1,
-          "effort": "One export setting.",
-          "fix": "Re-export with a validity window that reaches at least 60 days out.",
-          "owner": "Likely your export tool",
-          "points": 51.0,
-          "severity": "WARNING",
-          "what": "Service data runs out in 29 day(s).",
-          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 48.3,
+      "score": 50.0,
       "status": "measured",
-      "summary": "Service data runs out in 29 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data covers the next 30 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -256,6 +244,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -282,8 +282,8 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "36bc2c22f68d2032f4059d73e2fe47be6436e2a3f6ada8c8288dbd0dbf568704",
-    "size_bytes": 285004,
+    "sha256": "c6da6d040d72645ab75693bd2f950a74fe4de4fffe0044a056eaf06600804eca",
+    "size_bytes": 285003,
     "static_url": "https://passio3.com/lawrencetransit/passioTransit/gtfs/google_transit.zip"
   },
   "fetch": {
@@ -292,7 +292,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -95.33262,
@@ -334,9 +334,9 @@
   },
   "overall": {
     "grade": "D",
-    "margin_to_lower_band": 5.2,
-    "margin_to_next_band": 4.8,
-    "score": 65.2
+    "margin_to_lower_band": 5.6,
+    "margin_to_next_band": 4.4,
+    "score": 65.6
   },
   "recommendations": [
     {
@@ -362,11 +362,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-05",
-    "feed_fetched_date": "2026-07-04",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 440,
     "findings": [
@@ -617,21 +612,15 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 1943 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1943,
+    "trips_with_shape": 1943
+  },
   "snapshot_date": "2026-07-05",
   "top_fixes": [
-    {
-      "code": "scorecard_feed_expiring_soon",
-      "count": 1,
-      "effort": "One export setting.",
-      "fix": "Re-export with a validity window that reaches at least 60 days out.",
-      "owner": "Likely your export tool",
-      "points": 51.0,
-      "rank": 1,
-      "severity": "WARNING",
-      "what": "Service data runs out in 29 day(s).",
-      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-    },
     {
       "code": "scorecard_missing_headsigns",
       "count": 1943,
@@ -639,7 +628,7 @@
       "fix": "Populate trip_headsign to match what the bus displays.",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "WARNING",
       "what": "1943 of 1943 trips have no headsign.",
       "why": "Riders at the stop can't tell which direction a bus is going."
@@ -651,10 +640,22 @@
       "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure. If your service is fare-free, ask to have it marked fare-free instead.",
       "owner": "",
       "points": 15.0,
-      "rank": 3,
+      "rank": 2,
       "severity": "WARNING",
       "what": "The feed contains no fare information.",
       "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+    },
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 192,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 10.9,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "192 of 440 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     }
   ],
   "validator_version": "8.0.1"

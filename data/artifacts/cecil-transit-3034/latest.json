@@ -212,32 +212,20 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 29,
-        "feed_end_date": "2026-08-03",
-        "feed_start_date": "2026-07-03",
+        "days_until_expiry": 30,
+        "feed_end_date": "2026-08-04",
+        "feed_start_date": "2026-07-04",
         "feed_version": "20250228",
         "has_feed_info": true,
         "last_service_date": "2027-12-31",
         "seasonal_boundary": false,
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expiring_soon",
-          "count": 1,
-          "effort": "One export setting.",
-          "fix": "Re-export with a validity window that reaches at least 60 days out.",
-          "owner": "Likely your export tool",
-          "points": 51.0,
-          "severity": "WARNING",
-          "what": "Service data runs out in 29 day(s).",
-          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 48.3,
+      "score": 50.0,
       "status": "measured",
-      "summary": "Service data runs out in 29 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data covers the next 30 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -247,7 +235,7 @@
         "rt_freshness": "fresh",
         "samples": 9,
         "scheduled_trips_in_window": 0,
-        "worst_lag_seconds": 1
+        "worst_lag_seconds": 4
       },
       "findings": [],
       "name": "realtime",
@@ -256,6 +244,19 @@
       "summary": "Sampled 9 times outside service hours: 3 of 3 feeds healthy.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -282,8 +283,8 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "2f57d41c85e6ed98b201c395bcbab0e92a1c0013ee564efcf84622621a516346",
-    "size_bytes": 303285,
+    "sha256": "a5f5ff7d22cdd3ed6ff1e2b49f9ff322c4c671b2f948d51c3b7b9d9b309d57ba",
+    "size_bytes": 303284,
     "static_url": "https://passio3.com/cecil/passioTransit/gtfs/google_transit.zip"
   },
   "fetch": {
@@ -292,7 +293,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-05T00:00:00+00:00",
   "ntd_id_alignment": {
     "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
     "feed_agency_ids": [
@@ -323,9 +324,9 @@
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 58.4,
-    "margin_to_next_band": 1.6,
-    "score": 58.4
+    "margin_to_lower_band": 58.7,
+    "margin_to_next_band": 1.3,
+    "score": 58.7
   },
   "recommendations": [
     {
@@ -351,11 +352,6 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-05",
-    "feed_fetched_date": "2026-07-04",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 0,
     "findings": [],
@@ -407,21 +403,15 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 788 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 788,
+    "trips_with_shape": 788
+  },
   "snapshot_date": "2026-07-05",
   "top_fixes": [
-    {
-      "code": "scorecard_feed_expiring_soon",
-      "count": 1,
-      "effort": "One export setting.",
-      "fix": "Re-export with a validity window that reaches at least 60 days out.",
-      "owner": "Likely your export tool",
-      "points": 51.0,
-      "rank": 1,
-      "severity": "WARNING",
-      "what": "Service data runs out in 29 day(s).",
-      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-    },
     {
       "code": "empty_file",
       "count": 1,
@@ -429,7 +419,7 @@
       "fix": "Review the rule documentation for 'empty_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
       "owner": "",
       "points": 12.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "ERROR",
       "what": "Empty file (flagged by the MobilityData validator).",
       "why": "See the linked rule for what this affects."
@@ -441,10 +431,22 @@
       "fix": "Review the rule documentation for 'invalid_phone_number' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
       "owner": "",
       "points": 12.0,
-      "rank": 3,
+      "rank": 2,
       "severity": "ERROR",
       "what": "Invalid phone number (flagged by the MobilityData validator).",
       "why": "See the linked rule for what this affects."
+    },
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 0,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 25.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "0 of 0 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     }
   ],
   "validator_version": "8.0.1"

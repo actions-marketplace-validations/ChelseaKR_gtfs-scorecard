@@ -201,93 +201,60 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 29,
-        "feed_end_date": "2026-08-03",
-        "feed_start_date": "2026-07-03",
+        "days_until_expiry": 30,
+        "feed_end_date": "2026-08-04",
+        "feed_start_date": "2026-07-04",
         "feed_version": "20250228",
         "has_feed_info": true,
         "last_service_date": "2027-12-31",
         "seasonal_boundary": false,
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expiring_soon",
-          "count": 1,
-          "effort": "One export setting.",
-          "fix": "Re-export with a validity window that reaches at least 60 days out.",
-          "owner": "Likely your export tool",
-          "points": 51.0,
-          "severity": "WARNING",
-          "what": "Service data runs out in 29 day(s).",
-          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 48.3,
+      "score": 50.0,
       "status": "measured",
-      "summary": "Service data runs out in 29 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data covers the next 30 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 57.1,
+        "coverage_pct": 100.0,
         "covered_trips": 8,
         "drift": {
-          "median_seconds": -54,
-          "observations": 60,
-          "on_time_share_pct": 35.0,
-          "p90_abs_seconds": 4375
+          "median_seconds": -76,
+          "observations": 84,
+          "on_time_share_pct": 45.2,
+          "p90_abs_seconds": 260
         },
         "kinds_reachable": 3,
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 14,
-        "vehicles_checked": 28,
-        "vehicles_on_route_pct": 85.7,
-        "worst_lag_seconds": 5
+        "scheduled_trips_in_window": 8,
+        "vehicles_checked": 22,
+        "vehicles_on_route_pct": 100.0,
+        "worst_lag_seconds": 4
       },
-      "findings": [
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 6,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 15.0,
-          "severity": "WARNING",
-          "what": "6 of 14 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
-        },
-        {
-          "code": "scorecard_rt_vehicles_off_route",
-          "count": 5,
-          "effort": "A vendor support ticket with the trip ids attached.",
-          "fix": "Ask your AVL vendor to check vehicle-to-trip assignments for the flagged trips.",
-          "owner": "",
-          "points": 2.1,
-          "severity": "WARNING",
-          "what": "5 of 28 sampled vehicle positions were far from their assigned route (worst: 2984 m).",
-          "why": "A bus shown off its route usually means a wrong trip assignment; riders watch their bus drive the wrong streets."
-        },
-        {
-          "code": "scorecard_rt_predictions_implausible",
-          "count": 60,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Spot-check the flagged predictions against what buses actually did; raise trip-matching with your AVL vendor.",
-          "owner": "",
-          "points": 0.0,
-          "severity": "WARNING",
-          "what": "Some live predictions disagree with the schedule by more than 30 minutes.",
-          "why": "Differences that large usually mean predictions are keyed to the wrong trips, not that buses are that late."
-        }
-      ],
+      "findings": [],
       "name": "realtime",
-      "score": 82.9,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 57.1% of scheduled trips had live predictions; 85.7% of vehicles on their route; predictions ran a median of 54s ahead of schedule.",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 100.0% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 76s ahead of schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -314,8 +281,8 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "f5010ff637b59cbf47f1463908feeefd055372c9d00a6dff6fa47045b870cbbe",
-    "size_bytes": 217794,
+    "sha256": "4353bbd7e53321d5469f7268a1d4e86638a4fd43cb2910dd4185439a78b833d7",
+    "size_bytes": 217793,
     "static_url": "https://passio3.com/viaboulder/passioTransit/gtfs/google_transit.zip"
   },
   "fetch": {
@@ -324,7 +291,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -105.52546,
@@ -366,9 +333,9 @@
   },
   "overall": {
     "grade": "D",
-    "margin_to_lower_band": 3.0,
-    "margin_to_next_band": 7.0,
-    "score": 63.0
+    "margin_to_lower_band": 6.7,
+    "margin_to_next_band": 3.3,
+    "score": 66.7
   },
   "recommendations": [
     {
@@ -394,11 +361,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-05",
-    "feed_fetched_date": "2026-07-04",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 169,
     "findings": [
@@ -528,21 +490,15 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 397 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 397,
+    "trips_with_shape": 397
+  },
   "snapshot_date": "2026-07-05",
   "top_fixes": [
-    {
-      "code": "scorecard_feed_expiring_soon",
-      "count": 1,
-      "effort": "One export setting.",
-      "fix": "Re-export with a validity window that reaches at least 60 days out.",
-      "owner": "Likely your export tool",
-      "points": 51.0,
-      "rank": 1,
-      "severity": "WARNING",
-      "what": "Service data runs out in 29 day(s).",
-      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-    },
     {
       "code": "foreign_key_violation",
       "count": 1,
@@ -550,7 +506,7 @@
       "fix": "Review the rule documentation for 'foreign_key_violation' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
       "owner": "",
       "points": 12.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "ERROR",
       "what": "Foreign key violation (flagged by the MobilityData validator).",
       "why": "See the linked rule for what this affects."
@@ -562,10 +518,22 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 3,
+      "rank": 2,
       "severity": "WARNING",
       "what": "169 of 169 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    },
+    {
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "count": 397,
+      "effort": "Often one default setting in your export.",
+      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "owner": "Likely your export tool",
+      "points": 15.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "397 of 397 trips don't say whether the vehicle is wheelchair accessible.",
+      "why": "Even with accessible stops, riders need to know the bus itself can take them."
     }
   ],
   "validator_version": "8.0.1"

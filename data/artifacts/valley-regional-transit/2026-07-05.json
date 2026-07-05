@@ -202,7 +202,7 @@
         "rt_freshness": "fresh",
         "samples": 9,
         "scheduled_trips_in_window": 0,
-        "worst_lag_seconds": 29
+        "worst_lag_seconds": 20
       },
       "findings": [],
       "name": "realtime",
@@ -211,6 +211,19 @@
       "summary": "Sampled 9 times outside service hours: 3 of 3 feeds healthy.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -221,7 +234,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 340 days.",
+        "detail": "Service data covers the next 339 days.",
         "key": "current",
         "met": true
       },
@@ -247,7 +260,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -116.67576,
@@ -279,7 +292,7 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 340 days.",
+        "detail": "Service data covers the next 339 days.",
         "key": "current",
         "status": "ready"
       }
@@ -306,11 +319,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-05",
-    "feed_fetched_date": "2026-07-04",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 562,
     "findings": [],
@@ -549,7 +557,13 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 5564 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 5564,
+    "trips_with_shape": 5564
+  },
   "snapshot_date": "2026-07-05",
   "top_fixes": [
     {

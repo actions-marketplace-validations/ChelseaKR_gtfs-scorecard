@@ -8,7 +8,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     },
     {
-      "agencies": 49,
+      "agencies": 50,
       "code": "scorecard_wheelchair_accessible_unknown",
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
     },
@@ -28,7 +28,7 @@
       "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
     },
     {
-      "agencies": 11,
+      "agencies": 12,
       "code": "scorecard_missing_headsigns",
       "fix": "Populate trip_headsign to match what the bus displays."
     },
@@ -56,11 +56,6 @@
       "agencies": 3,
       "code": "equal_shape_distance_diff_coordinates",
       "fix": "Review the rule documentation for 'equal_shape_distance_diff_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed."
-    },
-    {
-      "agencies": 3,
-      "code": "scorecard_feed_expiring_soon",
-      "fix": "Re-export with a validity window that reaches at least 60 days out."
     },
     {
       "agencies": 2,
@@ -93,7 +88,7 @@
     "stale": 20,
     "total": 33
   },
-  "generated_at": "2026-07-05T15:17:05+00:00",
+  "generated_at": "2026-07-05T16:49:05+00:00",
   "grade_distribution": {
     "A": 6,
     "B": 2,
@@ -552,20 +547,6 @@
     },
     {
       "annual_trips": null,
-      "attention_reason": "Service data expires in 29 day(s)",
-      "days_until_expiry": 29,
-      "expiry_status": "expiring_soon",
-      "grade": "F",
-      "id": "st-lawrence-county-public-transit-2611",
-      "name": "St Lawrence County Public Transit",
-      "needs_attention": true,
-      "score": 55.1,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-05",
-      "top_fix": "Re-export with a validity window that reaches at least 60 days out."
-    },
-    {
-      "annual_trips": null,
       "attention_reason": "Service data has expired",
       "days_until_expiry": -902,
       "expiry_status": "stale",
@@ -577,6 +558,20 @@
       "shapes_status": null,
       "snapshot_date": "2026-07-05",
       "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+    },
+    {
+      "annual_trips": null,
+      "attention_reason": "Service data expires in 30 day(s)",
+      "days_until_expiry": 30,
+      "expiry_status": "expiring_soon",
+      "grade": "F",
+      "id": "st-lawrence-county-public-transit-2611",
+      "name": "St Lawrence County Public Transit",
+      "needs_attention": true,
+      "score": 55.5,
+      "shapes_status": "ready",
+      "snapshot_date": "2026-07-05",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     },
     {
       "annual_trips": null,
@@ -622,17 +617,17 @@
     },
     {
       "annual_trips": null,
-      "attention_reason": "Service data expires in 29 day(s)",
-      "days_until_expiry": 29,
+      "attention_reason": "Service data expires in 30 day(s)",
+      "days_until_expiry": 30,
       "expiry_status": "expiring_soon",
       "grade": "D",
       "id": "watertown-citibus-2881",
       "name": "Watertown Citibus",
       "needs_attention": true,
-      "score": 63.2,
-      "shapes_status": null,
+      "score": 63.7,
+      "shapes_status": "ready",
       "snapshot_date": "2026-07-05",
-      "top_fix": "Re-export with a validity window that reaches at least 60 days out."
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     },
     {
       "annual_trips": null,
@@ -1148,7 +1143,7 @@
       "name": "NYC Subway Supplemented",
       "needs_attention": false,
       "score": 73.4,
-      "shapes_status": null,
+      "shapes_status": "at_risk",
       "snapshot_date": "2026-07-05",
       "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     },
@@ -1328,10 +1323,10 @@
   },
   "schema_version": "1.7",
   "shapes_readiness": {
-    "at_risk": 0,
-    "not_measured": 87,
+    "at_risk": 1,
+    "not_measured": 84,
     "not_ready": 0,
-    "ready": 0,
+    "ready": 2,
     "total": 87
   },
   "state_percentile": 41

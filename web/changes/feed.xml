@@ -17,12 +17,36 @@
     <summary>On 2026-07-05, Williamsburg Area Transit Authority's GTFS data quality went from 60.2 (D) to 59.8 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
+    <title>Via Mobility: score rose 3.4 points</title>
+    <id>tag:gtfsscorecard.org,2026:agency/via-mobility-2395/2026-07-05</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/via-mobility-2395/"/>
+    <updated>2026-07-05T00:00:00Z</updated>
+    <category term="score_rise"/>
+    <summary>On 2026-07-05, Via Mobility's GTFS data quality went from 63.3 (D) to 66.7 (D). A step in the right direction.</summary>
+  </entry>
+  <entry>
+    <title>Towson Loop: grade improved D to C</title>
+    <id>tag:gtfsscorecard.org,2026:agency/towson-loop/2026-07-05</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/towson-loop/"/>
+    <updated>2026-07-05T00:00:00Z</updated>
+    <category term="grade_rise"/>
+    <summary>On 2026-07-05, Towson Loop's GTFS data quality went from 62.7 (D) to 70.9 (C). A step in the right direction.</summary>
+  </entry>
+  <entry>
     <title>The Comet: grade dropped B to C</title>
     <id>tag:gtfsscorecard.org,2026:agency/the-comet-2209/2026-07-05</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/the-comet-2209/"/>
     <updated>2026-07-05T00:00:00Z</updated>
     <category term="grade_drop"/>
     <summary>On 2026-07-05, The Comet's GTFS data quality went from 80.2 (B) to 79.8 (C). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Static feed for realtime: grade improved F to D</title>
+    <id>tag:gtfsscorecard.org,2026:agency/sandy-area-metro-sam-2739/2026-07-05</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/sandy-area-metro-sam-2739/"/>
+    <updated>2026-07-05T00:00:00Z</updated>
+    <category term="grade_rise"/>
+    <summary>On 2026-07-05, Static feed for realtime's GTFS data quality went from 59.7 (F) to 66.7 (D). A step in the right direction.</summary>
   </entry>
   <entry>
     <title>Flex: grade dropped D to F</title>
@@ -39,6 +63,14 @@
     <updated>2026-07-05T00:00:00Z</updated>
     <category term="grade_drop"/>
     <summary>On 2026-07-05, Marin Transit's GTFS data quality went from 70.2 (C) to 69.7 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Frederick County TransIT: score rose 6.2 points</title>
+    <id>tag:gtfsscorecard.org,2026:agency/frederick-county-transit-2432/2026-07-05</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/frederick-county-transit-2432/"/>
+    <updated>2026-07-05T00:00:00Z</updated>
+    <category term="score_rise"/>
+    <summary>On 2026-07-05, Frederick County TransIT's GTFS data quality went from 53.7 (F) to 59.9 (F). A step in the right direction.</summary>
   </entry>
   <entry>
     <title>Franklin Regional Transit Authority (FRTA): grade dropped B to C</title>
@@ -63,6 +95,14 @@
     <updated>2026-07-05T00:00:00Z</updated>
     <category term="grade_drop"/>
     <summary>On 2026-07-05, Cedar Rapids Transit's GTFS data quality went from 90.3 (A) to 89.9 (B). Trip planners read the same feed, so a drop is worth a look.</summary>
+  </entry>
+  <entry>
+    <title>Capital Metro: grade dropped C to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/capital-metro/2026-07-05</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/capital-metro/"/>
+    <updated>2026-07-05T00:00:00Z</updated>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-05, Capital Metro's GTFS data quality went from 75.0 (C) to 53.1 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
     <title>Camarillo Area Transit: grade dropped C to D</title>

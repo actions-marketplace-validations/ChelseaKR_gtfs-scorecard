@@ -55,8 +55,8 @@
             "shapeId": "190",
             "stopId": "SPG",
             "stopName": "Springfield",
-            "stopTimeCsvRowNumber": 15147,
-            "tripCsvRowNumber": 2228,
+            "stopTimeCsvRowNumber": 14569,
+            "tripCsvRowNumber": 2092,
             "tripId": "278957"
           },
           {
@@ -68,8 +68,8 @@
             "shapeId": "190",
             "stopId": "NHV",
             "stopName": "New Haven",
-            "stopTimeCsvRowNumber": 15151,
-            "tripCsvRowNumber": 2228,
+            "stopTimeCsvRowNumber": 14573,
+            "tripCsvRowNumber": 2092,
             "tripId": "278957"
           },
           {
@@ -81,8 +81,8 @@
             "shapeId": "191",
             "stopId": "NHV",
             "stopName": "New Haven",
-            "stopTimeCsvRowNumber": 28450,
-            "tripCsvRowNumber": 565,
+            "stopTimeCsvRowNumber": 26334,
+            "tripCsvRowNumber": 493,
             "tripId": "282385"
           },
           {
@@ -94,8 +94,8 @@
             "shapeId": "191",
             "stopId": "SPG",
             "stopName": "Springfield",
-            "stopTimeCsvRowNumber": 28454,
-            "tripCsvRowNumber": 565,
+            "stopTimeCsvRowNumber": 26338,
+            "tripCsvRowNumber": 493,
             "tripId": "282385"
           },
           {
@@ -107,21 +107,21 @@
             "shapeId": "193",
             "stopId": "STL",
             "stopName": "St. Louis",
-            "stopTimeCsvRowNumber": 3310,
-            "tripCsvRowNumber": 2871,
+            "stopTimeCsvRowNumber": 3244,
+            "tripCsvRowNumber": 2836,
             "tripId": "270816"
           }
         ],
         "severity": "WARNING",
-        "total": 135
+        "total": 138
       },
       {
         "code": "fast_travel_between_consecutive_stops",
         "sample_notices": [
           {
             "arrivalTime2": "51:09:00",
-            "csvRowNumber1": 11203,
-            "csvRowNumber2": 11204,
+            "csvRowNumber1": 10763,
+            "csvRowNumber2": 10764,
             "departureTime1": "51:09:00",
             "distanceKm": 63.51489087820268,
             "routeId": "51",
@@ -132,7 +132,7 @@
             "stopName2": "Needles Amtrak",
             "stopSequence1": 25,
             "stopSequence2": 26,
-            "tripCsvRowNumber": 1161,
+            "tripCsvRowNumber": 901,
             "tripId": "277258"
           },
           {
@@ -149,13 +149,13 @@
             "stopName2": "Gilroy",
             "stopSequence1": 2,
             "stopSequence2": 3,
-            "tripCsvRowNumber": 136,
+            "tripCsvRowNumber": 67,
             "tripId": "228161"
           },
           {
             "arrivalTime2": "03:20:00",
-            "csvRowNumber1": 3662,
-            "csvRowNumber2": 3663,
+            "csvRowNumber1": 3596,
+            "csvRowNumber2": 3597,
             "departureTime1": "03:20:00",
             "distanceKm": 47.69637424074291,
             "routeId": "42912",
@@ -171,8 +171,8 @@
           },
           {
             "arrivalTime2": "06:12:00",
-            "csvRowNumber1": 2246,
-            "csvRowNumber2": 2247,
+            "csvRowNumber1": 2215,
+            "csvRowNumber2": 2216,
             "departureTime1": "06:00:00",
             "distanceKm": 45.75986953210759,
             "routeId": "42920",
@@ -183,13 +183,13 @@
             "stopName2": "Wellington",
             "stopSequence1": 2,
             "stopSequence2": 3,
-            "tripCsvRowNumber": 390,
+            "tripCsvRowNumber": 387,
             "tripId": "263556"
           },
           {
             "arrivalTime2": "51:10:00",
-            "csvRowNumber1": 11235,
-            "csvRowNumber2": 11236,
+            "csvRowNumber1": 10795,
+            "csvRowNumber2": 10796,
             "departureTime1": "51:09:00",
             "distanceKm": 63.51489087820268,
             "routeId": "51",
@@ -200,7 +200,7 @@
             "stopName2": "Needles Amtrak",
             "stopSequence1": 25,
             "stopSequence2": 26,
-            "tripCsvRowNumber": 1162,
+            "tripCsvRowNumber": 902,
             "tripId": "277259"
           }
         ],
@@ -212,8 +212,8 @@
         "sample_notices": [
           {
             "arrivalTime2": "51:09:00",
-            "csvRowNumber1": 11203,
-            "csvRowNumber2": 11204,
+            "csvRowNumber1": 10763,
+            "csvRowNumber2": 10764,
             "departureTime1": "51:09:00",
             "distanceKm": 63.51489087820268,
             "routeId": "51",
@@ -224,7 +224,7 @@
             "stopName2": "Needles Amtrak",
             "stopSequence1": 25,
             "stopSequence2": 26,
-            "tripCsvRowNumber": 1161,
+            "tripCsvRowNumber": 901,
             "tripId": "277258"
           },
           {
@@ -241,13 +241,13 @@
             "stopName2": "Gilroy",
             "stopSequence1": 2,
             "stopSequence2": 3,
-            "tripCsvRowNumber": 136,
+            "tripCsvRowNumber": 67,
             "tripId": "228161"
           },
           {
             "arrivalTime2": "03:20:00",
-            "csvRowNumber1": 3662,
-            "csvRowNumber2": 3663,
+            "csvRowNumber1": 3596,
+            "csvRowNumber2": 3597,
             "departureTime1": "03:20:00",
             "distanceKm": 47.69637424074291,
             "routeId": "42912",
@@ -263,8 +263,8 @@
           },
           {
             "arrivalTime2": "06:12:00",
-            "csvRowNumber1": 2246,
-            "csvRowNumber2": 2247,
+            "csvRowNumber1": 2215,
+            "csvRowNumber2": 2216,
             "departureTime1": "06:00:00",
             "distanceKm": 45.75986953210759,
             "routeId": "42920",
@@ -275,13 +275,13 @@
             "stopName2": "Wellington",
             "stopSequence1": 2,
             "stopSequence2": 3,
-            "tripCsvRowNumber": 390,
+            "tripCsvRowNumber": 387,
             "tripId": "263556"
           },
           {
             "arrivalTime2": "51:10:00",
-            "csvRowNumber1": 11235,
-            "csvRowNumber2": 11236,
+            "csvRowNumber1": 10795,
+            "csvRowNumber2": 10796,
             "departureTime1": "51:09:00",
             "distanceKm": 63.51489087820268,
             "routeId": "51",
@@ -292,7 +292,7 @@
             "stopName2": "Needles Amtrak",
             "stopSequence1": 25,
             "stopSequence2": 26,
-            "tripCsvRowNumber": 1162,
+            "tripCsvRowNumber": 902,
             "tripId": "277259"
           }
         ],
@@ -316,9 +316,9 @@
             "stopId2": "NHV",
             "stopName1": "Bridgeport Amtrak Station",
             "stopName2": "New Haven",
-            "stopTimeCsvRowNumber1": 15165,
-            "stopTimeCsvRowNumber2": 15164,
-            "tripCsvRowNumber": 2229,
+            "stopTimeCsvRowNumber1": 14587,
+            "stopTimeCsvRowNumber2": 14586,
+            "tripCsvRowNumber": 2093,
             "tripId": "278959"
           },
           {
@@ -335,9 +335,9 @@
             "stopId2": "NHV",
             "stopName1": "Bridgeport Amtrak Station",
             "stopName2": "New Haven",
-            "stopTimeCsvRowNumber1": 27070,
-            "stopTimeCsvRowNumber2": 27069,
-            "tripCsvRowNumber": 2668,
+            "stopTimeCsvRowNumber1": 25175,
+            "stopTimeCsvRowNumber2": 25174,
+            "tripCsvRowNumber": 2469,
             "tripId": "282023"
           },
           {
@@ -354,10 +354,10 @@
             "stopId2": "PNT",
             "stopName1": "Troy Amtrak Station",
             "stopName2": "Pontiac Amtrak Station",
-            "stopTimeCsvRowNumber1": 24409,
-            "stopTimeCsvRowNumber2": 24408,
-            "tripCsvRowNumber": 2688,
-            "tripId": "281598"
+            "stopTimeCsvRowNumber1": 22511,
+            "stopTimeCsvRowNumber2": 22510,
+            "tripCsvRowNumber": 2405,
+            "tripId": "281593"
           },
           {
             "match1": [
@@ -373,10 +373,10 @@
             "stopId2": "PNT",
             "stopName1": "Troy Amtrak Station",
             "stopName2": "Pontiac Amtrak Station",
-            "stopTimeCsvRowNumber1": 24496,
-            "stopTimeCsvRowNumber2": 24495,
-            "tripCsvRowNumber": 2690,
-            "tripId": "281605"
+            "stopTimeCsvRowNumber1": 22588,
+            "stopTimeCsvRowNumber2": 22587,
+            "tripCsvRowNumber": 2410,
+            "tripId": "281600"
           },
           {
             "match1": [
@@ -392,10 +392,10 @@
             "stopId2": "PNT",
             "stopName1": "Troy Amtrak Station",
             "stopName2": "Pontiac Amtrak Station",
-            "stopTimeCsvRowNumber1": 24592,
-            "stopTimeCsvRowNumber2": 24591,
-            "tripCsvRowNumber": 2692,
-            "tripId": "281612"
+            "stopTimeCsvRowNumber1": 22679,
+            "stopTimeCsvRowNumber2": 22678,
+            "tripCsvRowNumber": 2415,
+            "tripId": "281607"
           }
         ],
         "severity": "WARNING",
@@ -406,9 +406,9 @@
         "sample_notices": [
           {
             "csvRowNumber": 2,
-            "currentDate": "20260704",
-            "feedEndDate": "20260711",
-            "suggestedExpirationDate": "20260803"
+            "currentDate": "20260705",
+            "feedEndDate": "20260712",
+            "suggestedExpirationDate": "20260804"
           }
         ],
         "severity": "WARNING",
@@ -418,7 +418,31 @@
         "code": "trip_headsign_matches_intermediate_stop",
         "sample_notices": [
           {
-            "csvRowNumber": 16,
+            "csvRowNumber": 30,
+            "stopId1": "SKT",
+            "stopId2": "SKN",
+            "stopSequence": 1,
+            "tripHeadsign": "Stockton",
+            "tripId": "222248"
+          },
+          {
+            "csvRowNumber": 49,
+            "stopId1": "SKT",
+            "stopId2": "SKN",
+            "stopSequence": 1,
+            "tripHeadsign": "Stockton",
+            "tripId": "222798"
+          },
+          {
+            "csvRowNumber": 59,
+            "stopId1": "ARC",
+            "stopId2": "HSU",
+            "stopSequence": 13,
+            "tripHeadsign": "Arcata",
+            "tripId": "223530"
+          },
+          {
+            "csvRowNumber": 102,
             "stopId1": "STS",
             "stopId2": "NHV",
             "stopSequence": 7,
@@ -426,89 +450,65 @@
             "tripId": "185956"
           },
           {
-            "csvRowNumber": 31,
+            "csvRowNumber": 112,
             "stopId1": "SKT",
             "stopId2": "SKN",
             "stopSequence": 3,
             "tripHeadsign": "Stockton",
             "tripId": "242252"
-          },
-          {
-            "csvRowNumber": 38,
-            "stopId1": "SKT",
-            "stopId2": "SKN",
-            "stopSequence": 3,
-            "tripHeadsign": "Stockton",
-            "tripId": "242250"
-          },
-          {
-            "csvRowNumber": 39,
-            "stopId1": "SKT",
-            "stopId2": "SKN",
-            "stopSequence": 3,
-            "tripHeadsign": "Stockton",
-            "tripId": "242251"
-          },
-          {
-            "csvRowNumber": 67,
-            "stopId1": "ARC",
-            "stopId2": "HSU",
-            "stopSequence": 12,
-            "tripHeadsign": "Arcata",
-            "tripId": "243284"
           }
         ],
         "severity": "INFO",
-        "total": 393
+        "total": 381
       },
       {
         "code": "service_window_outside_feed_period",
         "sample_notices": [
           {
-            "daysAfterFeedEnd": 351,
-            "daysBeforeFeedStart": 7,
-            "serviceId": "307461797179",
-            "serviceWindowEndDate": "2027-06-27",
-            "serviceWindowStartDate": "2026-06-28"
+            "daysAfterFeedEnd": 70,
+            "daysBeforeFeedStart": 1,
+            "serviceId": "212761866263",
+            "serviceWindowEndDate": "2026-09-20",
+            "serviceWindowStartDate": "2026-07-05"
+          },
+          {
+            "daysAfterFeedEnd": 28,
+            "daysBeforeFeedStart": 0,
+            "serviceId": "106562206221",
+            "serviceWindowEndDate": "2026-08-09",
+            "serviceWindowStartDate": "2026-08-08"
+          },
+          {
+            "daysAfterFeedEnd": 77,
+            "daysBeforeFeedStart": 0,
+            "serviceId": "109562656270",
+            "serviceWindowEndDate": "2026-09-27",
+            "serviceWindowStartDate": "2026-09-22"
           },
           {
             "daysAfterFeedEnd": 0,
             "daysBeforeFeedStart": 1,
-            "serviceId": "200161796185",
-            "serviceWindowEndDate": "2026-07-04",
-            "serviceWindowStartDate": "2026-07-04"
+            "serviceId": "206761866186",
+            "serviceWindowEndDate": "2026-07-05",
+            "serviceWindowStartDate": "2026-07-05"
           },
           {
-            "daysAfterFeedEnd": 99,
+            "daysAfterFeedEnd": 111,
             "daysBeforeFeedStart": 0,
-            "serviceId": "106561996291",
-            "serviceWindowEndDate": "2026-10-18",
-            "serviceWindowStartDate": "2026-07-18"
-          },
-          {
-            "daysAfterFeedEnd": 349,
-            "daysBeforeFeedStart": 0,
-            "serviceId": "100270087179",
-            "serviceWindowEndDate": "2027-06-25",
-            "serviceWindowStartDate": "2027-01-08"
-          },
-          {
-            "daysAfterFeedEnd": 6,
-            "daysBeforeFeedStart": 7,
-            "serviceId": "212761796198",
-            "serviceWindowEndDate": "2026-07-17",
-            "serviceWindowStartDate": "2026-06-28"
+            "serviceId": "203761866304",
+            "serviceWindowEndDate": "2026-10-31",
+            "serviceWindowStartDate": "2026-07-06"
           }
         ],
         "severity": "INFO",
-        "total": 378
+        "total": 371
       },
       {
         "code": "future_feed",
         "sample_notices": [
           {
-            "currentDate": "20260704",
-            "feedStartDate": "20260705"
+            "currentDate": "20260705",
+            "feedStartDate": "20260706"
           }
         ],
         "severity": "INFO",
@@ -517,6 +517,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "f6fb642c3d08186b9179a17797a8f18bc81cca57d65a6858417e4b0dbe3c5b64",
+  "sha256": "2ec08edca5eb187d734f417202188a2b3502f975299433de83f1c37f47b9f57c",
   "validator_version": "8.0.1"
 }

@@ -11,11 +11,11 @@
       "details": {
         "accessibility": {
           "measures": "presence_not_usability",
-          "score": 34.5,
+          "score": 35.2,
           "stops_marked_accessible_pct": 0.0,
           "stops_marked_not_accessible_pct": 0.0,
           "stops_stated_pct": 0.0,
-          "trips_stated_pct": 92.1
+          "trips_stated_pct": 93.9
         },
         "accessibility_measures": "presence_not_usability",
         "cemv": {
@@ -28,7 +28,7 @@
           "headsigns": 15.0,
           "stop_names": 15.0,
           "wheelchair_stops": 0.0,
-          "wheelchair_trips": 13.8
+          "wheelchair_trips": 14.1
         },
         "fare_free": false,
         "fares": {
@@ -57,8 +57,8 @@
           "pathway_count": 0
         },
         "stops": 392,
-        "trips": 799,
-        "wheelchair_accessible_pct": 92.1,
+        "trips": 766,
+        "wheelchair_accessible_pct": 93.9,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
         "wheelchair_marked_not_accessible_pct": 0.0
@@ -77,13 +77,13 @@
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 63,
+          "count": 47,
           "effort": "Often one default setting in your export.",
           "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
           "owner": "Likely your export tool",
-          "points": 1.2,
+          "points": 0.9,
           "severity": "WARNING",
-          "what": "63 of 799 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "47 of 766 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
@@ -99,7 +99,7 @@
         }
       ],
       "name": "completeness",
-      "score": 58.8,
+      "score": 59.1,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is not published.",
       "weight": 0.25
@@ -110,7 +110,7 @@
         "instances_by_severity": {
           "ERROR": 1,
           "INFO": 10,
-          "WARNING": 61
+          "WARNING": 74
         },
         "validator_version": "8.0.1"
       },
@@ -128,11 +128,11 @@
         },
         {
           "code": "stop_without_stop_time",
-          "count": 40,
+          "count": 53,
           "effort": "A review pass in your scheduling software.",
           "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
           "owner": "Likely your export tool",
-          "points": 6.0,
+          "points": 8.0,
           "severity": "WARNING",
           "what": "Some stops exist in the feed but no trip ever stops at them.",
           "why": "Riders may walk to a stop where no bus is scheduled to arrive."
@@ -227,49 +227,36 @@
         }
       ],
       "name": "correctness",
-      "score": 54.8,
+      "score": 52.8,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 10 kinds of issue across 72 instances (1 error, 61 warning, 10 informational).",
+      "summary": "The MobilityData validator flagged 10 kinds of issue across 85 instances (1 error, 74 warning, 10 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 29,
-        "feed_end_date": "2026-08-03",
-        "feed_start_date": "2026-07-03",
+        "days_until_expiry": 30,
+        "feed_end_date": "2026-08-04",
+        "feed_start_date": "2026-07-04",
         "feed_version": "20250228",
         "has_feed_info": true,
         "last_service_date": "2027-12-31",
         "seasonal_boundary": false,
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expiring_soon",
-          "count": 1,
-          "effort": "One export setting.",
-          "fix": "Re-export with a validity window that reaches at least 60 days out.",
-          "owner": "Likely your export tool",
-          "points": 51.0,
-          "severity": "WARNING",
-          "what": "Service data runs out in 29 day(s).",
-          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 48.3,
+      "score": 50.0,
       "status": "measured",
-      "summary": "Service data runs out in 29 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data covers the next 30 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 0.0,
-        "covered_trips": 0,
+        "coverage_pct": null,
         "kinds_reachable": 2,
         "rt_freshness": "fresh",
         "samples": 6,
-        "scheduled_trips_in_window": 6,
+        "scheduled_trips_in_window": 0,
         "worst_lag_seconds": 0
       },
       "findings": [
@@ -283,25 +270,27 @@
           "severity": "ERROR",
           "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 6,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 35.0,
-          "severity": "WARNING",
-          "what": "6 of 6 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
-      "score": 49.0,
+      "score": 83.3,
       "status": "measured",
-      "summary": "Sampled 6 times: 2 of 3 feeds healthy; 0.0% of scheduled trips had live predictions.",
+      "summary": "Sampled 6 times outside service hours: 2 of 3 feeds healthy.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 6 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -317,19 +306,19 @@
         "met": false
       },
       {
-        "detail": "States wheelchair access on 0% of stops and 92% of trips; the mark needs 90% of each.",
+        "detail": "States wheelchair access on 0% of stops and 94% of trips; the mark needs 90% of each.",
         "key": "accessible",
         "met": false
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data runs out in 30 days; renew to qualify. States wheelchair access on 0% of stops and 92% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data runs out in 30 days; renew to qualify. States wheelchair access on 0% of stops and 94% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "c103d07b70e6d1a75e17be9186add29710630ef4689cb6dd3b2500e75b0654c9",
-    "size_bytes": 373196,
+    "sha256": "64e0df3689f44900347f6db05e30c480ae15d028bea3707861afa4a9e73a8771",
+    "size_bytes": 368975,
     "static_url": "https://passio3.com/frederick/passioTransit/gtfs/google_transit.zip"
   },
   "fetch": {
@@ -338,7 +327,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -77.66513,
@@ -380,9 +369,9 @@
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 53.3,
-    "margin_to_next_band": 6.7,
-    "score": 53.3
+    "margin_to_lower_band": 59.9,
+    "margin_to_next_band": 0.1,
+    "score": 59.9
   },
   "recommendations": [
     {
@@ -408,29 +397,24 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-05",
-    "feed_fetched_date": "2026-07-04",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 392,
     "findings": [
       {
         "code": "scorecard_orphan_stops",
-        "count": 40,
+        "count": 53,
         "effort": "A cleanup pass in your scheduling software.",
         "fix": "Remove stops no route serves, or add the trips that should call at them.",
         "owner": "Likely your export tool",
         "points": 0.0,
         "severity": "INFO",
-        "what": "40 of 392 boardable stops are never served by any trip.",
+        "what": "53 of 392 boardable stops are never served by any trip.",
         "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
       }
     ],
-    "orphan_stops": 40,
+    "orphan_stops": 53,
     "single_stop_trips": 0,
-    "trips_total": 799
+    "trips_total": 766
   },
   "route_map": {
     "drawn_route_count": 16,
@@ -630,21 +614,15 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 766 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 766,
+    "trips_with_shape": 766
+  },
   "snapshot_date": "2026-07-05",
   "top_fixes": [
-    {
-      "code": "scorecard_feed_expiring_soon",
-      "count": 1,
-      "effort": "One export setting.",
-      "fix": "Re-export with a validity window that reaches at least 60 days out.",
-      "owner": "Likely your export tool",
-      "points": 51.0,
-      "rank": 1,
-      "severity": "WARNING",
-      "what": "Service data runs out in 29 day(s).",
-      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-    },
     {
       "code": "stop_time_with_arrival_before_previous_departure_time",
       "count": 1,
@@ -652,7 +630,7 @@
       "fix": "Review the rule documentation for 'stop_time_with_arrival_before_previous_departure_time' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
       "owner": "",
       "points": 12.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "ERROR",
       "what": "Stop time with arrival before previous departure time (flagged by the MobilityData validator).",
       "why": "See the linked rule for what this affects."
@@ -664,10 +642,22 @@
       "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
       "points": 8.3,
-      "rank": 3,
+      "rank": 2,
       "severity": "ERROR",
       "what": "The service alerts realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
+    },
+    {
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 392,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 25.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "392 of 392 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     }
   ],
   "validator_version": "8.0.1"

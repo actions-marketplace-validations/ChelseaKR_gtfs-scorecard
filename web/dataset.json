@@ -497,13 +497,13 @@
       "completeness": 45.0,
       "correctness": 59.5,
       "date": "2026-07-05",
-      "days_until_expiry": 6,
-      "freshness": 10.0,
+      "days_until_expiry": 7,
+      "freshness": 11.7,
       "grade": "F",
       "id": "amtrak",
       "name": "Amtrak",
       "realtime": null,
-      "score": 42.6
+      "score": 43.0
     },
     {
       "completeness": 45.0,
@@ -629,13 +629,13 @@
       "completeness": 30.0,
       "correctness": 85.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "F",
       "id": "arcadia-transit-2243",
       "name": "Arcadia Transit",
       "realtime": null,
-      "score": 58.9
+      "score": 59.3
     },
     {
       "completeness": 59.9,
@@ -1841,7 +1841,7 @@
       "completeness": 45.0,
       "correctness": 95.0,
       "date": "2026-07-05",
-      "days_until_expiry": 364,
+      "days_until_expiry": 365,
       "freshness": 100.0,
       "grade": "B",
       "id": "boxcar",
@@ -2523,15 +2523,15 @@
     },
     {
       "completeness": 74.9,
-      "correctness": 69.2,
+      "correctness": 59.2,
       "date": "2026-07-05",
       "days_until_expiry": 41,
       "freshness": 68.3,
-      "grade": "C",
+      "grade": "F",
       "id": "capital-metro",
       "name": "Capital Metro",
-      "realtime": 90.3,
-      "score": 74.7
+      "realtime": 0.0,
+      "score": 53.1
     },
     {
       "completeness": 37.5,
@@ -2837,13 +2837,13 @@
       "completeness": 15.6,
       "correctness": 71.0,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "F",
       "id": "cecil-transit-3034",
       "name": "Cecil Transit",
       "realtime": 100.0,
-      "score": 58.4
+      "score": 58.7
     },
     {
       "completeness": 30.8,
@@ -3581,13 +3581,13 @@
       "completeness": 60.0,
       "correctness": 91.0,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "C",
       "id": "city-of-jackson-jtran",
       "name": "City of Jackson (JTRAN)",
       "realtime": null,
-      "score": 70.6
+      "score": 71.1
     },
     {
       "completeness": 45.6,
@@ -3881,13 +3881,13 @@
       "completeness": 33.0,
       "correctness": 83.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "D",
       "id": "clackco-connects-clackamas-county-2740",
       "name": "Static feed for realtime",
       "realtime": 100.0,
-      "score": 67.1
+      "score": 67.5
     },
     {
       "completeness": 60.0,
@@ -4049,13 +4049,13 @@
       "completeness": 42.8,
       "correctness": 91.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "C",
       "id": "clovis-transit-2894",
       "name": "Clovis Transit",
       "realtime": 100.0,
-      "score": 72.4
+      "score": 72.7
     },
     {
       "completeness": 82.1,
@@ -4349,13 +4349,13 @@
       "completeness": 29.9,
       "correctness": 99.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "D",
       "id": "concord-kannapolis-area-transit-rider-transit-2244",
       "name": "Concord Kannapolis Area Transit (Rider Transit)",
       "realtime": null,
-      "score": 65.0
+      "score": 65.4
     },
     {
       "completeness": 44.9,
@@ -6038,16 +6038,16 @@
       "score": 34.3
     },
     {
-      "completeness": 58.8,
-      "correctness": 54.8,
+      "completeness": 59.1,
+      "correctness": 52.8,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "F",
       "id": "frederick-county-transit-2432",
       "name": "Frederick County TransIT",
-      "realtime": 49.0,
-      "score": 53.3
+      "realtime": 83.3,
+      "score": 59.9
     },
     {
       "completeness": 52.5,
@@ -8249,13 +8249,13 @@
       "completeness": 57.4,
       "correctness": 80.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "D",
       "id": "ku-on-wheels-lawrence-transit-system-2063",
       "name": "KU on Wheels & Lawrence Transit System",
       "realtime": null,
-      "score": 65.2
+      "score": 65.6
     },
     {
       "completeness": 60.0,
@@ -11009,13 +11009,13 @@
       "completeness": 47.9,
       "correctness": 84.8,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "D",
       "id": "north-carolina-state-university-ncsu-2245",
       "name": "North Carolina State University (NCSU)",
       "realtime": null,
-      "score": 64.2
+      "score": 64.6
     },
     {
       "completeness": 52.5,
@@ -11993,13 +11993,13 @@
       "completeness": 34.3,
       "correctness": 78.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "F",
       "id": "portage-area-regional-transportation-authority-parta-2256",
       "name": "Portage Area Regional Transportation Authority (PARTA)",
       "realtime": null,
-      "score": 57.1
+      "score": 57.6
     },
     {
       "completeness": 30.0,
@@ -12293,13 +12293,13 @@
       "completeness": 29.9,
       "correctness": 69.2,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "F",
       "id": "radford-transit",
       "name": "Radford Transit",
       "realtime": null,
-      "score": 51.7
+      "score": 52.1
     },
     {
       "completeness": 29.9,
@@ -12833,13 +12833,13 @@
       "completeness": 29.9,
       "correctness": 77.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "F",
       "id": "roadrunner-transit-2075",
       "name": "RoadRUNNER Transit",
       "realtime": null,
-      "score": 55.3
+      "score": 55.7
     },
     {
       "completeness": 74.6,
@@ -13121,13 +13121,13 @@
       "completeness": 15.0,
       "correctness": 91.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "F",
       "id": "rosemead-explorer-3098",
       "name": "Rosemead Explorer",
       "realtime": null,
-      "score": 56.8
+      "score": 57.2
     },
     {
       "completeness": 20.0,
@@ -13601,13 +13601,13 @@
       "completeness": 45.0,
       "correctness": 72.8,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
-      "grade": "F",
+      "days_until_expiry": 30,
+      "freshness": 50.0,
+      "grade": "D",
       "id": "sandy-area-metro-sam-2739",
       "name": "Static feed for realtime",
-      "realtime": 65.0,
-      "score": 59.4
+      "realtime": 100.0,
+      "score": 66.7
     },
     {
       "completeness": 60.0,
@@ -14561,13 +14561,13 @@
       "completeness": 30.0,
       "correctness": 83.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "D",
       "id": "spirit-bus-2202",
       "name": "Spirit Bus",
       "realtime": 100.0,
-      "score": 66.4
+      "score": 66.7
     },
     {
       "completeness": 47.0,
@@ -14669,13 +14669,13 @@
       "completeness": 35.7,
       "correctness": 72.8,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "F",
       "id": "st-lawrence-county-public-transit-2611",
       "name": "St Lawrence County Public Transit",
       "realtime": null,
-      "score": 55.1
+      "score": 55.5
     },
     {
       "completeness": 36.3,
@@ -15665,13 +15665,13 @@
       "completeness": 30.0,
       "correctness": 95.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
-      "grade": "D",
+      "days_until_expiry": 30,
+      "freshness": 50.0,
+      "grade": "C",
       "id": "towson-loop",
       "name": "Towson Loop",
-      "realtime": 58.8,
-      "score": 62.4
+      "realtime": 100.0,
+      "score": 70.9
     },
     {
       "completeness": 45.0,
@@ -16493,13 +16493,13 @@
       "completeness": 44.9,
       "correctness": 72.8,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "D",
       "id": "via-mobility-2395",
       "name": "Via Mobility",
-      "realtime": 82.9,
-      "score": 63.0
+      "realtime": 100.0,
+      "score": 66.7
     },
     {
       "completeness": 39.8,
@@ -16853,13 +16853,13 @@
       "completeness": 30.0,
       "correctness": 95.5,
       "date": "2026-07-05",
-      "days_until_expiry": 29,
-      "freshness": 48.3,
+      "days_until_expiry": 30,
+      "freshness": 50.0,
       "grade": "D",
       "id": "watertown-citibus-2881",
       "name": "Watertown Citibus",
       "realtime": null,
-      "score": 63.2
+      "score": 63.7
     },
     {
       "completeness": 58.7,

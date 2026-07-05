@@ -7,7 +7,7 @@ import datetime as dt
 from scorecard_pipeline.gtfs import FeedDates
 from scorecard_pipeline.metrics import (
     STALE_FEED_DAYS,
-    UNREACHABLE_STREAK_DAYS,
+    UNREACHABLE_STREAK_CHECKS,
     correctness,
     expiry_status,
     freshness,
@@ -226,11 +226,11 @@ class TestOperatingSignal:
 
     def test_reachable_when_failures_below_the_streak(self) -> None:
         assert operating_signal("lapsed", 0) == "reachable"
-        assert operating_signal("stale", UNREACHABLE_STREAK_DAYS - 1) == "reachable"
+        assert operating_signal("stale", UNREACHABLE_STREAK_CHECKS - 1) == "reachable"
 
     def test_unreachable_at_the_streak_threshold(self) -> None:
-        assert operating_signal("stale", UNREACHABLE_STREAK_DAYS) == "unreachable"
-        assert operating_signal("lapsed", UNREACHABLE_STREAK_DAYS + 10) == "unreachable"
+        assert operating_signal("stale", UNREACHABLE_STREAK_CHECKS) == "unreachable"
+        assert operating_signal("lapsed", UNREACHABLE_STREAK_CHECKS + 10) == "unreachable"
 
 
 def test_finding_to_json_carries_point_value() -> None:

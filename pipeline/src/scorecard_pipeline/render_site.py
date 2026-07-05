@@ -2744,7 +2744,7 @@ def _render_agency_index(index: dict[str, Any], liveness: dict[str, dict[str, An
         if stale_unreachable:
             rows = "".join(
                 _index_card(
-                    aid, a, f"Feed expired {_expired_ago(d)} · link unreachable for a month+"
+                    aid, a, f"Feed expired {_expired_ago(d)} · link unreachable for 30+ checks"
                 )
                 for aid, a, d in stale_unreachable
             )
@@ -2754,7 +2754,7 @@ def _render_agency_index(index: dict[str, Any], liveness: dict[str, dict[str, An
                 f'<span class="grade-count">{len(stale_unreachable)} '
                 f"{'agency' if len(stale_unreachable) == 1 else 'agencies'}</span></h3>"
                 '<p class="group-note">Expired more than a year ago, and the feed URL itself '
-                "has not answered a single check in over a month &mdash; a stronger signal than "
+                "has not answered the last 30 checks in a row &mdash; a stronger signal than "
                 "an old calendar alone. This may mean the feed moved, the listing is stale, or "
                 "service has changed; we cannot tell which from here. Worth confirming directly "
                 "before reading it either way.</p>"

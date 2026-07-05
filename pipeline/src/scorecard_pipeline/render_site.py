@@ -2835,7 +2835,7 @@ def _standards_section(artifact: dict[str, Any], state: str = "") -> str:
     """
     if artifact.get("agency", {}).get("country", "US") != "US":
         return ""
-    cw = "https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/crosswalk.md"
+    cw = "/crosswalk/"
     ntd = "https://www.transit.dot.gov/ntd"
     md = "https://github.com/MobilityData/gtfs-grading-scheme"
     rows = []
@@ -2879,7 +2879,7 @@ def _standards_section(artifact: dict[str, Any], state: str = "") -> str:
         f'<a href="{ntd}"><abbr title="Federal Transit Administration">FTA</abbr> National Transit '
         "Database</a> GTFS requirement, the "
         f'<a href="{md}">MobilityData grading scheme</a>, and the Google Transit gate. '
-        f'Read the full standards crosswalk: <a href="{cw}">standards crosswalk (docs/crosswalk.md)</a>.</p>'
+        f'Read the full <a href="{cw}">standards crosswalk</a>.</p>'
         f"{state_html}"
         f'<dl class="standards-list">{"".join(rows)}</dl></section>'
     )
@@ -3291,18 +3291,60 @@ def _md_inline(text: str) -> str:
     return text
 
 
+def _md_table_row(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def _is_md_table_separator(line: str) -> bool:
+    cells = _md_table_row(line)
+    return bool(cells) and all(re.fullmatch(r":?-+:?", cell) for cell in cells)
+
+
 def _md_to_html(md: str) -> tuple[str, str]:
-    """Very small Markdown subset (headings, lists, paragraphs, inline). Returns
-    (html_body, first_h1_text)."""
+    """Small Markdown subset (headings through h3, lists, tables, paragraphs,
+    inline). Returns (html_body, first_h1_text)."""
     out: list[str] = []
     title = ""
     in_list = False
-    for line in md.splitlines():
+    in_table = False
+    lines = md.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if (
+            not in_table
+            and line.strip().startswith("|")
+            and i + 1 < len(lines)
+            and _is_md_table_separator(lines[i + 1])
+        ):
+            if in_list:
+                out.append("</ul>")
+                in_list = False
+            header = _md_table_row(line)
+            out.append(
+                '<table class="leaderboard"><thead><tr>'
+                + "".join(f"<th>{_md_inline(cell)}</th>" for cell in header)
+                + "</tr></thead><tbody>"
+            )
+            in_table = True
+            i += 2  # skip the header row and the separator row just consumed
+            continue
+        if in_table:
+            if line.strip().startswith("|"):
+                row = _md_table_row(line)
+                out.append(
+                    "<tr>" + "".join(f"<td>{_md_inline(cell)}</td>" for cell in row) + "</tr>"
+                )
+                i += 1
+                continue
+            out.append("</tbody></table>")
+            in_table = False
         if line.startswith("- "):
             if not in_list:
                 out.append("<ul>")
                 in_list = True
             out.append(f"<li>{_md_inline(line[2:])}</li>")
+            i += 1
             continue
         if in_list:
             out.append("</ul>")
@@ -3310,12 +3352,17 @@ def _md_to_html(md: str) -> tuple[str, str]:
         if line.startswith("# "):
             title = line[2:].strip()
             out.append(f"<h1>{_md_inline(line[2:])}</h1>")
+        elif line.startswith("### "):
+            out.append(f'<h3 class="section-subtitle">{_md_inline(line[4:])}</h3>')
         elif line.startswith("## "):
             out.append(f'<h2 class="section-title">{_md_inline(line[3:])}</h2>')
         elif line.strip():
             out.append(f"<p>{_md_inline(line)}</p>")
+        i += 1
     if in_list:
         out.append("</ul>")
+    if in_table:
+        out.append("</tbody></table>")
     return "\n".join(out), title
 
 
@@ -3346,6 +3393,42 @@ def _render_fix(code: str, md: str) -> str:
         "description": desc,
         "url": canonical,
         "about": {"@type": "Thing", "name": f"GTFS validator notice {code}"},
+        "publisher": {"@type": "Organization", "name": "GTFS Scorecard", "url": BASE_URL},
+    }
+    return _page(
+        title=f"{title_text} — GTFS Scorecard",
+        description=desc,
+        canonical=canonical,
+        body=body,
+        jsonld=jsonld,
+    )
+
+
+def _render_crosswalk_page(md: str) -> str:
+    """The standards crosswalk (docs/crosswalk.md) as a crawlable page.
+
+    Previously linked only as a raw GitHub blob from agency pages; rendering it
+    on-site puts it in the sitemap and gives it the same JSON-LD/meta treatment
+    as every other page, for the same reason /fix/<code>/ pages exist rather
+    than pointing at the Markdown source."""
+    canonical = f"{BASE_URL}/crosswalk/"
+    body_html, title_text = _md_to_html(md)
+    title_text = title_text or "How the grade maps to the standards"
+    para = next((re.sub("<[^>]+>", "", p) for p in re.findall(r"<p>(.*?)</p>", body_html)), "")
+    desc = (
+        para[:155]
+        or "How the scorecard's categories map to NTD, California's "
+        "guidelines, the GTFS Grading Scheme, and Google Transit."
+    ).strip()
+    crumb = _breadcrumb([("Home", "/"), ("How to read this", "/how-to-read/"), ("Crosswalk", None)])
+    body = f"""    {crumb}
+    <article class="feed-details">{body_html}</article>"""
+    jsonld = {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": title_text,
+        "description": desc,
+        "url": canonical,
         "publisher": {"@type": "Organization", "name": "GTFS Scorecard", "url": BASE_URL},
     }
     return _page(
@@ -5939,6 +6022,13 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:
 
     write("how-to-read/index.html", _render_guide(), f"{BASE_URL}/how-to-read/")
     write("accessibility/index.html", _render_accessibility(), f"{BASE_URL}/accessibility/")
+    crosswalk_file = root / "docs" / "crosswalk.md"
+    if crosswalk_file.exists():
+        write(
+            "crosswalk/index.html",
+            _render_crosswalk_page(crosswalk_file.read_text()),
+            f"{BASE_URL}/crosswalk/",
+        )
 
     index_file = art / "index.json"
     index = json.loads(index_file.read_text()) if index_file.exists() else {"agencies": {}}

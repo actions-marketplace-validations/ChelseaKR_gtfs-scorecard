@@ -7,6 +7,8 @@ from typing import Any
 from scorecard_pipeline.render_site import (
     _accessibility_score,
     _accessibility_substat,
+    _california_guideline_checklist,
+    _california_guideline_html,
     _canonical_state,
     _changes_sections,
     _equity_choropleth,
@@ -274,6 +276,97 @@ def test_standards_section_is_state_aware() -> None:
     tx = _standards_section(art, "Texas")
     assert "California Transit Data Guidelines" not in tx
     assert "transit-data program" not in tx
+    # The California guideline checklist (E11) is California-only.
+    assert "Minimum GTFS Guidelines checklist" in ca
+    assert "Minimum GTFS Guidelines checklist" not in mn
+    assert "Minimum GTFS Guidelines checklist" not in tx
+
+
+def test_california_checklist_reads_measured_fields() -> None:
+    art = {
+        "feed": {"reachable": True},
+        "categories": {
+            "correctness": {"status": "measured", "findings": []},
+            "completeness": {
+                "status": "measured",
+                "findings": [],
+                "details": {
+                    "accessibility": {"stops_stated_pct": 95, "trips_stated_pct": 92},
+                    "has_fares": True,
+                    "fare_free": False,
+                },
+            },
+        },
+    }
+    items = _california_guideline_checklist(art)
+    by_label = {i["label"]: i for i in items}
+    assert by_label["Publish GTFS Schedule at a stable, automatically-fetchable URL"]["met"] is True
+    assert by_label["Produce no critical errors in the MobilityData GTFS Validator"]["met"] is True
+    wheelchair = by_label["wheelchair_boarding stated on stops and trips"]
+    assert wheelchair["met"] is True
+    assert "95%" in wheelchair["detail"] and "92%" in wheelchair["detail"]
+    fares = by_label["Fare data published, or the service marked fare-free"]
+    assert fares["met"] is True
+    # Items outside this scorecard's measurement stay explicitly unmeasured, not
+    # silently omitted or guessed at.
+    unmeasured = [i for i in items if i["met"] is None]
+    assert any("Urban Transportation Research" in i["label"] for i in unmeasured)
+    assert any("20 seconds" in i["label"] for i in unmeasured)
+
+
+def test_california_checklist_gaps_and_unmeasured_are_distinct() -> None:
+    art = {
+        "feed": {"reachable": False},
+        "categories": {
+            "correctness": {
+                "status": "measured",
+                "findings": [{"severity": "ERROR"}, {"severity": "ERROR"}],
+            },
+            "completeness": {
+                "status": "measured",
+                "findings": [{"code": "scorecard_no_feed_contact"}],
+                "details": {"has_fares": False, "fare_free": False},
+            },
+        },
+    }
+    items = _california_guideline_checklist(art)
+    by_label = {i["label"]: i for i in items}
+    url_item = by_label["Publish GTFS Schedule at a stable, automatically-fetchable URL"]
+    assert url_item["met"] is False
+    errors_item = by_label["Produce no critical errors in the MobilityData GTFS Validator"]
+    assert errors_item["met"] is False
+    assert "2 validator errors" in errors_item["detail"]
+    contact_item = by_label["Designate a technical contact in feed_info.txt's feed_contact_email"]
+    assert contact_item["met"] is False
+    fares_item = by_label["Fare data published, or the service marked fare-free"]
+    assert fares_item["met"] is False
+    # Not-yet-measured fields (no completeness category at all) render as None,
+    # not as a false gap.
+    unmeasured_art: dict[str, Any] = {"feed": {}, "categories": {}}
+    wheelchair = {i["label"]: i for i in _california_guideline_checklist(unmeasured_art)}[
+        "wheelchair_boarding stated on stops and trips"
+    ]
+    assert wheelchair["met"] is None
+
+
+def test_california_checklist_html_counts_only_measured_items() -> None:
+    art = {
+        "feed": {"reachable": True},
+        "categories": {
+            "correctness": {"status": "measured", "findings": []},
+            "completeness": {"status": "measured", "findings": [], "details": {}},
+        },
+    }
+    items = _california_guideline_checklist(art)
+    measured = [i for i in items if i["met"] is not None]
+    met = [i for i in items if i["met"]]
+    html = _california_guideline_html(art)
+    # The summary counts only against items this tool actually measures, never
+    # against the checklist's full 13 (most of which stay unmeasured here).
+    assert f"({len(met)} of {len(measured)} measured items met)" in html
+    assert len(measured) < len(items)
+    assert "Meets" in html
+    assert "Not measured here" in html
 
 
 def test_accessibility_score_none_when_not_measured() -> None:

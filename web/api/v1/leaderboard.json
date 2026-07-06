@@ -153,38 +153,102 @@
   ],
   "most_declined": [
     {
-      "date": "2026-07-05",
+      "date": "2026-07-06",
       "grade": "F",
-      "id": "capital-metro",
-      "name": "Capital Metro",
-      "score": 53.1,
-      "score_delta": -21.9
+      "id": "arcadia-transit-2243",
+      "name": "Arcadia Transit",
+      "score": 57.1,
+      "score_delta": -2.2
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "D",
+      "id": "city-of-jackson-jtran",
+      "name": "City of Jackson (JTRAN)",
+      "score": 68.9,
+      "score_delta": -2.2
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "D",
+      "id": "ku-on-wheels-lawrence-transit-system-2063",
+      "name": "KU on Wheels & Lawrence Transit System",
+      "score": 63.5,
+      "score_delta": -2.1
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "F",
+      "id": "roadrunner-transit-2075",
+      "name": "RoadRUNNER Transit",
+      "score": 53.6,
+      "score_delta": -2.1
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "F",
+      "id": "rosemead-explorer-3098",
+      "name": "Rosemead Explorer",
+      "score": 55.1,
+      "score_delta": -2.1
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "D",
+      "id": "clackco-connects-clackamas-county-2740",
+      "name": "Static feed for realtime",
+      "score": 65.7,
+      "score_delta": -1.8
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "C",
+      "id": "clovis-transit-2894",
+      "name": "Clovis Transit",
+      "score": 71.0,
+      "score_delta": -1.7
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "F",
+      "id": "sandy-area-metro-sam-2739",
+      "name": "Static feed for realtime",
+      "score": 58.0,
+      "score_delta": -1.7
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "D",
+      "id": "spirit-bus-2202",
+      "name": "Spirit Bus",
+      "score": 65.0,
+      "score_delta": -1.7
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "D",
+      "id": "via-mobility-2395",
+      "name": "Via Mobility",
+      "score": 65.0,
+      "score_delta": -1.2
+    },
+    {
+      "date": "2026-07-06",
+      "grade": "F",
+      "id": "williamsburg-area-transit-authority-2649",
+      "name": "Williamsburg Area Transit Authority",
+      "score": 58.6,
+      "score_delta": -1.2
     }
   ],
   "most_improved": [
     {
-      "date": "2026-07-05",
-      "grade": "C",
-      "id": "towson-loop",
-      "name": "Towson Loop",
-      "score": 70.9,
-      "score_delta": 8.2
-    },
-    {
-      "date": "2026-07-05",
+      "date": "2026-07-06",
       "grade": "F",
-      "id": "frederick-county-transit-2432",
-      "name": "Frederick County TransIT",
-      "score": 59.9,
-      "score_delta": 6.2
-    },
-    {
-      "date": "2026-07-05",
-      "grade": "D",
-      "id": "via-mobility-2395",
-      "name": "Via Mobility",
-      "score": 66.2,
-      "score_delta": 2.9
+      "id": "greater-portland-metro-bus-2642",
+      "name": "Greater Portland Metro Bus",
+      "score": 52.5,
+      "score_delta": 1.2
     }
   ],
   "top": [
@@ -316,12 +380,6 @@
     },
     {
       "grade": "A",
-      "id": "patco-speedline",
-      "name": "PATCO Speedline",
-      "score": 95.2
-    },
-    {
-      "grade": "A",
       "id": "grays-harbor-transit",
       "name": "Grays Harbor Transit",
       "score": 95.0
@@ -337,6 +395,12 @@
       "id": "phlash",
       "name": "Philly PHLASH",
       "score": 95.0
+    },
+    {
+      "grade": "A",
+      "id": "patco-speedline",
+      "name": "PATCO Speedline",
+      "score": 94.8
     }
   ]
 }

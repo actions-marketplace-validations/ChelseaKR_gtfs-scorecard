@@ -1,6 +1,6 @@
 {
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
-  "generated_at": "2026-07-05T23:45:10+00:00",
+  "generated_at": "2026-07-06T05:15:28+00:00",
   "license": "CC-BY-4.0",
   "points": [
     {
@@ -80,6 +80,19 @@
         "D": 170,
         "F": 718
       }
+    },
+    {
+      "agency_count": 1449,
+      "average_score": 60.7,
+      "date": "2026-07-06",
+      "expired_pct": 42.7,
+      "grade_distribution": {
+        "A": 49,
+        "B": 241,
+        "C": 263,
+        "D": 172,
+        "F": 724
+      }
     }
   ],
   "summary": {
@@ -88,15 +101,15 @@
       "date": "2026-06-30"
     },
     "last": {
-      "average_score": 60.8,
-      "date": "2026-07-05"
+      "average_score": 60.7,
+      "date": "2026-07-06"
     },
-    "points": 6,
-    "score_delta": -0.2
+    "points": 7,
+    "score_delta": -0.3
   },
   "top_improvers": [
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-16",
       "delta": 34.9,
       "grade_end": "B",
@@ -106,7 +119,7 @@
       "score_start": 50.7
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-19",
       "delta": 34.5,
       "grade_end": "B",
@@ -116,7 +129,7 @@
       "score_start": 49.2
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-19",
       "delta": 31.6,
       "grade_end": "C",
@@ -126,7 +139,7 @@
       "score_start": 41.8
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-19",
       "delta": 31.3,
       "grade_end": "C",
@@ -136,7 +149,7 @@
       "score_start": 39.1
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-19",
       "delta": 28.6,
       "grade_end": "B",
@@ -146,7 +159,7 @@
       "score_start": 52.7
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-19",
       "delta": 27.8,
       "grade_end": "D",
@@ -156,7 +169,7 @@
       "score_start": 41.4
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-16",
       "delta": 27.7,
       "grade_end": "B",
@@ -166,7 +179,7 @@
       "score_start": 54.2
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-19",
       "delta": 26.1,
       "grade_end": "D",
@@ -176,7 +189,7 @@
       "score_start": 37.1
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-19",
       "delta": 26.0,
       "grade_end": "D",
@@ -186,7 +199,7 @@
       "score_start": 43.1
     },
     {
-      "date_end": "2026-07-05",
+      "date_end": "2026-07-06",
       "date_start": "2026-06-19",
       "delta": 26.0,
       "grade_end": "D",

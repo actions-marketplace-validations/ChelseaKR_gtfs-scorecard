@@ -7,31 +7,31 @@
           {
             "csvRowNumber": 2,
             "routeId": "11",
-            "tripId": "1629"
+            "tripId": "2067"
           },
           {
             "csvRowNumber": 3,
             "routeId": "11",
-            "tripId": "1630"
+            "tripId": "2068"
           },
           {
             "csvRowNumber": 4,
             "routeId": "11",
-            "tripId": "1631"
+            "tripId": "2069"
           },
           {
             "csvRowNumber": 5,
             "routeId": "11",
-            "tripId": "1632"
+            "tripId": "2070"
           },
           {
             "csvRowNumber": 6,
             "routeId": "11",
-            "tripId": "1633"
+            "tripId": "2071"
           }
         ],
         "severity": "WARNING",
-        "total": 1451
+        "total": 1219
       },
       {
         "code": "missing_feed_contact_email_and_url",
@@ -47,7 +47,7 @@
         "code": "trip_coverage_not_active_for_next7_days",
         "sample_notices": [
           {
-            "currentDate": "20260705",
+            "currentDate": "20260706",
             "serviceWindowEndDate": "20271231",
             "serviceWindowStartDate": "20260707"
           }
@@ -58,6 +58,6 @@
     ],
     "validator_version": "8.0.1"
   },
-  "sha256": "68d90444fca28c531e2a2cd93eea7388efa7bd89ff56128072c3df220e98a094",
+  "sha256": "233548f4c1bdb43906ea21885118a2b7de263fd869957f234c7779f032a0c6f3",
   "validator_version": "8.0.1"
 }

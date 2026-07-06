@@ -57,7 +57,7 @@
           "pathway_count": 0
         },
         "stops": 50,
-        "trips": 810,
+        "trips": 723,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 98.0,
         "wheelchair_marked_accessible_pct": 98.0,
@@ -77,13 +77,13 @@
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 810,
+          "count": 723,
           "effort": "Often one default setting in your export.",
           "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "810 of 810 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "723 of 723 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
@@ -110,14 +110,14 @@
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 0,
-          "WARNING": 653
+          "WARNING": 566
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "missing_bike_allowance",
-          "count": 650,
+          "count": 563,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'missing_bike_allowance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
@@ -163,15 +163,15 @@
       "name": "correctness",
       "score": 80.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 4 kinds of issue across 653 instances (0 error, 653 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 4 kinds of issue across 566 instances (0 error, 566 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
         "days_until_expiry": 543,
         "feed_end_date": "2027-12-31",
-        "feed_start_date": "2026-04-05",
-        "feed_version": "20260704",
+        "feed_start_date": "2026-07-05",
+        "feed_version": "20260706",
         "has_feed_info": true,
         "last_service_date": "2027-12-31",
         "seasonal_boundary": false,
@@ -186,11 +186,18 @@
     },
     "realtime": {
       "details": {
-        "coverage_pct": null,
+        "coverage_pct": 100.0,
+        "covered_trips": 4,
+        "drift": {
+          "median_seconds": -63,
+          "observations": 23,
+          "on_time_share_pct": 17.4,
+          "p90_abs_seconds": 1061
+        },
         "kinds_reachable": 2,
         "rt_freshness": "fresh",
         "samples": 6,
-        "scheduled_trips_in_window": 0,
+        "scheduled_trips_in_window": 4,
         "worst_lag_seconds": 5
       },
       "findings": [
@@ -207,11 +214,24 @@
         }
       ],
       "name": "realtime",
-      "score": 83.3,
+      "score": 90.2,
       "status": "measured",
-      "summary": "Sampled 6 times outside service hours: 2 of 3 feeds healthy.",
+      "summary": "Sampled 6 times: 2 of 3 feeds healthy; 100.0% of scheduled trips had live predictions; predictions ran a median of 63s ahead of schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 6 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -222,7 +242,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 545 days.",
+        "detail": "Service data covers the next 543 days.",
         "key": "current",
         "met": true
       },
@@ -238,8 +258,8 @@
   "feed": {
     "license_note": "License: https://www.ferry.nyc/developer-tools/",
     "reachable": true,
-    "sha256": "8853beda98a0e0cf902f3ab4f3f6c67710ccb9b564584d1c0bea835f115eb1fd",
-    "size_bytes": 47950,
+    "sha256": "e2f6f92677d80672541218f12def4fc9b0020d08f11c56dae0b89c9ede45e342",
+    "size_bytes": 44337,
     "static_url": "http://nycferry.connexionz.net/rtt/public/utility/gtfs.aspx"
   },
   "fetch": {
@@ -248,7 +268,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-06T00:00:00+00:00",
   "geo": {
     "bbox": [
       -74.07423,
@@ -280,7 +300,7 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 545 days.",
+        "detail": "Service data covers the next 543 days.",
         "key": "current",
         "status": "ready"
       }
@@ -290,9 +310,9 @@
   },
   "overall": {
     "grade": "B",
-    "margin_to_lower_band": 3.9,
-    "margin_to_next_band": 6.1,
-    "score": 83.9
+    "margin_to_lower_band": 5.3,
+    "margin_to_next_band": 4.7,
+    "score": 85.3
   },
   "recommendations": [
     {
@@ -318,17 +338,12 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 50,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 810
+    "trips_total": 723
   },
   "route_map": {
     "drawn_route_count": 9,
@@ -440,7 +455,13 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 723 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 723,
+    "trips_with_shape": 723
+  },
   "snapshot_date": "2026-07-06",
   "top_fixes": [
     {
@@ -457,19 +478,19 @@
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 810,
+      "count": 723,
       "effort": "Often one default setting in your export.",
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "810 of 810 trips don't say whether the vehicle is wheelchair accessible.",
+      "what": "723 of 723 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
     },
     {
       "code": "missing_bike_allowance",
-      "count": 650,
+      "count": 563,
       "effort": "Varies.",
       "fix": "Review the rule documentation for 'missing_bike_allowance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
       "owner": "",

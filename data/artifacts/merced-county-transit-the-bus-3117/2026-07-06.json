@@ -261,6 +261,18 @@
       "weight": 0.2
     }
   },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
+  },
   "conformance": {
     "awarded": false,
     "criteria": [
@@ -270,7 +282,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 26843 days.",
+        "detail": "Service data covers the next 26841 days.",
         "key": "current",
         "met": true
       },
@@ -286,7 +298,7 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "6df6290fcf73b913ed54d900812d9e9445d471ce1b6d88f9048a11ed3bd36ea6",
+    "sha256": "4f0e1165805539db1062a33de28a7db095e40072f947cacdd74de5591f4c81b5",
     "size_bytes": 241003,
     "static_url": "https://thebuslive.com/gtfs"
   },
@@ -296,7 +308,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-06T00:00:00+00:00",
   "geo": {
     "bbox": [
       -120.89472,
@@ -328,7 +340,7 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 26843 days.",
+        "detail": "Service data covers the next 26841 days.",
         "key": "current",
         "status": "ready"
       }
@@ -366,11 +378,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 361,
     "findings": [],
@@ -554,7 +561,13 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 555 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 555,
+    "trips_with_shape": 555
+  },
   "snapshot_date": "2026-07-06",
   "top_fixes": [
     {
@@ -582,16 +595,16 @@
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
     },
     {
-      "code": "scorecard_no_fare_data",
+      "code": "scorecard_missing_feed_info_dates",
       "count": 1,
-      "effort": "A small file for most flat-fare systems.",
-      "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure. If your service is fare-free, ask to have it marked fare-free instead.",
-      "owner": "",
+      "effort": "Two fields, set once in export settings.",
+      "fix": "Add feed_info.txt with feed_start_date and feed_end_date to your export.",
+      "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "The feed contains no fare information.",
-      "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
+      "what": "feed_info.txt is missing its start/end dates",
+      "why": "Apps and this scorecard can't warn anyone before the feed goes stale without stated validity dates."
     }
   ],
   "validator_version": "8.0.1"

@@ -25,14 +25,6 @@
     <summary>On 2026-07-06, Washington Park Shuttle's GTFS data quality went from 60.2 (D) to 59.8 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>Via Mobility: score fell 1.2 points</title>
-    <id>tag:gtfsscorecard.org,2026:agency/via-mobility-2395/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/via-mobility-2395/"/>
-    <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, Via Mobility's GTFS data quality went from 66.2 (D) to 65.0 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
-  </entry>
-  <entry>
     <title>Vermont Translines: grade dropped C to D</title>
     <id>tag:gtfsscorecard.org,2026:agency/vermont-translines/2026-07-06</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/vermont-translines/"/>
@@ -49,14 +41,6 @@
     <summary>On 2026-07-06, Vermont Translines's GTFS data quality went from 70.2 (C) to 69.8 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>Spirit Bus: score fell 1.7 points</title>
-    <id>tag:gtfsscorecard.org,2026:agency/spirit-bus-2202/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/spirit-bus-2202/"/>
-    <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, Spirit Bus's GTFS data quality went from 66.7 (D) to 65.0 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
-  </entry>
-  <entry>
     <title>Santa Clara Valley Transportation Authority (VTA): grade dropped C to D</title>
     <id>tag:gtfsscorecard.org,2026:agency/santa-clara-valley-transportation-authority-vta/2026-07-06</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/santa-clara-valley-transportation-authority-vta/"/>
@@ -65,28 +49,20 @@
     <summary>On 2026-07-06, Santa Clara Valley Transportation Authority (VTA)'s GTFS data quality went from 70.1 (C) to 69.7 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>Static feed for realtime: score fell 1.7 points</title>
+    <title>Static feed for realtime: grade improved F to D</title>
     <id>tag:gtfsscorecard.org,2026:agency/sandy-area-metro-sam-2739/2026-07-06</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/sandy-area-metro-sam-2739/"/>
     <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, Static feed for realtime's GTFS data quality went from 59.7 (F) to 58.0 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+    <category term="grade_rise"/>
+    <summary>On 2026-07-06, Static feed for realtime's GTFS data quality went from 59.7 (F) to 66.7 (D). A step in the right direction.</summary>
   </entry>
   <entry>
-    <title>Rosemead Explorer: score fell 2.1 points</title>
-    <id>tag:gtfsscorecard.org,2026:agency/rosemead-explorer-3098/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/rosemead-explorer-3098/"/>
+    <title>Rogue Valley Transportation District (RVTD): grade dropped D to F</title>
+    <id>tag:gtfsscorecard.org,2026:agency/rogue-valley-transportation-district-rvtd-3219/2026-07-06</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/rogue-valley-transportation-district-rvtd-3219/"/>
     <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, Rosemead Explorer's GTFS data quality went from 57.2 (F) to 55.1 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
-  </entry>
-  <entry>
-    <title>RoadRUNNER Transit: score fell 2.1 points</title>
-    <id>tag:gtfsscorecard.org,2026:agency/roadrunner-transit-2075/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/roadrunner-transit-2075/"/>
-    <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, RoadRUNNER Transit's GTFS data quality went from 55.7 (F) to 53.6 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
+    <category term="grade_drop"/>
+    <summary>On 2026-07-06, Rogue Valley Transportation District (RVTD)'s GTFS data quality went from 66.0 (D) to 56.1 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
     <title>RADAR: grade dropped C to D</title>
@@ -129,6 +105,14 @@
     <summary>On 2026-07-06, Petersburg Area Transit's GTFS data quality went from 60.3 (D) to 59.9 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
+    <title>NYC Ferry: score rose 1.4 points</title>
+    <id>tag:gtfsscorecard.org,2026:agency/nyc-ferry/2026-07-06</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/nyc-ferry/"/>
+    <updated>2026-07-06T00:00:00Z</updated>
+    <category term="score_rise"/>
+    <summary>On 2026-07-06, NYC Ferry's GTFS data quality went from 83.9 (B) to 85.3 (B). A step in the right direction.</summary>
+  </entry>
+  <entry>
     <title>Mendocino Transit Authority: grade dropped B to C</title>
     <id>tag:gtfsscorecard.org,2026:agency/mendocino-transit-authority/2026-07-06</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/mendocino-transit-authority/"/>
@@ -153,14 +137,6 @@
     <summary>On 2026-07-06, Massport's GTFS data quality went from 90.4 (A) to 90.0 (B). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>KU on Wheels &amp; Lawrence Transit System: score fell 2.1 points</title>
-    <id>tag:gtfsscorecard.org,2026:agency/ku-on-wheels-lawrence-transit-system-2063/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/ku-on-wheels-lawrence-transit-system-2063/"/>
-    <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, KU on Wheels &amp; Lawrence Transit System's GTFS data quality went from 65.6 (D) to 63.5 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
-  </entry>
-  <entry>
     <title>Greater Portland Metro Bus: score rose 1.2 points</title>
     <id>tag:gtfsscorecard.org,2026:agency/greater-portland-metro-bus-2642/2026-07-06</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/greater-portland-metro-bus-2642/"/>
@@ -169,28 +145,20 @@
     <summary>On 2026-07-06, Greater Portland Metro Bus's GTFS data quality went from 51.3 (F) to 52.5 (F). A step in the right direction.</summary>
   </entry>
   <entry>
+    <title>Frederick County TransIT: grade improved F to D</title>
+    <id>tag:gtfsscorecard.org,2026:agency/frederick-county-transit-2432/2026-07-06</id>
+    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/frederick-county-transit-2432/"/>
+    <updated>2026-07-06T00:00:00Z</updated>
+    <category term="grade_rise"/>
+    <summary>On 2026-07-06, Frederick County TransIT's GTFS data quality went from 59.9 (F) to 60.6 (D). A step in the right direction.</summary>
+  </entry>
+  <entry>
     <title>Duluth Transit: grade dropped D to F</title>
     <id>tag:gtfsscorecard.org,2026:agency/duluth-transit/2026-07-06</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/duluth-transit/"/>
     <updated>2026-07-06T00:00:00Z</updated>
     <category term="grade_drop"/>
     <summary>On 2026-07-06, Duluth Transit's GTFS data quality went from 60.2 (D) to 59.9 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
-  </entry>
-  <entry>
-    <title>Clovis Transit: score fell 1.7 points</title>
-    <id>tag:gtfsscorecard.org,2026:agency/clovis-transit-2894/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/clovis-transit-2894/"/>
-    <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, Clovis Transit's GTFS data quality went from 72.7 (C) to 71.0 (C). Trip planners read the same feed, so a drop is worth a look.</summary>
-  </entry>
-  <entry>
-    <title>Static feed for realtime: score fell 1.8 points</title>
-    <id>tag:gtfsscorecard.org,2026:agency/clackco-connects-clackamas-county-2740/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/clackco-connects-clackamas-county-2740/"/>
-    <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, Static feed for realtime's GTFS data quality went from 67.5 (D) to 65.7 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
     <title>City of Madera: grade dropped D to F</title>
@@ -209,14 +177,6 @@
     <summary>On 2026-07-06, City of Madera's GTFS data quality went from 60.3 (D) to 59.9 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
   <entry>
-    <title>City of Jackson (JTRAN): grade dropped C to D</title>
-    <id>tag:gtfsscorecard.org,2026:agency/city-of-jackson-jtran/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/city-of-jackson-jtran/"/>
-    <updated>2026-07-06T00:00:00Z</updated>
-    <category term="grade_drop"/>
-    <summary>On 2026-07-06, City of Jackson (JTRAN)'s GTFS data quality went from 71.1 (C) to 68.9 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
-  </entry>
-  <entry>
     <title>Bristol Virginia Transit: grade dropped C to D</title>
     <id>tag:gtfsscorecard.org,2026:agency/bristol-virginia-transit/2026-07-06</id>
     <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/bristol-virginia-transit/"/>
@@ -231,13 +191,5 @@
     <updated>2026-07-06T00:00:00Z</updated>
     <category term="grade_drop"/>
     <summary>On 2026-07-06, Bristol Virginia Transit's GTFS data quality went from 70.2 (C) to 69.8 (D). Trip planners read the same feed, so a drop is worth a look.</summary>
-  </entry>
-  <entry>
-    <title>Arcadia Transit: score fell 2.2 points</title>
-    <id>tag:gtfsscorecard.org,2026:agency/arcadia-transit-2243/2026-07-06</id>
-    <link rel="alternate" type="text/html" href="https://gtfsscorecard.org/agency/arcadia-transit-2243/"/>
-    <updated>2026-07-06T00:00:00Z</updated>
-    <category term="score_drop"/>
-    <summary>On 2026-07-06, Arcadia Transit's GTFS data quality went from 59.3 (F) to 57.1 (F). Trip planners read the same feed, so a drop is worth a look.</summary>
   </entry>
 </feed>

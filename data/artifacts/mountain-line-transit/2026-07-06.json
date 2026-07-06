@@ -237,6 +237,19 @@
       "weight": 0.2
     }
   },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
+  },
   "conformance": {
     "awarded": false,
     "criteria": [
@@ -246,7 +259,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 179 days.",
+        "detail": "Service data covers the next 177 days.",
         "key": "current",
         "met": true
       },
@@ -262,8 +275,8 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "a64e893365e9b8d7806518012c6429a12631c0030a52e405a94e3f09a0d8cfda",
-    "size_bytes": 268873,
+    "sha256": "98169901b6ba675a213014542bdb66883fa3ab6697cdb78c9ff1333fa13ccc55",
+    "size_bytes": 268717,
     "static_url": "http://mountainline.syncromatics.com/gtfs"
   },
   "fetch": {
@@ -272,7 +285,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-06T00:00:00+00:00",
   "geo": {
     "bbox": [
       -111.69121,
@@ -304,7 +317,7 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 179 days.",
+        "detail": "Service data covers the next 177 days.",
         "key": "current",
         "status": "ready"
       }
@@ -342,11 +355,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 176,
     "findings": [],
@@ -464,7 +472,13 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 1336 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1336,
+    "trips_with_shape": 1336
+  },
   "snapshot_date": "2026-07-06",
   "top_fixes": [
     {

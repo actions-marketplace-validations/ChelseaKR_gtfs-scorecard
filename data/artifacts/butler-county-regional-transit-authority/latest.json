@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "butler-county-regional-transit-authority",
-    "name": "Butler County Regional Transit Authority"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/butler-county-regional-transit-authority/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/butler-county-regional-transit-authority/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 6,
-        "examples": [
-          "'stop_name': 'Baverian Woods Dr at Apartment Office ' -> 'Baverian Woods Dr at Apartment Office'",
-          "'route_long_name': 'Blue Line ' -> 'Blue Line'",
-          "'route_long_name': 'Gold Line ' -> 'Gold Line'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 6
+    "name": "Butler County Regional Transit Authority",
+    "subdivision_code": "US-OH",
+    "subdivision_name": "Ohio"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 394,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 529,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 394,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 394,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -111,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 394,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "394 of 394 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "394 of 394 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -128,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -156,7 +154,7 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -167,7 +165,7 @@
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -184,13 +182,13 @@
         {
           "code": "stops_match_shape_out_of_order",
           "count": 5,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+          "why": "Trip planners can draw the bus doubling back or skipping ahead, which confuses riders reading the map."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -211,7 +209,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
@@ -234,13 +232,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -1878,
+        "days_until_expiry": -1910,
+        "effective_expiry_date": "2021-05-15",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2021-05-15",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -252,7 +253,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 1878 day(s) ago.",
+          "what": "Service data ended 1910 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -270,7 +271,7 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 1878 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 1910 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -279,6 +280,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -289,7 +302,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 1869 days ago.",
+        "detail": "Service data expired 1897 days ago.",
         "key": "current",
         "met": false
       },
@@ -300,7 +313,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 1869 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 1897 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -309,7 +322,14 @@
     "size_bytes": 97917,
     "static_url": "https://www.butlercountyrta.com/wp-content/uploads/2019/11/Bcrta-GTFS-1.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.butlercountyrta.com/wp-content/uploads/2019/11/Bcrta-GTFS-1.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -84.7675,
@@ -321,10 +341,30 @@
     "lon": -84.4056,
     "stop_count": 529
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 23,
+        "trip_count": 394,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 23,
+    "trip_count": 394
+  },
   "ntd_id_alignment": {
-    "detail": "Your agency.txt sets no agency_id, so this feed can't be matched to your National Transit Database record (NTD ID 30141).",
+    "detail": "Your agency.txt sets no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked on the P-50 form.",
     "feed_agency_ids": [],
-    "fix": "Set agency_id to 30141 in agency.txt and reference it from routes.txt.",
+    "fix": "Add agency_id to agency.txt and use the same value wherever routes.txt identifies that agency. Keep it stable, and enter its crosswalk to NTD ID 30141 on P-50. It does not need to equal the five-digit NTD ID.",
     "ntd_id": "30141",
     "status": "missing"
   },
@@ -341,13 +381,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 1869 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 1897 days ago, so FTA would find the link out of date.",
         "key": "current",
+        "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form.",
+        "key": "agency_id",
         "status": "not_ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 1869 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 1897 days ago, so FTA would find the link out of date. agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form."
   },
   "overall": {
     "grade": "F",
@@ -357,6 +402,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 7,
       "effort": "A per-route color setting in your scheduling software.",
@@ -368,6 +414,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 393,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -380,8 +427,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -403,9 +450,283 @@
     "single_stop_trips": 0,
     "trips_total": 394
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 23,
+    "has_shapes": true,
+    "path": "data/artifacts/butler-county-regional-transit-authority/geometry.geojson",
+    "route_count": 23,
+    "routes": [
+      {
+        "color": "1B8746",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "478",
+        "label": "R3",
+        "long": "Hamilton/Oxford Connector",
+        "short": "R3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F5FF6E",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "479",
+        "label": "PR",
+        "long": "Park & Ride",
+        "short": "PR",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFB866",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "480",
+        "label": "U3XAM",
+        "long": "U3 Express AM",
+        "short": "U3XAM",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFB866",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "481",
+        "label": "U3XPM",
+        "long": "U3 Express PM",
+        "short": "U3XPM",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4E0963",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "482",
+        "label": "U3",
+        "long": "Tollgate Loop",
+        "short": "U3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4E0963",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "483",
+        "label": "U3 WND",
+        "long": "U3 Tollgate Loop Weekend",
+        "short": "U3 WND",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F57DD9",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "484",
+        "label": "R2",
+        "long": "Oxford/Middletown Shuttle",
+        "short": "R2",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CE5504",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "485",
+        "label": "R4",
+        "long": "Tri-County Shuttle",
+        "short": "R4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B10086",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "486",
+        "label": "R6",
+        "long": "Job Connector",
+        "short": "R6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CE5504",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "490",
+        "label": "U1",
+        "long": "Campus Core",
+        "short": "U1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC9B00",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "491",
+        "label": "U1W",
+        "long": "Campus Core w/Wal-Mart Flyer",
+        "short": "U1W",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC9B00",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "492",
+        "label": "U1W WND",
+        "long": "U1W Campus Core w/Wal-Mart Flyer Weekend",
+        "short": "U1W WND",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "049684",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "493",
+        "label": "U4D WND",
+        "long": "U4D Western Campus/North Loop w/Ditmer Flyer Sunday",
+        "short": "U4D WND",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1FC9CF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "494",
+        "label": "U4",
+        "long": "Western Campus/North Loop",
+        "short": "U4",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0071CA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "499",
+        "label": "BL",
+        "long": "Blue Line",
+        "short": "BL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0071CA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "500",
+        "label": "BL SA",
+        "long": "Blue Line Saturday",
+        "short": "BL SA",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC9B00",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "501",
+        "label": "GDL",
+        "long": "Gold Line",
+        "short": "GDL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC9B00",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "502",
+        "label": "GDL SA",
+        "long": "Gold Line Saturday",
+        "short": "GDL SA",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0D7215",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "503",
+        "label": "GRL",
+        "long": "Green Line",
+        "short": "GRL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0D7215",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "504",
+        "label": "GRL SA",
+        "long": "Green Line Saturday",
+        "short": "GRL SA",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AD0101",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "505",
+        "label": "RL",
+        "long": "Red Line",
+        "short": "RL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AD0101",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "506",
+        "label": "RL",
+        "long": "Red Line Saturday",
+        "short": "RL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D4DB15",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "507",
+        "label": "R1",
+        "long": "Hamilton/Middletown Shuttle",
+        "short": "R1",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 529,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 394 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 394,
+    "trips_with_shape": 394
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -416,7 +737,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 1878 day(s) ago.",
+      "what": "Service data ended 1910 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -434,8 +755,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 394,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,

@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "leetran",
-    "name": "LeeTran"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/leetran/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/leetran/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1491,
-        "examples": [
-          "EDISON MALL TRANSFER CTR -> Edison Mall Transfer Ctr",
-          "EDISON MALL DR @ SOLOMON BLVD -> Edison Mall Dr @ Solomon Blvd",
-          "WNKLR AVE @ BROADWAY AVE -> Wnklr Ave @ Broadway Ave"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 1491
+    "name": "LeeTran",
+    "subdivision_code": "US-FL",
+    "subdivision_name": "Florida"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 2522,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 3.8,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 1550,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 2522,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 2522,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -101,7 +99,7 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 1491,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 14.4,
           "severity": "INFO",
@@ -117,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -151,24 +149,24 @@
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "leading_or_trailing_whitespaces",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'leading_or_trailing_whitespaces' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Leading or trailing whitespaces (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some values have extra spaces at the start or end.",
+          "why": "A stray space can break a match, so a stop or route may fail to link across files."
         },
         {
           "code": "route_color_contrast",
@@ -179,7 +177,7 @@
           "points": 4.0,
           "severity": "WARNING",
           "what": "Some route colors don't contrast with their text color.",
-          "why": "Route badges become unreadable, especially for riders with low vision."
+          "why": "Route badges get hard to read, most of all for riders with low vision."
         },
         {
           "code": "fast_travel_between_consecutive_stops",
@@ -189,8 +187,8 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "missing_recommended_field",
@@ -200,19 +198,19 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         }
       ],
       "name": "correctness",
@@ -223,20 +221,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 135,
+        "days_until_expiry": 103,
+        "effective_expiry_date": "2026-11-18",
         "feed_end_date": "2026-11-18",
         "feed_start_date": "2026-04-23",
         "feed_version": "S1000223",
         "has_feed_info": true,
         "last_service_date": "2026-11-18",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 135 days.",
+      "summary": "Service data covers the next 103 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -245,6 +246,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -255,7 +268,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 144 days.",
+        "detail": "Service data covers the next 116 days.",
         "key": "current",
         "met": true
       },
@@ -275,7 +288,14 @@
     "size_bytes": 2634553,
     "static_url": "https://www.leegov.com/leetran/Documents/GTFS.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.leegov.com/leetran/Documents/GTFS.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -82.01759,
@@ -287,8 +307,28 @@
     "lon": -81.87167,
     "stop_count": 1550
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 22,
+        "trip_count": 2522,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 22,
+    "trip_count": 2522
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -307,13 +347,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 144 days.",
+        "detail": "Service data covers the next 116 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "D",
@@ -323,6 +368,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 17,
       "effort": "A per-route color setting in your scheduling software.",
@@ -334,6 +380,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 1515,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -346,8 +393,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -357,9 +404,272 @@
     "single_stop_trips": 0,
     "trips_total": 2522
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 22,
+    "has_shapes": true,
+    "path": "data/artifacts/leetran/geometry.geojson",
+    "route_count": 22,
+    "routes": [
+      {
+        "color": "199C49",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "Route 10",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F238A6",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "100",
+        "label": "100",
+        "long": "Route 100",
+        "short": "100",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7C8034",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "110",
+        "label": "110",
+        "long": "Route 110",
+        "short": "110",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F78F9E",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "120",
+        "label": "120",
+        "long": "Route 120",
+        "short": "120",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "36A391",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "130",
+        "label": "130",
+        "long": "Route 130",
+        "short": "130",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C77AB1",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "140",
+        "label": "140",
+        "long": "Route 140",
+        "short": "140",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFA87A",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "15",
+        "label": "15",
+        "long": "Route 15",
+        "short": "15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "57C7C2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "20",
+        "label": "20",
+        "long": "Route 20",
+        "short": "20",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "757B23",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "240",
+        "label": "240",
+        "long": "Route 240",
+        "short": "240",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "68478D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "30",
+        "label": "30",
+        "long": "Route 30",
+        "short": "30",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3A7037",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "40",
+        "label": "40",
+        "long": "Route 40",
+        "short": "40",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7A99AC",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "410",
+        "label": "410",
+        "long": "Route 410",
+        "short": "410",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D6AB82",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "490",
+        "label": "490",
+        "long": "Route 490",
+        "short": "490",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008AFF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "Route 5",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "912F46",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "50",
+        "label": "50",
+        "long": "Route 50",
+        "short": "50",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "9CD9C2",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "515",
+        "label": "515",
+        "long": "Route 515",
+        "short": "515",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A3D963",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "590",
+        "label": "590",
+        "long": "Route 590",
+        "short": "590",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F56600",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "595",
+        "label": "595",
+        "long": "Route 595",
+        "short": "595",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CBA3D8",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "60",
+        "label": "60",
+        "long": "Route 60",
+        "short": "60",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4698CA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "600",
+        "label": "600",
+        "long": "Route 600",
+        "short": "600",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8F7DCF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "70",
+        "label": "70",
+        "long": "Route 70",
+        "short": "70",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "99552B",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "80",
+        "label": "80",
+        "long": "Route 80",
+        "short": "80",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 1550,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 2522 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 2522,
+    "trips_with_shape": 2522
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -376,8 +686,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 2522,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

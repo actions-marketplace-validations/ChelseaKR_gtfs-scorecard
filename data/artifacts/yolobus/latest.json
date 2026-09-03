@@ -1,34 +1,9 @@
 {
   "agency": {
     "id": "yolobus",
-    "name": "Yolobus (Yolo County Transportation District)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/yolobus/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/yolobus/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 2,
-        "examples": [
-          "'stop_name': '5th St at I St. ' -> '5th St at I St.'",
-          "'route_desc': 'DAVIS EXPRESS ' -> 'DAVIS EXPRESS'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      },
-      {
-        "code": "autofix_route_name_case",
-        "count": 14,
-        "examples": [
-          "ROUTE 215 -> Route 215",
-          "ROUTE 240 -> Route 240",
-          "ROUTE 43 -> Route 43"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 16
+    "name": "Yolobus (Yolo County Transportation District)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -42,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -66,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 721,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -77,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 374,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 721,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 99.5,
@@ -98,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 721,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -126,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -165,7 +154,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         }
       ],
@@ -177,13 +166,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 63,
+        "days_until_expiry": 31,
+        "effective_expiry_date": "2026-09-07",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2026-09-07",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -200,48 +192,68 @@
         }
       ],
       "name": "freshness",
-      "score": 85.0,
+      "score": 36.7,
       "status": "measured",
-      "summary": "Service data covers the next 63 days.",
+      "summary": "Service data covers the next 31 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 77.8,
-        "covered_trips": 7,
-        "drift": {
-          "median_seconds": 17,
-          "observations": 1778,
-          "on_time_share_pct": 93.6,
-          "p90_abs_seconds": 166
+        "alerts_content": {
+          "alerts": 0,
+          "ended_over_30_days_ago": 0,
+          "with_cause_and_effect": 0,
+          "with_description": 0,
+          "with_header_text": 0,
+          "with_informed_entity": 0
         },
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": 100.0,
+        "covered_trips": 4,
+        "drift": {
+          "median_seconds": 321,
+          "observations": 235,
+          "on_time_share_pct": 39.6,
+          "p90_abs_seconds": 1259
+        },
+        "kinds_configured": 3,
         "kinds_reachable": 3,
+        "reachable_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 9,
-        "vehicles_checked": 15,
+        "scheduled_trips_in_window": 4,
+        "vehicles_checked": 12,
         "vehicles_on_route_pct": 100.0,
-        "worst_lag_seconds": 12
+        "worst_lag_seconds": 2
       },
-      "findings": [
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 2,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 7.8,
-          "severity": "WARNING",
-          "what": "2 of 9 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
-        }
-      ],
+      "findings": [],
       "name": "realtime",
-      "score": 92.2,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 77.8% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 17s behind schedule.",
+      "summary": "Sampled 9 times: 3 of 3 configured feeds healthy; 100.0% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 321s behind schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -252,7 +264,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 72 days.",
+        "detail": "Service data covers the next 44 days.",
         "key": "current",
         "met": true
       },
@@ -272,7 +284,14 @@
     "size_bytes": 485777,
     "static_url": "https://avl.yctd.org/RealTime/google_transit.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://avl.yctd.org/RealTime/google_transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.1424,
@@ -284,12 +303,32 @@
     "lon": -121.71752,
     "stop_count": 374
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 15,
+        "trip_count": 721,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 15,
+    "trip_count": 721
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id d139e461-175c-4156-beb0-e6a23b64d978; the NTD asks for your five-digit NTD ID (90090) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is d139e461-175c-4156-beb0-e6a23b64d978; your National Transit Database ID is 90090. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "d139e461-175c-4156-beb0-e6a23b64d978"
     ],
-    "fix": "Change the agency_id to 90090 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Confirm that P-50 crosswalks agency_id d139e461-175c-4156-beb0-e6a23b64d978 to NTD ID 90090, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90090",
     "status": "mismatch"
   },
@@ -306,22 +345,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 72 days.",
+        "detail": "Service data covers the next 44 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "B",
-    "margin_to_lower_band": 2.5,
-    "margin_to_next_band": 7.5,
-    "score": 82.5
+    "grade": "C",
+    "margin_to_lower_band": 4.4,
+    "margin_to_next_band": 5.6,
+    "score": 74.4
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 5,
       "effort": "A per-route color setting in your scheduling software.",
@@ -333,6 +378,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 83,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -345,8 +391,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -531,15 +577,26 @@
     "stop_count": 374,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 721 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 721,
+    "trips_with_shape": 721
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 721,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 1,

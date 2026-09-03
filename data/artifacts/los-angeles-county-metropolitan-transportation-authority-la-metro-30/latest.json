@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "los-angeles-county-metropolitan-transportation-authority-la-metro-30",
-    "name": "Rail"
-  },
-  "autofix": {
-    "available": false
+    "name": "Los Angeles County Metropolitan Transportation Authority (LA Metro) Rail",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 7181,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": true,
@@ -57,7 +59,14 @@
           "pathway_count": 0
         },
         "stops": 463,
-        "trips": 6413,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 7181,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -77,25 +86,25 @@
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 6413,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "count": 7181,
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "6413 of 6413 trips don't say whether the vehicle is wheelchair accessible.",
-          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+          "what": "7181 of 7181 trips don't say whether the vehicle is wheelchair accessible.",
+          "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 6413,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "count": 7181,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "6413 of 6413 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "7181 of 7181 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_station_no_pathways",
@@ -168,13 +177,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 12,
+        "days_until_expiry": 13,
+        "effective_expiry_date": "2026-08-20",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": true,
-        "last_service_date": "2026-07-18",
+        "last_service_date": "2026-08-20",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -184,9 +196,9 @@
           "effort": "One export setting.",
           "fix": "Re-export with a validity window that reaches at least 60 days out.",
           "owner": "Likely your export tool",
-          "points": 68.0,
+          "points": 67.0,
           "severity": "WARNING",
-          "what": "Service data runs out in 12 day(s).",
+          "what": "Service data runs out in 13 day(s).",
           "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
         },
         {
@@ -202,9 +214,9 @@
         }
       ],
       "name": "freshness",
-      "score": 5.0,
+      "score": 6.7,
       "status": "measured",
-      "summary": "Service data runs out in 12 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data runs out in 13 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
@@ -213,6 +225,18 @@
       "summary": "This agency publishes realtime, but the feed needs an access key we don't have yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -236,20 +260,28 @@
     "status": "not_yet",
     "summary": "This feed is close to the conformance mark. Service data runs out in 14 days; renew to qualify. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
+  "export_diff": {
+    "changes": [
+      "Service now runs through 2026-08-20 (was 2026-08-19)."
+    ],
+    "from_sha256": "e185916aa2ce2641daabe2fc7eb2ef019dc1fc32efecbcf63739278166916ea5",
+    "to_sha256": "8ee3712f47dca0391c24f0d9c10ebc2ba585f838282dd260e2b456ae4824996d"
+  },
   "feed": {
     "license_note": "License: https://developer.metro.net/terms-conditions/",
     "reachable": true,
-    "sha256": "f52bdad170746a93d3d599b79d7d59bd3e75e0fce13049931a683ea17c4b49fb",
-    "size_bytes": 1221796,
+    "sha256": "8ee3712f47dca0391c24f0d9c10ebc2ba585f838282dd260e2b456ae4824996d",
+    "size_bytes": 1451767,
     "static_url": "https://gitlab.com/LACMTA/gtfs_rail/raw/master/gtfs_rail.zip"
   },
   "fetch": {
     "final_url": "https://gitlab.com/LACMTA/gtfs_rail/raw/master/gtfs_rail.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-06T00:00:00+00:00",
   "geo": {
     "bbox": [
       -118.49189,
@@ -261,12 +293,39 @@
     "lon": -118.2736,
     "stop_count": 463
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": true,
+    "measured": true,
+    "modes": [
+      {
+        "key": "tram",
+        "label": "Tram / light rail",
+        "route_count": 4,
+        "trip_count": 4802,
+        "trip_share_pct": 66.9
+      },
+      {
+        "key": "subway",
+        "label": "Subway / metro",
+        "route_count": 2,
+        "trip_count": 2379,
+        "trip_share_pct": 33.1
+      }
+    ],
+    "primary_mode": "tram",
+    "primary_mode_label": "Tram / light rail",
+    "route_count": 6,
+    "trip_count": 7181
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed's agency_id is LACMTA_Rail; your National Transit Database ID is 90154. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
+    "detail": "Your feed's agency_id is LACMTA_Rail; your National Transit Database ID is 90154. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "LACMTA_Rail"
     ],
-    "fix": "Optionally set the agency_id for your service to 90154 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
+    "fix": "Confirm that P-50 crosswalks agency_id LACMTA_Rail to NTD ID 90154, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90154",
     "status": "mismatch"
   },
@@ -286,6 +345,11 @@
         "detail": "Service data runs out in 14 days; renew before you certify.",
         "key": "current",
         "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "at_risk",
@@ -293,12 +357,13 @@
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 53.5,
-    "margin_to_next_band": 6.5,
-    "score": 53.5
+    "margin_to_lower_band": 53.9,
+    "margin_to_next_band": 6.1,
+    "score": 53.9
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -310,6 +375,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 261,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -321,6 +387,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -333,8 +400,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -342,7 +409,7 @@
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 6413
+    "trips_total": 7181
   },
   "route_map": {
     "drawn_route_count": 6,
@@ -420,9 +487,20 @@
     "stop_count": 463,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 7181 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 7181,
+    "trips_with_shape": 7181
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expiring_soon",
@@ -430,10 +508,10 @@
       "effort": "One export setting.",
       "fix": "Re-export with a validity window that reaches at least 60 days out.",
       "owner": "Likely your export tool",
-      "points": 68.0,
+      "points": 67.0,
       "rank": 1,
       "severity": "WARNING",
-      "what": "Service data runs out in 12 day(s).",
+      "what": "Service data runs out in 13 day(s).",
       "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
     },
     {
@@ -450,15 +528,15 @@
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 6413,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "count": 7181,
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "6413 of 6413 trips don't say whether the vehicle is wheelchair accessible.",
-      "why": "Even with accessible stops, riders need to know the bus itself can take them."
+      "what": "7181 of 7181 trips don't say whether the vehicle is wheelchair accessible.",
+      "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
     }
   ],
   "validator_version": "8.0.1"

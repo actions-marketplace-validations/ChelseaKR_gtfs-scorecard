@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "trimet-portland-streetcar",
-    "name": "TriMet, Portland Streetcar"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/trimet-portland-streetcar/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 74,
-        "examples": [
-          "'stop_name': 'W Burnside & SW 21st ' -> 'W Burnside & SW 21st'",
-          "'tts_stop_name': 'west burnside & southwest 21st ' -> 'west burnside & southwest 21st'",
-          "'stop_name': '14100 Block NW Cornell ' -> '14100 Block NW Cornell'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 74
+    "name": "TriMet, Portland Streetcar",
+    "subdivision_code": "US-OR",
+    "subdivision_name": "Oregon"
   },
   "categories": {
     "completeness": {
@@ -60,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 70557,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -70,8 +58,15 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 6478,
-        "trips": 93055,
+        "stops": 6480,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 70557,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 100.0,
         "wheelchair_marked_accessible_pct": 100.0,
@@ -80,14 +75,14 @@
       "findings": [
         {
           "code": "scorecard_missing_headsigns",
-          "count": 93055,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "count": 70557,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "93055 of 93055 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "70557 of 70557 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_station_no_pathways",
@@ -109,11 +104,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 10,
+        "distinct_codes": 9,
         "instances_by_severity": {
           "ERROR": 908,
           "INFO": 13,
-          "WARNING": 62
+          "WARNING": 49
         },
         "validator_version": "8.0.1"
       },
@@ -131,7 +126,7 @@
         },
         {
           "code": "service_has_no_active_day_of_the_week",
-          "count": 21,
+          "count": 18,
           "effort": "A few minutes in your scheduling software.",
           "fix": "Delete the empty calendars or set their service days.",
           "owner": "Likely your export tool",
@@ -142,13 +137,13 @@
         },
         {
           "code": "expired_calendar",
-          "count": 18,
+          "count": 10,
           "effort": "One setting in most export tools.",
           "fix": "Remove past service periods the next time you export the feed.",
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -185,17 +180,6 @@
           "why": "See the linked rule for what this affects."
         },
         {
-          "code": "stop_too_far_from_shape_using_user_distance",
-          "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
           "code": "unknown_column",
           "count": 6,
           "effort": "A quick look at the flagged files.",
@@ -209,48 +193,51 @@
         {
           "code": "big_gap_in_service",
           "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Big gap in service (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         },
         {
           "code": "unknown_file",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
-      "score": 42.2,
+      "score": 46.2,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 10 kinds of issue across 983 instances (908 error, 62 warning, 13 informational).",
+      "summary": "The MobilityData validator flagged 9 kinds of issue across 970 instances (908 error, 49 warning, 13 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 145,
+        "days_until_expiry": 113,
+        "effective_expiry_date": "2026-11-28",
         "feed_end_date": "2026-11-28",
-        "feed_start_date": "2026-05-31",
-        "feed_version": "20260531-20260701-2100",
+        "feed_start_date": "2026-07-05",
+        "feed_version": "20260705-20260713-2100",
         "has_feed_info": true,
         "last_service_date": "2026-11-28",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 145 days.",
+      "summary": "Service data covers the next 113 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -259,6 +246,18 @@
       "summary": "This agency publishes realtime, but the feed needs an access key we don't have yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -269,7 +268,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 149 days.",
+        "detail": "Service data covers the next 115 days.",
         "key": "current",
         "met": true
       },
@@ -285,11 +284,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "d5b0ba95776de3459a63ffb019715b92dd967c0e5c46cf7edd56d199bbb66e22",
-    "size_bytes": 51779312,
+    "sha256": "8fa85dba38a23249e0ff76eb7139bed1f605c5552e6602709bba974685f72e94",
+    "size_bytes": 38274938,
     "static_url": "http://developer.trimet.org/schedule/gtfs.zip"
   },
-  "generated_at": "2026-07-02T00:00:00+00:00",
+  "fetch": {
+    "final_url": "http://developer.trimet.org/schedule/gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -123.11545,
@@ -297,12 +303,53 @@
       -122.33305,
       45.63773
     ],
-    "lat": 45.50396,
-    "lon": -122.64958,
-    "stop_count": 6478
+    "lat": 45.50397,
+    "lon": -122.64963,
+    "stop_count": 6480
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": true,
+    "measured": true,
+    "modes": [
+      {
+        "key": "tram",
+        "label": "Tram / light rail",
+        "route_count": 9,
+        "trip_count": 20700,
+        "trip_share_pct": 29.3
+      },
+      {
+        "key": "rail",
+        "label": "Rail",
+        "route_count": 1,
+        "trip_count": 60,
+        "trip_share_pct": 0.1
+      },
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 101,
+        "trip_count": 48069,
+        "trip_share_pct": 68.1
+      },
+      {
+        "key": "aerial_lift",
+        "label": "Aerial lift",
+        "route_count": 1,
+        "trip_count": 1728,
+        "trip_share_pct": 2.4
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 112,
+    "trip_count": 70557
   },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "PSC",
       "TRAM",
@@ -323,8 +370,13 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 149 days.",
+        "detail": "Service data covers the next 115 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
@@ -333,12 +385,13 @@
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 0.0,
-    "margin_to_next_band": 10.0,
-    "score": 70.0
+    "margin_to_lower_band": 1.8,
+    "margin_to_next_band": 8.2,
+    "score": 71.8
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -351,16 +404,16 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
-    "boardable_stops": 6410,
+    "boardable_stops": 6412,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 93055
+    "trips_total": 70557
   },
   "route_map": {
     "drawn_route_count": 112,
@@ -1601,12 +1654,23 @@
         "type_label": "Bus"
       }
     ],
-    "stop_count": 6478,
+    "stop_count": 6480,
     "stop_points_capped": true
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 70557 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 70557,
+    "trips_with_shape": 70557
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "block_trips_with_overlapping_stop_times",
@@ -1622,19 +1686,19 @@
     },
     {
       "code": "scorecard_missing_headsigns",
-      "count": 93055,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
-      "owner": "Likely your export tool",
+      "count": 70557,
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
       "points": 15.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "93055 of 93055 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "70557 of 70557 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     },
     {
       "code": "service_has_no_active_day_of_the_week",
-      "count": 21,
+      "count": 18,
       "effort": "A few minutes in your scheduling software.",
       "fix": "Delete the empty calendars or set their service days.",
       "owner": "Likely your export tool",

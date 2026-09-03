@@ -1,0 +1,532 @@
+# Provence-Alpes-Côte-d’Azur (FR) agencies — one manifest-listed shard of the GTFS Scorecard registry.
+#
+# The field reference and contribution workflow live in registry/README.md.
+# Every id must be unique across every shard listed by registry/index.yaml.
+agencies:
+  - id: lignes-dazur-nice
+    name: Lignes d'Azur (Nice)
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    mdb_id: "845"
+    static_gtfs_url: https://chouette.enroute.mobi/api/v1/datas/OpendataRLA/gtfs.zip
+    license_note: >-
+      Licence Ouverte 2.0; published by the Métropole Nice Côte d'Azur
+      through France's National Access Point. Derived measurements by GTFS
+      Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/donnees-statiques-et-dynamiques-du-reseau-de-transport-lignes-dazur
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Métropole Nice Côte d'Azur.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-17"
+      identity_reviewed: true
+  - id: reseau-mistral-toulon
+    name: Réseau Mistral (Toulon)
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    mdb_id: "1820"
+    static_gtfs_url: https://s3.eu-west-1.amazonaws.com/files.orchestra.ratpdev.com/networks/rd-toulon/exports/gtfs-complet.zip
+    license_note: >-
+      Licence Ouverte 2.0; published by the Métropole Toulon Provence
+      Méditerranée through France's National Access Point. Derived
+      measurements by GTFS Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-de-transport-urbain-de-la-metropole-toulon-provence-mediterranee
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Métropole Toulon Provence Méditerranée.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-17"
+      identity_reviewed: true
+  - id: orizo-grand-avignon
+    name: Orizo (Grand Avignon)
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    mdb_id: "1878"
+    static_gtfs_url: https://api.maas-fr.cityway.fr/dataflow/offre-tc/download?provider=ORIZO&dataFormat=GTFS&dataProfil=OPENDATA
+    license_note: >-
+      Licence Ouverte 2.0; published by Grand Avignon through France's
+      National Access Point. Derived measurements by GTFS Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-orizo-grand-avignon
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Grand Avignon.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-17"
+      identity_reviewed: true
+  - id: aix-marseille-provence
+    name: Métropole Aix-Marseille-Provence networks
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    mdb_id: "2133"
+    static_gtfs_url: https://app.mecatran.com/utw/ws/gtfsfeed/static/mamp?apiKey=60327e505a214c77303f52206f11483069257343
+    license_note: >-
+      Licence Ouverte 2.0; published by the Métropole Aix-Marseille-Provence
+      through France's National Access Point. The download URL carries the
+      publisher's public open-data key as published on the National Access
+      Point. Derived measurements by GTFS Scorecard.
+    operating_note: >-
+      One metropolitan referential covering fourteen member networks
+      including RTM; counted as one feed record.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseaux-de-transports-en-commun-de-la-metropole-daix-marseille-provence-et-des-bouches-du-rhone
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Métropole Aix-Marseille-Provence.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-17"
+      identity_reviewed: true
+  - id: palmbus-cannes
+    name: Palmbus (Cannes)
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/79420/download
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab) as recorded on the French national access
+      point transport.data.gouv.fr; reuse including commercial reuse is
+      permitted with attribution to Communauté d'agglomération Cannes Pays de
+      Lérins (réseau Palmbus) and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/horaires-theoriques-et-temps-reel-gtfs-gtfs-rt-du-reseau-palmbus-cannes-pays-de-lerins
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Communauté d'agglomération Cannes Pays de Lérins (réseau Palmbus).
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: zest-menton
+    name: Zest (Menton)
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/79559/download
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab) as recorded on the French national access
+      point transport.data.gouv.fr; reuse including commercial reuse is
+      permitted with attribution to Communauté d'agglomération de la Riviera
+      Française (réseau Zest) and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/horaires-reseau-zest
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Communauté d'agglomération de la Riviera Française (réseau Zest).
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: fr-agglo-en-bus
+    name: "Réseau urbain L'Agglo en Bus"
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: "Provence-Alpes-Côte-d’Azur"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/78b7910e-1e31-4f47-b0a8-949647205ffa"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CA Gap-Tallard-Durance and the update date.
+    rt_urls:
+      trip_updates: "https://www.data.gouv.fr/api/1/datasets/r/11f653e9-0d6a-4e87-8cda-3069b3c6b441"
+      vehicle_positions: "https://www.data.gouv.fr/api/1/datasets/r/11f653e9-0d6a-4e87-8cda-3069b3c6b441"
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/horaires-theoriques-et-temps-reels-du-reseau-de-transports-lagglo-en-bus-communaute-dagglomeration-gap-tallard-durance"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CA Gap-Tallard-Durance"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-altigo
+    name: "Réseau urbain et interurbain Altigo"
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: "Provence-Alpes-Côte-d’Azur"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/3ee23301-f454-4175-ba53-4734c30d5245"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CC du Briançonnais and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/donnees-de-transport-en-commun-reseau-altigo-communaute-de-communes-du-brianconnais-format-gtfs"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CC du Briançonnais"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-cmonbus
+    name: "Réseau urbain Cmonbus"
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: "Provence-Alpes-Côte-d’Azur"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/a6a32465-7366-47dc-a6fc-96f1d52b09d8"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CA Luberon Monts de Vaucluse and the update date.
+    rt_urls:
+      service_alerts: "https://www.data.gouv.fr/api/1/datasets/r/cc043d19-1258-433c-9d55-5c62fef2d038"
+      trip_updates: "https://www.data.gouv.fr/api/1/datasets/r/cc043d19-1258-433c-9d55-5c62fef2d038"
+      vehicle_positions: "https://www.data.gouv.fr/api/1/datasets/r/cc043d19-1258-433c-9d55-5c62fef2d038"
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/gtfs-reseau-cmonbus"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CA Luberon Monts de Vaucluse"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-envia
+    name: "Réseau urbain Envia"
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: "Provence-Alpes-Côte-d’Azur"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/52216d2f-072e-4b7d-af0c-15d8d4e98b09"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CA d'Arles-Crau-Camargue-Montagnette and the update date.
+    rt_urls:
+      trip_updates: "https://www.data.gouv.fr/api/1/datasets/r/af998ded-046f-458c-abb6-34eb110cad14"
+      vehicle_positions: "https://www.data.gouv.fr/api/1/datasets/r/8e45727d-487f-4a14-823b-d906d6ebaa43"
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/donnees-statiques-et-temps-reels-reseau-envia"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CA d'Arles-Crau-Camargue-Montagnette"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-tud
+    name: "Réseau urbain TUD"
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: "Provence-Alpes-Côte-d’Azur"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/0d9ebca0-d18e-44ad-ab95-d89e8a72d781"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CA Provence-Alpes-Agglomération and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/reseau-de-transport-urbains-dignois"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CA Provence-Alpes-Agglomération"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-pan-82136
+    name: Réseau scolaire interurbain ZOU !
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/6471d334-17df-4308-bae0-5736c24a2e6a
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Région Provence-Alpes-Côte-d'Azur and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-scolaire-1-3
+      terms_url: https://transport.data.gouv.fr/datasets/lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-scolaire-1-3
+      scope:
+      - gtfs_schedule
+      attribution: Région Provence-Alpes-Côte-d'Azur
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-82137
+    name: Réseau interurbain bus Proximité ZOU !
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/9c8116cb-2f1a-4045-b149-c5bf6cae6bef
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Région Provence-Alpes-Côte-d'Azur and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-proximite-3-3
+      terms_url: https://transport.data.gouv.fr/datasets/lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-proximite-3-3
+      scope:
+      - gtfs_schedule
+      attribution: Région Provence-Alpes-Côte-d'Azur
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-82285
+    name: Réseau interurbain Express ZOU !
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/1164d75b-4a9f-4c5a-b765-31d861b34fda
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Région Provence-Alpes-Côte-d'Azur and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-express-3-3
+      terms_url: https://transport.data.gouv.fr/datasets/lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-express-3-3
+      scope:
+      - gtfs_schedule
+      attribution: Région Provence-Alpes-Côte-d'Azur
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83467
+    name: Réseau urbain Pays des Ecrins
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/83467/download
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Communauté de Communes du Pays des Écrins and the
+      update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/transports-en-commun-pays-des-ecrins
+      terms_url: https://transport.data.gouv.fr/datasets/transports-en-commun-pays-des-ecrins
+      scope:
+      - gtfs_schedule
+      attribution: Communauté de Communes du Pays des Écrins
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83785
+    name: Réseau urbain Trans'CoVe
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/89e09fb6-0bf6-4ca5-95f3-50444ab6c681
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Communauté d'Agglomération Ventoux Comtat Venaissin
+      and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-de-transport-transcove-de-la-communaute-dagglomeration-ventoux-comtat-venaissin
+      terms_url: https://transport.data.gouv.fr/datasets/reseau-de-transport-transcove-de-la-communaute-dagglomeration-ventoux-comtat-venaissin
+      scope:
+      - gtfs_schedule
+      attribution: Communauté d'Agglomération Ventoux Comtat Venaissin
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83789
+    name: Réseau urbain et interurbain Trans'Agglo
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/117daa0d-0708-43aa-a562-7d5b3d6570b0
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Durance Luberon Verdon Agglomération and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-de-transport-en-commun-trans-agglo-de-dlva
+      terms_url: https://transport.data.gouv.fr/datasets/reseau-de-transport-en-commun-trans-agglo-de-dlva
+      scope:
+      - gtfs_schedule
+      attribution: Durance Luberon Verdon Agglomération
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83893
+    name: Réseau urbain Sud Sainte Baume
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/050ef913-901c-49b7-babe-ef648e14314d
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Agglomération Sud Sainte Baume and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/transport-urbain-sud-sainte-baume
+      terms_url: https://transport.data.gouv.fr/datasets/transport-urbain-sud-sainte-baume
+      scope:
+      - gtfs_schedule
+      attribution: Agglomération Sud Sainte Baume
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83990
+    name: Trains régionaux ZOU !
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/0a554ecc-a9b7-490c-a4ad-bbd8a0dc0ded
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Région Provence-Alpes-Côte-d'Azur and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/trains-zou-en-provence-alpes-cote-dazur
+      terms_url: https://transport.data.gouv.fr/datasets/trains-zou-en-provence-alpes-cote-dazur
+      scope:
+      - gtfs_schedule
+      attribution: Région Provence-Alpes-Côte-d'Azur
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83429
+    name: Réseau urbain Mouv'enbus
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/9e2f1dd8-cbf4-4e56-b022-b350561a1cb9
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to CA de la Provence Verte and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-transport-mouv-enbus-agglomeration-provence-verte
+      terms_url: https://transport.data.gouv.fr/datasets/reseau-transport-mouv-enbus-agglomeration-provence-verte
+      scope:
+      - gtfs_schedule
+      attribution: CA de la Provence Verte
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true
+  - id: fr-pan-81907
+    name: Réseau urbain TEDbus
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/a1d56fb0-e264-45f2-8822-c08746847a97
+    rt_urls:
+      trip_updates: https://www.data.gouv.fr/api/1/datasets/r/f32c61d5-30b7-4e06-a05e-a2fc934ba7d9
+      vehicle_positions: https://www.data.gouv.fr/api/1/datasets/r/f32c61d5-30b7-4e06-a05e-a2fc934ba7d9
+      service_alerts: https://www.data.gouv.fr/api/1/datasets/r/f32c61d5-30b7-4e06-a05e-a2fc934ba7d9
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Dracénie Provence Verdon Agglomération and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-tedbus-lignes-regulieres-dracenie-provence-verdon-agglomeration
+      terms_url: https://transport.data.gouv.fr/datasets/reseau-tedbus-lignes-regulieres-dracenie-provence-verdon-agglomeration
+      scope:
+      - gtfs_schedule
+      attribution: Dracénie Provence Verdon Agglomération
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true
+  - id: fr-pan-82294
+    name: Réseau urbain Le Bus (Estérel Côte d'Azur)
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/11e73e58-edb0-4fab-a220-61a659cf6423
+    rt_urls:
+      trip_updates: https://www.data.gouv.fr/api/1/datasets/r/24e2ecf9-82a3-4bfc-bf86-db6ec81c480f
+      vehicle_positions: https://www.data.gouv.fr/api/1/datasets/r/24e2ecf9-82a3-4bfc-bf86-db6ec81c480f
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Estérel Côte d'Azur Agglomération and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-transport-urbain-le-bus
+      terms_url: https://transport.data.gouv.fr/datasets/reseau-transport-urbain-le-bus
+      scope:
+      - gtfs_schedule
+      attribution: Estérel Côte d'Azur Agglomération
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true
+  - id: fr-pan-83739
+    name: Téléphérique du Mont Faron
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/9bba0b17-2863-4ee1-a38a-c7a445f820d1
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Métropole Toulon-Provence-Méditerranée and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/telepherique-du-mont-faron
+      terms_url: https://transport.data.gouv.fr/datasets/telepherique-du-mont-faron
+      scope:
+      - gtfs_schedule
+      attribution: Métropole Toulon-Provence-Méditerranée
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true
+  - id: fr-pan-83448
+    name: Trains régionaux ZOU ! — Transdev Rail Sud
+    country: FR
+    subdivision_code: FR-PAC
+    subdivision_name: Provence-Alpes-Côte-d’Azur
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/764d6d5b-d04e-4aa7-94b7-f8b2274d2964
+    rt_urls:
+      trip_updates: https://www.data.gouv.fr/api/1/datasets/r/74db080b-3d7c-4f30-8811-b344e79f4092
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Provence-Alpes-Côte d’Azur and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/zou
+      terms_url: https://transport.data.gouv.fr/datasets/zou
+      scope:
+      - gtfs_schedule
+      attribution: Provence-Alpes-Côte d’Azur
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true

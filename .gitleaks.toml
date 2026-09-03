@@ -2,11 +2,12 @@
 # allowlist for known false positives. Everything listed here is PUBLIC
 # third-party data, not a credential owned by this repo:
 #
-#   * agencies.yaml — the agency registry. GTFS/GTFS-RT feed URLs sourced from
-#     the Mobility Database frequently embed an access key in the URL itself
-#     (e.g. `?key=...` / `?apiKey=...`). Those keys are published by the
-#     transit agencies as part of their public feed URL and are already
-#     world-readable in the upstream registry.
+#   * registry/ data shards — GTFS/GTFS-RT feed URLs sourced from the Mobility
+#     Database frequently embed an access key in the URL itself (e.g.
+#     `?key=...` / `?apiKey=...`). Those keys are published by the transit
+#     agencies as part of their public feed URL and are already world-readable
+#     in the upstream registry. Only YAML data is allowlisted; documentation or
+#     any future source file under registry/ remains scanned.
 #   * pipeline/tests/fixtures/ — golden-site fixtures derived from the same
 #     registry entries (same public feed-URL keys).
 #   * data/ — machine-generated pipeline artifacts (per-agency JSON) that echo
@@ -26,8 +27,20 @@ useDefault = true
 [allowlist]
 description = "Public GTFS registry feed-URL keys and generated artifacts that echo them"
 paths = [
-    '''^agencies\.yaml$''',
+    '''^registry/.*\.ya?ml$''',
     '''^pipeline/tests/fixtures/''',
     '''^data/''',
-    '''^web/''',
+    # The generated half of web/ only. A blanket ^web/ also allowlisted
+    # web/src/, the hand-written browser JavaScript, which is the one place in
+    # this tree a real credential could be committed and shipped to a rider.
+    # Scanning all of web/ with these four entries in place finds nothing, so
+    # this costs no waiver: the 77 hits a blanket removal produces are all
+    # public GTFS feed-URL keys under web/agency/ (74), web/api/ (2) and
+    # web/catalog.json (1). gitleaks path patterns are RE2, which has no
+    # negative lookahead, so the generated trees are named rather than carved
+    # out of a broader one.
+    '''^web/agency/''',
+    '''^web/api/''',
+    '''^web/catalog\.(json|csv)$''',
+    '''^web/dataset\.(json|csv)$''',
 ]

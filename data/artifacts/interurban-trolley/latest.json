@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "interurban-trolley",
-    "name": "Interurban Trolley"
-  },
-  "autofix": {
-    "available": false
+    "name": "Interurban Trolley",
+    "subdivision_code": "US-IN",
+    "subdivision_name": "Indiana"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 324,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -57,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 399,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 324,
         "wheelchair_accessible_pct": 93.5,
         "wheelchair_boarding_pct": 0.0,
@@ -78,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 21,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 1.0,
           "severity": "WARNING",
@@ -107,13 +116,13 @@
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 10,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -140,24 +149,24 @@
         {
           "code": "service_window_outside_feed_period",
           "count": 6,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "big_gap_in_service",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Big gap in service (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         }
       ],
       "name": "correctness",
@@ -168,20 +177,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 178,
+        "days_until_expiry": 146,
+        "effective_expiry_date": "2026-12-31",
         "feed_end_date": "2026-12-31",
         "feed_start_date": "2025-12-30",
         "feed_version": "20251231",
         "has_feed_info": true,
         "last_service_date": "2026-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 178 days.",
+      "summary": "Service data covers the next 146 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -190,6 +202,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -200,7 +224,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 180 days.",
+        "detail": "Service data covers the next 148 days.",
         "key": "current",
         "met": true
       },
@@ -221,13 +245,14 @@
     "static_url": "http://macog.com/google/google_transit.zip"
   },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-indiana-interurban-trolley-gtfs-571.zip?alt=media",
+    "final_url": "https://files.mobilitydatabase.org/mdb-571/latest.zip",
     "max_attempts": 1,
     "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -86.25115,
@@ -239,8 +264,28 @@
     "lon": -85.9722,
     "stop_count": 399
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 6,
+        "trip_count": 324,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 6,
+    "trip_count": 324
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "3639",
       "kabs"
@@ -260,13 +305,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 180 days.",
+        "detail": "Service data covers the next 148 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
@@ -276,6 +326,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 3,
       "effort": "A per-route color setting in your scheduling software.",
@@ -287,6 +338,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 348,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -299,8 +351,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -398,9 +450,20 @@
     "stop_count": 399,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 324 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 324,
+    "trips_with_shape": 324
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -417,14 +480,14 @@
     {
       "code": "equal_shape_distance_same_coordinates",
       "count": 10,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Usually one export setting.",
+      "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+      "owner": "Likely your export tool",
       "points": 6.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "Some route lines list the same point twice in a row.",
+      "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
     },
     {
       "code": "mixed_case_recommended_field",

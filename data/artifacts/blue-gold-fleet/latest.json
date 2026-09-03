@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "blue-gold-fleet",
-    "name": "Blue & Gold Fleet"
-  },
-  "autofix": {
-    "available": false
+    "name": "Blue & Gold Fleet",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 368,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": true,
@@ -57,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 21,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 368,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 66.7,
@@ -68,11 +77,11 @@
           "code": "scorecard_wheelchair_boarding_unknown",
           "count": 7,
           "effort": "A column in stops.txt; your scheduling software likely has it.",
-          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+          "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every terminal. A field survey can start with the busiest terminals.",
           "owner": "Likely your team",
           "points": 8.3,
           "severity": "WARNING",
-          "what": "7 of 21 stops don't say whether a wheelchair user can board there.",
+          "what": "7 of 21 terminals don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
@@ -84,7 +93,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         },
         {
           "code": "scorecard_station_no_pathways",
@@ -101,7 +110,7 @@
       "name": "completeness",
       "score": 84.2,
       "status": "measured",
-      "summary": "67% of stops state wheelchair accessibility (67% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
+      "summary": "67% of terminals state wheelchair accessibility (67% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a terminal is physically usable. Fare data is published.",
       "weight": 0.25
     },
     "correctness": {
@@ -118,13 +127,13 @@
         {
           "code": "missing_required_column",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_required_column' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Often an export setting; ask your vendor if it recurs.",
+          "fix": "Add the required column named in the finding to the flagged file.",
+          "owner": "Likely your export tool",
           "points": 12.0,
           "severity": "ERROR",
-          "what": "Missing required column (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "A file is missing a column that GTFS requires.",
+          "why": "Apps may reject the whole file, so riders could lose the affected routes or stops."
         },
         {
           "code": "missing_recommended_field",
@@ -162,13 +171,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "stop_without_stop_time",
@@ -178,8 +187,8 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some stops exist in the feed but no trip ever stops at them.",
-          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+          "what": "Some terminals exist in the feed but no trip serves them.",
+          "why": "Riders may go to a terminal where no vessel is scheduled to arrive."
         },
         {
           "code": "trip_coverage_not_active_for_next7_days",
@@ -195,13 +204,13 @@
         {
           "code": "unknown_file",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "unknown_column",
@@ -223,13 +232,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -820,
+        "days_until_expiry": -852,
+        "effective_expiry_date": "2024-04-07",
         "feed_end_date": "2024-04-07",
         "feed_start_date": "2024-01-02",
         "feed_version": "20240102",
         "has_feed_info": true,
         "last_service_date": "2024-04-07",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -241,14 +253,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 820 day(s) ago.",
+          "what": "Service data ended 852 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 820 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 852 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -257,6 +269,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -267,18 +291,18 @@
         "met": false
       },
       {
-        "detail": "Service data expired 818 days ago.",
+        "detail": "Service data expired 850 days ago.",
         "key": "current",
         "met": false
       },
       {
-        "detail": "States wheelchair access on 67% of stops and 100% of trips; the mark needs 90% of each.",
+        "detail": "States wheelchair access on 67% of terminals and 100% of trips; the mark needs 90% of each.",
         "key": "accessible",
         "met": false
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 818 days ago. States wheelchair access on 67% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 850 days ago. States wheelchair access on 67% of terminals and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -287,14 +311,85 @@
     "size_bytes": 38048,
     "static_url": "https://transitfeeds.com/p/blue-gold-fleet/824/latest/download"
   },
+  "ferry_profile": {
+    "accessibility": {
+      "measures": "published_values_not_physical_usability",
+      "terminals": {
+        "allowed_count": 12,
+        "allowed_pct": 100.0,
+        "not_allowed_count": 0,
+        "not_allowed_pct": 0.0,
+        "stated_count": 12,
+        "stated_pct": 100.0,
+        "total_count": 12
+      },
+      "trips": {
+        "allowed_count": 368,
+        "allowed_pct": 100.0,
+        "not_allowed_count": 0,
+        "not_allowed_pct": 0.0,
+        "stated_count": 368,
+        "stated_pct": 100.0,
+        "total_count": 368
+      }
+    },
+    "bikes": {
+      "allowed_count": 368,
+      "allowed_pct": 100.0,
+      "not_allowed_count": 0,
+      "not_allowed_pct": 0.0,
+      "stated_count": 368,
+      "stated_pct": 100.0,
+      "total_count": 368
+    },
+    "cars": {
+      "allowed_count": 0,
+      "allowed_pct": 0.0,
+      "not_allowed_count": 0,
+      "not_allowed_pct": 0.0,
+      "stated_count": 0,
+      "stated_pct": 0.0,
+      "total_count": 368
+    },
+    "fares": {
+      "applied": true,
+      "fare_free": false,
+      "model": "legacy",
+      "scope": "whole_feed"
+    },
+    "graded": false,
+    "measured": true,
+    "realtime": {
+      "configured_kinds": [],
+      "kinds_configured": 0,
+      "scope": "whole_feed"
+    },
+    "route_count": 7,
+    "scope": "ferry_routes_and_trips",
+    "stop_access": {
+      "direct_count": 0,
+      "eligible_terminal_count": 3,
+      "stated_count": 0,
+      "stated_pct": 0.0,
+      "through_station_count": 0
+    },
+    "terminal_hierarchy": {
+      "boarding_location_count": 12,
+      "parented_boarding_location_count": 3,
+      "parented_boarding_location_pct": 25.0,
+      "referenced_station_count": 1
+    },
+    "trip_count": 368
+  },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-california-blue-gold-fleet-gtfs-1178.zip?alt=media",
+    "final_url": "https://files.mobilitydatabase.org/mdb-1178/latest.zip",
     "max_attempts": 1,
     "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.41209,
@@ -306,8 +401,28 @@
     "lon": -122.39125,
     "stop_count": 21
   },
+  "mode_profile": {
+    "ferry_only": true,
+    "graded": false,
+    "has_ferry": true,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "ferry",
+        "label": "Ferry",
+        "route_count": 7,
+        "trip_count": 368,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "ferry",
+    "primary_mode_label": "Ferry",
+    "route_count": 7,
+    "trip_count": 368
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "SB"
     ],
@@ -326,13 +441,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 818 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 850 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 818 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 850 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -342,6 +462,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 1,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -353,6 +474,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -365,8 +487,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -475,9 +597,20 @@
     "stop_count": 21,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 368 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 368,
+    "trips_with_shape": 368
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -488,31 +621,31 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 820 day(s) ago.",
+      "what": "Service data ended 852 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
       "code": "missing_required_column",
       "count": 2,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'missing_required_column' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Often an export setting; ask your vendor if it recurs.",
+      "fix": "Add the required column named in the finding to the flagged file.",
+      "owner": "Likely your export tool",
       "points": 12.0,
       "rank": 2,
       "severity": "ERROR",
-      "what": "Missing required column (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "A file is missing a column that GTFS requires.",
+      "why": "Apps may reject the whole file, so riders could lose the affected routes or stops."
     },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 7,
       "effort": "A column in stops.txt; your scheduling software likely has it.",
-      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every terminal. A field survey can start with the busiest terminals.",
       "owner": "Likely your team",
       "points": 8.3,
       "rank": 3,
       "severity": "WARNING",
-      "what": "7 of 21 stops don't say whether a wheelchair user can board there.",
+      "what": "7 of 21 terminals don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     }
   ],

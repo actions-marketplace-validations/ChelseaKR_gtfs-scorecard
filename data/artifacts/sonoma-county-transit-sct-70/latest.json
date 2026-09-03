@@ -186,7 +186,7 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 33,
+        "days_until_expiry": 29,
         "feed_end_date": "2026-08-08",
         "feed_start_date": "2026-07-01",
         "feed_version": "UTC: 01-Jul-2026 17:39",
@@ -195,11 +195,23 @@
         "seasonal_boundary": false,
         "service_type": "fixed"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 51.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 29 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
       "name": "freshness",
-      "score": 55.0,
+      "score": 48.3,
       "status": "measured",
-      "summary": "Service data covers the next 33 days.",
+      "summary": "Service data runs out in 29 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
@@ -280,9 +292,9 @@
   },
   "overall": {
     "grade": "D",
-    "margin_to_lower_band": 8.6,
-    "margin_to_next_band": 1.4,
-    "score": 68.6
+    "margin_to_lower_band": 6.9,
+    "margin_to_next_band": 3.1,
+    "score": 66.9
   },
   "recommendations": [
     {
@@ -320,8 +332,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-07-10",
+    "feed_fetched_date": "2026-07-09",
     "kind": "freshness"
   },
   "routability": {
@@ -652,8 +664,20 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-07-10",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 51.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 29 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 1117,
@@ -661,7 +685,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 1,
+      "rank": 2,
       "severity": "WARNING",
       "what": "1117 of 1117 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -673,22 +697,10 @@
       "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 2,
+      "rank": 3,
       "severity": "WARNING",
       "what": "499 of 499 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
-    },
-    {
-      "code": "stop_without_stop_time",
-      "count": 101,
-      "effort": "A review pass in your scheduling software.",
-      "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
-      "owner": "Likely your export tool",
-      "points": 8.0,
-      "rank": 3,
-      "severity": "WARNING",
-      "what": "Some stops exist in the feed but no trip ever stops at them.",
-      "why": "Riders may walk to a stop where no bus is scheduled to arrive."
     }
   ],
   "validator_version": "8.0.1"

@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "nassau-inter-county-express-nice-bus",
-    "name": "Nassau Inter-County Express (NICE Bus)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/nassau-inter-county-express-nice-bus/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/nassau-inter-county-express-nice-bus/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 12,
-        "examples": [
-          "HEMPSTEAD TPK & STEWART AVE -> Hempstead Tpk & Stewart Ave",
-          "STEWART AVE + HEMPSTEAD TPKE -> Stewart Ave + Hempstead Tpke",
-          "WEST BROADWAY & ROCKWAY TPKE -> West Broadway & Rockway Tpke"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 12
+    "name": "Nassau Inter-County Express (NICE Bus)",
+    "subdivision_code": "US-NY",
+    "subdivision_name": "New York"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 5052,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 99.5,
         "pathways": {
           "has_entrances": false,
@@ -67,8 +58,15 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 2473,
-        "trips": 6731,
+        "stops": 2469,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 5052,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -77,24 +75,24 @@
       "findings": [
         {
           "code": "scorecard_wheelchair_boarding_unknown",
-          "count": 2473,
+          "count": 2469,
           "effort": "A column in stops.txt; your scheduling software likely has it.",
           "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
           "owner": "Likely your team",
           "points": 25.0,
           "severity": "WARNING",
-          "what": "2473 of 2473 stops don't say whether a wheelchair user can board there.",
+          "what": "2469 of 2469 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 6731,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "count": 5052,
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "6731 of 6731 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "5052 of 5052 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
@@ -111,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 2,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 0.0,
           "severity": "WARNING",
-          "what": "2 of 6731 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "2 of 5052 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -128,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -139,18 +137,18 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 7,
+        "distinct_codes": 6,
         "instances_by_severity": {
-          "ERROR": 112,
+          "ERROR": 176,
           "INFO": 0,
-          "WARNING": 1568
+          "WARNING": 2161
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "trip_distance_exceeds_shape_distance",
-          "count": 112,
+          "count": 176,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
@@ -160,26 +158,26 @@
           "why": "See the linked rule for what this affects."
         },
         {
-          "code": "trip_distance_exceeds_shape_distance_below_threshold",
-          "count": 888,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "code": "stop_too_far_from_shape_using_user_distance",
+          "count": 1139,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
-          "code": "stop_too_far_from_shape_using_user_distance",
-          "count": 619,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "code": "trip_distance_exceeds_shape_distance_below_threshold",
+          "count": 962,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stop distances run a little past the end of the route line.",
+          "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
         },
         {
           "code": "missing_recommended_field",
@@ -189,7 +187,7 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -206,112 +204,85 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "service_has_no_active_day_of_the_week",
-          "count": 1,
-          "effort": "A few minutes in your scheduling software.",
-          "fix": "Delete the empty calendars or set their service days.",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars have no days of the week switched on.",
-          "why": "Trips tied to these calendars never run; they are dead data that can mask real schedule problems."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         }
       ],
       "name": "correctness",
-      "score": 40.0,
+      "score": 44.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 7 kinds of issue across 1680 instances (112 error, 1568 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 6 kinds of issue across 2337 instances (176 error, 2161 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 68,
+        "days_until_expiry": 36,
+        "effective_expiry_date": "2026-09-12",
         "feed_end_date": "2026-09-12",
-        "feed_start_date": "2026-06-08",
+        "feed_start_date": "2026-08-02",
         "feed_version": null,
         "has_feed_info": true,
         "last_service_date": "2026-09-12",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 60.0,
       "status": "measured",
-      "summary": "Service data covers the next 68 days.",
+      "summary": "Service data covers the next 36 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 0.0,
-        "covered_trips": 0,
+        "alerts_content": {
+          "alerts": 1,
+          "ended_over_30_days_ago": 0,
+          "with_cause_and_effect": 1,
+          "with_description": 1,
+          "with_header_text": 1,
+          "with_informed_entity": 1
+        },
+        "configured_kinds": [
+          "service_alerts"
+        ],
+        "coverage_pct": null,
+        "kinds_configured": 1,
         "kinds_reachable": 1,
+        "reachable_kinds": [
+          "service_alerts"
+        ],
         "rt_freshness": null,
         "samples": 3,
-        "scheduled_trips_in_window": 75,
         "worst_lag_seconds": null
       },
-      "findings": [
-        {
-          "code": "scorecard_rt_trip_updates_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The trip updates realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_vehicle_positions_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The vehicle positions realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_no_timestamp",
-          "count": 1,
-          "effort": "A vendor configuration question.",
-          "fix": "Set the GTFS-Realtime FeedHeader.timestamp on every response.",
-          "owner": "",
-          "points": 0.0,
-          "severity": "INFO",
-          "what": "Realtime feeds didn't include a header timestamp, so freshness couldn't be checked.",
-          "why": "Without a header timestamp, apps and this scorecard can't tell how old the data is."
-        },
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 75,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 35.0,
-          "severity": "WARNING",
-          "what": "75 of 75 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
-        }
-      ],
+      "findings": [],
       "name": "realtime",
-      "score": 13.9,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Sampled 3 times: 1 of 3 feeds healthy; 0.0% of scheduled trips had live predictions.",
+      "summary": "Sampled 3 times: 1 of 1 configured feed healthy.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 3 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -322,7 +293,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 77 days.",
+        "detail": "Service data covers the next 38 days.",
         "key": "current",
         "met": true
       },
@@ -338,11 +309,18 @@
   "feed": {
     "license_note": "License: http://www.nicebus.com/NiceBus/media/NiceBus-Images/131030_Legal-Agreements.pdf",
     "reachable": true,
-    "sha256": "9c06c63ce41dff0a8d3fae051953b7967f5b0c3b7e23df0d7b87e04a5c041c88",
-    "size_bytes": 3802014,
+    "sha256": "9130b443b63b6ebe38fd85a629e078424b3eeab13f4bfa32814ea673f674a203",
+    "size_bytes": 3193083,
     "static_url": "https://www.nicebus.com/NICE/media/nicebus-gtfs/NICE_GTFS.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.nicebus.com/NICE/media/nicebus-gtfs/NICE_GTFS.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -73.82954,
@@ -351,11 +329,31 @@
       40.86332
     ],
     "lat": 40.71861,
-    "lon": -73.63657,
-    "stop_count": 2473
+    "lon": -73.63629,
+    "stop_count": 2469
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 46,
+        "trip_count": 5052,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 46,
+    "trip_count": 5052
   },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "LIBUS"
     ],
@@ -374,8 +372,13 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 77 days.",
+        "detail": "Service data covers the next 38 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
@@ -384,12 +387,13 @@
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 46.1,
-    "margin_to_next_band": 13.9,
-    "score": 46.1
+    "margin_to_lower_band": 56.8,
+    "margin_to_next_band": 3.2,
+    "score": 56.8
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 38,
       "effort": "A per-route color setting in your scheduling software.",
@@ -401,36 +405,564 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
-      "count": 2390,
+      "count": 2385,
       "effort": "A short text field per affected stop; start with the busiest.",
       "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
       "owner": "",
       "points": 0.0,
       "severity": "INFO",
-      "what": "2390 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Hempstead Tp / Elmont\", \"Elmont Rd + Belpark Ave\", \"Elmont Rd +Opp Beth David Cemetery\", and more).",
+      "what": "2385 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Freeport Sta / South Bay 2\", \"N Main St + Broadway\", \"N Main St & Grand Ave.\", and more).",
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
-    "boardable_stops": 2473,
+    "boardable_stops": 2469,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 6731
+    "trips_total": 5052
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 46,
+    "has_shapes": true,
+    "path": "data/artifacts/nassau-inter-county-express-nice-bus/geometry.geojson",
+    "route_count": 46,
+    "routes": [
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n1",
+        "label": "n1",
+        "long": "Elmont Rd / Central Av",
+        "short": "n1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n15",
+        "label": "n15",
+        "long": "Woodfield Rd / Long Beach Rd",
+        "short": "n15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n16",
+        "label": "n16",
+        "long": "Hempstead Av / Franklin St",
+        "short": "n16",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n16C",
+        "label": "n16C",
+        "long": "Hempstead Tpk / Franklin St",
+        "short": "n16C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "257489",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "n19",
+        "label": "n19",
+        "long": "Merrick Rd",
+        "short": "n19",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n19X",
+        "label": "n19X",
+        "long": "Sunrise Hw Express",
+        "short": "n19X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n20G",
+        "label": "n20G",
+        "long": "Northern Bl",
+        "short": "n20G",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n20H",
+        "label": "n20H",
+        "long": "Northern Bl / Cedar Swamp Rd",
+        "short": "n20H",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n20X",
+        "label": "n20X",
+        "long": "Northern Bl Express",
+        "short": "n20X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n21",
+        "label": "n21",
+        "long": "Northern Bl / Shore Rd",
+        "short": "n21",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n22",
+        "label": "n22",
+        "long": "Hillside Av Local",
+        "short": "n22",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n22X",
+        "label": "n22X",
+        "long": "Hillside Av Express",
+        "short": "n22X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n23",
+        "label": "n23",
+        "long": "Willis Av / Pt Washington Bl",
+        "short": "n23",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n24",
+        "label": "n24",
+        "long": "Jericho Tp",
+        "short": "n24",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n25",
+        "label": "n25",
+        "long": "Franklin Av / New Hyde Park Rd",
+        "short": "n25",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n25/58",
+        "label": "n25/58",
+        "long": "Franklin Av / New Hyde Park Rd",
+        "short": "n25/58",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "41B6BB",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "n26",
+        "label": "n26",
+        "long": "Hillside Av / Lakeville Rd",
+        "short": "n26",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "297B3F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "n27",
+        "label": "n27",
+        "long": "Roslyn Rd / Glen Cove Rd",
+        "short": "n27",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n31",
+        "label": "n31",
+        "long": "Hempstead Av / W Broadway",
+        "short": "n31",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n31X",
+        "label": "n31X/M",
+        "long": "W Broadway Express",
+        "short": "n31X/M",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n32",
+        "label": "n32",
+        "long": "Hempstead Av / Broadway",
+        "short": "n32",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n33",
+        "label": "n33",
+        "long": "Long Beach / Far Rockaway",
+        "short": "n33",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "297B3F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "n35",
+        "label": "n35",
+        "long": "Grand Av / Clinton Rd",
+        "short": "n35",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n4",
+        "label": "n4",
+        "long": "Merrick Rd Local",
+        "short": "n4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n40",
+        "label": "n40",
+        "long": "Nassau Rd / Franklin Av",
+        "short": "n40",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n40X",
+        "label": "n40X",
+        "long": "Mineola / Franklin Express",
+        "short": "n40X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n41",
+        "label": "n41",
+        "long": "Nassau Rd",
+        "short": "n41",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n43",
+        "label": "n43",
+        "long": "Babylon Tp / Uniondale Av",
+        "short": "n43",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n43X",
+        "label": "n43X",
+        "long": "Uniondale Av Express",
+        "short": "n43X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "297B3F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "n48",
+        "label": "n48",
+        "long": "Front St / Carman Av",
+        "short": "n48",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n49",
+        "label": "n49",
+        "long": "Front St / Newbridge Rd",
+        "short": "n49",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n4X",
+        "label": "n4X",
+        "long": "Merrick Rd Express",
+        "short": "n4X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "297B3F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "n54",
+        "label": "n54",
+        "long": "Jerusalem Av / Washington Av",
+        "short": "n54",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n55",
+        "label": "n55",
+        "long": "Jerusalem Av / Broadway",
+        "short": "n55",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "297B3F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "n57",
+        "label": "n57",
+        "long": "Great Neck Loop",
+        "short": "n57",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "n58",
+        "label": "n58",
+        "long": "Middle Neck Rd / Steamboat Rd",
+        "short": "n58",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n6",
+        "label": "n6",
+        "long": "Hempstead Tp Local",
+        "short": "n6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n6X",
+        "label": "n6X",
+        "long": "Hempstead Tp Express",
+        "short": "n6X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n70",
+        "label": "n70",
+        "long": "Hempstead Tp",
+        "short": "n70",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF853F",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "n71",
+        "label": "n71",
+        "long": "SR-110 / Carmans Rd",
+        "short": "n71",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "41B6BB",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "n78",
+        "label": "n78",
+        "long": "Old Country Rd",
+        "short": "n78",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "257489",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "n79",
+        "label": "n79",
+        "long": "Manetto Hill Rd / Jericho Tp",
+        "short": "n79",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "41B6BB",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "n80",
+        "label": "n80",
+        "long": "Broadway / Hicksville Rd",
+        "short": "n80",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FE404E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "n88X",
+        "label": "n88X",
+        "long": "Jones Beach Loop",
+        "short": "n88X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "60AA47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "sEF",
+        "label": "ELFX",
+        "long": "Elmont Flexi Shuttle",
+        "short": "ELFX",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "257489",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "sPW",
+        "label": "PWS",
+        "long": "Port Washington Shuttle",
+        "short": "PWS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 2469,
+    "stop_points_capped": true
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 5052 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 5052,
+    "trips_with_shape": 5052
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "trip_distance_exceeds_shape_distance",
-      "count": 112,
+      "count": 176,
       "effort": "Varies.",
       "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
       "owner": "",
@@ -441,28 +973,28 @@
       "why": "See the linked rule for what this affects."
     },
     {
-      "code": "scorecard_rt_trip_updates_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 2469,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 25.0,
       "rank": 2,
-      "severity": "ERROR",
-      "what": "The trip updates realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
+      "severity": "WARNING",
+      "what": "2469 of 2469 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     },
     {
-      "code": "scorecard_rt_vehicle_positions_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "count": 5052,
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
+      "owner": "Likely your export tool",
+      "points": 15.0,
       "rank": 3,
-      "severity": "ERROR",
-      "what": "The vehicle positions realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
+      "severity": "WARNING",
+      "what": "5052 of 5052 trips don't say whether the vehicle is wheelchair accessible.",
+      "why": "Even with accessible stops, riders need to know the bus itself can take them."
     }
   ],
   "validator_version": "8.0.1"

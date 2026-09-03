@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "arlington-transit",
-    "name": "Arlington Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/arlington-transit/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/arlington-transit/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 557,
-        "examples": [
-          "S CARLIN SPRINGS RD NB @ COLUMBIA PIKE FS -> S Carlin Springs Rd Nb @ Columbia Pike Fs",
-          "S ARLINGTON MILL DR EB @ S TAYLOR ST NS -> S Arlington Mill Dr Eb @ S Taylor St Ns",
-          "S ARLINGTON MILL DR WB @ S TAYLOR ST FS -> S Arlington Mill Dr Wb @ S Taylor St Fs"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 557
+    "name": "Arlington Transit",
+    "subdivision_code": "US-VA",
+    "subdivision_name": "Virginia"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 2116,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 3.0,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 574,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 2116,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 2116,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -101,7 +99,7 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 557,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 14.6,
           "severity": "INFO",
@@ -117,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -140,13 +138,13 @@
         {
           "code": "leading_or_trailing_whitespaces",
           "count": 13662,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'leading_or_trailing_whitespaces' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Leading or trailing whitespaces (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some values have extra spaces at the start or end.",
+          "why": "A stray space can break a match, so a stop or route may fail to link across files."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -163,7 +161,7 @@
           "code": "unused_shape",
           "count": 2,
           "effort": "One setting.",
-          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
@@ -173,13 +171,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "missing_recommended_field",
@@ -189,7 +187,7 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -212,70 +210,63 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 329,
+        "days_until_expiry": 297,
+        "effective_expiry_date": "2027-05-31",
         "feed_end_date": "2027-05-31",
         "feed_start_date": "2026-04-12",
         "feed_version": "S1000054",
         "has_feed_info": true,
         "last_service_date": "2027-05-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 329 days.",
+      "summary": "Service data covers the next 297 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 92.9,
-        "covered_trips": 13,
-        "drift": {
-          "median_seconds": 18,
-          "observations": 446,
-          "on_time_share_pct": 90.4,
-          "p90_abs_seconds": 197
-        },
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions"
+        ],
+        "coverage_pct": null,
+        "kinds_configured": 2,
         "kinds_reachable": 2,
+        "reachable_kinds": [
+          "trip_updates",
+          "vehicle_positions"
+        ],
         "rt_freshness": "fresh",
         "samples": 6,
-        "scheduled_trips_in_window": 14,
-        "vehicles_checked": 42,
-        "vehicles_on_route_pct": 100.0,
-        "worst_lag_seconds": 22
+        "scheduled_trips_in_window": 0,
+        "worst_lag_seconds": 20
       },
-      "findings": [
-        {
-          "code": "scorecard_rt_service_alerts_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The service alerts realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 1,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 2.5,
-          "severity": "WARNING",
-          "what": "1 of 14 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
-        }
-      ],
+      "findings": [],
       "name": "realtime",
-      "score": 89.2,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Sampled 6 times: 2 of 3 feeds healthy; 92.9% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 18s behind schedule.",
+      "summary": "Sampled 6 times outside service hours: 2 of 2 configured feeds healthy; vehicle position plausibility was not measurable.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 6 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -286,7 +277,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 338 days.",
+        "detail": "Service data covers the next 310 days.",
         "key": "current",
         "met": true
       },
@@ -306,7 +297,14 @@
     "size_bytes": 1248041,
     "static_url": "https://www.arlingtontransit.com/shared/content/gtfs/art/google_transit.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.arlingtontransit.com/shared/content/gtfs/art/google_transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -77.16228,
@@ -318,12 +316,32 @@
     "lon": -77.10508,
     "stop_count": 574
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 14,
+        "trip_count": 2116,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 14,
+    "trip_count": 2116
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id 1; the NTD asks for your five-digit NTD ID (30080) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is 1; your National Transit Database ID is 30080. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "1"
     ],
-    "fix": "Change the agency_id to 30080 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Confirm that P-50 crosswalks agency_id 1 to NTD ID 30080, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "30080",
     "status": "mismatch"
   },
@@ -340,22 +358,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 338 days.",
+        "detail": "Service data covers the next 310 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 1.1,
-    "margin_to_next_band": 8.9,
-    "score": 71.1
+    "margin_to_lower_band": 3.3,
+    "margin_to_next_band": 6.7,
+    "score": 73.3
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 573,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -368,8 +392,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -391,22 +415,185 @@
     "single_stop_trips": 0,
     "trips_total": 2116
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 14,
+    "has_shapes": true,
+    "path": "data/artifacts/arlington-transit/geometry.geojson",
+    "route_count": 14,
+    "routes": [
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "41",
+        "label": "41",
+        "long": "Arlington Mill-Ballston-Crthous",
+        "short": "41",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "42",
+        "label": "42",
+        "long": "Ballston-Pentagon-Pentagon Cty",
+        "short": "42",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "43",
+        "label": "43",
+        "long": "Courthouse-Rosslynn-Crystal Cty",
+        "short": "43",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "45",
+        "label": "45",
+        "long": "Arlington Mill -Sequoia-Rosslyn",
+        "short": "45",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "51",
+        "label": "51",
+        "long": "Ballston-Virginia Hosp- Langston",
+        "short": "51",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "52",
+        "label": "52",
+        "long": "Ballston-VA Hosp-E Flls Chrch",
+        "short": "52",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "55",
+        "label": "55",
+        "long": "Rosslyn-East Falls Church",
+        "short": "55",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "56",
+        "label": "56",
+        "long": "ROSS to MACE",
+        "short": "56",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "72",
+        "label": "72",
+        "long": "Rock Spring-Ballston-Shirlingtn",
+        "short": "72",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "74",
+        "label": "74",
+        "long": "Arlington Vlg-Arlington Vw-Pent",
+        "short": "74",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "75",
+        "label": "75",
+        "long": "Shirlingtn-Ballstn-Virginia Sq",
+        "short": "75",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "77",
+        "label": "77",
+        "long": "Shirlingtn-Lyon Park-Courthouse",
+        "short": "77",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "84",
+        "label": "84",
+        "long": "Douglas Prk-Green Vly-Pntgn Cty",
+        "short": "84",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "87",
+        "label": "87",
+        "long": "Shirlingtn-Army Navy Dr-Pentagn",
+        "short": "87",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 574,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 2116 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 2116,
+    "trips_with_shape": 2116
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
-    {
-      "code": "scorecard_rt_service_alerts_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
-      "rank": 1,
-      "severity": "ERROR",
-      "what": "The service alerts realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
-    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 574,
@@ -414,7 +601,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "WARNING",
       "what": "574 of 574 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -422,14 +609,26 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 2116,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 3,
+      "rank": 2,
       "severity": "WARNING",
       "what": "2116 of 2116 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
+    },
+    {
+      "code": "leading_or_trailing_whitespaces",
+      "count": 13662,
+      "effort": "Usually one export setting.",
+      "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
+      "owner": "Likely your export tool",
+      "points": 8.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "Some values have extra spaces at the start or end.",
+      "why": "A stray space can break a match, so a stop or route may fail to link across files."
     }
   ],
   "validator_version": "8.0.1"

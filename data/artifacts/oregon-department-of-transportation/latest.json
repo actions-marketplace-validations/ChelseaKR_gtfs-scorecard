@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "oregon-department-of-transportation",
-    "name": "Oregon Department of Transportation"
-  },
-  "autofix": {
-    "available": false
+    "name": "Oregon Department of Transportation",
+    "subdivision_code": "US-OR",
+    "subdivision_name": "Oregon"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 18,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 80,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 18,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 18,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -119,7 +132,7 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         }
       ],
@@ -131,20 +144,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 87,
+        "days_until_expiry": 55,
+        "effective_expiry_date": "2026-10-01",
         "feed_end_date": "2026-10-01",
         "feed_start_date": "2026-05-22",
-        "feed_version": "UTC: 22-May-2026 21:16",
+        "feed_version": "UTC: 14-Jul-2026 20:43",
         "has_feed_info": true,
         "last_service_date": "2026-10-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 91.7,
       "status": "measured",
-      "summary": "Service data covers the next 87 days.",
+      "summary": "Service data covers the next 55 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -153,6 +169,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -163,7 +191,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 96 days.",
+        "detail": "Service data covers the next 57 days.",
         "key": "current",
         "met": true
       },
@@ -179,15 +207,22 @@
   "feed": {
     "license_note": "License: https://oregon-gtfs.trilliumtransit.com",
     "reachable": true,
-    "sha256": "91c14d3d1475ce1d0a9a10a1da73cf68e968950e710267539bcb2be92f74089d",
-    "size_bytes": 332954,
+    "sha256": "9830fccd323097b3cfc02e58648cd85bfc770caa6cef0184fd717dad0dffb96f",
+    "size_bytes": 318981,
     "static_url": "https://oregon-gtfs.trilliumtransit.com/gtfs_data/point-or-us/point-or-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://oregon-gtfs.trilliumtransit.com/gtfs_data/point-or-us/point-or-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -124.49808,
-      41.75243,
+      41.75383,
       -116.95114,
       46.19021
     ],
@@ -195,8 +230,28 @@
     "lon": -123.2344,
     "stop_count": 80
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 4,
+        "trip_count": 18,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 4,
+    "trip_count": 18
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "45"
     ],
@@ -215,22 +270,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 96 days.",
+        "detail": "Service data covers the next 57 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
-    "margin_to_lower_band": 3.1,
-    "margin_to_next_band": 6.9,
-    "score": 83.1
+    "margin_to_lower_band": 1.0,
+    "margin_to_next_band": 9.0,
+    "score": 81.0
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 16,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -243,8 +304,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -266,9 +327,74 @@
     "single_stop_trips": 0,
     "trips_total": 18
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 4,
+    "has_shapes": true,
+    "path": "data/artifacts/oregon-department-of-transportation/geometry.geojson",
+    "route_count": 4,
+    "routes": [
+      {
+        "color": "4CD975",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "251",
+        "label": "SouthWest",
+        "long": "Klamath Falls-Brookings",
+        "short": "SouthWest",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "247BFA",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "254",
+        "label": "NorthWest",
+        "long": "Portland-Astoria",
+        "short": "NorthWest",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "9765F0",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "255",
+        "label": "Cascades",
+        "long": "Portland-Eugene",
+        "short": "Cascades",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CF3BBD",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "843",
+        "label": "Eastern",
+        "long": "Bend-Ontario",
+        "short": "Eastern",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 80,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 18 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 18,
+    "trips_with_shape": 18
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -285,8 +411,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 18,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

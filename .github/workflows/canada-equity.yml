@@ -8,6 +8,12 @@ name: Canada equity (CIMD)
 # within-Canada served-area need tier. No API key is needed. The territories are
 # excluded from the CIMD, so a feed there (e.g. Yukon) reads as no-coverage. The
 # agency pages and /api/v1/canada-equity.json read the committed result.
+#
+# If the StatCan service is down, the job FAILS rather than committing an
+# overlay that drops agencies already published (the same rule equity.yml
+# states for ACS). `scorecard canada-equity` exits non-zero and writes nothing
+# when it would empty the overlay or lose a published agency; --allow-empty is
+# the deliberate override for a real registry change.
 
 on:
   schedule:
@@ -15,7 +21,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read # the deploy key does the writing, not the workflow token
 
 concurrency:
   group: canada-equity
@@ -25,8 +31,14 @@ jobs:
   overlay:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          # Publish over the write-scoped deploy key, the same path the realtime
+          # monitor uses. The main-branch ruleset requires a reviewed pull
+          # request and lists deploy keys as its bypass actor, so a push made
+          # with the default GITHUB_TOKEN is rejected with GH013.
+          ssh-key: ${{ secrets.SCHEDULED_WRITER_SSH_KEY }}
+      - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
           python-version: "3.12"
       - name: Compute the Canada CIMD overlay
@@ -41,10 +53,15 @@ jobs:
             echo "No overlay change."
           else
             git commit -m "chore(equity): refresh Canada CIMD overlay"
-            for attempt in 1 2 3 4 5; do
-              if git push origin HEAD:main; then break; fi
+            pushed=false
+            for _attempt in 1 2 3 4 5; do
+              if git push origin HEAD:main; then pushed=true; break; fi
               git fetch origin main
               git rebase origin/main || { git rebase --abort; exit 1; }
               sleep 3
             done
+            if [ "$pushed" != true ]; then
+              echo "::error::Could not push the refreshed Canada overlay after 5 attempts."
+              exit 1
+            fi
           fi

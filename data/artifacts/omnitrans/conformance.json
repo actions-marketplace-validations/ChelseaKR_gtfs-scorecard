@@ -1,13 +1,13 @@
 {
-  "awarded": false,
+  "awarded": true,
   "criteria": [
     {
-      "detail": "1 validator error to resolve.",
+      "detail": "Passes validation with no errors.",
       "key": "valid",
-      "met": false
+      "met": true
     },
     {
-      "detail": "Service data covers the next 43 days.",
+      "detail": "Service data covers the next 151 days.",
       "key": "current",
       "met": true
     },
@@ -17,6 +17,6 @@
       "met": true
     }
   ],
-  "status": "not_yet",
-  "summary": "This feed is close to the conformance mark. 1 validator error to resolve."
+  "status": "awarded",
+  "summary": "This feed earns the conformance mark: valid, current, and stating wheelchair access on nearly every stop and trip."
 }

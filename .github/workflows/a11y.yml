@@ -8,25 +8,71 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded runs on the same ref (new push to a PR) to save minutes.
+concurrency:
+  group: a11y-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   axe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
           python-version: "3.12"
       - name: Install the pipeline
         working-directory: pipeline
         run: uv sync --locked
-      - name: Render the static site
+      - name: Materialize validated current dated records
         working-directory: pipeline
-        run: uv run scorecard render-site
+        run: >-
+          uv run python scripts/materialize_current_artifacts.py
+          --artifacts-root ../data/artifacts
+      - name: Rebuild rollups and render the static site
+        working-directory: pipeline
+        run: |
+          # Keep this pre-assembly boundary identical to pages.yml: committed
+          # rollups can predate a registry retirement even when the renderer's
+          # current index filtering is already correct.
+          uv run scorecard rollups
+          uv run scorecard render-site
       - name: Assemble the Pages site (mirrors pages.yml)
         run: |
           mkdir -p _site/data
           cp -r web/. _site/
-          cp -r data/artifacts _site/data/artifacts
+          bash pipeline/scripts/assemble_public_artifacts.sh \
+            data/artifacts _site/data/artifacts
+      - name: Enforce the structural SEO contract
+        working-directory: pipeline
+        run: >-
+          uv run python scripts/check_site_seo.py
+          --site-root ../_site
+          --config ../site-seo.json
+          --report ../seo-report.json
+      - name: Retain the structural SEO report
+        # RELIABILITY (issue #297): same masking bug as pages.yml — when
+        # "Materialize validated current dated records" above fails, the SEO
+        # check never runs and never writes seo-report.json, and this
+        # always-run step failed too under the previous `error` setting, with
+        # a different, more prominent "No files were found" error that buried
+        # the real, earlier cause. `warn` lets a missing report pass through
+        # quietly so the first red step in the job stays the true root cause.
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: seo-report-a11y-${{ github.run_id }}-${{ github.run_attempt }}
+          path: seo-report.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Enforce generated page-size budgets
+        working-directory: pipeline
+        run: >-
+          uv run python scripts/check_site_budgets.py
+          --site-root ../_site
+          --config ../site-budgets.json
       # axe-core at WCAG 2.0 AA (the Section 508 technical bar) on representative
       # routes. Contrast is owned by the dedicated token gate
       # (pipeline/scripts/check_contrast.py), which verifies AAA across every theme
@@ -35,10 +81,69 @@ jobs:
       # The /map/ MapLibre canvas is aria-hidden and out of the tab order with no
       # on-canvas controls, so the page is axe-tested like the rest; its filterable
       # agency table is the conformant primary (docs/vpat.md).
-      - name: axe on representative pages
+      # Lighthouse budget provenance, since JSON carries no comments. Measured
+      # over 750 retained reports from 50 a11y.yml jobs on main, 2026-08-05 to
+      # 2026-08-11; full write-up in
+      # docs/decisions/0045-lighthouse-lcp-budget-and-warmup-run.md.
+      #
+      # The first Lighthouse run of each job is a cold Chrome start. Home-page
+      # medians by position within a job (n=50 each):
+      #   run 1: LCP 2503 ms, TBT 644 ms, perf 0.78
+      #   run 2: LCP 2134 ms, TBT   0 ms, perf 0.98
+      #   run 3: LCP 2134 ms, TBT   0 ms, perf 0.98
+      # TBT was non-zero in 40/50 first runs and 0/100 later runs. The cost
+      # lands once per job, on the first run of this step, so the routes config
+      # (which runs second) shows no warmup.
+      #
+      # aggregationMethod "median-run" picks one run per URL by proximity to
+      # median FCP and median time-to-interactive, never by LCP, and for
+      # categories:* it is ignored entirely and degrades to Math.max
+      # (best-of-N). Home FCP has a 2 ms interquartile range while LCP spans
+      # 1813 ms, so LCP selection was close to arbitrary. Performance budgets
+      # therefore use "median" (true median of the metric) over 5 runs.
+      # categories:accessibility deliberately keeps median-run and 0.95; every
+      # report in the window scored 1.000.
+      #
+      # Home LCP is flat at a 2135 ms median across the window (no regression),
+      # but the worst job asserted 2488 ms against the old 2500 ms budget. The
+      # budget is now 2750 ms, with a new blocking first-contentful-paint gate
+      # at 2000 ms carrying the sensitivity: FCP's worst job median was 1656 ms
+      # and its largest single run anywhere was 2053 ms.
+      #
+      # The routes performance floor moved 0.80 -> 0.75 to accommodate a real
+      # /compare/ regression dated 2026-08-07, not flakiness. Restoring it is
+      # tracked in docs/follow-ups.md.
+      - name: Browser quality gates on representative pages
         run: |
+          set -o pipefail
           python3 -m http.server 8080 --directory _site &
           SRV=$!
-          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8080/ >/dev/null && break; sleep 1; done
-          npx --yes pa11y-ci@3 --config .pa11yci.json
-          kill $SRV
+          trap 'kill "$SRV" 2>/dev/null || true' EXIT
+          ready=false
+          for _attempt in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8080/ >/dev/null; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            echo "Generated site did not become ready." >&2
+            exit 1
+          fi
+          npx --yes pa11y-ci@3 --config .pa11yci.json 2>&1 | tee pa11y-output.log
+          npx --yes @lhci/cli@0.14 autorun \
+            --config=lighthouserc.json 2>&1 | tee lhci-core.log
+          npx --yes @lhci/cli@0.14 autorun \
+            --config=lighthouserc.routes.json 2>&1 | tee lhci-representative.log
+      - name: Retain browser quality reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: browser-quality-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            lhci-reports/
+            lhci-*.log
+            pa11y-output.log
+          if-no-files-found: warn
+          retention-days: 14

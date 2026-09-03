@@ -1,3 +1,8 @@
+---
+date_published: "2026-07-03"
+date_modified: "2026-07-14"
+---
+
 # Fix: a stop sits far from the route's drawn path
 
 Code: `stop_too_far_from_shape_using_user_distance` (MobilityData validator)
@@ -25,7 +30,7 @@ The mismatch is between three things; check which is off for the flagged trips:
 - **The stop location**: if `stop_lat` / `stop_lon` is wrong, correct it.
 - **The `shape_dist_traveled` values**: if the geometry is right but the distance
   measurements are off, regenerate them. Many tools compute `shape_dist_traveled`
-  automatically; re-running that step usually clears this.
+  automatically; re-run validation afterward to check whether this finding remains.
 
 See [a stop far from the shape by raw geometric distance](stop_too_far_from_shape.md)
 for the related case where the shape and the stop simply disagree in space,

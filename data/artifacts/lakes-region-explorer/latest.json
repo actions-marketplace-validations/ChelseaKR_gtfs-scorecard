@@ -1,7 +1,9 @@
 {
   "agency": {
     "id": "lakes-region-explorer",
-    "name": "Lakes Region Explorer"
+    "name": "Lakes Region Explorer",
+    "subdivision_code": "US-ME",
+    "subdivision_name": "Maine"
   },
   "categories": {
     "completeness": {
@@ -15,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -39,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 15,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -50,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 21,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 15,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -71,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 15,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -93,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 15,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "15 of 15 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "15 of 15 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -110,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -160,7 +176,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -171,7 +187,7 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -182,7 +198,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
@@ -205,13 +221,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 1028,
+        "days_until_expiry": 996,
+        "effective_expiry_date": "2029-04-29",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2029-04-29",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -230,7 +249,7 @@
       "name": "freshness",
       "score": 85.0,
       "status": "measured",
-      "summary": "Service data covers the next 1028 days.",
+      "summary": "Service data covers the next 996 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -240,6 +259,40 @@
       "weight": 0.2
     }
   },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
+  },
+  "conformance": {
+    "awarded": false,
+    "criteria": [
+      {
+        "detail": "Passes validation with no errors.",
+        "key": "valid",
+        "met": true
+      },
+      {
+        "detail": "Service data covers the next 1002 days.",
+        "key": "current",
+        "met": true
+      },
+      {
+        "detail": "States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each.",
+        "key": "accessible",
+        "met": false
+      }
+    ],
+    "status": "not_yet",
+    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+  },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
@@ -247,21 +300,181 @@
     "size_bytes": 48090,
     "static_url": "http://trilliumtransit.com/transit_feeds/rtp-me-us/rtp-me-us.zip"
   },
-  "generated_at": "2026-06-20T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-maine-lakes-region-explorer-gtfs-452.zip?alt=media",
+    "max_attempts": 1,
+    "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
+    "source": "mirror",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-01T00:00:00+00:00",
+  "geo": {
+    "bbox": [
+      -70.71354,
+      43.6584,
+      -70.2595,
+      44.0533
+    ],
+    "lat": 43.9257,
+    "lon": -70.5274,
+    "stop_count": 21
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 1,
+        "trip_count": 15,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 1,
+    "trip_count": 15
+  },
+  "ntd_id_alignment": {
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
+    "feed_agency_ids": [
+      "LRE"
+    ],
+    "status": "unknown"
+  },
+  "ntd_readiness": {
+    "pillars": [
+      {
+        "detail": "Published at a public URL.",
+        "key": "published",
+        "status": "ready"
+      },
+      {
+        "detail": "Passes validation with no errors.",
+        "key": "valid",
+        "status": "ready"
+      },
+      {
+        "detail": "Service data covers the next 1002 days.",
+        "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
+      }
+    ],
+    "status": "ready",
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
+  },
   "overall": {
     "grade": "D",
     "margin_to_lower_band": 2.2,
     "margin_to_next_band": 7.8,
     "score": 62.2
   },
+  "recommendations": [
+    {
+      "category": "accessibility",
+      "code": "scorecard_route_color_low_contrast",
+      "count": 1,
+      "effort": "A per-route color setting in your scheduling software.",
+      "fix": "Adjust route_color or route_text_color so each pair clears 4.5:1. Often switching the text between black and white is enough.",
+      "owner": "Likely your export tool",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "1 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (Lake Region Explorer).",
+      "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
+    },
+    {
+      "category": "accessibility",
+      "code": "scorecard_stop_name_needs_tts",
+      "count": 9,
+      "effort": "A short text field per affected stop; start with the busiest.",
+      "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "INFO",
+      "what": "9 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Naples Village/Library (SB)\", \"Tenney Hill Rd (SB)\", \"Lakehurst Ave (SB)\", and more).",
+      "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
+    }
+  ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "routability": {
+    "boardable_stops": 21,
+    "findings": [
+      {
+        "code": "scorecard_single_stop_trips",
+        "count": 5,
+        "effort": "Usually an export setting or a stop_times mapping in your software.",
+        "fix": "Check your scheduling export: every trip should list each stop it calls at, in order, with times.",
+        "owner": "Likely your export tool",
+        "points": 0.0,
+        "severity": "WARNING",
+        "what": "5 of 15 trips list fewer than two stops.",
+        "why": "A trip with one stop has no leg a rider can ride; trip planners can't route anyone on it, so the service effectively does not exist."
+      },
+      {
+        "code": "scorecard_orphan_stops",
+        "count": 14,
+        "effort": "A cleanup pass in your scheduling software.",
+        "fix": "Remove stops no route serves, or add the trips that should call at them.",
+        "owner": "Likely your export tool",
+        "points": 0.0,
+        "severity": "INFO",
+        "what": "14 of 21 boardable stops are never served by any trip.",
+        "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
+      }
+    ],
+    "orphan_stops": 14,
+    "single_stop_trips": 5,
+    "trips_total": 15
+  },
+  "route_map": {
+    "drawn_route_count": 1,
+    "has_shapes": true,
+    "path": "data/artifacts/lakes-region-explorer/geometry.geojson",
+    "route_count": 1,
+    "routes": [
+      {
+        "color": "000CEB",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "2",
+        "label": "Lake Region Explorer",
+        "long": "Lake Region Explorer",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 21,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 15 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 15,
+    "trips_with_shape": 15
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -278,8 +491,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 15,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,
@@ -290,14 +503,14 @@
     {
       "code": "scorecard_missing_headsigns",
       "count": 15,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
-      "owner": "Likely your export tool",
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
       "points": 15.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "15 of 15 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "15 of 15 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     }
   ],
   "validator_version": "8.0.1"

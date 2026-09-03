@@ -1,0 +1,60 @@
+# SEC-08 / CICD-20: CodeQL SAST over the Python pipeline, the GitHub Actions
+# workflows themselves (the `actions` CodeQL pack covers injection via
+# untrusted expression contexts, exactly the class of issue `onboard.yml`'s
+# issue-body parsing needs watching), and web/src/ — ~6,600 lines of
+# hand-written browser JavaScript, including 24 innerHTML assignment sites in
+# app.js, and the code a transit rider actually loads. Semgrep and gitleaks
+# already cover web/src/ (.semgrepignore, .gitleaks.toml, both verified clean
+# over the whole tree); `javascript` here (issue #288's remaining item) adds
+# CodeQL as the third. Deliberately not yet in .github/rulesets/main.json's
+# required checks (ADR 0033): that follow-up lands once a real PR run of this
+# change shows "Analyze (javascript)" reporting cleanly, not on the assumption
+# that it will.
+name: CodeQL
+
+on:
+  # CICD §11e: PRs into main + the weekly schedule. The former push: main
+  # trigger re-analyzed a commit the merged PR run had already covered; the
+  # schedule keeps the default-branch code-scanning baseline fresh.
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "23 5 * * 3" # weekly, Wednesday — CodeQL's own analysis is slow-moving
+
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref (new push to a PR) to save minutes.
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # required to upload SARIF to code scanning
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, actions, javascript]
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        if: matrix.language == 'python'
+        uses: github/codeql-action/autobuild@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
+        with:
+          category: "/language:${{ matrix.language }}"

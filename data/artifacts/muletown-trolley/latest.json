@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "muletown-trolley",
-    "name": "Muletown Trolley"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/muletown-trolley/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 7,
-        "examples": [
-          "BETTYS PKWY -> Bettys Pkwy",
-          "MCDS BEAR CK PIKE -> Mcds Bear Ck Pike",
-          "CRYE-LEIKE REALTY -> Crye-leike Realty"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 7
+    "name": "Muletown Trolley",
+    "subdivision_code": "US-TN",
+    "subdivision_name": "Tennessee"
   },
   "categories": {
     "completeness": {
@@ -60,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 48,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 89.7,
         "pathways": {
           "has_entrances": false,
@@ -71,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 68,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 48,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 100.0,
@@ -93,7 +88,7 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 7,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 1.5,
           "severity": "INFO",
@@ -103,13 +98,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 48,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "48 of 48 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "48 of 48 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         }
       ],
       "name": "completeness",
@@ -193,13 +188,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -193,
+        "days_until_expiry": -225,
+        "effective_expiry_date": "2025-12-25",
         "feed_end_date": "2025-12-25",
         "feed_start_date": "2023-12-06",
         "feed_version": "20231206",
         "has_feed_info": true,
         "last_service_date": "2025-12-25",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -211,14 +209,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 193 day(s) ago.",
+          "what": "Service data ended 225 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 193 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 225 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -249,7 +247,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 192 days ago.",
+        "detail": "Service data expired 223 days ago.",
         "key": "current",
         "met": false
       },
@@ -260,7 +258,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 192 days ago."
+    "summary": "This feed is close to the conformance mark. Service data expired 223 days ago."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -272,10 +270,11 @@
   "fetch": {
     "final_url": "https://www.sctdd.org/wp-content/uploads/2025/02/gtfs_muletown.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-05T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -87.20806,
@@ -287,8 +286,28 @@
     "lon": -87.04193,
     "stop_count": 68
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 4,
+        "trip_count": 48,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 4,
+    "trip_count": 48
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "MTT"
     ],
@@ -307,13 +326,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 192 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 223 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 192 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 223 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -323,6 +347,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -334,6 +359,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 11,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -346,8 +372,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -423,8 +449,13 @@
     "stop_count": 68,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.7",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
   "shapes_readiness": {
     "detail": "No trips in this feed have a shape_id linked to a row in shapes.txt.",
     "fix": "Add shapes.txt with a shape_id for each trip's path, and set trips.shape_id to match. Reduced, Rural, and Tribal NTD reporters need this in their published GTFS starting Report Year 2026; Full Reporters needed it in Report Year 2025.",
@@ -432,7 +463,7 @@
     "total_trips": 48,
     "trips_with_shape": 0
   },
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -443,20 +474,20 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 193 day(s) ago.",
+      "what": "Service data ended 225 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
       "code": "scorecard_missing_headsigns",
       "count": 48,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
-      "owner": "Likely your export tool",
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
       "points": 15.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "48 of 48 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "48 of 48 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     },
     {
       "code": "scorecard_no_fare_data",

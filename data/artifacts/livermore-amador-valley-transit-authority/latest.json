@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "livermore-amador-valley-transit-authority",
-    "name": "Livermore Amador Valley Transit Authority"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/livermore-amador-valley-transit-authority/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/livermore-amador-valley-transit-authority/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 96,
-        "examples": [
-          "'stop_desc': ' Unit WB' -> 'Unit WB'",
-          "'stop_desc': ' Unit WB' -> 'Unit WB'",
-          "'stop_desc': ' Unit PRE' -> 'Unit PRE'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 96
+    "name": "Livermore Amador Valley Transit Authority",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -61,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 3009,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -72,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 665,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 3009,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 100.0,
@@ -88,7 +82,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -111,13 +105,13 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 42,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "expired_calendar",
@@ -155,13 +149,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "missing_recommended_field",
@@ -188,13 +182,13 @@
         {
           "code": "trip_headsign_matches_intermediate_stop",
           "count": 13,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_headsign_matches_intermediate_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Set trip_headsign to the trip's last stop or its overall destination.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Trip headsign matches intermediate stop (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some trip headsigns name a stop along the way, not the final destination.",
+          "why": "The sign should tell riders where the bus ends up, so a midpoint name can send them the wrong way."
         }
       ],
       "name": "correctness",
@@ -205,13 +199,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -67,
+        "days_until_expiry": -99,
+        "effective_expiry_date": "2026-04-30",
         "feed_end_date": "2026-04-30",
         "feed_start_date": "2026-01-31",
         "feed_version": "January_26_01_20260327",
         "has_feed_info": true,
         "last_service_date": "2026-04-30",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -223,14 +220,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 67 day(s) ago.",
+          "what": "Service data ended 99 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 67 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 99 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -239,6 +236,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -249,7 +258,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 65 days ago.",
+        "detail": "Service data expired 97 days ago.",
         "key": "current",
         "met": false
       },
@@ -260,7 +269,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 65 days ago."
+    "summary": "This feed is close to the conformance mark. Service data expired 97 days ago."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -270,13 +279,14 @@
     "static_url": "http://webwatch.lavta.org/TMGTFSRealTimeWebService/GTFS-Static/google_transit.zip"
   },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-california-livermore-amador-valley-transit-authority-gtfs-64.zip?alt=media",
+    "final_url": "https://files.mobilitydatabase.org/mdb-64/latest.zip",
     "max_attempts": 1,
     "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.06865,
@@ -288,12 +298,32 @@
     "lon": -121.86985,
     "stop_count": 665
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 32,
+        "trip_count": 3009,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 32,
+    "trip_count": 3009
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed's agency_id is lavta-ca-us; your National Transit Database ID is 90144. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
+    "detail": "Your feed's agency_id is lavta-ca-us; your National Transit Database ID is 90144. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "lavta-ca-us"
     ],
-    "fix": "Optionally set the agency_id for your service to 90144 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
+    "fix": "Confirm that P-50 crosswalks agency_id lavta-ca-us to NTD ID 90144, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90144",
     "status": "mismatch"
   },
@@ -310,13 +340,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 65 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 97 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 65 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 97 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -326,6 +361,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 23,
       "effort": "A per-route color setting in your scheduling software.",
@@ -337,6 +373,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 655,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -349,8 +386,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -722,9 +759,20 @@
     "stop_count": 665,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 3009 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 3009,
+    "trips_with_shape": 3009
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -735,20 +783,20 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 67 day(s) ago.",
+      "what": "Service data ended 99 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
       "code": "stop_too_far_from_shape_using_user_distance",
       "count": 42,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Usually an export-tool fix, not hand editing.",
+      "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+      "owner": "Likely your export tool",
       "points": 6.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+      "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
     },
     {
       "code": "expired_calendar",

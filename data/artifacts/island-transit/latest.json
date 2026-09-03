@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "island-transit",
-    "name": "Island Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/island-transit/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/island-transit/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 2,
-        "examples": [
-          "NASWI -> Naswi",
-          "YMCA -> Ymca"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 2
+    "name": "Island Transit",
+    "subdivision_code": "US-WA",
+    "subdivision_name": "Washington"
   },
   "categories": {
     "completeness": {
@@ -32,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
-          "headsigns": 13.3,
+          "headsigns": 14.0,
           "stop_names": 14.9,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 0.0
@@ -56,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 443,
+        "headsign_loop_exempt_trips": 22,
         "headsign_pct": 88.8,
+        "headsign_scored_pct": 93.5,
         "mixed_case_stop_name_pct": 99.6,
         "pathways": {
           "has_entrances": false,
@@ -67,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 548,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 465,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -88,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 465,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -98,14 +97,14 @@
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 52,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 1.7,
+          "count": 30,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
+          "points": 1.0,
           "severity": "WARNING",
-          "what": "52 of 465 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "30 of 465 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -120,7 +119,7 @@
         }
       ],
       "name": "completeness",
-      "score": 58.3,
+      "score": 59.0,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
@@ -144,8 +143,8 @@
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "stop_without_stop_time",
@@ -194,24 +193,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -222,20 +221,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 87,
+        "days_until_expiry": 55,
+        "effective_expiry_date": "2026-10-01",
         "feed_end_date": "2026-10-01",
         "feed_start_date": "2026-05-06",
         "feed_version": "UTC: 06-May-2026 16:22",
         "has_feed_info": true,
         "last_service_date": "2026-10-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 91.7,
       "status": "measured",
-      "summary": "Service data covers the next 87 days.",
+      "summary": "Service data covers the next 55 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -244,6 +246,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -254,7 +268,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 96 days.",
+        "detail": "Service data covers the next 68 days.",
         "key": "current",
         "met": true
       },
@@ -274,7 +288,14 @@
     "size_bytes": 1068145,
     "static_url": "https://data.trilliumtransit.com/gtfs/islandtransit-wa-us/islandtransit-wa-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/islandtransit-wa-us/islandtransit-wa-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.76791,
@@ -286,8 +307,28 @@
     "lon": -122.59155,
     "stop_count": 548
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 16,
+        "trip_count": 465,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 16,
+    "trip_count": 465
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "2271"
     ],
@@ -306,22 +347,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 96 days.",
+        "detail": "Service data covers the next 68 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 4.7,
-    "margin_to_next_band": 5.3,
-    "score": 74.7
+    "margin_to_lower_band": 2.9,
+    "margin_to_next_band": 7.1,
+    "score": 72.9
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -333,6 +380,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 6,
       "effort": "A per-route color setting in your scheduling software.",
@@ -344,6 +392,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 440,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -356,8 +405,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -379,9 +428,206 @@
     "single_stop_trips": 0,
     "trips_total": 465
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 16,
+    "has_shapes": true,
+    "path": "data/artifacts/island-transit/geometry.geojson",
+    "route_count": 16,
+    "routes": [
+      {
+        "color": "0B8845",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "32467",
+        "label": "411C",
+        "long": "Camano Island/Mount Vernon",
+        "short": "411C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BBB901",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "32469",
+        "label": "2C",
+        "long": "East Camano Shuttle",
+        "short": "2C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFE82E",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "32470",
+        "label": "1C",
+        "long": "West Camano Shuttle",
+        "short": "1C",
+        "text_color": "020202",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0B8845",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "32471",
+        "label": "411W",
+        "long": "Oak Harbor / Marchs Point Anacortes",
+        "short": "411W",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "32472",
+        "label": "3C",
+        "long": "Camano Island/Stanwood",
+        "short": "3C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "866CBB",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "32473",
+        "label": "58",
+        "long": "South Whidbey Shuttle",
+        "short": "58",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7030A3",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "32474",
+        "label": "1",
+        "long": "Clinton / Oak Harbor",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "32478",
+        "label": "CC",
+        "long": "Clinton Commuter",
+        "short": "CC",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "005BCE",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "32479",
+        "label": "60",
+        "long": "Clinton - Langley - Bayview",
+        "short": "60",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F16321",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "32481",
+        "label": "412",
+        "long": "Camano Island/Everett",
+        "short": "412",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F7941E",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "32482",
+        "label": "6",
+        "long": "Oak Harbor/Coupeville",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "983165",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "74486",
+        "label": "9",
+        "long": "West Oak Harbor",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "01B3D9",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "74488",
+        "label": "2",
+        "long": "Ault Field Rd Oak Harbor",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "76B73C",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "74489",
+        "label": "10",
+        "long": "Central Oak Harbor",
+        "short": "10",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "30BFB9",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "76271",
+        "label": "NAS Whidbey Island",
+        "long": "NAS Whidbey Island",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "83573B",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "76391",
+        "label": "4",
+        "long": "Oak Harbor / Deception Pass",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 548,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 465 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 465,
+    "trips_with_shape": 465
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -398,8 +644,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 465,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,
@@ -416,8 +662,8 @@
       "points": 8.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Some scheduled trips travel implausibly fast between stops.",
-      "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+      "what": "Some scheduled trips move faster between stops than a bus can.",
+      "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
     }
   ],
   "validator_version": "8.0.1"

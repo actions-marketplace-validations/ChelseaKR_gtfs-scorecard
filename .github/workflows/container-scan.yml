@@ -1,0 +1,104 @@
+name: container-scan
+
+# Container image CVE scan (SECURITY-AND-SUPPLY-CHAIN-STANDARD.md §6.3,
+# control SEC-28). Builds each production Dockerfile in this repo
+# (infra/compute and infra/instant-score — the two Lambda worker images
+# behind the fan-out/instant-score infra, see infra/README.md) and scans
+# them with Trivy. A fixable HIGH or CRITICAL OS/library vulnerability fails
+# the job; no `|| true`, no continue-on-error. Matches the container-scan.yml
+# pattern already used in several sibling projects.
+#
+# Both images COPY in the MobilityData gtfs-validator CLI jar from
+# data/cache/, which is gitignored (not committed — it's a 38MB binary this
+# repo fetches on demand). CI fetches the exact pinned release the Dockerfile
+# already sha256-verifies and stages it at that path before building, so the
+# scanned image matches what a real build produces.
+#
+# RELIABILITY/CICD (issue #289): this used to filter on `paths:` at the
+# trigger level (the list below is preserved as the record of what was
+# scoped: infra/compute/**, infra/instant-score/**, pipeline/** — both images
+# COPY pipeline and pip install it, resolving from pyproject.toml, not
+# uv.lock — plus the sync-source-metadata schema, .dockerignore,
+# .trivyignore.yaml, vex.json, and this workflow file itself). Required-
+# status-check enforcement (ADR 0033) blocks a merge on a named context; a
+# trigger-level path filter means the job — and its check — never runs at
+# all for a PR outside that list, which is indistinguishable from a hung
+# check and blocks that PR forever with no recovery short of an admin
+# bypass. Verified against two real in-flight PRs that didn't touch any of
+# these paths before this fix landed. Public-repo Actions minutes are free,
+# so this now triggers unconditionally and always does the real build+scan,
+# rather than adding path-check skip logic whose own bug could silently
+# report success without ever scanning.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 8 * * 1" # Mondays 08:00 UTC — catch new CVEs against a pinned base image
+
+# Least privilege: build + scan only need to read the repo.
+permissions:
+  contents: read
+
+concurrency:
+  group: container-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy:
+    name: Trivy image CVE scan (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: compute
+            dockerfile: infra/compute/Dockerfile
+            tag: gtfs-scorecard-compute:scan
+          - name: instant-score
+            dockerfile: infra/instant-score/Dockerfile
+            tag: gtfs-scorecard-instant-score:scan
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+
+      - name: Stage the gtfs-validator CLI jar (version + hash read from the Dockerfile, not duplicated here)
+        # data/cache/ is gitignored (see .gitignore); both Dockerfiles COPY
+        # this exact file and sha256-verify it in their own RUN step. Parsing
+        # the filename/version and the expected hash out of the Dockerfile
+        # (rather than hardcoding a second copy in this workflow) means a
+        # version bump only has to happen in one place — the Dockerfile — and
+        # this job automatically follows it instead of silently staging a
+        # stale jar the COPY step can't find.
+        run: |
+          set -euo pipefail
+          dockerfile="${{ matrix.dockerfile }}"
+          jar_rel=$(grep -oE 'data/cache/gtfs-validator-[0-9]+\.[0-9]+\.[0-9]+-cli\.jar' "$dockerfile" | head -1)
+          jar_sha256=$(grep -oE '^RUN echo "[0-9a-f]{64}' "$dockerfile" | grep -oE '[0-9a-f]{64}' | head -1)
+          version=$(echo "$jar_rel" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          if [ -z "$jar_rel" ] || [ -z "$jar_sha256" ] || [ -z "$version" ]; then
+            echo "::error::could not parse validator jar path/version/hash out of $dockerfile" >&2
+            exit 1
+          fi
+          echo "staging $jar_rel (version $version)"
+          mkdir -p data/cache
+          curl -fsSL --retry 3 -o "$jar_rel" \
+            "https://github.com/MobilityData/gtfs-validator/releases/download/v${version}/gtfs-validator-${version}-cli.jar"
+          echo "${jar_sha256}  ${jar_rel}" | sha256sum -c -
+
+      - name: Build production image
+        run: docker build -f ${{ matrix.dockerfile }} -t ${{ matrix.tag }} .
+
+      - name: Trivy vulnerability scan (fails on fixable HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ matrix.tag }}
+          scan-type: image
+          vuln-type: os,library
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          trivyignores: .trivyignore.yaml
+          exit-code: "1"

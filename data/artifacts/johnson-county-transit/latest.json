@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "johnson-county-transit",
-    "name": "Johnson County Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/johnson-county-transit/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/johnson-county-transit/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 562,
-        "examples": [
-          "ON METCALF AT 110TH NORTHBOUND FARSIDE -> On Metcalf At 110th Northbound Farside",
-          "ON STATE LINE AT 95TH SOUTBOUND NEARSIDE -> On State Line At 95th Soutbound Nearside",
-          "ON 95TH ST AT MISSION WESTBOUND NEARSIDE -> On 95th St At Mission Westbound Nearside"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 562
+    "name": "Johnson County Transit",
+    "subdivision_code": "US-KS",
+    "subdivision_name": "Kansas"
   },
   "categories": {
     "completeness": {
@@ -33,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
-          "headsigns": 3.5,
+          "headsigns": 15.0,
           "stop_names": 1.8,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 0.0
@@ -57,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": false,
+        "headsign_applicable_trips": 458,
+        "headsign_loop_exempt_trips": 1488,
         "headsign_pct": 23.5,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 12.3,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 641,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1946,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1946,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -112,23 +110,12 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 562,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 13.2,
           "severity": "INFO",
           "what": "About 562 stop names are written in ALL CAPS.",
           "why": "Mixed-case names are easier to read in apps and are read more naturally by screen readers."
-        },
-        {
-          "code": "scorecard_missing_headsigns",
-          "count": 1488,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 11.5,
-          "severity": "WARNING",
-          "what": "1488 of 1946 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -154,18 +141,18 @@
         }
       ],
       "name": "completeness",
-      "score": 20.4,
+      "score": 31.8,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is not published.",
       "weight": 0.25
     },
     "correctness": {
       "details": {
-        "distinct_codes": 6,
+        "distinct_codes": 7,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 47,
-          "WARNING": 613
+          "WARNING": 629
         },
         "validator_version": "8.0.1"
       },
@@ -193,6 +180,17 @@
           "why": "Riders may walk to a stop where no bus is scheduled to arrive."
         },
         {
+          "code": "expired_calendar",
+          "count": 16,
+          "effort": "One setting in most export tools.",
+          "fix": "Remove past service periods the next time you export the feed.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some service calendars in the feed have already ended.",
+          "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
+        },
+        {
           "code": "equal_shape_distance_diff_coordinates_distance_below_threshold",
           "count": 4,
           "effort": "Varies.",
@@ -217,48 +215,51 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 5,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
-      "score": 80.0,
+      "score": 74.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 6 kinds of issue across 660 instances (0 error, 613 warning, 47 informational).",
+      "summary": "The MobilityData validator flagged 7 kinds of issue across 676 instances (0 error, 629 warning, 47 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 178,
+        "days_until_expiry": 146,
+        "effective_expiry_date": "2026-12-31",
         "feed_end_date": "2026-12-31",
         "feed_start_date": "2026-06-25",
         "feed_version": "UTC: 25-Jun-2026 16:21",
         "has_feed_info": true,
         "last_service_date": "2026-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 178 days.",
+      "summary": "Service data covers the next 146 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -267,6 +268,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -277,7 +290,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 187 days.",
+        "detail": "Service data covers the next 154 days.",
         "key": "current",
         "met": true
       },
@@ -297,7 +310,14 @@
     "size_bytes": 626127,
     "static_url": "https://data.trilliumtransit.com/gtfs/johnsoncounty-ks-us/johnsoncounty-ks-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/johnsoncounty-ks-us/johnsoncounty-ks-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-30T00:00:00+00:00",
   "geo": {
     "bbox": [
       -95.26622,
@@ -309,8 +329,28 @@
     "lon": -94.68618,
     "stop_count": 641
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 12,
+        "trip_count": 1946,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 12,
+    "trip_count": 1946
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "5015"
     ],
@@ -329,22 +369,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 187 days.",
+        "detail": "Service data covers the next 154 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "D",
-    "margin_to_lower_band": 6.4,
-    "margin_to_next_band": 3.6,
-    "score": 66.4
+    "margin_to_lower_band": 7.3,
+    "margin_to_next_band": 2.7,
+    "score": 67.3
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -356,6 +402,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -367,6 +414,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 329,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -378,6 +426,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -390,8 +439,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -413,9 +462,162 @@
     "single_stop_trips": 0,
     "trips_total": 1946
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 12,
+    "has_shapes": true,
+    "path": "data/artifacts/johnson-county-transit/geometry.geojson",
+    "route_count": 12,
+    "routes": [
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76790",
+        "label": "520",
+        "long": "Strang Line Express",
+        "short": "520",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76793",
+        "label": "495",
+        "long": "95th Street",
+        "short": "495",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76794",
+        "label": "487",
+        "long": "87th Street-MTC",
+        "short": "487",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76795",
+        "label": "475",
+        "long": "Quivira-75th Street",
+        "short": "475",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76796",
+        "label": "404",
+        "long": "Metcalf-Downtown",
+        "short": "404",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76797",
+        "label": "403",
+        "long": "Antioch-Olathe",
+        "short": "403",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76801",
+        "label": "402",
+        "long": "Johnson-Quivira",
+        "short": "402",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76802",
+        "label": "401",
+        "long": "Metcalf-Plaza",
+        "short": "401",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77793",
+        "label": "United Drop and Ride",
+        "long": "United Drop and Ride",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F78F4B",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "77810",
+        "label": "C",
+        "long": "Link C",
+        "short": "C",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "87D3DF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "77811",
+        "label": "B",
+        "long": "Link B",
+        "short": "B",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFCD03",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "77812",
+        "label": "A",
+        "long": "Link A",
+        "short": "A",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 641,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1946 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1946,
+    "trips_with_shape": 1946
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -432,8 +634,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 1946,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

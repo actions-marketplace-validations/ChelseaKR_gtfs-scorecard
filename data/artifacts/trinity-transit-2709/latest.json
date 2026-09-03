@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "trinity-transit-2709",
-    "name": "Trinity Transit"
-  },
-  "autofix": {
-    "available": false
+    "name": "Trinity Transit",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 74,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,7 +59,14 @@
           "pathway_count": 0
         },
         "stops": 73,
-        "trips": 46,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 74,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 4.1,
         "wheelchair_marked_accessible_pct": 4.1,
@@ -83,41 +96,41 @@
         "distinct_codes": 4,
         "instances_by_severity": {
           "ERROR": 0,
-          "INFO": 48,
-          "WARNING": 24
+          "INFO": 76,
+          "WARNING": 16
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "trip_distance_exceeds_shape_distance_below_threshold",
-          "count": 21,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "count": 15,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stop distances run a little past the end of the route line.",
+          "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
         },
         {
           "code": "stop_too_far_from_shape_using_user_distance",
-          "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "count": 1,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "unsorted_stop_times",
-          "count": 46,
+          "count": 74,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'unsorted_stop_times' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
-          "points": 0.8,
+          "points": 1.0,
           "severity": "INFO",
           "what": "Unsorted stop times (flagged by the MobilityData validator).",
           "why": "See the linked rule for what this affects."
@@ -135,27 +148,30 @@
         }
       ],
       "name": "correctness",
-      "score": 88.8,
+      "score": 88.5,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 4 kinds of issue across 72 instances (0 error, 24 warning, 48 informational).",
+      "summary": "The MobilityData validator flagged 4 kinds of issue across 92 instances (0 error, 16 warning, 76 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 178,
+        "days_until_expiry": 146,
+        "effective_expiry_date": "2026-12-31",
         "feed_end_date": "2026-12-31",
-        "feed_start_date": "2025-08-18",
-        "feed_version": "Updated: Feb 3, 2026, 1:10 PM",
+        "feed_start_date": "2026-02-02",
+        "feed_version": "Updated: Jul 28, 2026, 1:28 AM",
         "has_feed_info": true,
         "last_service_date": "2026-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 178 days.",
+      "summary": "Service data covers the next 146 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -164,6 +180,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -174,7 +202,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 187 days.",
+        "detail": "Service data covers the next 148 days.",
         "key": "current",
         "met": true
       },
@@ -190,11 +218,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "6872a991790683ae19be7093101ea3f08a95a6b01e6b9cc1ed4c72c0b3ff78d4",
-    "size_bytes": 148250,
+    "sha256": "676bb3acf1f0b0b4dcfe630070f6daf42273c0f0da77c509d54e06c07e5ccd88",
+    "size_bytes": 148076,
     "static_url": "https://gtfs.remix.com/trinity_county_ca.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://gtfs.remix.com/trinity_county_ca.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -123.63142,
@@ -206,8 +241,28 @@
     "lon": -123.09123,
     "stop_count": 73
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 4,
+        "trip_count": 74,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 4,
+    "trip_count": 74
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "34"
     ],
@@ -226,22 +281,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 187 days.",
+        "detail": "Service data covers the next 148 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
-    "margin_to_lower_band": 7.6,
-    "margin_to_next_band": 2.4,
-    "score": 87.6
+    "margin_to_lower_band": 7.5,
+    "margin_to_next_band": 2.5,
+    "score": 87.5
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 33,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -249,13 +310,13 @@
       "owner": "",
       "points": 0.0,
       "severity": "INFO",
-      "what": "33 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Panther Rd.\", \"Big Bar @ Old Market\", \"Wildwood Rd.\", and more).",
+      "what": "33 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"East Fork Rd.\", \"Big Flat @ Trinity Rafting\", \"B Bar K Rd\", and more).",
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -263,11 +324,76 @@
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 46
+    "trips_total": 74
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 4,
+    "has_shapes": true,
+    "path": "data/artifacts/trinity-transit-2709/geometry.geojson",
+    "route_count": 4,
+    "routes": [
+      {
+        "color": "7030A0",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "178",
+        "label": "Hayfork",
+        "long": "Line",
+        "short": "Hayfork",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED7D31",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "180",
+        "label": "Lewiston",
+        "long": "Line",
+        "short": "Lewiston",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "184AAE",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "181",
+        "label": "Willow",
+        "long": "Creek Line",
+        "short": "Willow",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "990033",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "288",
+        "label": "Redding",
+        "long": "Line",
+        "short": "Redding",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 73,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 74 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 74,
+    "trips_with_shape": 74
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -283,27 +409,27 @@
     },
     {
       "code": "trip_distance_exceeds_shape_distance_below_threshold",
-      "count": 21,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "count": 15,
+      "effort": "Usually an export-tool fix, not hand editing.",
+      "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+      "owner": "Likely your export tool",
       "points": 6.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "On some trips the stop distances run a little past the end of the route line.",
+      "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
     },
     {
       "code": "stop_too_far_from_shape_using_user_distance",
-      "count": 3,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "count": 1,
+      "effort": "Usually an export-tool fix, not hand editing.",
+      "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+      "owner": "Likely your export tool",
       "points": 4.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+      "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
     }
   ],
   "validator_version": "8.0.1"

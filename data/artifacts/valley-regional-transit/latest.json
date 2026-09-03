@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "valley-regional-transit",
-    "name": "Valley Regional Transit"
-  },
-  "autofix": {
-    "available": false
+    "name": "Valley Regional Transit",
+    "subdivision_code": "US-ID",
+    "subdivision_name": "Idaho"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 5564,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -57,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 562,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 5564,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -78,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 5564,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -106,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -140,24 +149,24 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "unknown_column",
@@ -179,36 +188,79 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 338,
+        "days_until_expiry": 306,
+        "effective_expiry_date": "2027-06-09",
         "feed_end_date": "2027-06-09",
         "feed_start_date": "2026-06-08",
         "feed_version": "457",
         "has_feed_info": true,
         "last_service_date": "2027-06-09",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 338 days.",
+      "summary": "Service data covers the next 306 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": null,
+        "alerts_content": {
+          "alerts": 14,
+          "ended_over_30_days_ago": 0,
+          "with_cause_and_effect": 12,
+          "with_description": 14,
+          "with_header_text": 14,
+          "with_informed_entity": 14
+        },
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": 74.2,
+        "covered_trips": 23,
+        "drift": {
+          "median_seconds": 120,
+          "observations": 470,
+          "on_time_share_pct": 68.5,
+          "p90_abs_seconds": 660
+        },
+        "kinds_configured": 3,
         "kinds_reachable": 3,
+        "reachable_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 0,
-        "worst_lag_seconds": 20
+        "scheduled_trips_in_window": 31,
+        "vehicles_checked": 75,
+        "vehicles_on_route_pct": 100.0,
+        "worst_lag_seconds": 27
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 8,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "owner": "",
+          "points": 9.0,
+          "severity": "WARNING",
+          "what": "8 of 31 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        }
+      ],
       "name": "realtime",
-      "score": 100.0,
+      "score": 91.0,
       "status": "measured",
-      "summary": "Sampled 9 times outside service hours: 3 of 3 feeds healthy.",
+      "summary": "Sampled 9 times: 3 of 3 configured feeds healthy; 74.2% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 120s behind schedule.",
       "weight": 0.2
     }
   },
@@ -234,7 +286,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 339 days.",
+        "detail": "Service data covers the next 308 days.",
         "key": "current",
         "met": true
       },
@@ -257,10 +309,11 @@
   "fetch": {
     "final_url": "https://www.valleyregionaltransit.org/GTFS/vrt_transit1.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-05T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -116.67576,
@@ -272,8 +325,28 @@
     "lon": -116.24874,
     "stop_count": 562
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 20,
+        "trip_count": 5564,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 20,
+    "trip_count": 5564
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -292,22 +365,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 339 days.",
+        "detail": "Service data covers the next 308 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 8.6,
-    "margin_to_next_band": 1.4,
-    "score": 78.6
+    "margin_to_lower_band": 6.8,
+    "margin_to_next_band": 3.2,
+    "score": 76.8
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 552,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -320,8 +399,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -561,15 +640,20 @@
     "stop_count": 562,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.7",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
   "shapes_readiness": {
     "detail": "All 5564 trips have a shape in shapes.txt.",
     "status": "ready",
     "total_trips": 5564,
     "trips_with_shape": 5564
   },
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -586,8 +670,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 5564,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "virginia-railway-express-vre",
-    "name": "Virginia Railway Express (VRE)"
-  },
-  "autofix": {
-    "available": false
+    "name": "Virginia Railway Express (VRE)",
+    "subdivision_code": "US-VA",
+    "subdivision_name": "Virginia"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 64,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -57,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 67,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 64,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -78,13 +87,13 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 64,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
           "what": "64 of 64 trips don't say whether the vehicle is wheelchair accessible.",
-          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+          "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
         },
         {
           "code": "scorecard_no_fare_data",
@@ -106,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         },
         {
           "code": "scorecard_station_no_pathways",
@@ -157,29 +166,29 @@
           "points": 6.0,
           "severity": "WARNING",
           "what": "Some stops exist in the feed but no trip ever stops at them.",
-          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+          "why": "Riders may walk to a stop where no transit vehicle is scheduled to arrive."
         },
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 21,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong path or point riders to the wrong boarding location."
         },
         {
           "code": "stops_match_shape_out_of_order",
           "count": 6,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+          "why": "Trip planners can draw the transit vehicle doubling back or skipping ahead, which confuses riders reading the map."
         },
         {
           "code": "missing_recommended_field",
@@ -234,13 +243,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -584,
+        "days_until_expiry": -616,
+        "effective_expiry_date": "2024-11-29",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2024-11-29",
         "seasonal_boundary": true,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -252,7 +264,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 584 day(s) ago.",
+          "what": "Service data ended 616 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -270,13 +282,19 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 584 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 616 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions"
+        ],
         "coverage_pct": null,
+        "kinds_configured": 2,
         "kinds_reachable": 0,
+        "reachable_kinds": [],
         "rt_freshness": null,
         "samples": 6,
         "scheduled_trips_in_window": 0,
@@ -289,7 +307,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 50.0,
           "severity": "ERROR",
           "what": "The trip updates realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -300,29 +318,31 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 50.0,
           "severity": "ERROR",
           "what": "The vehicle positions realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_service_alerts_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
         }
       ],
       "name": "realtime",
       "score": 0.0,
       "status": "measured",
-      "summary": "Sampled 6 times outside service hours: 0 of 3 feeds healthy.",
+      "summary": "Sampled 6 times outside service hours: 0 of 2 configured feeds healthy; vehicle position plausibility was not measurable.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "medium",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 6 snapshots.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -333,7 +353,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 582 days ago.",
+        "detail": "Service data expired 614 days ago.",
         "key": "current",
         "met": false
       },
@@ -344,7 +364,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 582 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 614 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -354,13 +374,14 @@
     "static_url": "https://www.vre.org/gtfs/google_transit.zip"
   },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-virginia-virginia-railway-express-vre-gtfs-478.zip?alt=media",
+    "final_url": "https://files.mobilitydatabase.org/mdb-478/latest.zip",
     "max_attempts": 1,
     "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -77.52548,
@@ -372,12 +393,32 @@
     "lon": -77.25349,
     "stop_count": 67
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "rail",
+        "label": "Rail",
+        "route_count": 2,
+        "trip_count": 64,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "rail",
+    "primary_mode_label": "Rail",
+    "route_count": 2,
+    "trip_count": 64
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed's agency_id is 1; your National Transit Database ID is 30073. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
+    "detail": "Your feed's agency_id is 1; your National Transit Database ID is 30073. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "1"
     ],
-    "fix": "Optionally set the agency_id for your service to 30073 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
+    "fix": "Confirm that P-50 crosswalks agency_id 1 to NTD ID 30073, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "30073",
     "status": "mismatch"
   },
@@ -394,13 +435,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 582 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 614 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 582 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 614 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -410,6 +456,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 1,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -421,6 +468,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -433,8 +481,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -488,9 +536,20 @@
     "stop_count": 67,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 64 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 64,
+    "trips_with_shape": 64
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -501,20 +560,8 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 584 day(s) ago.",
+      "what": "Service data ended 616 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
-    },
-    {
-      "code": "location_with_unexpected_stop_time",
-      "count": 1,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'location_with_unexpected_stop_time' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
-      "points": 12.0,
-      "rank": 2,
-      "severity": "ERROR",
-      "what": "Location with unexpected stop time (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
     },
     {
       "code": "scorecard_rt_trip_updates_unreachable",
@@ -522,10 +569,22 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
-      "rank": 3,
+      "points": 50.0,
+      "rank": 2,
       "severity": "ERROR",
       "what": "The trip updates realtime feed failed during sampling.",
+      "why": "When this feed is down, riders see scheduled times presented as if they were live."
+    },
+    {
+      "code": "scorecard_rt_vehicle_positions_unreachable",
+      "count": 1,
+      "effort": "Usually a vendor support ticket.",
+      "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
+      "owner": "",
+      "points": 50.0,
+      "rank": 3,
+      "severity": "ERROR",
+      "what": "The vehicle positions realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     }
   ],

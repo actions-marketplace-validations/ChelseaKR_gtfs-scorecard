@@ -1,23 +1,9 @@
 {
   "agency": {
     "id": "rogue-valley-transportation-district-rvtd-3103",
-    "name": "Rogue Valley Transportation District (RVTD)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/rogue-valley-transportation-district-rvtd-3103/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/rogue-valley-transportation-district-rvtd-3103/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1,
-        "examples": [
-          "VA SORCC -> Va Sorcc"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 1
+    "name": "Rogue Valley Transportation District (RVTD)",
+    "subdivision_code": "US-OR",
+    "subdivision_name": "Oregon"
   },
   "categories": {
     "completeness": {
@@ -31,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -55,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 296,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 99.7,
         "pathways": {
           "has_entrances": false,
@@ -66,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 292,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 296,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -87,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 296,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -127,13 +127,13 @@
         {
           "code": "trip_distance_exceeds_shape_distance_below_threshold",
           "count": 163,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stop distances run a little past the end of the route line.",
+          "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
         },
         {
           "code": "expired_calendar",
@@ -143,7 +143,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -188,13 +188,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -15,
+        "days_until_expiry": -47,
+        "effective_expiry_date": "2026-06-21",
         "feed_end_date": "2026-06-21",
         "feed_start_date": "2025-12-08",
         "feed_version": "05-28-2026 09:00",
         "has_feed_info": true,
         "last_service_date": "2026-06-21",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -206,14 +209,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 15 day(s) ago.",
+          "what": "Service data ended 47 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 15 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 47 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -222,6 +225,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -232,7 +247,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 6 days ago.",
+        "detail": "Service data expired 34 days ago.",
         "key": "current",
         "met": false
       },
@@ -243,7 +258,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 6 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 34 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -252,7 +267,14 @@
     "size_bytes": 163591,
     "static_url": "https://rvtd.org/wp-content/uploads/2026/05/rvtd-or-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "http://www.rvtd.org/wp-content/uploads/2026/05/rvtd-or-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.91976,
@@ -264,8 +286,28 @@
     "lon": -122.85617,
     "stop_count": 292
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 6,
+        "trip_count": 296,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 6,
+    "trip_count": 296
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "981"
     ],
@@ -284,13 +326,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 6 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 34 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 6 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 34 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -300,6 +347,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 233,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -312,8 +360,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -323,9 +371,96 @@
     "single_stop_trips": 0,
     "trips_total": 296
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 6,
+    "has_shapes": true,
+    "path": "data/artifacts/rogue-valley-transportation-district-rvtd-3103/geometry.geojson",
+    "route_count": 6,
+    "routes": [
+      {
+        "color": "6DDD4E",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "12499",
+        "label": "21",
+        "long": "Front Street Station - North Medford",
+        "short": "21",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "693016",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "12501",
+        "label": "24",
+        "long": "Front Street Station - RRMC",
+        "short": "24",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "602271",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "12504",
+        "label": "60",
+        "long": "Medford - White City",
+        "short": "60",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CE3036",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "12505",
+        "label": "10",
+        "long": "Medford - Ashland",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AC3280",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "12506",
+        "label": "40",
+        "long": "Medford - Central Point",
+        "short": "40",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "05472A",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "77484",
+        "label": "4",
+        "long": "Front Street Station - West Medford",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 292,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 296 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 296,
+    "trips_with_shape": 296
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -336,7 +471,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 15 day(s) ago.",
+      "what": "Service data ended 47 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

@@ -1,4 +1,11 @@
 {
+  "_waivers": {
+    "color-contrast": {
+      "reason": "Contrast is owned by the dedicated AAA token gate (pipeline/scripts/check_contrast.py), which verifies every theme and sees through the gradient and texture backgrounds axe cannot. Ignoring the rule here avoids double-counting its false positives; see the comment in .github/workflows/a11y.yml.",
+      "last_reviewed": "2026-07-17",
+      "review": "quarterly, and on any axe-core or pa11y-ci major release"
+    }
+  },
   "defaults": {
     "standard": "WCAG2AA",
     "runners": [
@@ -22,10 +29,12 @@
     "http://127.0.0.1:8080/about/",
     "http://127.0.0.1:8080/how-to-read/",
     "http://127.0.0.1:8080/accessibility/",
+    "http://127.0.0.1:8080/status/",
     "http://127.0.0.1:8080/changes/",
     {"url": "http://127.0.0.1:8080/map/", "timeout": 120000, "wait": 1500},
     "http://127.0.0.1:8080/equity/",
     "http://127.0.0.1:8080/ntd/",
+    "http://127.0.0.1:8080/ntd/shapes/",
     "http://127.0.0.1:8080/realtime/",
     "http://127.0.0.1:8080/problems/",
     "http://127.0.0.1:8080/trends/",
@@ -36,6 +45,7 @@
     "http://127.0.0.1:8080/submit.html",
     "http://127.0.0.1:8080/subscribe.html",
     "http://127.0.0.1:8080/try.html",
+    "http://127.0.0.1:8080/fetcher/",
     {
       "url": "http://127.0.0.1:8080/app/",
       "wait": 6000

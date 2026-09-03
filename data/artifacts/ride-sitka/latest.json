@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "ride-sitka",
-    "name": "RIDE Sitka"
-  },
-  "autofix": {
-    "available": false
+    "name": "RIDE Sitka",
+    "subdivision_code": "US-AK",
+    "subdivision_name": "Alaska"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 3,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -57,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 52,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 3,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.0,
@@ -95,7 +104,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -179,13 +188,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -1648,
+        "days_until_expiry": -1680,
+        "effective_expiry_date": "2021-12-31",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2021-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -197,7 +209,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 1648 day(s) ago.",
+          "what": "Service data ended 1680 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -215,7 +227,7 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 1648 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 1680 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -224,6 +236,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -234,7 +258,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 1646 days ago.",
+        "detail": "Service data expired 1678 days ago.",
         "key": "current",
         "met": false
       },
@@ -245,7 +269,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 1646 days ago. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 1678 days ago. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -255,13 +279,14 @@
     "static_url": "https://transitfeeds.com/p/ride-sitka/713/latest/download"
   },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-alaska-ride-sitka-gtfs-1293.zip?alt=media",
+    "final_url": "https://files.mobilitydatabase.org/mdb-1293/latest.zip",
     "max_attempts": 1,
     "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -135.39964,
@@ -273,10 +298,31 @@
     "lon": -135.34843,
     "stop_count": 52
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 3,
+        "trip_count": 3,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 3,
+    "trip_count": 3
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "Your agency.txt sets no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked on the P-50 form.",
     "feed_agency_ids": [],
-    "status": "unknown"
+    "fix": "Add agency_id to agency.txt and use the same value wherever routes.txt identifies that agency. Keep it stable, and enter its crosswalk to the reporter's NTD ID on P-50. It does not need to equal the five-digit NTD ID.",
+    "status": "missing"
   },
   "ntd_readiness": {
     "pillars": [
@@ -291,13 +337,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 1646 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 1678 days ago, so FTA would find the link out of date.",
         "key": "current",
+        "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form.",
+        "key": "agency_id",
         "status": "not_ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 1646 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 1678 days ago, so FTA would find the link out of date. agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form."
   },
   "overall": {
     "grade": "F",
@@ -307,6 +358,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 19,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -319,8 +371,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -373,9 +425,20 @@
     "stop_count": 52,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 3 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 3,
+    "trips_with_shape": 3
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -386,7 +449,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 1648 day(s) ago.",
+      "what": "Service data ended 1680 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

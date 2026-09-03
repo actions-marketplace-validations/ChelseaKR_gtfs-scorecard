@@ -186,7 +186,7 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 45,
+        "days_until_expiry": 41,
         "feed_end_date": "2026-08-20",
         "feed_start_date": "2026-06-03",
         "feed_version": "UTC: 03-Jun-2026 14:15",
@@ -197,9 +197,9 @@
       },
       "findings": [],
       "name": "freshness",
-      "score": 75.0,
+      "score": 68.3,
       "status": "measured",
-      "summary": "Service data covers the next 45 days.",
+      "summary": "Service data covers the next 41 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -280,9 +280,9 @@
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 4.5,
-    "margin_to_next_band": 5.5,
-    "score": 74.5
+    "margin_to_lower_band": 2.9,
+    "margin_to_next_band": 7.1,
+    "score": 72.9
   },
   "recommendations": [
     {
@@ -309,8 +309,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-07-10",
+    "feed_fetched_date": "2026-07-09",
     "kind": "freshness"
   },
   "routability": {
@@ -334,7 +334,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-07-10",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_accessible_unknown",

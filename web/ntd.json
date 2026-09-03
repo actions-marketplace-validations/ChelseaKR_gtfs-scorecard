@@ -1,23 +1,23 @@
 {
-  "at_risk": 180,
+  "at_risk": 140,
   "by_state": {
     "Alabama": {
       "at_risk": 0,
       "not_ready": 6,
-      "ready": 4,
-      "total": 10
+      "ready": 3,
+      "total": 9
     },
     "Alaska": {
-      "at_risk": 2,
+      "at_risk": 1,
       "not_ready": 2,
-      "ready": 5,
-      "total": 9
+      "ready": 3,
+      "total": 6
     },
     "Arizona": {
       "at_risk": 0,
-      "not_ready": 20,
-      "ready": 10,
-      "total": 30
+      "not_ready": 15,
+      "ready": 8,
+      "total": 23
     },
     "Arkansas": {
       "at_risk": 0,
@@ -27,21 +27,21 @@
     },
     "California": {
       "at_risk": 24,
-      "not_ready": 108,
-      "ready": 67,
-      "total": 199
+      "not_ready": 100,
+      "ready": 62,
+      "total": 186
     },
     "Colorado": {
-      "at_risk": 24,
-      "not_ready": 34,
-      "ready": 68,
-      "total": 126
+      "at_risk": 21,
+      "not_ready": 22,
+      "ready": 52,
+      "total": 95
     },
     "Connecticut": {
       "at_risk": 0,
-      "not_ready": 7,
-      "ready": 8,
-      "total": 15
+      "not_ready": 5,
+      "ready": 6,
+      "total": 11
     },
     "Delaware": {
       "at_risk": 1,
@@ -51,21 +51,21 @@
     },
     "District of Columbia": {
       "at_risk": 0,
-      "not_ready": 6,
+      "not_ready": 5,
       "ready": 0,
-      "total": 6
+      "total": 5
     },
     "Florida": {
-      "at_risk": 2,
-      "not_ready": 33,
-      "ready": 17,
-      "total": 52
+      "at_risk": 3,
+      "not_ready": 27,
+      "ready": 13,
+      "total": 43
     },
     "Georgia": {
       "at_risk": 0,
-      "not_ready": 15,
+      "not_ready": 13,
       "ready": 3,
-      "total": 18
+      "total": 16
     },
     "Hawaii": {
       "at_risk": 1,
@@ -75,27 +75,27 @@
     },
     "Idaho": {
       "at_risk": 0,
-      "not_ready": 2,
+      "not_ready": 1,
       "ready": 2,
-      "total": 4
+      "total": 3
     },
     "Illinois": {
-      "at_risk": 2,
-      "not_ready": 8,
-      "ready": 7,
-      "total": 17
+      "at_risk": 3,
+      "not_ready": 7,
+      "ready": 5,
+      "total": 15
     },
     "Indiana": {
       "at_risk": 0,
-      "not_ready": 6,
-      "ready": 7,
-      "total": 13
+      "not_ready": 5,
+      "ready": 6,
+      "total": 11
     },
     "Iowa": {
-      "at_risk": 8,
+      "at_risk": 4,
       "not_ready": 3,
-      "ready": 23,
-      "total": 34
+      "ready": 14,
+      "total": 21
     },
     "Kansas": {
       "at_risk": 1,
@@ -104,10 +104,10 @@
       "total": 6
     },
     "Kentucky": {
-      "at_risk": 3,
+      "at_risk": 2,
       "not_ready": 3,
       "ready": 2,
-      "total": 8
+      "total": 7
     },
     "Louisiana": {
       "at_risk": 1,
@@ -116,28 +116,28 @@
       "total": 3
     },
     "Maine": {
-      "at_risk": 1,
+      "at_risk": 2,
       "not_ready": 4,
-      "ready": 2,
+      "ready": 1,
       "total": 7
     },
     "Maryland": {
       "at_risk": 4,
-      "not_ready": 21,
+      "not_ready": 19,
       "ready": 11,
-      "total": 36
+      "total": 34
     },
     "Massachusetts": {
-      "at_risk": 5,
-      "not_ready": 30,
-      "ready": 32,
-      "total": 67
+      "at_risk": 3,
+      "not_ready": 18,
+      "ready": 20,
+      "total": 41
     },
     "Michigan": {
       "at_risk": 0,
-      "not_ready": 13,
+      "not_ready": 9,
       "ready": 9,
-      "total": 22
+      "total": 18
     },
     "Minnesota": {
       "at_risk": 3,
@@ -147,21 +147,21 @@
     },
     "Mississippi": {
       "at_risk": 1,
-      "not_ready": 2,
+      "not_ready": 1,
       "ready": 1,
-      "total": 4
+      "total": 3
     },
     "Missouri": {
-      "at_risk": 1,
-      "not_ready": 3,
-      "ready": 2,
-      "total": 6
+      "at_risk": 0,
+      "not_ready": 2,
+      "ready": 3,
+      "total": 5
     },
     "Montana": {
       "at_risk": 0,
-      "not_ready": 6,
-      "ready": 3,
-      "total": 9
+      "not_ready": 4,
+      "ready": 2,
+      "total": 6
     },
     "Nebraska": {
       "at_risk": 0,
@@ -171,9 +171,9 @@
     },
     "Nevada": {
       "at_risk": 1,
-      "not_ready": 3,
-      "ready": 5,
-      "total": 9
+      "not_ready": 2,
+      "ready": 3,
+      "total": 6
     },
     "New Hampshire": {
       "at_risk": 0,
@@ -183,27 +183,27 @@
     },
     "New Jersey": {
       "at_risk": 2,
-      "not_ready": 2,
+      "not_ready": 1,
       "ready": 3,
-      "total": 7
+      "total": 6
     },
     "New Mexico": {
       "at_risk": 2,
-      "not_ready": 16,
+      "not_ready": 10,
       "ready": 2,
-      "total": 20
+      "total": 14
     },
     "New York": {
-      "at_risk": 9,
-      "not_ready": 34,
-      "ready": 44,
-      "total": 87
+      "at_risk": 6,
+      "not_ready": 35,
+      "ready": 43,
+      "total": 84
     },
     "North Carolina": {
-      "at_risk": 4,
-      "not_ready": 24,
-      "ready": 8,
-      "total": 36
+      "at_risk": 2,
+      "not_ready": 13,
+      "ready": 9,
+      "total": 24
     },
     "North Dakota": {
       "at_risk": 0,
@@ -212,10 +212,10 @@
       "total": 3
     },
     "Ohio": {
-      "at_risk": 2,
+      "at_risk": 3,
       "not_ready": 9,
-      "ready": 10,
-      "total": 21
+      "ready": 7,
+      "total": 19
     },
     "Oklahoma": {
       "at_risk": 0,
@@ -225,51 +225,51 @@
     },
     "Oregon": {
       "at_risk": 6,
-      "not_ready": 39,
-      "ready": 47,
-      "total": 92
+      "not_ready": 28,
+      "ready": 44,
+      "total": 78
     },
     "Pennsylvania": {
       "at_risk": 2,
-      "not_ready": 9,
+      "not_ready": 8,
       "ready": 5,
-      "total": 16
+      "total": 15
     },
     "Rhode Island": {
       "at_risk": 0,
       "not_ready": 1,
-      "ready": 4,
-      "total": 5
+      "ready": 2,
+      "total": 3
     },
     "South Carolina": {
       "at_risk": 0,
-      "not_ready": 4,
-      "ready": 3,
-      "total": 7
+      "not_ready": 2,
+      "ready": 2,
+      "total": 4
     },
     "South Dakota": {
       "at_risk": 0,
-      "not_ready": 2,
+      "not_ready": 1,
       "ready": 0,
-      "total": 2
+      "total": 1
     },
     "Tennessee": {
       "at_risk": 2,
       "not_ready": 6,
-      "ready": 3,
-      "total": 11
+      "ready": 2,
+      "total": 10
     },
     "Texas": {
       "at_risk": 4,
-      "not_ready": 4,
-      "ready": 9,
-      "total": 17
+      "not_ready": 5,
+      "ready": 6,
+      "total": 15
     },
     "Unlocated": {
-      "at_risk": 15,
-      "not_ready": 73,
-      "ready": 70,
-      "total": 158
+      "at_risk": 10,
+      "not_ready": 20,
+      "ready": 38,
+      "total": 68
     },
     "Utah": {
       "at_risk": 2,
@@ -278,40 +278,40 @@
       "total": 5
     },
     "Vermont": {
-      "at_risk": 4,
-      "not_ready": 8,
-      "ready": 16,
-      "total": 28
+      "at_risk": 2,
+      "not_ready": 4,
+      "ready": 10,
+      "total": 16
     },
     "Virginia": {
-      "at_risk": 28,
-      "not_ready": 15,
-      "ready": 32,
-      "total": 75
+      "at_risk": 11,
+      "not_ready": 13,
+      "ready": 34,
+      "total": 58
     },
     "Washington": {
-      "at_risk": 13,
-      "not_ready": 26,
-      "ready": 56,
-      "total": 95
+      "at_risk": 10,
+      "not_ready": 19,
+      "ready": 49,
+      "total": 78
     },
     "West Virginia": {
       "at_risk": 0,
-      "not_ready": 0,
-      "ready": 1,
+      "not_ready": 1,
+      "ready": 0,
       "total": 1
     },
     "Wisconsin": {
       "at_risk": 0,
-      "not_ready": 10,
-      "ready": 12,
-      "total": 22
+      "not_ready": 7,
+      "ready": 8,
+      "total": 15
     }
   },
-  "not_ready": 640,
+  "not_ready": 479,
   "one_fix_from_ready": [
     {
-      "fix": "Service data expired 918 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 922 days ago, so FTA would find the link out of date.",
       "id": "81-connection-citygo-kanconnect",
       "name": "81 Connection, CityGo, KanConnect",
       "pillar": "current",
@@ -319,7 +319,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 1181 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 1185 days ago, so FTA would find the link out of date.",
       "id": "academy-bus",
       "name": "Academy Bus",
       "pillar": "current",
@@ -327,15 +327,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 1202 days ago, so FTA would find the link out of date.",
-      "id": "advance-transit-at",
-      "name": "Advance Transit (AT)",
-      "pillar": "current",
-      "state": "New Hampshire",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 1269 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 1273 days ago, so FTA would find the link out of date.",
       "id": "akron-metro-regional-transit-authority-metro",
       "name": "Akron Metro Regional Transit Authority (METRO)",
       "pillar": "current",
@@ -343,7 +335,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 856 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 860 days ago, so FTA would find the link out of date.",
       "id": "alameda-contra-costa-transit-district-ac-transit",
       "name": "Alameda-Contra Costa Transit District (AC Transit)",
       "pillar": "current",
@@ -351,7 +343,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 1648 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 1652 days ago, so FTA would find the link out of date.",
       "id": "amarillo-city-transit",
       "name": "Amarillo City Transit",
       "pillar": "current",
@@ -359,7 +351,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 6 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 10 days ago, so FTA would find the link out of date.",
       "id": "amtrak-san-joaquins",
       "name": "Amtrak San Joaquins",
       "pillar": "current",
@@ -375,7 +367,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 1800 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 1804 days ago, so FTA would find the link out of date.",
       "id": "antelope-valley-transit-authority-avta",
       "name": "Antelope Valley Transit Authority (AVTA)",
       "pillar": "current",
@@ -383,7 +375,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 279 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 283 days ago, so FTA would find the link out of date.",
       "id": "areawide-community-transportation-system",
       "name": "Areawide Community Transportation System",
       "pillar": "current",
@@ -391,23 +383,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 6 days ago, so FTA would find the link out of date.",
-      "id": "asheville-rides-transit",
-      "name": "Asheville Rides Transit",
-      "pillar": "current",
-      "state": "North Carolina",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 6 days ago, so FTA would find the link out of date.",
-      "id": "asheville-rides-transit-903",
-      "name": "Asheville Rides Transit",
-      "pillar": "current",
-      "state": "North Carolina",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 3109 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 3113 days ago, so FTA would find the link out of date.",
       "id": "athens-public-transit",
       "name": "Athens Public Transit",
       "pillar": "current",
@@ -415,15 +391,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 918 days ago, so FTA would find the link out of date.",
-      "id": "athens-public-transit-1973",
-      "name": "Athens Public Transit",
-      "pillar": "current",
-      "state": "Ohio",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 3109 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 3113 days ago, so FTA would find the link out of date.",
       "id": "atlanta-streetcar",
       "name": "Atlanta Streetcar",
       "pillar": "current",
@@ -431,23 +399,15 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 827 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 831 days ago, so FTA would find the link out of date.",
       "id": "avalon-transit",
-      "name": "Avalon Transit",
-      "pillar": "current",
-      "state": "Unlocated",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 827 days ago, so FTA would find the link out of date.",
-      "id": "avalon-transit-12",
       "name": "Avalon Transit",
       "pillar": "current",
       "state": "California",
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 449 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 453 days ago, so FTA would find the link out of date.",
       "id": "avon-transit",
       "name": "Avon Transit",
       "pillar": "current",
@@ -455,15 +415,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 449 days ago, so FTA would find the link out of date.",
-      "id": "avon-transit-218",
-      "name": "Avon Transit",
-      "pillar": "current",
-      "state": "Colorado",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 1640 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 1644 days ago, so FTA would find the link out of date.",
       "id": "bay-area-transportation-authority",
       "name": "Bay Area Transportation Authority",
       "pillar": "current",
@@ -471,15 +423,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 1640 days ago, so FTA would find the link out of date.",
-      "id": "bay-area-transportation-authority-223",
-      "name": "Bay Area Transportation Authority",
-      "pillar": "current",
-      "state": "Michigan",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 218 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 222 days ago, so FTA would find the link out of date.",
       "id": "bay-town-trolley",
       "name": "Bay Town Trolley",
       "pillar": "current",
@@ -487,15 +431,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 218 days ago, so FTA would find the link out of date.",
-      "id": "bay-town-trolley-337",
-      "name": "Bay Town Trolley",
-      "pillar": "current",
-      "state": "Florida",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 1282 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 1286 days ago, so FTA would find the link out of date.",
       "id": "beach-cities-transit",
       "name": "Beach Cities Transit",
       "pillar": "current",
@@ -503,7 +439,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 1648 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 1652 days ago, so FTA would find the link out of date.",
       "id": "beaver-county-transit-authority",
       "name": "Beaver County Transit Authority",
       "pillar": "current",
@@ -511,7 +447,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 827 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 831 days ago, so FTA would find the link out of date.",
       "id": "ben-franklin-transit",
       "name": "Ben Franklin Transit",
       "pillar": "current",
@@ -519,7 +455,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 187 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 191 days ago, so FTA would find the link out of date.",
       "id": "benson-area-transit",
       "name": "Benson Area Transit",
       "pillar": "current",
@@ -527,15 +463,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 187 days ago, so FTA would find the link out of date.",
-      "id": "benson-area-transit-229",
-      "name": "Benson Area Transit",
-      "pillar": "current",
-      "state": "Arizona",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 1283 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 1287 days ago, so FTA would find the link out of date.",
       "id": "berks-area-regional-transportation-authority-barta",
       "name": "Berks Area Regional Transportation Authority (BARTA)",
       "pillar": "current",
@@ -543,7 +471,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 643 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 647 days ago, so FTA would find the link out of date.",
       "id": "bethesda-circulator",
       "name": "Bethesda Circulator",
       "pillar": "current",
@@ -551,7 +479,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 2744 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 2748 days ago, so FTA would find the link out of date.",
       "id": "birmingham-jefferson-county-transit-authority-max",
       "name": "Birmingham Jefferson County Transit Authority (MAX)",
       "pillar": "current",
@@ -559,7 +487,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 401 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 405 days ago, so FTA would find the link out of date.",
       "id": "birmingham-jefferson-county-transit-authority-max-2263",
       "name": "Birmingham Jefferson County Transit Authority (MAX)",
       "pillar": "current",
@@ -567,7 +495,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 3838 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 3842 days ago, so FTA would find the link out of date.",
       "id": "bloom-tours",
       "name": "Bloom Tours",
       "pillar": "current",
@@ -575,15 +503,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 1416 days ago, so FTA would find the link out of date.",
-      "id": "bloomington-transit",
-      "name": "Bloomington Transit",
-      "pillar": "current",
-      "state": "Indiana",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 187 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 191 days ago, so FTA would find the link out of date.",
       "id": "blue-sky-limo-llc",
       "name": "Blue Sky Limo LLC",
       "pillar": "current",
@@ -591,7 +511,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 2828 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 2832 days ago, so FTA would find the link out of date.",
       "id": "boston-harbor-islands-ferries",
       "name": "Boston Harbor Islands Ferries",
       "pillar": "current",
@@ -599,7 +519,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 85 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 89 days ago, so FTA would find the link out of date.",
       "id": "breckenridge-free-ride",
       "name": "Breckenridge Free Ride",
       "pillar": "current",
@@ -607,15 +527,7 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 85 days ago, so FTA would find the link out of date.",
-      "id": "breckenridge-free-ride-237",
-      "name": "Breckenridge Free Ride",
-      "pillar": "current",
-      "state": "Colorado",
-      "status": "not_ready"
-    },
-    {
-      "fix": "Service data expired 437 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 441 days ago, so FTA would find the link out of date.",
       "id": "breeze-transit",
       "name": "Breeze Transit",
       "pillar": "current",
@@ -623,16 +535,395 @@
       "status": "not_ready"
     },
     {
-      "fix": "Service data expired 186 days ago, so FTA would find the link out of date.",
+      "fix": "Service data expired 190 days ago, so FTA would find the link out of date.",
       "id": "brite",
       "name": "Brite",
       "pillar": "current",
       "state": "Virginia",
       "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 566 days ago, so FTA would find the link out of date.",
+      "id": "washington-metropolitan-area-transit-authority-wmata",
+      "name": "Bus",
+      "pillar": "current",
+      "state": "District of Columbia",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 195 days ago, so FTA would find the link out of date.",
+      "id": "butte-regional-transit-b-line",
+      "name": "Butte Regional Transit (B-Line)",
+      "pillar": "current",
+      "state": "Montana",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 14 days ago, so FTA would find the link out of date.",
+      "id": "cape-cod-regional-transportation-authority-cape-cod-rta",
+      "name": "Cape Cod Regional Transportation Authority (Cape Cod RTA)",
+      "pillar": "current",
+      "state": "Massachusetts",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 831 days ago, so FTA would find the link out of date.",
+      "id": "capital-area-transit-goraleigh",
+      "name": "Capital Area Transit (GoRaleigh)",
+      "pillar": "current",
+      "state": "North Carolina",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 709 days ago, so FTA would find the link out of date.",
+      "id": "capital-area-transit-goraleigh-1983",
+      "name": "Capital Area Transit (GoRaleigh)",
+      "pillar": "current",
+      "state": "North Carolina",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 1106 days ago, so FTA would find the link out of date.",
+      "id": "capitol-corridor-joint-powers-authority-capitol-corridor",
+      "name": "Capitol Corridor Joint Powers Authority (Capitol Corridor)",
+      "pillar": "current",
+      "state": "Unlocated",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 191 days ago, so FTA would find the link out of date.",
+      "id": "carlsbad-municipal-transit-system-2284",
+      "name": "Carlsbad Municipal Transit System",
+      "pillar": "current",
+      "state": "New Mexico",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 808 days ago, so FTA would find the link out of date.",
+      "id": "cascades-east-transit-cet",
+      "name": "Cascades East Transit (CET)",
+      "pillar": "current",
+      "state": "Oregon",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 1404 days ago, so FTA would find the link out of date.",
+      "id": "casco-bay-lines",
+      "name": "Casco Bay Lines",
+      "pillar": "current",
+      "state": "Maine",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 574 days ago, so FTA would find the link out of date.",
+      "id": "cat-tran-shuttle-2206",
+      "name": "Cat Tran Shuttle",
+      "pillar": "current",
+      "state": "Arizona",
+      "status": "not_ready"
+    },
+    {
+      "fix": "Service data expired 1615 days ago, so FTA would find the link out of date.",
+      "id": "charlotte-area-transit-system-cats",
+      "name": "Charlotte Area Transit System (CATS)",
+      "pillar": "current",
+      "state": "North Carolina",
+      "status": "not_ready"
     }
   ],
-  "one_fix_total": 505,
-  "pct_ready": 43.3,
-  "ready": 626,
-  "total": 1446
+  "one_fix_total": 372,
+  "pct_ready": 45.0,
+  "ready": 506,
+  "shapes": {
+    "at_risk": 12,
+    "by_state": {
+      "Alabama": {
+        "at_risk": 0,
+        "not_ready": 1,
+        "ready": 4,
+        "total": 5
+      },
+      "Alaska": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 1,
+        "total": 1
+      },
+      "Arizona": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 5,
+        "total": 5
+      },
+      "Arkansas": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 1,
+        "total": 1
+      },
+      "California": {
+        "at_risk": 1,
+        "not_ready": 1,
+        "ready": 54,
+        "total": 56
+      },
+      "Colorado": {
+        "at_risk": 1,
+        "not_ready": 0,
+        "ready": 14,
+        "total": 15
+      },
+      "Connecticut": {
+        "at_risk": 0,
+        "not_ready": 2,
+        "ready": 1,
+        "total": 3
+      },
+      "District of Columbia": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 3,
+        "total": 3
+      },
+      "Florida": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 9,
+        "total": 9
+      },
+      "Georgia": {
+        "at_risk": 0,
+        "not_ready": 2,
+        "ready": 3,
+        "total": 5
+      },
+      "Hawaii": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 3,
+        "total": 3
+      },
+      "Idaho": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 1,
+        "total": 1
+      },
+      "Illinois": {
+        "at_risk": 0,
+        "not_ready": 1,
+        "ready": 5,
+        "total": 6
+      },
+      "Indiana": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 6,
+        "total": 6
+      },
+      "Iowa": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 2,
+        "total": 2
+      },
+      "Kansas": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 4,
+        "total": 4
+      },
+      "Kentucky": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 4,
+        "total": 4
+      },
+      "Louisiana": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 2,
+        "total": 2
+      },
+      "Maine": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 4,
+        "total": 4
+      },
+      "Maryland": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 11,
+        "total": 11
+      },
+      "Massachusetts": {
+        "at_risk": 0,
+        "not_ready": 1,
+        "ready": 4,
+        "total": 5
+      },
+      "Michigan": {
+        "at_risk": 0,
+        "not_ready": 1,
+        "ready": 3,
+        "total": 4
+      },
+      "Minnesota": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 2,
+        "total": 2
+      },
+      "Mississippi": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 1,
+        "total": 1
+      },
+      "Missouri": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 3,
+        "total": 3
+      },
+      "Montana": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 1,
+        "total": 1
+      },
+      "Nebraska": {
+        "at_risk": 1,
+        "not_ready": 0,
+        "ready": 0,
+        "total": 1
+      },
+      "New Hampshire": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 2,
+        "total": 2
+      },
+      "New Jersey": {
+        "at_risk": 1,
+        "not_ready": 0,
+        "ready": 3,
+        "total": 4
+      },
+      "New Mexico": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 5,
+        "total": 5
+      },
+      "New York": {
+        "at_risk": 3,
+        "not_ready": 0,
+        "ready": 18,
+        "total": 21
+      },
+      "North Carolina": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 11,
+        "total": 11
+      },
+      "North Dakota": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 2,
+        "total": 2
+      },
+      "Ohio": {
+        "at_risk": 1,
+        "not_ready": 0,
+        "ready": 6,
+        "total": 7
+      },
+      "Oklahoma": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 3,
+        "total": 3
+      },
+      "Oregon": {
+        "at_risk": 0,
+        "not_ready": 4,
+        "ready": 15,
+        "total": 19
+      },
+      "Pennsylvania": {
+        "at_risk": 1,
+        "not_ready": 2,
+        "ready": 3,
+        "total": 6
+      },
+      "South Carolina": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 1,
+        "total": 1
+      },
+      "Tennessee": {
+        "at_risk": 0,
+        "not_ready": 1,
+        "ready": 4,
+        "total": 5
+      },
+      "Texas": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 7,
+        "total": 7
+      },
+      "Unlocated": {
+        "at_risk": 1,
+        "not_ready": 0,
+        "ready": 15,
+        "total": 16
+      },
+      "Utah": {
+        "at_risk": 0,
+        "not_ready": 1,
+        "ready": 3,
+        "total": 4
+      },
+      "Vermont": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 4,
+        "total": 4
+      },
+      "Virginia": {
+        "at_risk": 2,
+        "not_ready": 1,
+        "ready": 17,
+        "total": 20
+      },
+      "Washington": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 10,
+        "total": 10
+      },
+      "West Virginia": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 1,
+        "total": 1
+      },
+      "Wisconsin": {
+        "at_risk": 0,
+        "not_ready": 0,
+        "ready": 4,
+        "total": 4
+      }
+    },
+    "not_ready": 18,
+    "pct_ready": 90.5,
+    "ready": 285,
+    "total": 315
+  },
+  "total": 1125
 }

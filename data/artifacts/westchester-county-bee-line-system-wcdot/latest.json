@@ -1,35 +1,9 @@
 {
   "agency": {
     "id": "westchester-county-bee-line-system-wcdot",
-    "name": "Westchester County Bee-Line System (WCDOT)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/westchester-county-bee-line-system-wcdot/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/westchester-county-bee-line-system-wcdot/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 2640,
-        "examples": [
-          "SAW MILL RIVER RD @ PALMER RD -> Saw Mill River Rd @ Palmer Rd",
-          "MAPLE AVE @ MUNICIPAL PL -> Maple Ave @ Municipal Pl",
-          "KINGS FERRY RD @ POST HAMOCK HOUSE -> Kings Ferry Rd @ Post Hamock House"
-        ],
-        "label": "Recased shouting stop names"
-      },
-      {
-        "code": "autofix_route_name_case",
-        "count": 56,
-        "examples": [
-          "40 - MT VERNON-WHITE PLAINS-WC MC -> 40 - Mt Vernon-white Plains-wc Mc",
-          "4 - THE BRONX-YONKERS -> 4 - The Bronx-yonkers",
-          "20 - THE BRONX-WHITE PLAINS -> 20 - The Bronx-white Plains"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 2696
+    "name": "Westchester County Bee-Line System (WCDOT)",
+    "subdivision_code": "US-NY",
+    "subdivision_name": "New York"
   },
   "categories": {
     "completeness": {
@@ -43,11 +17,15 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
           "headsigns": 15.0,
-          "stop_names": 1.0,
+          "stop_names": 1.1,
           "wheelchair_stops": 25.0,
           "wheelchair_trips": 0.0
         },
@@ -67,8 +45,11 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 4211,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
-        "mixed_case_stop_name_pct": 6.7,
+        "headsign_scored_pct": 100.0,
+        "mixed_case_stop_name_pct": 7.1,
         "pathways": {
           "has_entrances": false,
           "has_levels": false,
@@ -77,8 +58,15 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 2831,
-        "trips": 4142,
+        "stops": 2848,
+        "translations": {
+          "feed_lang": "EN-US",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 4211,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 100.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -87,13 +75,13 @@
       "findings": [
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 4142,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "count": 4211,
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "4142 of 4142 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "4211 of 4211 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
@@ -109,13 +97,13 @@
         },
         {
           "code": "scorecard_stop_names_all_caps",
-          "count": 2640,
+          "count": 2647,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
-          "points": 14.0,
+          "points": 13.9,
           "severity": "INFO",
-          "what": "About 2640 stop names are written in ALL CAPS.",
+          "what": "About 2647 stop names are written in ALL CAPS.",
           "why": "Mixed-case names are easier to read in apps and are read more naturally by screen readers."
         },
         {
@@ -127,40 +115,40 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
-      "score": 48.5,
+      "score": 48.6,
       "status": "measured",
       "summary": "100% of stops state wheelchair accessibility (0% marked accessible, 100% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is not published.",
       "weight": 0.25
     },
     "correctness": {
       "details": {
-        "distinct_codes": 9,
+        "distinct_codes": 8,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 3,
-          "WARNING": 48470
+          "WARNING": 49172
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "fast_travel_between_consecutive_stops",
-          "count": 41064,
+          "count": 41905,
           "effort": "A few minutes per flagged trip.",
           "fix": "Check the flagged stop times for transposed minutes.",
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "mixed_case_recommended_field",
-          "count": 5666,
+          "count": 5511,
           "effort": "Often a bulk fix in your scheduling software.",
           "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
           "owner": "Likely your export tool",
@@ -171,40 +159,29 @@
         },
         {
           "code": "trip_distance_exceeds_shape_distance_below_threshold",
-          "count": 1610,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "count": 1694,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "same_name_and_description_for_stop",
-          "count": 71,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'same_name_and_description_for_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 8.0,
-          "severity": "WARNING",
-          "what": "Same name and description for stop (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stop distances run a little past the end of the route line.",
+          "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
         },
         {
           "code": "route_long_name_contains_short_name",
-          "count": 57,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "count": 59,
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "fast_travel_between_far_stops",
-          "count": 1,
+          "count": 2,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'fast_travel_between_far_stops' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
@@ -216,24 +193,24 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "trip_headsign_matches_intermediate_stop",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_headsign_matches_intermediate_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Set trip_headsign to the trip's last stop or its overall destination.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Trip headsign matches intermediate stop (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some trip headsigns name a stop along the way, not the final destination.",
+          "why": "The sign should tell riders where the bus ends up, so a midpoint name can send them the wrong way."
         },
         {
           "code": "unknown_column",
@@ -248,27 +225,30 @@
         }
       ],
       "name": "correctness",
-      "score": 51.0,
+      "score": 59.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 9 kinds of issue across 48473 instances (0 error, 48470 warning, 3 informational).",
+      "summary": "The MobilityData validator flagged 8 kinds of issue across 49175 instances (0 error, 49172 warning, 3 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 71,
-        "feed_end_date": "2026-09-15",
-        "feed_start_date": "2026-06-01",
-        "feed_version": "20260611_180802",
+        "days_until_expiry": 73,
+        "effective_expiry_date": "2026-10-19",
+        "feed_end_date": "2026-10-19",
+        "feed_start_date": "2026-07-06",
+        "feed_version": "20260712_180749",
         "has_feed_info": true,
-        "last_service_date": "2026-09-15",
+        "last_service_date": "2026-10-19",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 71 days.",
+      "summary": "Service data covers the next 73 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -277,6 +257,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -287,7 +279,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 80 days.",
+        "detail": "Service data covers the next 75 days.",
         "key": "current",
         "met": true
       },
@@ -303,11 +295,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "5e88001b0d970c3e6b8cfc2efa255ae394f68a06cc727b14493b1c7bfffbed5e",
-    "size_bytes": 5022181,
+    "sha256": "71f378e430f9ef2bd2615639acd8eef4fd2c42cd70268b44204969465ac45ff0",
+    "size_bytes": 4748790,
     "static_url": "https://s3.amazonaws.com/datatools-511ny/public/Westchester_County_Bee-Line_System.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://s3.amazonaws.com/datatools-511ny/public/Westchester_County_Bee-Line_System.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -73.99005,
@@ -315,12 +314,32 @@
       -73.65972,
       41.42193
     ],
-    "lat": 40.98086,
-    "lon": -73.81934,
-    "stop_count": 2831
+    "lat": 40.98016,
+    "lon": -73.82054,
+    "stop_count": 2848
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 59,
+        "trip_count": 4211,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 59,
+    "trip_count": 4211
   },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "20076"
     ],
@@ -339,70 +358,747 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 80 days.",
+        "detail": "Service data covers the next 75 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "D",
-    "margin_to_lower_band": 2.5,
-    "margin_to_next_band": 7.5,
-    "score": 62.5
+    "margin_to_lower_band": 6.0,
+    "margin_to_next_band": 4.0,
+    "score": 66.0
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
-      "count": 57,
+      "count": 59,
       "effort": "A per-route color setting in your scheduling software.",
       "fix": "Adjust route_color or route_text_color so each pair clears 4.5:1. Often switching the text between black and white is enough.",
       "owner": "Likely your export tool",
       "points": 0.0,
       "severity": "WARNING",
-      "what": "57 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (40, 4, 20, 7, 2, and more).",
+      "what": "59 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (20, 42, 1, 6, 2, and more).",
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
-      "count": 2754,
+      "count": 2772,
       "effort": "A short text field per affected stop; start with the busiest.",
       "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
       "owner": "",
       "points": 0.0,
       "severity": "INFO",
-      "what": "2754 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"SAW MILL RIVER RD @ PALMER RD\", \"MAPLE AVE @ MUNICIPAL PL\", \"KINGS FERRY RD @ POST HAMOCK HOUSE\", and more).",
+      "what": "2772 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"SAW MILL RIVER RD @ PALMER RD\", \"MAPLE AVE @ MUNICIPAL PL\", \"KINGS FERRY RD @ POST HAMOCK HOUSE\", and more).",
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
-    "boardable_stops": 2831,
+    "boardable_stops": 2848,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 4142
+    "trips_total": 4211
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 59,
+    "has_shapes": true,
+    "path": "data/artifacts/westchester-county-bee-line-system-wcdot/geometry.geojson",
+    "route_count": 59,
+    "routes": [
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "100",
+        "label": "27",
+        "long": "27 - SKYLINE DRIVE-EASTVIEW-WP",
+        "short": "27",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "101",
+        "label": "28",
+        "long": "28 - BxM4C",
+        "short": "28",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "102",
+        "label": "31",
+        "long": "31 - PEEKSKILL COMMUTER LOOP",
+        "short": "31",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "103",
+        "label": "32",
+        "long": "32 - YONKERS LOOP",
+        "short": "32",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "104",
+        "label": "34",
+        "long": "34 - ORCHARD HILL",
+        "short": "34",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "105",
+        "label": "38",
+        "long": "38 - SECOR RD COMMUTER",
+        "short": "38",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "106",
+        "label": "39",
+        "long": "39 - RIDGE RD COMMUTER",
+        "short": "39",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "107",
+        "label": "41",
+        "long": "41 - MT VERNON-WHITE PLAINS-WC MC",
+        "short": "41",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "108",
+        "label": "43",
+        "long": "43 - BRONX-MT VERNON-WESTCHESTER MC",
+        "short": "43",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "109",
+        "label": "53",
+        "long": "53 - MT VERNON-CHESTER HEIGHTS",
+        "short": "53",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "110",
+        "label": "54",
+        "long": "54 - MT VERNON LOCAL",
+        "short": "54",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "111",
+        "label": "62",
+        "long": "62 -BRONX-NEW ROCHELLE-WHITE PLAINS",
+        "short": "62",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "112",
+        "label": "64",
+        "long": "64 - GREEN KNOLLS COMMUTER",
+        "short": "64",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "113",
+        "label": "65",
+        "long": "65 - LONGVIEW COMMUTER",
+        "short": "65",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "114",
+        "label": "66",
+        "long": "66 -DOBBS FERRY-SCARSDALE-LARCHMONT",
+        "short": "66",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "116",
+        "label": "71",
+        "long": "71 - LARCHMONT MANOR COMMUTER",
+        "short": "71",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "117",
+        "label": "77",
+        "long": "77 - CARMEL-YORKTOWN-WHITE PLAINS",
+        "short": "77",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "118",
+        "label": "80",
+        "long": "80 - SHUTTLE LOOP H",
+        "short": "80",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "119",
+        "label": "81",
+        "long": "81 - SHUTTLE LOOP A",
+        "short": "81",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "120",
+        "label": "82",
+        "long": "82 - SHUTTLE LOOP B",
+        "short": "82",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "121",
+        "label": "83",
+        "long": "83 - SHUTTLE LOOP C",
+        "short": "83",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "122",
+        "label": "85",
+        "long": "85 - SHUTTLE LOOP D",
+        "short": "85",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "123",
+        "label": "87",
+        "long": "87 - SHUTTLE LOOP F",
+        "short": "87",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "199",
+        "label": "25",
+        "long": "25 - THE BRONX-YONKERS",
+        "short": "25",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "200",
+        "label": "26",
+        "long": "26 - THE BRONX-YONKERS",
+        "short": "26",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "202",
+        "label": "91",
+        "long": "91 - YONKERS-MT VERNON-NEW ROCHELLE",
+        "short": "91",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "203",
+        "label": "10",
+        "long": "10 - CROTON COMMUTER",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "298",
+        "label": "70",
+        "long": "70 - BONNIE BRIAR COMMUTER",
+        "short": "70",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "299",
+        "label": "18",
+        "long": "18 - PEEKSKILL COMMUTER",
+        "short": "18",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "331",
+        "label": "75",
+        "long": "75 - RYE RR STATION - PLAYLAND",
+        "short": "75",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "67",
+        "label": "1",
+        "long": "1 - COLLEGE-TARRYTOWN-WHITE PLAINS",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "68",
+        "label": "2",
+        "long": "2 - THE BRONX-TUDOR WOODS",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "69",
+        "label": "4",
+        "long": "4 - THE BRONX-YONKERS",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "70",
+        "label": "5",
+        "long": "5 - YONKERS-WHITE PLAINS-HARRISON",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "71",
+        "label": "6",
+        "long": "6 - YONKERS- WP -PLEASANTVILLE",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "72",
+        "label": "7",
+        "long": "7 - YONKERS-MT VERNON-NEW ROCHELLE",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "73",
+        "label": "8",
+        "long": "8 - MT ST VINCENT-YONKERS-TUCKAHOE",
+        "short": "8",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "74",
+        "label": "12",
+        "long": "12 - ARMONK-WHITE PLAINS",
+        "short": "12",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "75",
+        "label": "13",
+        "long": "13 -OSSINING-TARRYTOWN-PORT CHESTER",
+        "short": "13",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "76",
+        "label": "14",
+        "long": "14 -PEEKSKILL-OSSINING-WHITE PLAINS",
+        "short": "14",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "77",
+        "label": "15",
+        "long": "15 -PEEKSKILL-YORKTOWN-WHITE PLAINS",
+        "short": "15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "78",
+        "label": "16",
+        "long": "16 - PEEKSKILL JEFFERSON VALLEY",
+        "short": "16",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "79",
+        "label": "19",
+        "long": "19 - OSSINING-MOUNT KISCO-KATONAH",
+        "short": "19",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "80",
+        "label": "20",
+        "long": "20 - THE BRONX-WHITE PLAINS",
+        "short": "20",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "83",
+        "label": "30",
+        "long": "30 -YONKERS-BRONXVILLE-NEW ROCHELLE",
+        "short": "30",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "84",
+        "label": "40",
+        "long": "40 - MT VERNON-WHITE PLAINS-WC MC",
+        "short": "40",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "85",
+        "label": "42",
+        "long": "42 - BRONX-MT VERNON-NEW ROCHELLE",
+        "short": "42",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "86",
+        "label": "45",
+        "long": "45-EASTCHES-NEW ROCHELLE-PELHAM BAY",
+        "short": "45",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "87",
+        "label": "52",
+        "long": "52 - MT VERNON-THE BRONX-BRONXVILLE",
+        "short": "52",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "88",
+        "label": "55",
+        "long": "55 - BRONX-MT VERNON-YONKERS",
+        "short": "55",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "89",
+        "label": "60",
+        "long": "60 -BRONX-NEW ROCHELLE-WHITE PLAINS",
+        "short": "60",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "90",
+        "label": "61",
+        "long": "61 -BRONX-NEW ROCHELLE-PORT CHESTER",
+        "short": "61",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "91",
+        "label": "63",
+        "long": "63 - SCARSDALE-WHITE PLAINS",
+        "short": "63",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "92",
+        "label": "78",
+        "long": "78 - GETTY SQUARE-STEW LEONARDS DR",
+        "short": "78",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "93",
+        "label": "3",
+        "long": "3 - THE BRONX-WHITE PLAINS",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "94",
+        "label": "9",
+        "long": "9 - N YONKERS-YONKERS RR STATION",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "96",
+        "label": "11",
+        "long": "11 - CROTON-WHITE PLAINS",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "97",
+        "label": "17",
+        "long": "17 - PEEKSKILL-WHITE PLAINS",
+        "short": "17",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0080C0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "99",
+        "label": "21",
+        "long": "21 - THE BRONX-WHITE PLAINS",
+        "short": "21",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 2848,
+    "stop_points_capped": true
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 4211 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 4211,
+    "trips_with_shape": 4211
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 4142,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "count": 4211,
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 1,
       "severity": "WARNING",
-      "what": "4142 of 4142 trips don't say whether the vehicle is wheelchair accessible.",
+      "what": "4211 of 4211 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
     },
     {
@@ -419,15 +1115,15 @@
     },
     {
       "code": "fast_travel_between_consecutive_stops",
-      "count": 41064,
+      "count": 41905,
       "effort": "A few minutes per flagged trip.",
       "fix": "Check the flagged stop times for transposed minutes.",
       "owner": "",
       "points": 8.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Some scheduled trips travel implausibly fast between stops.",
-      "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+      "what": "Some scheduled trips move faster between stops than a bus can.",
+      "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
     }
   ],
   "validator_version": "8.0.1"

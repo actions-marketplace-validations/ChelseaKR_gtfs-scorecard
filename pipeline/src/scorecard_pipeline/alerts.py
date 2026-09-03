@@ -3,32 +3,61 @@
 The roadmap's first retention tool (docs/roadmap.md): the single most useful
 thing this tool can tell a small agency is "your feed expires in N days and
 trip planners are about to drop you." This reads the artifacts the pipeline
-already publishes and produces a plain-language digest of two things worth
-acting on now: feeds whose service window is about to close, and grades that
-dropped since the previous run.
+already publishes and produces a plain-language digest of things worth acting
+on now: feeds whose service window is about to close, grades that dropped
+since the previous run, and — per EXP-13 (docs/ideation/03-expansions.md) —
+feeds whose renewal *behavior* (a history of late renewals, a repeating
+lapse-and-recover pattern, a slowing cadence) suggests risk before the calendar
+date itself says so. The behavioral read only fires for feeds the deterministic
+expiry check hasn't already flagged, so it stays a genuinely earlier warning
+rather than a duplicate.
+
+A fourth item, per EXP-18 (docs/ideation/06-sweep-2026-07-12.md), surfaces
+when the latest run's export changed structurally — a route dropped, stops
+moved, the service span shifted — even when nothing about it was invalid, so
+a grade never moved to flag it. Unlike the behavioral lapse-risk read, this
+one is not a private-only signal: it mirrors the "What changed inside the
+export" block the agency page already renders (`exportdiff.py`, `render_site.py`)
+so a subscriber hears the same finding here that a page visitor would see.
+
+Expiry items read `service_periods` before they choose their words. A feed
+whose calendars run in distinct service periods, or whose registry record
+declares seasonal or demand-response service, is described as reaching a
+planned boundary instead of being told trip planners have dropped it (EXP-04's
+open alert-tier half). The tier, the ordering, and whether the item is sent do
+not change: only the sentence does, and only when the published scorecard
+already reads the same way.
 
 The digest is rendered as Markdown and written to stdout or a file. Routing it
 to subscribers (email via SES, a Slack post) is a deploy concern handled by the
 caller; keeping the build and the send separate is what makes the logic
-testable against fixture artifacts with no network.
+testable against fixture artifacts with no network. This digest is the private,
+opt-in liaison channel (ADR 0004) — the behavioral risk read is never shown on
+the public agency page.
 """
 
 from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlencode
 
 from .anomaly import detect_anomalies
-from .config import artifacts_dir
+from .comparisons import current_producer_contract_suffix
+from .config import artifacts_dir, current_agency_ids, utc_today
+from .instance import BASE_URL as SCORECARD_BASE
+from .lapse_risk import TIER_ELEVATED, TIER_HIGH
+from .lapse_risk import assess as assess_lapse_risk
+from .service_periods import ServicePeriodRead, read_service_period
 
 # A letter-grade drop, or a score fall of at least this many points between the
 # two most recent runs, is worth telling someone about. Smaller day-to-day
 # wobble from validator nondeterminism is not.
 REGRESSION_POINTS = 3.0
 GRADE_ORDER = ["F", "D", "C", "B", "A"]
-SCORECARD_BASE = "https://gtfsscorecard.org"
 
 # Default lead time for the email digest. Sixty days gives an agency a first,
 # calm heads-up while there is plenty of time to re-export, instead of one
@@ -59,8 +88,44 @@ def _expiry_tier(days: int | None) -> str:
     return _EXPIRY_TIERS[-1][1]
 
 
-def _scorecard_url(agency_id: str, anchor: str = "") -> str:
+_SAFE_CONTEXT_VALUE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def _primary_finding_code(latest: dict[str, Any]) -> str:
+    """Choose the first published top-fix code, preferring an expiry finding."""
+    fixes = latest.get("top_fixes") or []
+    safe_codes = [
+        str(fix.get("code"))
+        for fix in fixes
+        if _SAFE_CONTEXT_VALUE.fullmatch(str(fix.get("code") or ""))
+    ]
+    if not safe_codes:
+        return ""
+    freshness_codes = {
+        str(finding.get("code"))
+        for finding in latest.get("categories", {}).get("freshness", {}).get("findings", [])
+    }
+    return next((code for code in safe_codes if code in freshness_codes), safe_codes[0])
+
+
+def _scorecard_url(
+    agency_id: str,
+    anchor: str = "",
+    finding_code: str = "",
+) -> str:
+    if finding_code and _SAFE_CONTEXT_VALUE.fullmatch(finding_code):
+        return (
+            f"{SCORECARD_BASE}/agency/{agency_id}/?"
+            f"{urlencode({'finding': finding_code})}#finding-handoff"
+        )
     return f"{SCORECARD_BASE}/agency/{agency_id}/{anchor}"
+
+
+def _attach_finding_context(item: AlertItem, latest: dict[str, Any] | None) -> AlertItem:
+    code = _primary_finding_code(latest or {})
+    if code:
+        item.scorecard_url = _scorecard_url(item.agency_id, finding_code=code)
+    return item
 
 
 @dataclass
@@ -69,12 +134,17 @@ class AlertItem:
 
     agency_id: str
     agency_name: str
-    kind: str  # "expiry" | "regression"
+    kind: str  # "expiry" | "lapse_risk" | "regression" | "anomaly" | "export_change"
     headline: str
     detail: str
     fix: str
     scorecard_url: str = ""
     days_until_expiry: int | None = None
+    # True when this expiry item describes a transition between the feed's own
+    # service periods rather than a lapse (see service_periods). Read by the
+    # renderer to explain the distinction once per section instead of in every
+    # item. Always False for every other alert kind.
+    planned_boundary: bool = False
 
 
 @dataclass
@@ -97,6 +167,83 @@ def _grade_dropped(prev: str, curr: str) -> bool:
         return False
 
 
+# The fix an agency is asked to make. The lapse case asks for a longer
+# calendar; the planned case asks for the next period, which is the export the
+# agency was already going to produce.
+_LAPSE_FIX = (
+    "Re-export the feed with a calendar that extends further out, or "
+    "set feed_info end dates past the next service change."
+)
+_PLANNED_BOUNDARY_FIX = (
+    "Confirm the next service period is published: export its calendar and "
+    "set feed_info feed_end_date past it."
+)
+
+
+def _lapse_wording(days: int) -> tuple[str, str, str]:
+    """Headline, detail, and fix for a calendar with no known service pattern."""
+    if days < 0:
+        return (
+            "Service data has expired",
+            f"The schedule stopped covering service {abs(days)} day(s) ago. "
+            "Trip planners may have already dropped this agency.",
+            _LAPSE_FIX,
+        )
+    return (
+        f"Service data expires in {days} day(s)",
+        "When the calendar runs out, trip planners stop showing this "
+        "agency's service even while service is still running.",
+        _LAPSE_FIX,
+    )
+
+
+def _declared_boundary_wording(days: int, noun: str) -> tuple[str, str, str]:
+    """Wording for a service the registry records as seasonal or on-demand."""
+    if days < 0:
+        return (
+            f"Published {noun} calendar has run out",
+            f"This service is registered as {noun}, so the gap may sit between two "
+            "service periods. Riders still cannot plan a trip until the next "
+            "period's calendar is published.",
+            _PLANNED_BOUNDARY_FIX,
+        )
+    return (
+        f"Published {noun} calendar ends in {days} day(s)",
+        f"This service is registered as {noun}. Publishing the next period's "
+        "calendar before that date keeps trip planners showing it without a gap.",
+        _PLANNED_BOUNDARY_FIX,
+    )
+
+
+def _detected_boundary_wording(days: int) -> tuple[str, str, str]:
+    """Wording for a boundary the feed's own calendars encode."""
+    if days < 0:
+        return (
+            f"Scheduled service period ended {abs(days)} day(s) ago",
+            "This feed's calendars run in distinct service periods, the way an "
+            "academic term does, and one of them has ended. That reads as a planned "
+            "transition rather than a feed left to expire. Riders still cannot plan "
+            "a trip until the next period is published.",
+            _PLANNED_BOUNDARY_FIX,
+        )
+    return (
+        f"Scheduled service period ends in {days} day(s)",
+        "This feed's calendars run in distinct service periods, the way an academic "
+        "term does, and the current one is ending. Publishing the next period before "
+        "that date keeps trip planners showing this agency without a gap.",
+        _PLANNED_BOUNDARY_FIX,
+    )
+
+
+def _expiry_wording(days: int, period: ServicePeriodRead) -> tuple[str, str, str]:
+    """Choose the sentence that matches what the scorecard page already says."""
+    if not period.planned:
+        return _lapse_wording(days)
+    if period.declared:
+        return _declared_boundary_wording(days, period.service_noun)
+    return _detected_boundary_wording(days)
+
+
 def _expiry_item(latest: dict[str, Any], expiry_days: int) -> AlertItem | None:
     freshness = latest.get("categories", {}).get("freshness", {})
     raw_days = freshness.get("details", {}).get("days_until_expiry")
@@ -106,29 +253,52 @@ def _expiry_item(latest: dict[str, Any], expiry_days: int) -> AlertItem | None:
     if days > expiry_days:
         return None
     agency = latest["agency"]
-    if days < 0:
-        headline = "Service data has expired"
-        detail = (
-            f"The schedule stopped covering service {abs(days)} day(s) ago. "
-            "Trip planners may have already dropped this agency."
-        )
-    else:
-        headline = f"Service data expires in {days} day(s)"
-        detail = (
-            "When the calendar runs out, trip planners stop showing this "
-            "agency's service even though buses are still running."
-        )
+    # Wording only. The lead-time tier, the sort order, and the fact that this
+    # item is raised at all are decided above and stay identical either way.
+    period = read_service_period(latest, days)
+    headline, detail, fix = _expiry_wording(days, period)
     return AlertItem(
         agency_id=agency["id"],
         agency_name=agency["name"],
         kind="expiry",
         headline=headline,
         detail=detail,
-        fix="Re-export the feed with a calendar that extends further out, or "
-        "set feed_info end dates past the next service change.",
+        fix=fix,
         # Link straight to the ready-to-send note on the scorecard.
-        scorecard_url=_scorecard_url(agency["id"], "#send-note"),
+        scorecard_url=_scorecard_url(
+            agency["id"],
+            "#send-note",
+            _primary_finding_code(latest),
+        ),
         days_until_expiry=days,
+        planned_boundary=period.planned,
+    )
+
+
+def _lapse_risk_item(history: list[dict[str, Any]], name: str, agency_id: str) -> AlertItem | None:
+    """A behavioral early-warning item, or None if the tier doesn't warrant one.
+
+    Only called for agencies the deterministic expiry check hasn't already
+    flagged (see build_digest), so this is always a genuinely earlier signal,
+    never a second copy of the same warning. `insufficient_history` and `none`
+    tiers produce nothing — a quiet, honest read, not a forced item.
+    """
+    risk = assess_lapse_risk(history)
+    if risk.tier not in (TIER_ELEVATED, TIER_HIGH):
+        return None
+    label = "High" if risk.tier == TIER_HIGH else "Elevated"
+    headline = f"{label} behavioral lapse risk"
+    detail = " ".join(reason.detail for reason in risk.reasons)
+    return AlertItem(
+        agency_id=agency_id,
+        agency_name=name,
+        kind="lapse_risk",
+        headline=headline,
+        detail=detail,
+        fix="This is a behavioral read from renewal history, not a certainty — "
+        "confirm with the agency whether the next export is already prepared. "
+        "A proactive check now can prevent a repeat of this pattern.",
+        scorecard_url=_scorecard_url(agency_id),
     )
 
 
@@ -157,6 +327,36 @@ def _regression_item(history: list[dict[str, Any]], name: str, agency_id: str) -
         f"{curr['score']} on {curr['date']}.",
         fix="Open the scorecard and check the top fixes; a recent export change "
         "or an expiring calendar is the usual cause.",
+        scorecard_url=_scorecard_url(agency_id),
+    )
+
+
+def _export_change_item(
+    latest: dict[str, Any] | None, name: str, agency_id: str
+) -> AlertItem | None:
+    """An item when the latest run's export changed structurally (EXP-18):
+    routes added or removed, stops that moved, the service span, or trip
+    count. None when there is no ``export_diff`` block or it carries no
+    changes — most runs, since most exports are byte-identical or change only
+    in ways that don't move the structure fingerprint.
+
+    Descriptive only, matching the agency-page rendering of the same block:
+    the digest never claims the change was a mistake, only that it happened.
+    """
+    if not latest:
+        return None
+    export = latest.get("export_diff")
+    changes = (export or {}).get("changes") or []
+    if not changes:
+        return None
+    return AlertItem(
+        agency_id=agency_id,
+        agency_name=name,
+        kind="export_change",
+        headline="The export's structure changed",
+        detail=" ".join(str(c) for c in changes),
+        fix="Confirm this was intentional. If not, check your scheduling "
+        "software's export settings for what changed.",
         scorecard_url=_scorecard_url(agency_id),
     )
 
@@ -223,50 +423,107 @@ def _anomaly_alert_items(
     return items
 
 
-def build_digest(
+def build_digest(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
     today: dt.date | None = None,
     expiry_days: int = DEFAULT_EXPIRY_DAYS,
 ) -> Digest:
-    """Scan published artifacts for expiry and regression alerts.
+    """Scan published artifacts for expiry, regression, and export-change alerts.
 
-    Reads each agency's latest.json for the expiry window and index.json for
-    score history. Returns items sorted with the most urgent first (expired
-    feeds, then soonest-to-expire, then regressions).
+    Reads each agency's latest.json for the expiry window, the export-diff
+    block, and index.json for score history. Returns items sorted with the
+    most urgent first (expired feeds, then soonest-to-expire, then
+    regressions, then structural export changes, then anomalies).
     """
-    as_of = today or dt.date.today()
+    as_of = today or utc_today()
     root = artifacts_dir()
     items: list[AlertItem] = []
 
     index = _load_json(root / "index.json") or {"agencies": {}}
-    for agency_id, entry in sorted(index.get("agencies", {}).items()):
+    indexed = index.get("agencies", {})
+    current_ids = set(current_agency_ids(indexed))
+    for agency_id, entry in sorted(indexed.items()):
+        # A stale committed/hydrated index may predate the retirement. Keep its
+        # history on disk, but do not send a new alert for the alias.
+        if agency_id not in current_ids:
+            continue
+        history = entry.get("history", [])
+        comparable_history = current_producer_contract_suffix(history)
         latest = _load_json(root / agency_id / "latest.json")
+        expiry = None
         if latest:
             expiry = _expiry_item(latest, expiry_days)
             if expiry:
                 items.append(expiry)
-        regression = _regression_item(
-            entry.get("history", []), entry.get("name", agency_id), agency_id
-        )
+        if not expiry:
+            # Behavioral risk is only worth surfacing when the deterministic
+            # check hasn't already flagged this feed — otherwise it is a
+            # slower-to-fire duplicate of the same warning.
+            lapse_risk = _lapse_risk_item(
+                comparable_history, entry.get("name", agency_id), agency_id
+            )
+            if lapse_risk:
+                items.append(_attach_finding_context(lapse_risk, latest))
+        regression = _regression_item(comparable_history, entry.get("name", agency_id), agency_id)
         if regression:
-            items.append(regression)
+            items.append(_attach_finding_context(regression, latest))
+        # Not routed through _attach_finding_context: an export-structure
+        # change is not one of the validator's named findings, so there is no
+        # finding code to link. The plain scorecard URL is the honest link.
+        export_change = _export_change_item(latest, entry.get("name", agency_id), agency_id)
+        if export_change:
+            items.append(export_change)
         items.extend(
-            _anomaly_alert_items(entry.get("history", []), agency_id, entry.get("name", agency_id))
+            _attach_finding_context(item, latest)
+            for item in _anomaly_alert_items(
+                comparable_history,
+                agency_id,
+                entry.get("name", agency_id),
+            )
         )
 
     def _urgency(item: AlertItem) -> tuple[int, int, str]:
-        # Expiry before regression/anomaly; within expiry, soonest (or most overdue) first.
+        # Expiry first (soonest/most overdue first), then behavioral lapse
+        # risk (the early warning), then regressions, then structural export
+        # changes (a concrete, dated event but not yet known to have moved
+        # the grade), then anomalies.
         if item.kind == "expiry":
             days = item.days_until_expiry
             return (0, days if days is not None else 9999, item.agency_id)
+        if item.kind == "lapse_risk":
+            return (1, 0, item.agency_id)
         if item.kind == "anomaly":
-            return (2, 0, item.agency_id)
-        return (1, 0, item.agency_id)
+            return (4, 0, item.agency_id)
+        if item.kind == "export_change":
+            return (3, 0, item.agency_id)
+        return (2, 0, item.agency_id)
 
     items.sort(key=_urgency)
     return Digest(as_of=as_of, items=items)
 
 
-def render_digest(digest: Digest) -> str:
+def _expiring_section_note(expiring: list[AlertItem]) -> list[str]:
+    """An explanatory line when a planned boundary shares the expiry section.
+
+    The tier headings group on the calendar date and nothing else, so a feed at
+    a boundary between its own service periods lands under the same heading as
+    one that quietly lapsed. Say that once here instead of repeating the caveat
+    in every item, and return nothing at all when no such feed is present, so a
+    digest without one is byte-identical to before.
+    """
+    planned = [item for item in expiring if item.planned_boundary]
+    if not planned:
+        return []
+    subject = "One of them runs" if len(planned) == 1 else f"{len(planned)} of them run"
+    return [
+        "The headings below group feeds by calendar date alone. "
+        f"{subject} in distinct service periods, so a closing calendar reads as a "
+        "planned transition rather than a lapse. Those still need the next period "
+        "published before riders can plan it.",
+        "",
+    ]
+
+
+def render_digest(digest: Digest) -> str:  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
     """Render the digest as Markdown.
 
     Empty is a valid, good outcome: a digest with nothing in it says so plainly
@@ -281,7 +538,9 @@ def render_digest(digest: Digest) -> str:
         return "\n".join(lines)
 
     expiring = [i for i in digest.items if i.kind == "expiry"]
+    lapse_risks = [i for i in digest.items if i.kind == "lapse_risk"]
     regressions = [i for i in digest.items if i.kind == "regression"]
+    export_changes = [i for i in digest.items if i.kind == "export_change"]
     anomalies = [i for i in digest.items if i.kind == "anomaly"]
     lines.append(f"{len(digest.items)} item(s) need attention.")
     lines.append("")
@@ -292,10 +551,16 @@ def render_digest(digest: Digest) -> str:
         lines.append("")
         lines.append(f"Fix: {item.fix}")
         if item.scorecard_url:
-            # Expiry items deep-link to the ready-to-send note; others to the page.
-            label = (
-                "Copy a note to send the agency" if item.kind == "expiry" else "Open the scorecard"
-            )
+            if "?finding=" in item.scorecard_url:
+                label = "Open the finding handoff"
+            else:
+                # Older artifacts without a safe finding code retain the
+                # ready-to-send note link.
+                label = (
+                    "Copy a note to send the agency"
+                    if item.kind == "expiry"
+                    else "Open the scorecard"
+                )
             lines.append("")
             lines.append(f"[{label}]({item.scorecard_url})")
         lines.append("")
@@ -303,6 +568,7 @@ def render_digest(digest: Digest) -> str:
     if expiring:
         lines.append("## Feeds expiring soon")
         lines.append("")
+        lines.extend(_expiring_section_note(expiring))
         # Group by lead-time tier so the ramp is visible: expired, then a week
         # out, two weeks, a month, two months. Items are already soonest-first.
         tier_order = [_EXPIRED_LABEL] + [label for _, label in _EXPIRY_TIERS]
@@ -314,10 +580,35 @@ def render_digest(digest: Digest) -> str:
             lines.append("")
             for item in members:
                 _emit(item, "####")
+    if lapse_risks:
+        lines.append("## Feeds showing early lapse-risk signals")
+        lines.append("")
+        lines.append(
+            "Not yet close to expiring, but their renewal history suggests risk "
+            "worth a proactive check — see the reasons below each one."
+        )
+        lines.append("")
+        for item in lapse_risks:
+            _emit(item)
     if regressions:
         lines.append("## Grade changes")
         lines.append("")
         for item in regressions:
+            _emit(item)
+    if export_changes:
+        lines.append("## What changed inside the export")
+        lines.append("")
+        # Deliberately does not say "without moving the grade": an export can
+        # change structurally on the same run a grade drops, and this section
+        # renders alongside the regression section when it does. Claiming the
+        # grade held would be false in exactly that case.
+        lines.append(
+            "The feed file changed shape since the last check. A structural "
+            "change does not have to move the grade, so it can pass unnoticed. "
+            "Worth confirming it was intended."
+        )
+        lines.append("")
+        for item in export_changes:
             _emit(item)
     if anomalies:
         lines.append("## Unusual score changes")

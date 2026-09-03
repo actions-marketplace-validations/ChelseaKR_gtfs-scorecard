@@ -1,0 +1,147 @@
+name: Sign release
+
+# Verifies the maintainer-signed full SemVer tag, then keyless-signs a manifest
+# binding that tag name to the exact commit it points at.
+# Same pattern as tods-validate's docker.yml image signing: Sigstore/cosign
+# via the runner's OIDC identity, no long-lived key material to manage or
+# leak. Runs on tag push, or manually (workflow_dispatch) for a tag that
+# already exists and predates this workflow.
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to sign (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: write # attach the signature/cert to the release
+  id-token: write # for keyless cosign signing
+  attestations: write # publish GitHub build provenance for the release manifest
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+          persist-credentials: false
+
+      - name: Validate release tag
+        id: release_tag
+        env:
+          RESOLVED_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RESOLVED_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Refusing unexpected release tag: $RESOLVED_TAG" >&2
+            exit 1
+          fi
+          if ! git show-ref --verify --quiet "refs/tags/$RESOLVED_TAG"; then
+            echo "Refusing non-tag ref: $RESOLVED_TAG" >&2
+            exit 1
+          fi
+          tag_commit="$(git rev-parse "refs/tags/${RESOLVED_TAG}^{commit}")"
+          head_commit="$(git rev-parse HEAD)"
+          if [[ "$tag_commit" != "$head_commit" ]]; then
+            echo "Checked-out commit does not match tag $RESOLVED_TAG." >&2
+            exit 1
+          fi
+          git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/.github/release-signers"
+          git tag -v "$RESOLVED_TAG"
+          printf 'tag=%s\n' "$RESOLVED_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+          upload-artifact: false
+
+      - name: Normalize and validate the CycloneDX 1.7 release documents
+        run: |
+          set -euo pipefail
+          # Syft catalogs the repo's workflow files as version-less
+          # `type: "file"` components (which failed the every-component-has-a-
+          # version check on the v1.1.0 tag). A file path is not a dependency;
+          # keep the SBOM to identifiable packages and drop the file entries.
+          jq '.specVersion = "1.7" | .components |= map(select(.type != "file"))' \
+            sbom.cdx.json > sbom.cdx.tmp
+          mv sbom.cdx.tmp sbom.cdx.json
+          jq -e '
+            .bomFormat == "CycloneDX" and
+            .specVersion == "1.7" and
+            (.components | type == "array") and
+            ([.components[] | has("name") and has("version")] | all)
+          ' sbom.cdx.json >/dev/null
+          jq -e '.bomFormat == "CycloneDX" and .specVersion == "1.7" and (.vulnerabilities | length > 0)' vex.json >/dev/null
+
+      - name: Build the release manifest
+        env:
+          RELEASE_TAG: ${{ steps.release_tag.outputs.tag }}
+        run: |
+          {
+            echo "repo=${GITHUB_REPOSITORY}"
+            echo "tag=${RELEASE_TAG}"
+            echo "commit=$(git rev-parse HEAD)"
+            echo "sbom_sha256=$(sha256sum sbom.cdx.json | cut -d' ' -f1)"
+            echo "vex_sha256=$(sha256sum vex.json | cut -d' ' -f1)"
+          } > release-manifest.txt
+          cat release-manifest.txt
+
+      - name: Sign the manifest (keyless)
+        run: |
+          cosign sign-blob --yes \
+            --output-signature release-manifest.txt.sig \
+            --output-certificate release-manifest.txt.pem \
+            release-manifest.txt
+
+      - name: Verify the signature before publishing it (REL-16)
+        run: |
+          cosign verify-blob \
+            --certificate release-manifest.txt.pem \
+            --signature release-manifest.txt.sig \
+            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release-sign.yml@.*$" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            release-manifest.txt
+
+      - name: Attest release provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: |
+            release-manifest.txt
+            sbom.cdx.json
+            vex.json
+
+      - name: Wait for the release and attach verification assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.release_tag.outputs.tag }}
+        run: |
+          tag="$RELEASE_TAG"
+          # Marketplace publication starts from an already-pushed protected
+          # tag, so the tag event can reach this job before the release form is
+          # published. Give the release a bounded window to appear instead of
+          # turning that normal ordering into a failed signing run.
+          for attempt in $(seq 1 60); do
+            if gh release view "$tag" --json id --jq .id >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              echo "Release $tag did not appear within 10 minutes." >&2
+              exit 1
+            fi
+            sleep 10
+          done
+          gh release upload "$tag" \
+            release-manifest.txt release-manifest.txt.sig release-manifest.txt.pem \
+            sbom.cdx.json vex.json \
+            --clobber

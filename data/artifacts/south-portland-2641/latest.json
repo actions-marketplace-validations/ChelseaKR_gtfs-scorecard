@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "south-portland-2641",
-    "name": "South Portland"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/south-portland-2641/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/south-portland-2641/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 135,
-        "examples": [
-          "WESTERN AVE + LONG CREEK DRIVE -> Western Ave + Long Creek Drive",
-          "COTTAGE RD + SOULE ST -> Cottage Rd + Soule St",
-          "MAIN ST + COX ST -> Main St + Cox St"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 135
+    "name": "South Portland",
+    "subdivision_code": "US-ME",
+    "subdivision_name": "Maine"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 322,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 89.4,
+        "headsign_scored_pct": 89.4,
         "mixed_case_stop_name_pct": 20.1,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 169,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 322,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.6,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 322,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -101,7 +99,7 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 135,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 12.0,
           "severity": "INFO",
@@ -111,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 34,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 1.6,
           "severity": "WARNING",
-          "what": "34 of 322 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "34 of 322 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         }
       ],
       "name": "completeness",
@@ -156,7 +154,7 @@
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -167,8 +165,8 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "feed_expiration_date7_days",
@@ -223,13 +221,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -274,
+        "days_until_expiry": -306,
+        "effective_expiry_date": "2025-10-05",
         "feed_end_date": "2025-10-05",
         "feed_start_date": "2024-01-01",
         "feed_version": "Updated: Aug 25, 2025, 10:00 AM",
         "has_feed_info": true,
         "last_service_date": "2025-10-05",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -241,20 +242,26 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 274 day(s) ago.",
+          "what": "Service data ended 306 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 274 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 306 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
+        "configured_kinds": [
+          "trip_updates",
+          "service_alerts"
+        ],
         "coverage_pct": null,
+        "kinds_configured": 2,
         "kinds_reachable": 0,
+        "reachable_kinds": [],
         "rt_freshness": null,
         "samples": 6,
         "scheduled_trips_in_window": 0,
@@ -267,20 +274,9 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 50.0,
           "severity": "ERROR",
           "what": "The trip updates realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_vehicle_positions_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The vehicle positions realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
         },
         {
@@ -289,7 +285,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 50.0,
           "severity": "ERROR",
           "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -298,9 +294,22 @@
       "name": "realtime",
       "score": 0.0,
       "status": "measured",
-      "summary": "Sampled 6 times outside service hours: 0 of 3 feeds healthy.",
+      "summary": "Sampled 6 times outside service hours: 0 of 2 configured feeds healthy.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 6 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -311,7 +320,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 265 days ago.",
+        "detail": "Service data expired 293 days ago.",
         "key": "current",
         "met": false
       },
@@ -322,7 +331,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 265 days ago. States wheelchair access on 1% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 293 days ago. States wheelchair access on 1% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: https://www.gpmetro.org/about-us/projects-initiatives/developers/",
@@ -331,7 +340,14 @@
     "size_bytes": 166597,
     "static_url": "https://gtfs.remix.com/South_Portland_Bus_ME_US.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://gtfs.remix.com/South_Portland_Bus_ME_US.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -70.35759,
@@ -343,8 +359,28 @@
     "lon": -70.27578,
     "stop_count": 169
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 3,
+        "trip_count": 322,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 3,
+    "trip_count": 322
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -363,13 +399,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 265 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 293 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 265 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 293 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -379,6 +420,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -390,6 +432,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 167,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -402,8 +445,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -413,9 +456,63 @@
     "single_stop_trips": 0,
     "trips_total": 322
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 3,
+    "has_shapes": true,
+    "path": "data/artifacts/south-portland-2641/geometry.geojson",
+    "route_count": 3,
+    "routes": [
+      {
+        "color": "1F4F26",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "21",
+        "label": "21",
+        "long": "Willard Square",
+        "short": "21",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A61D21",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "24A",
+        "label": "24A",
+        "long": "Maine Mall via Main Street",
+        "short": "24A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED690D",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "24B",
+        "label": "24B",
+        "long": "Maine Mall via Community Center",
+        "short": "24B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 169,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 322 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 322,
+    "trips_with_shape": 322
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -426,7 +523,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 274 day(s) ago.",
+      "what": "Service data ended 306 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -435,22 +532,22 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
+      "points": 50.0,
       "rank": 2,
       "severity": "ERROR",
       "what": "The trip updates realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     },
     {
-      "code": "scorecard_rt_vehicle_positions_unreachable",
+      "code": "scorecard_rt_service_alerts_unreachable",
       "count": 1,
       "effort": "Usually a vendor support ticket.",
-      "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
+      "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
+      "points": 50.0,
       "rank": 3,
       "severity": "ERROR",
-      "what": "The vehicle positions realtime feed failed during sampling.",
+      "what": "The service alerts realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     }
   ],

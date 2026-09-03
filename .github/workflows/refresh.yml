@@ -9,29 +9,78 @@ name: Intraday refresh
 
 on:
   schedule:
-    # Hourly. Cadence tiers (ADR 0010) decide which feeds are actually checked
-    # each hour: priority feeds (realtime, near expiry) every cycle, the stable
-    # long tail spread once per six-hour period.
-    - cron: "23 * * * *"
+    # Every three hours. Cadence tiers (ADR 0010) decide which feeds are
+    # actually checked each cycle: priority feeds (realtime, near expiry) every
+    # cycle, the stable long tail spread once per six-hour period.
+    #
+    # This interval must stay in step with `REFRESH_STEP_HOURS` in
+    # pipeline/src/scorecard_pipeline/cadence.py, which the due-list arithmetic
+    # depends on, and with `INTRADAY_REFRESH_CRON` in status_commitment.py,
+    # which is published verbatim on /status/ and in api/v1/status.json.
+    # `test_status_commitment.py` reads this file and fails if they drift.
+    - cron: "23 */3 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+env:
+  # Same backstop as the daily workflow. This tier runs the Java validator only
+  # on feeds that actually changed, but "fewer feeds" is not "no large feeds":
+  # a changed `large_feed` lands here too, so it can take a runner down the same
+  # way. See the note in scorecard.yml for why 10240 and what it does not claim.
+  SCORECARD_VALIDATOR_MEMORY_MB: "10240"
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    # RELIABILITY (issue #297): no bound previously existed short of the
+    # platform's 360-minute default. Observed successful runs range from ~70
+    # to ~137 minutes depending on how many feeds are due this cycle (cadence
+    # tiers, ADR 0010), so this stays well above that range to avoid flagging
+    # a legitimately heavy cycle, while still catching a genuine hang (a
+    # runner killed validating a large feed, as in issue #297) inside one
+    # scheduling day instead of running silent for six hours.
+    timeout-minutes: 240
+    concurrency:
+      group: artifacts-publish
+      cancel-in-progress: false
     permissions:
-      contents: write # commit + push refreshed artifacts
+      contents: read
+      id-token: write # publish refreshed artifacts through AWS OIDC
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
           distribution: temurin
           java-version: "17"
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+      - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
           python-version: "3.12"
+
+      - name: Authenticate to AWS
+        if: ${{ vars.ARTIFACTS_BUCKET != '' }}
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
+
+      - name: Hydrate current artifacts from S3
+        if: ${{ vars.ARTIFACTS_BUCKET != '' }}
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          yesterday=$(date -u -d yesterday +%Y-%m-%d)
+          aws s3 sync "s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts" data/artifacts \
+            --exclude "*" --include "index.json" \
+            --include "*/latest.json" \
+            --include "*/${today}.json" --include "*/${yesterday}.json" \
+            --only-show-errors
+          aws s3 sync "s3://${{ vars.ARTIFACTS_BUCKET }}/cache/fixlog" data/artifacts \
+            --only-show-errors
+          aws s3 cp "s3://${{ vars.ARTIFACTS_BUCKET }}/data/liveness.json" \
+            data/liveness.json --only-show-errors || true
 
       - name: Select the feeds due this cycle
         working-directory: pipeline
@@ -44,81 +93,182 @@ jobs:
             --only "$RUNNER_TEMP/due.txt" \
             --changed-out "$RUNNER_TEMP/changed.txt"
 
+      # Export fingerprints are read by `export_diff` (exportdiff.py), which runs
+      # inside `scorecard run` and therefore only for the feeds this cycle
+      # actually re-scores. Hydrating the whole prefix pulled ~2,200 objects and
+      # ~82 MB out of S3 every cycle to serve the handful of feeds that changed;
+      # fetch them by exact key instead, once the changed list exists. A feed
+      # with no stored fingerprint simply has no diff to report, which is the
+      # same behaviour as its first ever run.
+      - name: Hydrate export fingerprints for the changed feeds
+        if: ${{ vars.ARTIFACTS_BUCKET != '' }}
+        env:
+          ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+        run: |
+          set -euo pipefail
+          mkdir -p data/cache/structure
+          [ -s "$RUNNER_TEMP/changed.txt" ] || exit 0
+          while IFS= read -r id; do
+            [ -n "$id" ] || continue
+            aws s3 cp \
+              "s3://${ARTIFACTS_BUCKET}/cache/structure/${id}.json" \
+              "data/cache/structure/${id}.json" --only-show-errors || true
+          done < "$RUNNER_TEMP/changed.txt"
+
       - name: Refresh expiry from calendar data (no fetch, no validator)
         working-directory: pipeline
-        run: uv run scorecard freshness-sweep --apply
+        run: |
+          uv run scorecard freshness-sweep --apply \
+            --changed-out "$RUNNER_TEMP/swept.txt"
 
       - name: Re-score only the feeds that changed
         working-directory: pipeline
         run: |
+          set -uo pipefail
           changed="$RUNNER_TEMP/changed.txt"
           [ -s "$changed" ] || { echo "No changed feeds to re-score."; exit 0; }
+          attempted=0
+          refreshed=0
+          failed=0
           # A single feed's vendor outage must not abort the batch; warn and move on.
           while read -r id; do
             [ -n "$id" ] || continue
+            attempted=$(( attempted + 1 ))
             echo "::group::rescore $id"
-            uv run scorecard run --agency "$id" \
-              || echo "::warning title=rescore failed::$id kept its last good artifact"
+            uv run scorecard run --agency "$id" && EXIT=0 || EXIT=$?
+            if [ "$EXIT" -eq 0 ]; then
+              refreshed=$(( refreshed + 1 ))
+            elif [ "$EXIT" -eq 2 ]; then
+              # `scorecard run` reserves exit 2 for "the feed had not changed
+              # after all", which is an outcome and not a failure. It can only
+              # occur under --skip-unchanged, which this tier does not pass
+              # today; counted correctly here so adding that flag later cannot
+              # make the floor below fire on a cycle where nothing needed doing.
+              refreshed=$(( refreshed + 1 ))
+              echo "feed unchanged, keeping last artifact"
+            else
+              failed=$(( failed + 1 ))
+              echo "::warning title=rescore failed::$id kept its last good artifact"
+            fi
             echo "::endgroup::"
           done < "$changed"
+          echo "re-scored $refreshed of $attempted changed feeds ($failed failed)"
+          # The floor scorecard.yml has (its "Verify shard artifacts before
+          # publishing" step) and this tier did not. Every non-zero exit above
+          # became an `echo`, and nothing downstream counted them, so an
+          # intraday cycle in which every changed feed failed to re-score still
+          # ran reindex, rollups, render-site, the S3 publish and the Pages
+          # deploy, and reported success. Republishing yesterday's corpus under
+          # today's deployment timestamp is the one outcome a refresh must not
+          # report as a refresh.
+          if [ "$attempted" -gt 0 ] && [ "$refreshed" -eq 0 ]; then
+            echo "::error::None of the $attempted changed feeds re-scored this cycle. Refusing to publish a refresh that refreshed nothing; each feed's cause is in the warnings above."
+            exit 1
+          fi
+          if [ "$failed" -gt 0 ]; then
+            echo "::warning title=partial refresh::$failed of $attempted changed feeds did not re-score this cycle and kept their previous scorecard."
+          fi
 
-      - name: Rebuild index, rollups, and static pages
+      - name: Rebuild index and rollups
         working-directory: pipeline
         run: |
           uv run scorecard reindex
           uv run scorecard rollups
           uv run scorecard render-site
 
-      - name: Commit the refresh
-        run: |
-          git config user.name "scorecard-bot"
-          git config user.email "actions@users.noreply.github.com"
-          # The generated web/ roots come from the manifest render-site emitted
-          # (build/render-manifest.txt), so a newly added page is always published
-          # and can never be silently dropped by a hand-typed list that drifts
-          # (a missing root broke a publish once). data/artifacts + liveness are
-          # added explicitly: they are scoring outputs, not render-site's. The
-          # manifest only ever lists generated paths, so hand-authored web/src, the
-          # static *.html, web/app, and web/tiles stay excluded and a concurrent
-          # merge to them is preserved by the replay.
-          test -s build/render-manifest.txt || { echo "render manifest missing; render-site did not run"; exit 1; }
-          paths="data/artifacts data/liveness.json $(tr '\n' ' ' < build/render-manifest.txt)"
-          git add $paths
-          if git diff --cached --quiet; then
-            echo "No changes this cycle."
-            exit 0
-          fi
-          git commit -m "chore(data): intraday refresh"
-          # main can move during the run (the daily job, a merge). Do NOT rebase:
-          # these are wholesale-regenerated artifacts (and binaries) that both this
-          # run and whatever moved main rewrite, so a 3-way rebase conflicts on
-          # essentially every file. Instead reset onto latest main and replay only
-          # our generated paths; main's non-artifact changes are preserved because
-          # we only re-add the generated paths. (Mirrors scorecard.yml.)
-          for attempt in 1 2 3 4 5; do
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            echo "push rejected (main moved); replaying generated files onto latest main ($attempt)"
-            git fetch origin main
-            ours=$(git rev-parse HEAD)
-            git reset --hard origin/main
-            # Replay our generated tree onto latest main. git restore (no-overlay)
-            # re-applies modifications, additions, AND deletions for these paths, so
-            # a page/artifact this cycle pruned is actually removed; a plain
-            # `git checkout -- $paths` is overlay-only and would leave it behind.
-            git restore --source="$ours" --staged --worktree -- $paths
-            if git diff --cached --quiet; then
-              echo "latest main already carries these artifacts; nothing to push."
-              exit 0
-            fi
-            git commit -m "chore(data): intraday refresh"
-            sleep 3
-          done
-          echo "still rejected after 5 retries; failing so the lost cycle is visible."
-          exit 1
+      # Feed checks and re-scoring can run longer than the default one-hour
+      # OIDC session. Renew immediately before the first public write so a
+      # healthy refresh cannot fail at publication with ExpiredToken.
+      - name: Renew AWS credentials before publishing
+        if: ${{ vars.ARTIFACTS_BUCKET != '' }}
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
 
-  # GITHUB_TOKEN pushes do not trigger the push-driven Pages workflow, so deploy
+      - name: Publish refreshed artifacts to S3
+        if: ${{ vars.ARTIFACTS_BUCKET != '' }}
+        env:
+          ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+        run: |
+          set -euo pipefail
+          artifact_uri="s3://${ARTIFACTS_BUCKET}/data/artifacts"
+          sort -u "$RUNNER_TEMP/changed.txt" "$RUNNER_TEMP/swept.txt" \
+            > "$RUNNER_TEMP/refreshed.txt"
+
+          public_stage="$RUNNER_TEMP/public-artifacts"
+          fixlog_stage="$RUNNER_TEMP/private-fixlogs"
+          structure_stage="$RUNNER_TEMP/private-structures"
+          rm -rf "$public_stage" "$fixlog_stage" "$structure_stage"
+          mkdir -p "$public_stage" "$fixlog_stage" "$structure_stage"
+          while IFS= read -r id; do
+            [ -n "$id" ] || continue
+            # Stage the selected public files locally so one parallel S3 sync
+            # replaces thousands of serial AWS CLI processes.
+            mkdir -p "$public_stage/$id"
+            rsync -a \
+              --exclude "validator-cache.json" --exclude "structure.json" \
+              --exclude "fixlog.json" --exclude "corrected.zip" \
+              "data/artifacts/${id}/" "$public_stage/$id/"
+            if [ -f "data/artifacts/${id}/fixlog.json" ]; then
+              mkdir -p "$fixlog_stage/$id"
+              cp "data/artifacts/${id}/fixlog.json" "$fixlog_stage/$id/fixlog.json"
+            fi
+            if [ -f "data/cache/structure/${id}.json" ]; then
+              cp "data/cache/structure/${id}.json" "$structure_stage/${id}.json"
+            fi
+          done < "$RUNNER_TEMP/refreshed.txt"
+
+          # Only feeds detected as changed or actually freshness-swept are in
+          # the staging tree. Never traverse/upload the full public corpus.
+          #
+          # Not `aws s3 sync`: it transfers when the local mtime is newer than
+          # the object, and CI checks out fresh every run, so every staged file
+          # always looked newer. A refreshed feed's directory carries its whole
+          # dated history, so the sync re-PUT that history on every cycle even
+          # though a dated artifact cannot change once written. Rewriting an
+          # object also drops its tags and resets its age, so the bucket's
+          # expire-dated-artifacts lifecycle rule -- which filters on
+          # artifact-class=dated -- could never fire on the history this step
+          # kept touching, and the pipeline was paying for PUTs to defeat its
+          # own retention. `publish-artifacts` (the same publisher the daily
+          # collect job uses, .github/workflows/scorecard.yml) compares the
+          # local MD5 against each object's ETag and uploads on any doubt.
+          # Dated evidence remains additive. Reindex's retirement manifest is
+          # the bounded exception and can delete only fixed mutable filenames
+          # for ids no longer in the current registry catalog.
+          uv run --project pipeline --with boto3 scorecard publish-artifacts \
+            --root "$public_stage" \
+            --bucket "$ARTIFACTS_BUCKET" --prefix data/artifacts \
+            --retirement-manifest data/artifacts/.retired-current-artifacts.json \
+            --exclude "*/validator-cache.json" --exclude "*/structure.json" \
+            --exclude "*/fixlog.json" --exclude "*/corrected.zip" \
+            --cache-control "max-age=300"
+
+          # Reindex/rollups produce a small bounded aggregate set. index.json
+          # is the public commit pointer and is uploaded last.
+          aws s3 cp data/artifacts/directory.json "${artifact_uri}/directory.json" \
+            --cache-control "max-age=300" --only-show-errors
+          aws s3 cp data/artifacts/scoring.json "${artifact_uri}/scoring.json" \
+            --cache-control "max-age=300" --only-show-errors
+          aws s3 sync data/artifacts/rollups "${artifact_uri}/rollups" \
+            --cache-control "max-age=300" --only-show-errors
+          aws s3 sync data/artifacts/changes \
+            "${artifact_uri}/changes" \
+            --delete --cache-control "max-age=300" --only-show-errors
+          aws s3 cp data/liveness.json \
+            "s3://${ARTIFACTS_BUCKET}/data/liveness.json" \
+            --cache-control "max-age=300" --only-show-errors
+          aws s3 cp data/artifacts/index.json "${artifact_uri}/index.json" \
+            --cache-control "max-age=300" --only-show-errors
+
+          # Persist comparison memory only after every public write succeeds.
+          aws s3 sync "$fixlog_stage" \
+            "s3://${ARTIFACTS_BUCKET}/cache/fixlog" --only-show-errors
+          aws s3 sync "$structure_stage" \
+            "s3://${ARTIFACTS_BUCKET}/cache/structure" --only-show-errors
+
+  # Refreshes do not write to main, so deploy the newly published S3 state
   # explicitly after the refresh.
   deploy:
     needs: refresh
@@ -127,3 +277,10 @@ jobs:
       pages: write
       id-token: write
     uses: ./.github/workflows/pages.yml
+    with:
+      # Data refresh: performance budgets warn instead of blocking, so a
+      # Lighthouse variance cannot stale the pages (FIX-14). Accessibility
+      # still blocks.
+      perf_gate: advisory
+    secrets:
+      PAGES_AWS_ROLE_ARN: ${{ secrets.PAGES_AWS_ROLE_ARN }}

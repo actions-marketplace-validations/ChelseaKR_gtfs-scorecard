@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded runs on the same ref (new push to a PR) to save minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pipeline:
     runs-on: ubuntu-latest
@@ -15,27 +20,53 @@ jobs:
       run:
         working-directory: pipeline
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
           python-version: "3.12"
       - run: uv sync --locked
-      - run: uv run ruff check src tests
-      - run: uv run ruff format --check src tests
-      - run: uv run mypy
-      # Tests with a branch-coverage gate. The floor (92%) covers the
-      # unit-testable pipeline; cli.py and render_site.py are omitted as
-      # orchestration/rendering glue (see pyproject [tool.coverage.run]).
-      - run: uv run pytest -q --cov=scorecard_pipeline --cov-branch --cov-fail-under=92
-      # Accessibility design-token contrast gate (ACCESSIBILITY-STANDARD.md): the
-      # site declares WCAG 2.2 AAA, so every text/background token pair, across all
-      # themes, must clear the 7:1 enhanced-contrast bar. Merge-blocking.
-      - run: uv run python scripts/check_contrast.py
-      # Plain-language readability gate: every curated what/why/fix string in
-      # notices.TRANSLATIONS must clear the sentence-length and reading-ease
-      # bars, so the plain-language promise is enforced, not just intended.
-      - run: uv run python scripts/check_readability.py
-      # Registry hygiene report. Informational while the catalog-sourced cohort
-      # still carries feed-descriptor names (cleared on the next network re-sync);
-      # switch to `--strict` once that backlog is gone to fail on regressions.
-      - run: uv run scorecard lint
+      # CICD-27/OBS-22 parity: CI runs the exact same merge-blocking gate a
+      # contributor runs locally (`make verify`), not a hand-copied subset of
+      # its steps that can drift from the Makefile. See the root Makefile for
+      # what this covers: lint, format, mypy, tests+coverage, contrast,
+      # readability, version-agreement, no-bare-TODO.
+      - run: make -C .. verify
+      # Registry hygiene gate. The feed-descriptor-name backlog cleared with
+      # the registry dedupe, so --strict now blocks any regression; the
+      # remaining non-blocking kinds (non-HTTPS URLs, missing mdb_ids) still
+      # print as the report.
+      - run: uv run scorecard lint --strict
+      # CQ-10's missing half: the package must actually build as a wheel on
+      # every PR, not just declare a hatchling backend.
+      - run: uv build --wheel
+      # Import and dispatch from the built artifact, not the editable checkout.
+      # This catches package-data omissions in Marketplace/uvx installations.
+      - run: uvx --from dist/scorecard_pipeline-*.whl scorecard --help
+      - name: Verify packaged data and sync receipt contract
+        run: |
+          wheel="$(pwd)/$(find dist -name 'scorecard_pipeline-*.whl' -print -quit)"
+          isolated="$(mktemp -d)"
+          uv venv "$isolated/venv"
+          uv pip install --python "$isolated/venv/bin/python" "$wheel"
+          cd "$isolated"
+          "$isolated/venv/bin/python" -c \
+            "from scorecard_pipeline.jurisdictions import JURISDICTIONS; assert len(JURISDICTIONS.countries) == 249; assert JURISDICTIONS.countries['JP'].subdivisions['JP-13'] == 'Tokyo'"
+          mkdir -p "$isolated/root"
+          printf '%s\n' \
+            'agencies:' \
+            '  - id: fixture-agency' \
+            '    name: Fixture Agency' \
+            '    static_gtfs_url: https://tracked.example.org/gtfs.zip' \
+            > "$isolated/root/agencies.yaml"
+          printf '%s\n' \
+            'id,data_type,entity_type,location.country_code,provider,is_official,static_reference,urls.direct_download,urls.authentication_type,status' \
+            'mdb-test,gtfs,,US,Test Transit,true,,https://example.org/gtfs.zip,0,active' \
+            > "$isolated/feeds_v2.csv"
+          SCORECARD_ROOT="$isolated/root" "$isolated/venv/bin/scorecard" sync \
+            --catalog "$isolated/feeds_v2.csv" \
+            --out "$isolated/proposals.yaml" \
+            --source-metadata-out "$isolated/source-metadata.json"
+          "$isolated/venv/bin/python" -c \
+            "import json, pathlib; receipt=json.loads(pathlib.Path('$isolated/source-metadata.json').read_text()); assert receipt['schema_version'] == '1.2'; assert receipt['schema_url'].endswith('sync-source-metadata-1.2.schema.json')"

@@ -3,102 +3,158 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GTFS Scorecard: is your transit data any good?</title>
-<meta name="description" content="A free, daily, plain-language quality check for a small transit agency's GTFS feed. A letter grade, the three things to fix, and why each one matters to riders.">
+<title>GTFS Scorecard: plain-language GTFS quality and fixes</title>
+<meta name="description" content="Daily GTFS quality scorecards for small transit agencies, with dated grades, prioritized fixes, history, practitioner tools, and open data.">
 <meta property="og:title" content="GTFS Scorecard">
-<meta property="og:description" content="Find out if your transit feed is any good. Free, daily, plain language.">
+<meta property="og:description" content="Plain-language GTFS grades and fixes, scheduled monitoring, program views, pre-publish tools, and open data.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gtfsscorecard.org/">
 <meta property="og:image" content="https://gtfsscorecard.org/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="GTFS Scorecard: transit data quality for small agencies.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
+<meta name="twitter:image:alt" content="GTFS Scorecard: transit data quality for small agencies.">
 <link rel="canonical" href="https://gtfsscorecard.org/">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/","description":"A free, plain-language data-quality scorecard for transit GTFS feeds, built for small and rural agencies."}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"DataCatalog","name":"GTFS Scorecard","description":"Daily data quality scores for transit agencies' GTFS feeds across the United States and Canada. Checks correctness, freshness, rider-experience completeness, and realtime health. Plain-language fixes included. Built for transit managers at small agencies and program staff.","url":"https://gtfsscorecard.org/","license":"https://creativecommons.org/licenses/by/4.0/","publisher":{"@type":"Organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/"},"keywords":["GTFS","transit data quality","General Transit Feed Specification","GTFS-RT","public transit","small transit agency","open data"],"spatialCoverage":{"@type":"Place","name":"United States"},"areaServed":"US, CA"}</script>
-<script src="/analytics.js" defer></script>
+<link rel="alternate" hreflang="en" href="https://gtfsscorecard.org/">
+<link rel="alternate" hreflang="es" href="https://gtfsscorecard.org/es/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/","description":"A free GTFS quality service for small and rural transit agencies, with plain-language scorecards, scheduled monitoring, practitioner tools, and open data."}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"DataCatalog","name":"GTFS Scorecard","description":"Published data quality scores for the public GTFS feeds this site currently covers, with scheduled monitoring and public last-run status. Checks correctness, freshness, rider-experience completeness, and realtime health. Includes plain-language fixes, program views, pre-publish tools, and machine-readable data for transit managers, riders, program staff, and data teams.","url":"https://gtfsscorecard.org/","license":"https://creativecommons.org/licenses/by/4.0/","publisher":{"@type":"Organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/"},"keywords":["GTFS","transit data quality","General Transit Feed Specification","GTFS-RT","public transit","small transit agency","open data"]}</script>
 <script>
-  /* Apply the saved theme before first paint to avoid a flash (full control
-     mounts from /src/theme.js). Mirrors theme.js THEME_KEY/THEMES. */
   try {
+    document.documentElement.classList.add("js");
     var t = localStorage.getItem("scorecard-theme");
     if (t && ["light", "contrast", "dark"].indexOf(t) >= 0)
       document.documentElement.setAttribute("data-theme", t);
   } catch (e) {}
 </script>
 <script src="/src/theme.js" defer></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,600;0,700;0,900;1,600&family=Overpass+Mono:wght@400;500;600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<script src="/src/landing-scorecard.js?v=20260723-coverage" defer></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23163a2c'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2f3ee'/%3E%3C/svg%3E">
 <style>
-  :root {
-    --pine: #102a20;        /* guide-sign green, near black: hero ground */
-    --pine-2: #163a2c;
-    --green: #11522a;       /* guide-sign green, darkened to clear AAA 7:1 */
-    --green-on-dark: #6fc8a0; /* green used as text on the pine ground */
-    --on-pine: #f4f6f0;     /* sign-white text/borders on the pine chrome (hero,
-                               board, cta, footer, nav); stays light in EVERY
-                               theme, so dark mode never turns this dark-on-dark */
-    --paper: #f2f3ee;       /* enamel sign blank, a near-white with a green cast */
-    --paper-2: #e5e8df;
-    --ink: #15231c;         /* near-black green, body text on the sign blank */
-    --ink-soft: #3c4840;    /* darkened to clear AAA 7:1 on both papers */
-    --amber: #fdc70a;       /* the one sharp accent: warning-sign yellow */
-    --rust: #822c12;        /* darkened to clear AAA 7:1 on the sign blank */
-    --line: rgba(244,246,240,.22);
-    --line-ink: #c6ccbe;
-    --radius: 14px;
-    --measure: 70ch;        /* 1.4.8 line-length cap for prose blocks */
-    --display: "Overpass", "Helvetica Neue", Arial, sans-serif;
-    --body: "Public Sans", system-ui, sans-serif;
-    --mono: "Overpass Mono", ui-monospace, monospace;
-    /* grade swatches */
-    --g-a:#11522a; --g-b:#356b1b; --g-c:#7d660a; --g-d:#8f4d16; --g-f:#8a1b1b;
-    --focus-ring: var(--amber);
+  @font-face {
+    font-family: "Overpass";
+    font-style: normal;
+    font-weight: 400 900;
+    font-display: optional;
+    src: url("/fonts/overpass-latin.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Atkinson Hyperlegible Mono";
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: optional;
+    src: url("/fonts/atkinson-hyperlegible-mono-latin.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Public Sans";
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: optional;
+    src: url("/fonts/public-sans-latin.woff2") format("woff2");
   }
 
-  /* ---- 1.4.8 colour-selection themes (driven by web/src/theme.js) ----
-     Each theme re-points the tokens above; the page chrome reads them, so a
-     single data-theme attribute on <html> restyles the whole landing page.
-     Every theme clears AAA contrast (pipeline/scripts/check_contrast.py). */
+  :root {
+    --pine: #102a20;
+    --pine-2: #163a2c;
+    --green: #163a2c;
+    --green-on-dark: #6fc8a0;
+    --on-pine: #f4f6f0;
+    --paper: #f2f3ee;
+    --paper-2: #e5e8df;
+    --ink: #20241f;
+    --ink-soft: #3d4339;
+    --amber: #fdc70a;
+    --rust: #8e2a23;
+    --line: rgba(244, 246, 240, 0.22);
+    --line-ink: #c6ccbe;
+    --display: "Overpass", "Helvetica Neue", Arial, sans-serif;
+    --body: "Public Sans", system-ui, sans-serif;
+    --mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", monospace;
+    --focus-page: #1a3aa8;
+    --focus-dark: var(--amber);
+    --focus-on-amber: #2a1c00;
+    --focus-ring: var(--amber);
+    --g-a: #1d5c40;
+    --g-b: #2c5f70;
+    --g-c: #8a5a14;
+    --g-d: #9c4511;
+    --g-f: #8e2a23;
+  }
   :root[data-theme="light"] { color-scheme: light; }
   :root[data-theme="contrast"] {
     color-scheme: light;
-    --pine: #000000; --pine-2: #111111;
-    --green: #0a4420; --green-on-dark: #8fe0b6; --on-pine: #ffffff;
-    --paper: #ffffff; --paper-2: #f2f2f2;
-    --ink: #000000; --ink-soft: #1a1a1a;
-    /* amber stays light so it reads on the black hero; the focus ring is a
-       dark blue so it stays visible on the white page surface. */
-    --amber: #ffce6a; --rust: #7a1f00;
-    --line: rgba(255,255,255,.55); --line-ink: #555555;
+    --pine: #000000;
+    --pine-2: #111111;
+    --green: #0a4420;
+    --green-on-dark: #8fe0b6;
+    --on-pine: #ffffff;
+    --paper: #ffffff;
+    --paper-2: #f2f2f2;
+    --ink: #000000;
+    --ink-soft: #1a1a1a;
+    --amber: #ffce6a;
+    --rust: #7a1f00;
+    --line: rgba(255, 255, 255, 0.55);
+    --line-ink: #555555;
+    --focus-page: #0033cc;
+    --focus-dark: #ffce6a;
     --focus-ring: #0033cc;
-    --g-a:#0a4420; --g-b:#234d10; --g-c:#5a4900; --g-d:#7a3a0a; --g-f:#7a0000;
+    --g-a: #0a4420;
+    --g-b: #234d10;
+    --g-c: #5a4900;
+    --g-d: #7a3a0a;
+    --g-f: #7a0000;
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --pine: #0c1410; --pine-2: #14201a;
-    --green: #7fd3a6; --green-on-dark: #7fd3a6; --on-pine: #e9e4d7;
-    --paper: #15181b; --paper-2: #1d2125;
-    --ink: #e9e4d7; --ink-soft: #c2c8bc;
-    --amber: #ffd34d; --rust: #f0a07f;
-    --line: rgba(233,228,215,.22); --line-ink: #3a4038;
+    --pine: #0c1410;
+    --pine-2: #14201a;
+    --green: #7fd3a6;
+    --green-on-dark: #7fd3a6;
+    --on-pine: #e9e4d7;
+    --paper: #15181b;
+    --paper-2: #1d2125;
+    --ink: #e9e4d7;
+    --ink-soft: #c2c8bc;
+    --amber: #ffd34d;
+    --rust: #f0a07f;
+    --line: rgba(233, 228, 215, 0.22);
+    --line-ink: #3a4038;
+    --focus-page: #ffd34d;
+    --focus-dark: #ffd34d;
     --focus-ring: #ffd34d;
-    --g-a:#7fd3a6; --g-b:#9cc97f; --g-c:#e0c878; --g-d:#e8a36a; --g-f:#f08a8a;
+    --g-a: #7fd3a6;
+    --g-b: #9cc97f;
+    --g-c: #e0c878;
+    --g-d: #e8a36a;
+    --g-f: #f08a8a;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
       color-scheme: dark;
-      --pine: #0c1410; --pine-2: #14201a;
-      --green: #7fd3a6; --green-on-dark: #7fd3a6; --on-pine: #e9e4d7;
-      --paper: #15181b; --paper-2: #1d2125;
-      --ink: #e9e4d7; --ink-soft: #c2c8bc;
-      --amber: #ffd34d; --rust: #f0a07f;
-      --line: rgba(233,228,215,.22); --line-ink: #3a4038;
+      --pine: #0c1410;
+      --pine-2: #14201a;
+      --green: #7fd3a6;
+      --green-on-dark: #7fd3a6;
+      --on-pine: #e9e4d7;
+      --paper: #15181b;
+      --paper-2: #1d2125;
+      --ink: #e9e4d7;
+      --ink-soft: #c2c8bc;
+      --amber: #ffd34d;
+      --rust: #f0a07f;
+      --line: rgba(233, 228, 215, 0.22);
+      --line-ink: #3a4038;
+      --focus-page: #ffd34d;
+      --focus-dark: #ffd34d;
       --focus-ring: #ffd34d;
-      --g-a:#7fd3a6; --g-b:#9cc97f; --g-c:#e0c878; --g-d:#e8a36a; --g-f:#f08a8a;
+      --g-a: #7fd3a6;
+      --g-b: #9cc97f;
+      --g-c: #e0c878;
+      --g-d: #e8a36a;
+      --g-f: #f08a8a;
     }
   }
 
@@ -110,687 +166,1810 @@
     color: var(--ink);
     font-family: var(--body);
     font-size: 17px;
-    line-height: 1.6;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
-  /* film grain over everything, for warmth/depth */
-  body::after {
-    content: "";
-    position: fixed; inset: 0; z-index: 9999; pointer-events: none;
-    opacity: .035;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  a { color: inherit; text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+  dfn { font-style: normal; }
+  abbr[title="General Transit Feed Specification"] {
+    font-style: normal;
+    text-decoration: none;
   }
-
-  a { color: inherit; }
-  .wrap { width: min(1280px, 92vw); margin-inline: auto; }
-  .mono { font-family: var(--mono); }
-  .kicker {
-    font-family: var(--mono);
-    font-size: .72rem; font-weight: 500;
-    letter-spacing: .28em; text-transform: uppercase;
-  }
+  .wrap { width: min(1340px, 92vw); margin-inline: auto; }
   .visually-hidden {
-    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
-    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
   }
   .skip {
-    position:absolute; left:-999px; top:0; z-index:10000;
-    background:var(--amber); color:var(--pine); padding:.6rem 1rem; border-radius:0 0 8px 0;
-    font-weight:700;
+    position: absolute;
+    left: -999px;
+    top: 0;
+    z-index: 10000;
+    background: var(--amber);
+    color: #2a1c00;
+    padding: 0.7rem 1rem;
+    font-weight: 700;
   }
-  .skip:focus { left:0; }
+  .skip:focus { left: 0; }
+  :focus-visible { outline: 3px solid var(--focus-page); outline-offset: 3px; }
+  .home-header :focus-visible,
+  .movement :focus-visible,
+  footer :focus-visible { outline-color: var(--focus-dark); }
+  .home-header .theme-menu :focus-visible { outline-color: var(--focus-page); }
+  .action-primary:focus-visible,
+  .skip:focus-visible { outline-color: var(--focus-on-amber); }
 
-  /* 2.4.13 focus appearance: a 3px ring with >=3:1 contrast against the surface. */
-  :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; border-radius: 4px; }
-
-  /* 2.5.5 target size: nav and footer links get >=44px tall hit areas. */
-  .topbar nav a, footer nav a, footer a { display: inline-flex; align-items: center;
-    min-height: 44px; }
-
-  /* ---------- buttons ---------- */
-  .btn {
-    display: inline-flex; align-items: center; gap: .55rem;
-    min-height: 44px;
-    font-family: var(--body); font-weight: 700; font-size: 1rem;
-    text-decoration: none; cursor: pointer;
-    padding: .85rem 1.4rem; border-radius: 999px;
-    border: 2px solid transparent;
-    transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
-  }
-  .btn-primary { background: var(--amber); color: #2a1c00; }
-  .btn-primary:hover { transform: translateY(-2px); background: #ffd23f; }
-  .btn-ghost { background: transparent; color: var(--on-pine); border-color: var(--line); }
-  .btn-ghost:hover { border-color: var(--on-pine); transform: translateY(-2px); }
-  .btn-ink { background: var(--pine); color: var(--on-pine); }
-  .btn-ink:hover { transform: translateY(-2px); background: var(--pine-2); }
-  .btn .arrow { transition: transform .2s ease; }
-  .btn:hover .arrow { transform: translateX(4px); }
-
-  /* ===================================================================
-     HERO  — dark pine ground, a route line drawing down the side
-     =================================================================== */
-  .hero {
+  /* Product masthead */
+  .home-header {
     position: relative;
-    background:
-      radial-gradient(120% 80% at 85% -10%, rgba(253,199,10,.13), transparent 55%),
-      radial-gradient(90% 70% at 5% 110%, rgba(31,122,77,.30), transparent 60%),
-      var(--pine);
+    z-index: 20;
+    background: var(--pine);
     color: var(--on-pine);
-    padding: clamp(1.2rem, 3vw, 2rem) 0 clamp(3rem, 7vw, 6rem);
-    overflow: hidden;
+    border-bottom: 5px solid var(--amber);
   }
-  /* the route line: a vertical dashed spine that "draws" in */
-  .hero .route {
-    position: absolute; top: 0; bottom: 0; left: 8%;
-    width: 2px;
-    background: repeating-linear-gradient(var(--line) 0 8px, transparent 8px 16px);
-    transform-origin: top;
-    animation: drawline 1.1s cubic-bezier(.2,.7,.2,1) both;
-  }
-  @keyframes drawline { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-
   .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    /* Above .hero-grid (also z-index 2) so the theme menu, which lives in the
-       topbar, opens over the example scorecard card instead of behind it. */
-    padding-block: 1.4rem; position: relative; z-index: 5;
+    min-height: 82px;
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
   }
-  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 700; letter-spacing: -.01em; text-decoration:none; }
-  .brand .dot { width: 26px; height: 26px; border-radius: 50%; background: var(--paper);
-    display: grid; place-items: center; flex: none; }
-  .brand .dot::after { content:""; width: 9px; height: 9px; border-radius:50%; background: var(--green); }
-  .brand b { font-family: var(--display); font-weight: 900; font-size: 1.15rem; }
-  .topbar nav { display: flex; gap: 1.4rem; align-items: center; font-size: .92rem; }
-  .topbar nav a { text-decoration: none; opacity: .85; }
-  .topbar nav a:hover { opacity: 1; }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    gap: 0.75rem;
+    font-family: var(--display);
+    font-size: 1.12rem;
+    font-weight: 900;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--on-pine);
+    border-radius: 50%;
+    position: relative;
+  }
+  .brand-mark::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 18px;
+    background: var(--on-pine);
+    top: 30px;
+  }
+  .topbar-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .topbar nav { display: flex; align-items: center; gap: 1.2rem; font-size: 0.9rem; }
+  .topbar nav a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+  .topbar nav a:hover { border-bottom-color: var(--on-pine); }
   .topbar .navcta { color: var(--amber); font-weight: 700; }
+  .home-menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.45rem 0.75rem;
+    color: var(--on-pine);
+    background: transparent;
+    border: 1.5px solid var(--line);
+    border-radius: 2px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .menu-glyph { width: 18px; height: 14px; position: relative; margin-right: 0.45rem; }
+  .menu-glyph::before,
+  .menu-glyph::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+  }
+  .menu-glyph::before { top: 2px; }
+  .menu-glyph::after { bottom: 2px; box-shadow: 0 -5px 0 currentColor; }
 
-  /* theme control (1.4.8) */
+  /* Theme menu mounted by /src/theme.js */
   .theme-control { position: relative; display: inline-flex; }
   .theme-toggle {
-    display: inline-flex; align-items: center; gap: .4rem; min-height: 44px;
-    font: inherit; font-size: .92rem; color: var(--on-pine);
-    background: transparent; border: 1.5px solid var(--line); border-radius: 999px;
-    padding: .4rem .9rem; cursor: pointer;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.75rem;
+    color: var(--on-pine);
+    background: transparent;
+    border: 1.5px solid var(--line);
+    border-radius: 2px;
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
   }
   .theme-toggle:hover { border-color: var(--on-pine); }
   .theme-menu {
-    position: absolute; right: 0; top: calc(100% + .4rem); z-index: 30;
-    display: grid; min-width: 12rem; padding: .35rem;
-    background: var(--paper); color: var(--ink);
-    border: 1.5px solid var(--line-ink); border-radius: 10px;
-    box-shadow: 0 12px 30px -12px rgba(0,0,0,.5);
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.45rem);
+    z-index: 30;
+    display: grid;
+    min-width: 12rem;
+    padding: 0.35rem;
+    background: var(--paper);
+    color: var(--ink);
+    border: 2px solid var(--ink);
   }
-  /* display:grid above overrides the UA [hidden] rule, so re-hide explicitly
-     or the menu stays open on load. */
   .theme-menu[hidden] { display: none; }
   .theme-item {
-    display: flex; align-items: center; justify-content: space-between;
-    min-height: 44px; font: inherit; text-align: left; cursor: pointer;
-    background: transparent; border: 0; border-radius: 8px; padding: .5rem .7rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.7rem;
     color: var(--ink);
+    background: transparent;
+    border: 0;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
   }
   .theme-item:hover { background: var(--paper-2); }
   .theme-item[aria-checked="true"]::after { content: "\2713"; color: var(--green); font-weight: 700; }
-  .theme-control-footer { margin: 1rem 0 0; }
-  .theme-control-footer .theme-toggle { color: var(--on-pine); }
 
-  .hero-grid {
-    position: relative; z-index: 2;
-    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 4vw, 4rem);
-    align-items: center; margin-top: clamp(1.5rem, 4vw, 3rem);
+  /* Daily feed bulletin */
+  .bulletin-hero { padding: clamp(2rem, 5vw, 4.5rem) 0 0; }
+  .bulletin-meta {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.72fr) minmax(0, 2.28fr);
+    border-top: 5px solid var(--ink);
+    border-bottom: 1px solid var(--line-ink);
+    font-family: var(--mono);
+    font-size: 0.75rem;
   }
-  .hero .eyebrow { color: var(--amber); margin: 0 0 1.4rem; }
-  .hero h1 {
-    font-family: var(--display); font-weight: 900;
-    font-size: clamp(2.6rem, 6.4vw, 5.1rem);
-    line-height: .98; letter-spacing: -.025em; margin: 0;
-    font-optical-sizing: auto;
+  .bulletin-meta > * { padding: 0.65rem 0.8rem; }
+  .bulletin-meta .issue {
+    border-right: 1px solid var(--line-ink);
+    font-weight: 700;
   }
-  /* Signs don't slant: the emphasized words go signal yellow, upright. */
-  .hero h1 em { font-style: normal; color: var(--amber); }
-  .hero .lede {
-    max-width: 30rem; margin: 1.6rem 0 2.1rem; font-size: 1.12rem; color: #dfe7dd;
+  .bulletin-meta .runline { display: flex; justify-content: space-between; gap: 1rem; }
+  .bulletin-meta a { font-weight: 700; }
+  /* The signature element: pin a real feed to a working service desk. */
+  .service-desk {
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.8fr) minmax(0, 2.2fr);
+    border-bottom: 2px solid var(--ink);
   }
-  .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; }
-  .reassure { margin: 1.5rem 0 0; font-family: var(--mono); font-size: .8rem; letter-spacing: .04em; color: #b9c7ba; }
+  .desk-intro {
+    min-width: 0;
+    padding: clamp(2rem, 4vw, 3.6rem) clamp(1.2rem, 3vw, 2.7rem) 1.4rem 0.8rem;
+    border-right: 1px solid var(--line-ink);
+  }
+  .desk-kicker,
+  .desk-label {
+    margin: 0;
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+  }
+  .desk-intro h1 {
+    max-width: 9.8ch;
+    margin: 0.7rem 0 1.35rem;
+    font-family: var(--display);
+    font-size: clamp(3rem, 4.6vw, 5.2rem);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 0.88;
+  }
+  .desk-summary { max-width: 39ch; margin: 0; font-size: 1rem; }
+  .desk-reassure { margin: 0.7rem 0 0; color: var(--ink-soft); font-size: 0.86rem; }
+  .desk-tools {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    padding: 0.4rem 2.7rem 1.45rem 0.8rem;
+    border-right: 1px solid var(--line-ink);
+  }
+  .feed-picker { position: relative; margin-top: 0; }
+  .feed-picker label {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .feed-search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .feed-search-row input,
+  .feed-search-row button {
+    min-height: 48px;
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    font: inherit;
+  }
+  .feed-search-row input {
+    min-width: 0;
+    padding: 0.65rem 0.75rem;
+    background: var(--paper);
+    color: var(--ink);
+    border-right: 0;
+  }
+  .feed-search-row button {
+    padding: 0.55rem 0.85rem;
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .feed-search-row button:focus-visible { outline-color: var(--focus-page); }
+  .feed-results {
+    position: absolute;
+    inset: calc(100% - 1px) 0 auto;
+    z-index: 15;
+    max-height: 18rem;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+  }
+  .feed-results[hidden] { display: none; }
+  .feed-results li + li { border-top: 1px solid var(--line-ink); }
+  .feed-results button {
+    width: 100%;
+    min-height: 48px;
+    display: grid;
+    gap: 0.08rem;
+    padding: 0.65rem 0.75rem;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .feed-results button:hover,
+  .feed-results button:focus-visible { background: var(--paper-2); }
+  .feed-result-name { font-weight: 700; }
+  .feed-result-id { color: var(--ink-soft); font-family: var(--mono); font-size: 0.68rem; }
+  .picker-note { min-height: 1.35rem; margin: 0.4rem 0 0; color: var(--ink-soft); font-size: 0.76rem; }
+  .hero-actions { display: grid; gap: 0.55rem; margin-top: 1.2rem; }
+  .action {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0.85rem;
+    border: 2px solid var(--ink);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .action:hover { text-decoration: underline; }
+  .action-primary { background: var(--amber); color: #2a1c00; }
+  .action-secondary { background: transparent; color: var(--ink); }
+  .action .arrow { font-family: var(--mono); }
+  .coverage-ledger {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 1.65rem 0 0;
+    border-top: 1px solid var(--line-ink);
+  }
+  .coverage-ledger div { min-width: 0; padding: 0.75rem 0.65rem 0 0; }
+  .coverage-ledger div + div { border-left: 1px solid var(--line-ink); padding-left: 0.75rem; }
+  .coverage-ledger div:nth-child(odd) { border-left: 0; padding-left: 0; }
+  .coverage-ledger div:nth-child(n + 3) { border-top: 1px solid var(--line-ink); margin-top: 0.75rem; }
+  .coverage-ledger dt {
+    margin: 0;
+    color: var(--ink-soft);
+    font-family: var(--mono);
+    font-size: 0.61rem;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+  .coverage-ledger dd {
+    margin: 0.25rem 0 0;
+    font-family: var(--display);
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    font-weight: 900;
+    line-height: 1;
+  }
+  .hero-ledger {
+    grid-column: 1;
+    grid-row: 3;
+    padding: 0 2.7rem 2rem 0.8rem;
+    border-right: 1px solid var(--line-ink);
+  }
+  .hero-ledger .for {
+    margin: 0;
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .evidence-base {
+    margin: 0.85rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
 
-  /* stagger the hero text on load */
-  .rise { opacity: 0; transform: translateY(18px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
-  .rise.d1 { animation-delay: .15s; } .rise.d2 { animation-delay: .28s; }
-  .rise.d3 { animation-delay: .41s; } .rise.d4 { animation-delay: .54s; } .rise.d5 { animation-delay: .67s; }
-  @keyframes rise { to { opacity: 1; transform: none; } }
-
-  /* ---------- the sample scorecard "card" ---------- */
-  .card {
-    background: var(--paper); color: var(--ink);
-    border-radius: var(--radius);
-    box-shadow: 0 34px 70px -25px rgba(0,0,0,.62), 0 2px 0 rgba(255,255,255,.4) inset;
-    padding: 1.8rem 2rem 2rem;
+  .scorecard-desk { grid-column: 2; grid-row: 1 / span 3; min-width: 0; background: var(--paper); }
+  .scorecard-toolbar {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .scorecard-toolbar .desk-label { color: var(--ink-soft); }
+  .pilot-context { max-width: 47ch; margin: 0.18rem 0 0; color: var(--ink-soft); font-size: 0.72rem; }
+  .pilot-switch { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .pilot-fallback { margin: 0; font-size: 0.82rem; }
+  :root:not(.js) .pilot-switch { display: none; }
+  .pilot-switch button,
+  .copy-view {
+    min-height: 44px;
+    padding: 0.45rem 0.7rem;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .pilot-switch button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .record-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: clamp(1.2rem, 3vw, 2.7rem);
+    align-items: center;
+    min-height: 174px;
+    padding: 1.35rem clamp(1rem, 2.4vw, 2rem);
+    background: var(--pine);
+    color: var(--on-pine);
+  }
+  .record-place { margin: 0 0 0.55rem; color: var(--amber); font-family: var(--mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+  .record-head h2 { margin: 0; font-family: var(--display); font-size: clamp(1.8rem, 3.6vw, 3.4rem); line-height: 0.98; }
+  .record-head > div:first-child { min-width: 0; }
+  .record-head h2 { overflow-wrap: anywhere; }
+  .record-date { margin: 0.65rem 0 0; color: #cfdcd2; font-size: 0.84rem; }
+  .grade-group,
+  .score-group { text-align: center; }
+  .grade-group .desk-label,
+  .score-group .desk-label { display: block; margin-bottom: 0.35rem; color: #cfdcd2; }
+  .score-group .desk-label { max-width: 13ch; line-height: 1.25; }
+  .grade-reel {
+    width: 78px;
+    height: 88px;
+    display: grid;
+    place-items: center;
     position: relative;
-    border: 1.5px solid var(--line-ink);
-    animation: cardin 1s cubic-bezier(.2,.7,.2,1) .35s both;
+    background: #14110c;
+    color: #ffffff;
+    border: 2px solid var(--on-pine);
+    font-family: var(--display);
+    font-size: 3.8rem;
+    font-weight: 900;
+    line-height: 1;
   }
-  @keyframes cardin { from { opacity:0; transform: translateY(40px); } to { opacity:1; } }
-  .card .tag {
-    position:absolute; top: -12px; left: 18px;
-    background: var(--pine); color: var(--on-pine);
-    font-family: var(--mono); font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
-    padding: .3rem .6rem; border-radius: 6px;
+  .grade-reel::after { content: ""; position: absolute; inset: 50% 0 auto; height: 2px; background: #000000; }
+  .score-number { display: block; font-family: var(--display); font-size: clamp(2.4rem, 4vw, 4rem); font-weight: 900; line-height: 0.9; }
+  .score-of { display: block; margin-top: 0.4rem; color: #cfdcd2; font-family: var(--mono); font-size: 0.68rem; }
+  .score-workbench { display: grid; grid-template-columns: minmax(15rem, 0.82fr) minmax(0, 1.58fr); }
+  .category-panel,
+  .fix-panel { min-width: 0; padding: 1.1rem; }
+  .category-panel { border-right: 1px solid var(--line-ink); }
+  .panel-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.65rem;
   }
-  .card-head { display: flex; align-items: center; gap: 1rem; }
-  /* split-flap grade reel */
-  .reel {
-    --h: 92px;
-    width: 78px; height: var(--h); flex: none;
-    border-radius: 10px; overflow: hidden; position: relative;
-    background: #14110c; color: #fff;
-    box-shadow: inset 0 0 0 2px rgba(255,255,255,.06);
+  .panel-heading h3 { margin: 0; font-family: var(--display); font-size: 1.05rem; }
+  .panel-heading span { color: var(--ink-soft); font-family: var(--mono); font-size: 0.66rem; text-transform: uppercase; }
+  .category-row { display: grid; grid-template-columns: minmax(0, 1fr) 4.6rem; align-items: center; border-top: 1px solid var(--line-ink); }
+  .category-select {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.45rem 0.55rem;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-left: 5px solid transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
   }
-  .reel::after { /* center split line of a flap board */
-    content:""; position:absolute; left:0; right:0; top:50%; height:2px; background: rgba(0,0,0,.55); z-index:2;
+  .category-select[aria-pressed="true"] { border-left-color: var(--green); background: var(--paper-2); font-weight: 700; }
+  .category-value { font-family: var(--mono); font-size: 0.75rem; white-space: nowrap; }
+  .category-meter { height: 6px; margin: 0 0.55rem; overflow: hidden; background: var(--line-ink); }
+  .category-meter span { display: block; height: 100%; background: var(--green); }
+  .category-meter.is-unmeasured { height: 2px; background: var(--line-ink); }
+  .category-detail { min-height: 7.3rem; padding: 0.75rem 0.55rem 0; border-top: 2px solid var(--ink); }
+  .category-detail h4 { margin: 0; font-family: var(--display); font-size: 1rem; }
+  .category-detail p { margin: 0.4rem 0 0; color: var(--ink-soft); font-size: 0.8rem; }
+  .fix-selector { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; border: 1px solid var(--ink); }
+  .fix-selector[hidden] { display: none; }
+  .fix-selector li + li { border-left: 1px solid var(--ink); }
+  .fix-selector button {
+    width: 100%;
+    min-height: 64px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.45rem;
+    align-items: start;
+    padding: 0.55rem;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
   }
-  .reel-strip {
-    display: grid; grid-auto-rows: var(--h);
-    animation: flap 1.7s cubic-bezier(.2,.85,.25,1) .7s both;
-  }
-  .reel-strip span {
-    display: grid; place-items: center;
-    font-family: var(--display); font-weight: 900; font-size: 3.4rem; line-height: 1;
-  }
-  /* strip order F,D,C,B,A — lands on A (translateY -4 rows) */
-  @keyframes flap { from { transform: translateY(0); } to { transform: translateY(calc(var(--h) * -4)); } }
-  .card-head h3 { font-family: var(--display); font-weight: 900; font-size: 1.35rem; margin: 0 0 .15rem; letter-spacing: -.01em; }
-  .card-head .sub { margin: 0; font-family: var(--mono); font-size: .78rem; color: var(--ink-soft); }
-  .bars { margin: 1.3rem 0 1.2rem; display: grid; gap: .7rem; }
-  .bar { display: grid; grid-template-columns: 7.5rem 1fr 2.4rem; align-items: center; gap: .6rem; font-size: .82rem; }
-  .bar .track { height: 9px; border-radius: 99px; background: var(--paper-2); overflow: hidden; }
-  /* display:block is required: a bare <span> is inline, and width/height do not
-     apply to inline boxes, so the fill never showed. */
-  .bar .fill { display: block; height: 100%; border-radius: 99px; width: 0; animation: grow 1s cubic-bezier(.2,.7,.2,1) 1s forwards; }
-  @keyframes grow { to { width: var(--w); } }
-  .bar .num { font-family: var(--mono); text-align: right; color: var(--ink-soft); }
-  .fix {
-    border-top: 1.5px dashed var(--line-ink); padding-top: 1rem;
-    display: flex; gap: .7rem; align-items: flex-start;
-  }
-  .fix .pin { color: var(--rust); font-weight: 700; font-family: var(--mono); font-size: .8rem; flex:none; padding-top:.1rem; }
-  .fix p { margin: 0; font-size: .92rem; }
-  .fix b { font-weight: 700; }
+  .fix-selector button[aria-pressed="true"] { background: var(--pine); color: var(--on-pine); }
+  .fix-number { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; }
+  .fix-button-text { font-size: 0.8rem; line-height: 1.3; }
+  .fix-card { min-height: 13.5rem; padding-top: 0.9rem; }
+  .fix-card .fix-code { margin: 0; color: var(--rust); font-family: var(--mono); font-size: 0.68rem; font-weight: 700; overflow-wrap: anywhere; }
+  .fix-card h3 { max-width: 34ch; margin: 0.35rem 0 0; font-family: var(--display); font-size: clamp(1.15rem, 2vw, 1.65rem); line-height: 1.08; }
+  .fix-evidence { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-top: 0.75rem; }
+  .fix-evidence p { margin: 0; color: var(--ink-soft); font-size: 0.79rem; }
+  .fix-evidence strong { display: block; color: var(--ink); font-family: var(--mono); font-size: 0.63rem; text-transform: uppercase; }
+  .effort-line { margin: 0.65rem 0 0; font-size: 0.78rem; }
+  .effort-line b { color: var(--green); }
+  .record-actions { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; margin-top: 0.8rem; font-size: 0.8rem; font-weight: 700; }
+  .record-actions a { min-height: 44px; display: inline-flex; align-items: center; }
+  .copy-view { background: var(--amber); color: #2a1c00; border-color: var(--ink); }
+  .measurement-note { margin: 0; padding: 0.7rem 1.1rem; color: var(--ink-soft); border-top: 1px solid var(--line-ink); font-size: 0.82rem; }
+  .scorecard-status { min-height: 1.2rem; margin: 0; padding: 0.4rem 0.8rem; color: var(--ink-soft); border-top: 1px solid var(--line-ink); font-family: var(--mono); font-size: 0.78rem; }
+  .scorecard-desk[aria-busy="true"] .score-workbench { opacity: 0.72; }
 
-  /* ===================================================================
-     PROOF BAND — departure-board style stats
-     =================================================================== */
-  .board {
-    background: var(--pine-2); color: var(--on-pine);
-    border-block: 1px solid var(--line);
+  .inspection { padding: clamp(3rem, 6vw, 5.2rem) 0; }
+  .ecosystem { padding-top: 0; }
+  .section-intro {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.72fr) minmax(0, 2.28fr);
+    margin-bottom: 2.2rem;
   }
-  .board .wrap {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 1px; background: var(--line);
+  .section-code {
+    margin: 0;
+    padding-right: 1.5rem;
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
   }
-  .board .cell { background: var(--pine-2); padding: 1.6rem 1.2rem; text-align: center; }
-  .board .big { font-family: var(--display); font-weight: 900; font-size: clamp(1.8rem,4vw,2.7rem); line-height:1; }
-  .board .lab { font-family: var(--mono); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: #b9c7ba; margin-top: .5rem; }
-
-  /* ===================================================================
-     THE LINE — how it works, as stops on a route
-     =================================================================== */
-  section.band { padding: clamp(3.5rem, 8vw, 6.5rem) 0; }
-  .sectlabel { font-family: var(--mono); font-size: .72rem; letter-spacing: .24em; text-transform: uppercase; color: var(--green); margin: 0 0 .8rem; }
-  .secttitle { font-family: var(--display); font-weight: 900; font-size: clamp(1.9rem, 4.5vw, 3rem); letter-spacing: -.02em; line-height: 1.05; margin: 0 0 .6rem; max-width: 18ch; }
-  .sectlede { color: var(--ink-soft); max-width: 40ch; margin: 0 0 2.8rem; }
-  /* Two-column section header: title on the left, lede on the right, so the
-     header row uses the full width instead of a narrow left stack. */
-  .sect-head { display: grid; grid-template-columns: 1.15fr .85fr; gap: 1.2rem 3rem;
-    align-items: end; margin: 0 0 2.8rem; }
-  .sect-head .secttitle { max-width: none; margin: 0; }
-  .sect-head .sectlede { max-width: 46ch; margin: 0 0 .35rem; }
-  /* Inline links to authoritative context (the GTFS spec, the MobilityData
-     validator, the NTD). Underlined so they read as links without relying on
-     colour, and they inherit the surrounding text colour to stay AAA. */
-  .ctx { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
-  .ctx:hover { text-decoration-thickness: 2px; }
-  /* External context links open in a new tab; a small arrow signals that to
-     sighted users (the visually-hidden "opens in a new tab" covers everyone else). */
-  .ctx::after { content: "\2197"; font-size: .8em; margin-left: .1em; text-decoration: none; }
-  /* A centred closing note under a section's cards, instead of a stranded
-     narrow paragraph on the left. */
-  .sect-foot { color: var(--ink-soft); max-width: 64ch; margin: 2.6rem auto 0; text-align: center; }
-
-  /* Four stops laid out left-to-right along a route line, so the section uses
-     the full width instead of a narrow left column. Stacks on mobile. */
-  .stops { position: relative; display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 2rem; padding-top: 2.6rem; }
-  .stops::before { /* the horizontal route line the stops sit on */
-    content:""; position: absolute; top: 9px; left: 10px; right: 10px; height: 2px;
-    background: repeating-linear-gradient(to right, var(--line-ink) 0 7px, transparent 7px 14px);
+  .section-intro h2 {
+    max-width: 19ch;
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(2.1rem, 5vw, 4.4rem);
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 0.98;
   }
-  .stop { position: relative; }
-  .stop::before { /* stop dot, centered on the route line above its column */
-    content:""; position: absolute; top: -2.6rem; left: 0;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: var(--paper); border: 3px solid var(--green);
-    box-shadow: 0 0 0 4px var(--paper);
+  .section-intro .lede { max-width: 56ch; margin: 1rem 0 0; color: var(--ink-soft); }
+  .route-track {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1.05fr 0.9fr 1.35fr 1fr;
+    margin: 0;
+    padding: 0;
+    border-top: 5px solid var(--green);
+    border-bottom: 2px solid var(--ink);
   }
-  .stop .n { font-family: var(--mono); font-size: .75rem; color: var(--green); letter-spacing: .1em; }
-  .stop h3 { font-family: var(--display); font-weight: 600; font-size: 1.3rem; margin: .15rem 0 .35rem; letter-spacing: -.01em; }
-  .stop p { margin: 0; color: var(--ink-soft); }
-
-  /* ===================================================================
-     AUDIENCE — three cards
-     =================================================================== */
-  .who { background: var(--paper-2); }
-  .who-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr)); gap: 1.4rem; }
-  .who-card {
-    background: var(--paper); border: 1.5px solid var(--line-ink); border-radius: var(--radius);
-    padding: 1.8rem; position: relative; overflow: hidden;
+  .route-stop {
+    position: relative;
+    min-width: 0;
+    padding: 2.1rem 1.15rem 1.6rem;
+    border-right: 1px solid var(--line-ink);
   }
-  .who-card .corner { position:absolute; top:-30px; right:-30px; width: 110px; height: 110px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(31,122,77,.18), transparent 70%); }
-  .who-card h3 { font-family: var(--display); font-weight: 900; font-size: 1.5rem; margin: 0 0 .5rem; letter-spacing: -.01em; }
-  .who-card .role { font-family: var(--mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--green); margin: 0 0 1rem; }
-  .who-card p { margin: 0; color: var(--ink-soft); max-width: var(--measure); }
-
-  /* Explore: a directory card whose feature links each carry a one-line note.
-     Green underlined links stay AAA (7:1 on the cream card) and read as links
-     without relying on colour. */
-  .feat-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
-  .feat-list li { color: var(--ink-soft); line-height: 1.45; font-size: .95rem; }
-  .feat-list a { color: var(--green); font-weight: 700; text-decoration: underline;
-    text-underline-offset: 2px; text-decoration-thickness: 1px; }
-  .feat-list a:hover { text-decoration-thickness: 2px; }
-
-  /* ===================================================================
-     FINAL CTA
-     =================================================================== */
-  .cta {
-    background:
-      radial-gradient(80% 120% at 100% 0%, rgba(253,199,10,.15), transparent 55%),
-      var(--pine);
-    color: var(--on-pine); text-align: center;
-    padding: clamp(3.5rem, 8vw, 6rem) 0;
+  .route-stop:last-child { border-right: 0; }
+  .route-stop::before {
+    content: "";
+    position: absolute;
+    width: 17px;
+    height: 17px;
+    top: -12px;
+    left: 1.1rem;
+    border: 4px solid var(--green);
+    border-radius: 50%;
+    background: var(--paper);
   }
-  .cta h2 { font-family: var(--display); font-weight: 900; font-size: clamp(2.1rem, 5.5vw, 3.6rem); letter-spacing: -.02em; line-height: 1.02; margin: 0 auto .8rem; max-width: 16ch; }
-  .cta p { color: #d3decf; max-width: 42ch; margin: 0 auto 2rem; }
-
-  footer { background: var(--pine); color: #b9c7ba; border-top: 1px solid var(--line); padding: 2.5rem 0; font-size: .85rem; }
-  footer .wrap { display: flex; flex-wrap: wrap; gap: 1rem 2rem; justify-content: space-between; align-items: center; }
-  footer a { color: var(--on-pine); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
-  footer .disc { max-width: 58ch; }
-
-  /* ===================================================================
-     RECENTLY IMPROVED — live movers from the changes feed
-     =================================================================== */
-  /* cream, so it reads distinct from the paper-2 "who" band just above it */
-  .improved { background: var(--paper); }
-  .movers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 2.4rem; }
-  .mover-card {
-    display: block; text-decoration: none;
-    background: var(--paper); border: 1.5px solid var(--line-ink); border-radius: var(--radius);
-    padding: 1.3rem 1.4rem; transition: transform .15s ease, border-color .15s ease;
+  .route-stop .stop-label {
+    margin: 0 0 0.65rem;
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
   }
-  .mover-card:hover { transform: translateY(-3px); border-color: var(--green); }
-  .mover-card .mname { font-family: var(--display); font-weight: 700; font-size: 1.12rem;
-    margin: 0 0 .55rem; letter-spacing: -.01em; color: var(--ink); }
-  .mover-card .mgrade { font-family: var(--mono); font-size: .82rem; color: var(--ink-soft); }
-  .mover-card .mgrade b { color: var(--ink); font-weight: 600; }
-  .mover-card .mdelta { display: flex; align-items: center; gap: .35rem; margin-top: .65rem;
-    font-family: var(--mono); font-weight: 600; font-size: .82rem; color: var(--green); }
-  .movers-fallback { color: var(--ink-soft); margin: 2.4rem 0 0; }
-  /* sample-card accessibility sub-bar */
-  .bar.subbar { font-size: .76rem; }
-  .bar.subbar > span:first-child { padding-left: 1rem; color: var(--ink-soft); }
+  .route-stop h3 { margin: 0 0 0.65rem; font-family: var(--display); font-size: 1.25rem; line-height: 1.1; }
+  .route-stop p { margin: 0; color: var(--ink-soft); font-size: 0.9rem; }
+  .source-files { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+  .source-files code,
+  .notice-code {
+    display: inline-block;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid var(--line-ink);
+    background: var(--paper-2);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    overflow-wrap: anywhere;
+  }
 
-  /* ---------- responsive ---------- */
-  @media (max-width: 860px) {
-    .hero-grid { grid-template-columns: 1fr; }
-    .card { rotate: 0deg; max-width: 26rem; }
-    .sect-head { grid-template-columns: 1fr; gap: .9rem; }
-    .topbar nav { display: none; }
-    .board .wrap { grid-template-columns: 1fr 1fr; }
-    .who-grid { grid-template-columns: 1fr; }
-    .movers { grid-template-columns: 1fr; }
-    .hero .route { left: 4%; }
-    /* Stack the four stops; the horizontal route line and dots are desktop-only. */
-    .stops { grid-template-columns: 1fr; padding-top: 0; gap: 1.8rem; }
-    .stops::before, .stop::before { display: none; }
+  /* Full product scope as an operational index, not a card wall. */
+  .service-index { padding: clamp(3.5rem, 8vw, 7rem) 0; background: var(--paper-2); }
+  .service-index .section-intro { margin-bottom: 2.8rem; }
+  .scope-ledger { border-top: 5px solid var(--ink); }
+  .scope-row {
+    display: grid;
+    grid-template-columns: minmax(15rem, 0.82fr) minmax(0, 2.18fr);
+    border-bottom: 2px solid var(--line-ink);
+  }
+  .scope-key {
+    padding: 1.5rem 2rem 1.5rem 0.8rem;
+    border-right: 1px solid var(--line-ink);
+  }
+  .scope-code {
+    display: inline-block;
+    min-width: 3rem;
+    margin-bottom: 1rem;
+    padding: 0.3rem 0.45rem;
+    background: var(--pine);
+    color: var(--on-pine);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .scope-key h3 { margin: 0; font-family: var(--display); font-size: clamp(1.4rem, 2.5vw, 2.1rem); line-height: 1.05; }
+  .scope-key .audience { margin: 0.55rem 0 0; color: var(--ink-soft); font-size: 0.84rem; }
+  .scope-body { padding: 1.5rem 0 1.5rem clamp(1.2rem, 3vw, 2.5rem); }
+  .scope-body > p { max-width: 68ch; margin: 0 0 1rem; }
+  .scope-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 2rem;
+    margin: 0;
+    padding: 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+  .scope-list li { position: relative; padding-left: 1rem; }
+  .scope-list li::before { content: ""; position: absolute; left: 0; top: 0.7em; width: 0.45rem; height: 2px; background: var(--green); }
+  .scope-list a { color: var(--green); font-weight: 700; }
+
+  .operating-notes { padding: clamp(3.5rem, 8vw, 6.5rem) 0; }
+  .notes-grid { margin: 0; border-top: 5px solid var(--ink); }
+  .note-row {
+    display: grid;
+    grid-template-columns: minmax(15rem, 0.82fr) minmax(0, 2.18fr);
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .note-row dt,
+  .note-row dd { margin: 0; padding: 1.1rem 0.8rem; }
+  .note-row dt { border-right: 1px solid var(--line-ink); font-family: var(--mono); font-weight: 700; }
+  .note-row dd { padding-left: clamp(1.2rem, 3vw, 2.5rem); color: var(--ink-soft); }
+
+  .movement { background: var(--pine); color: var(--on-pine); border-block: 5px solid var(--amber); }
+  .movement .wrap {
+    min-height: 190px;
+    display: grid;
+    grid-template-columns: minmax(15rem, 0.82fr) minmax(0, 1.45fr) auto;
+    gap: 2rem;
+    align-items: center;
+    padding-block: 2rem;
+  }
+  .movement .live-label { margin: 0; color: var(--amber); font-family: var(--mono); font-size: 0.76rem; font-weight: 700; text-transform: uppercase; }
+  .movement h2 { margin: 0; font-family: var(--display); font-size: clamp(1.8rem, 4vw, 3.2rem); line-height: 1; }
+  .movement p { margin: 0.7rem 0 0; color: #d3decf; }
+  .movement .action { min-width: 13rem; border-color: var(--on-pine); color: var(--on-pine); }
+
+  footer { background: var(--pine); color: var(--on-pine); padding: 3rem 0 2rem; }
+  .footer-grid { display: grid; grid-template-columns: 1.2fr repeat(3, 1fr); gap: 2rem; }
+  footer h2 { margin: 0 0 0.7rem; font-family: var(--display); font-size: 1.05rem; }
+  footer p { margin: 0; color: #cfdcd2; font-size: 0.9rem; }
+  footer nav { display: grid; align-content: start; }
+  footer a { min-height: 44px; display: inline-flex; align-items: center; color: var(--on-pine); }
+  .footer-note { max-width: 38ch; }
+
+  @media (max-width: 1120px) {
+    .home-menu-toggle { display: inline-flex; margin-left: auto; }
+    .topbar-controls {
+      position: absolute;
+      top: calc(100% + 5px);
+      right: 4vw;
+      left: 4vw;
+      display: none;
+      padding: 0.8rem;
+      background: var(--pine);
+      border: 2px solid var(--on-pine);
+    }
+    .topbar.menu-open .topbar-controls { display: grid; }
+    :root:not(.js) .topbar-controls { display: grid; position: static; width: 100%; box-shadow: none; }
+    :root:not(.js) .topbar { flex-wrap: wrap; padding-block: 0.8rem; }
+    :root:not(.js) .home-menu-toggle { display: none; }
+    .topbar nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+    .topbar nav a { border-bottom: 1px solid var(--line); }
+    .theme-control { width: max-content; margin-top: 0.6rem; }
+  }
+
+  @media (max-width: 900px) {
+    .bulletin-meta,
+    .service-desk,
+    .section-intro,
+    .scope-row,
+    .note-row { grid-template-columns: 1fr; }
+    .bulletin-meta .issue,
+    .scope-key,
+    .note-row dt { border-right: 0; }
+    .bulletin-meta .issue { border-bottom: 1px solid var(--line-ink); }
+    .desk-intro,
+    .scorecard-desk,
+    .desk-tools,
+    .hero-ledger { grid-column: 1; grid-row: auto; }
+    .desk-intro { padding: 1.6rem 0.8rem 1.4rem; border-right: 0; }
+    .desk-intro h1 { max-width: 13ch; margin: 0.55rem 0 1rem; font-size: clamp(3.2rem, 8vw, 4.4rem); }
+    .scorecard-desk { border-top: 2px solid var(--ink); }
+    .desk-tools { padding: 1.5rem 0.8rem; border-top: 1px solid var(--line-ink); border-right: 0; }
+    .hero-ledger { padding: 1.3rem 0.8rem 1.7rem; border-top: 1px solid var(--line-ink); border-right: 0; }
+    .score-workbench { grid-template-columns: 1fr; }
+    .category-panel { border-right: 0; border-bottom: 1px solid var(--line-ink); }
+    .category-detail { min-height: 0; }
+    .route-track {
+      grid-template-columns: 1fr;
+      border-top: 0;
+      border-left: 5px solid var(--green);
+    }
+    .route-stop { padding: 1.3rem 1rem 1.3rem 1.7rem; border-right: 0; border-bottom: 1px solid var(--line-ink); }
+    .route-stop:last-child { border-bottom: 0; }
+    .route-stop::before { top: 1.5rem; left: -11px; }
+    .section-code { margin-bottom: 0.8rem; }
+    .section-intro h2 { max-width: 22ch; }
+    .scope-key { padding-right: 0.8rem; border-bottom: 1px solid var(--line-ink); }
+    .scope-body { padding-left: 0.8rem; }
+    .note-row dt { padding-bottom: 0.35rem; }
+    .note-row dd { padding-top: 0.35rem; padding-left: 0.8rem; }
+    .movement .wrap { grid-template-columns: 1fr; gap: 1rem; }
+    .movement .action { width: min(100%, 22rem); }
+    .footer-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 720px) {
+    body { font-size: 16px; }
+    .wrap { width: min(100% - 2rem, 1340px); }
+    .topbar { min-height: 72px; }
+    .topbar-controls { left: 1rem; right: 1rem; }
+    .brand { font-size: 1rem; }
+    .bulletin-meta .runline { display: grid; }
+    /* The ledger stays two columns here. A single-column rule used to sit in
+       this block, but a later unconditional rule always won, so its
+       companion border rules drew a top rule above only the right half of
+       the first row. Row two keeps its own rule and spacing. */
+    .coverage-ledger { gap: 0; }
+    .coverage-ledger div:nth-child(n + 3) { border-top: 1px solid var(--line-ink); margin-top: 0.75rem; }
+    .desk-intro h1 { max-width: 13ch; font-size: clamp(3rem, 10vw, 4.4rem); }
+    .record-head { grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; }
+    .score-group { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 0.7rem; text-align: left; }
+    .score-group .desk-label { margin: 0; }
+    .score-number { font-size: 2.4rem; }
+    .score-of { margin: 0; }
+    .scope-list { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 430px) {
+    .home-menu-toggle span:last-child { display: none; }
+    .topbar nav { grid-template-columns: 1fr; }
+    .bulletin-hero { padding-top: 1.5rem; }
+    .bulletin-meta > * { padding: 0.5rem 0.7rem; }
+    .desk-intro { padding-top: 1.7rem; padding-bottom: 1.5rem; }
+    .desk-intro h1 { max-width: none; margin-block: 0.55rem 1rem; font-size: clamp(2.75rem, 12.5vw, 3.15rem); line-height: 0.92; }
+    .desk-summary { font-size: 0.94rem; }
+    .action { width: 100%; }
+    .scorecard-toolbar { align-items: flex-start; flex-direction: column; }
+    .record-head { grid-template-columns: minmax(0, 1fr) 70px; }
+    .grade-reel { width: 68px; height: 78px; font-size: 3.2rem; }
+    .fix-selector { grid-template-columns: 1fr; }
+    .fix-selector li + li { border-top: 1px solid var(--ink); border-left: 0; }
+    .fix-selector button { min-height: 48px; }
+    .fix-evidence { grid-template-columns: 1fr; }
+  }
+
+  /* Interface cohesion pass — July 2026. The home page is the service desk;
+     these refinements give the desk clearer depth and interaction hierarchy
+     while keeping the same transit-signage system as the inner app. */
+  .home-header {
+    position: sticky;
+    top: 0;
+    box-shadow: 0 8px 24px rgba(5, 22, 16, 0.2);
+  }
+  .bulletin-hero {
+    padding-top: clamp(1.5rem, 4vw, 3.2rem);
+  }
+  .service-desk {
+    background: var(--paper);
+    border-inline: 1px solid var(--line-ink);
+    box-shadow: 0 18px 58px rgba(32, 36, 31, 0.09);
+  }
+  .desk-intro h1,
+  .section-intro h2,
+  .record-head h2 {
+    text-wrap: balance;
+  }
+  .scorecard-desk {
+    position: relative;
+  }
+  .record-head {
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 2rem;
+  }
+  .record-head::after {
+    content: "";
+    position: absolute;
+    left: clamp(1rem, 2.4vw, 2rem);
+    right: clamp(1rem, 2.4vw, 2rem);
+    bottom: 0.8rem;
+    height: 1px;
+    opacity: 0.48;
+    background: var(--amber);
+  }
+  .category-panel,
+  .fix-panel {
+    background: color-mix(in srgb, var(--paper) 92%, var(--paper-2));
+  }
+  .category-select,
+  .fix-selector button,
+  .pilot-switch button,
+  .action,
+  .scope-row,
+  .route-stop {
+    transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  }
+  .category-select:hover,
+  .fix-selector button:hover,
+  .pilot-switch button:hover {
+    background: var(--paper-2);
+  }
+  .action:hover {
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: translate(-2px, -2px);
+  }
+  .scope-row:hover,
+  .route-stop:hover {
+    background: color-mix(in srgb, var(--paper) 62%, var(--paper-2));
+  }
+  .fix-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .inspection,
+  .service-index,
+  .method {
+    scroll-margin-top: 5.5rem;
+  }
+  @media (max-width: 760px) {
+    .home-header {
+      position: relative;
+    }
+    .service-desk {
+      border-inline: 0;
+      box-shadow: none;
+    }
+    .record-head {
+      padding-bottom: 2.2rem;
+    }
+    .score-workbench {
+      gap: 0;
+    }
+  }
+
+  /* Quiet utility pass. The scorecard is the interface, not a campaign page. */
+  .home-header {
+    position: relative;
+    border-bottom-width: 1px;
+    box-shadow: none;
+  }
+  .topbar { min-height: 68px; }
+  .bulletin-hero { padding-top: 1.5rem; }
+  .bulletin-meta {
+    grid-template-columns: minmax(10rem, 0.7fr) minmax(0, 2.3fr);
+    border-top: 0;
+  }
+  .bulletin-meta > * { padding: 0.5rem 0; }
+  .bulletin-meta .issue {
+    padding-right: 1rem;
+    font-family: var(--body);
+    font-size: 0.82rem;
+  }
+  .bulletin-meta .runline {
+    align-items: center;
+    padding-left: 1rem;
+    color: var(--ink-soft);
+    font-size: 0.7rem;
+  }
+  .service-desk {
+    grid-template-columns: minmax(0, 1.45fr) minmax(19rem, 0.75fr);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line-ink);
+    box-shadow: none;
+  }
+  .desk-intro {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 1.5rem 2rem 1.25rem 0;
+    border-right: 0;
+  }
+  .desk-intro h1 {
+    max-width: none;
+    margin: 0 0 0.45rem;
+    font-size: clamp(1.75rem, 3vw, 2.6rem);
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+  }
+  .desk-summary { max-width: 62ch; font-size: 0.98rem; }
+  .desk-reassure { max-width: 72ch; margin-top: 0.45rem; font-size: 0.78rem; }
+  .desk-tools {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    padding: 1.25rem 0 1.25rem 1.5rem;
+    border-left: 1px solid var(--line-ink);
+    border-right: 0;
+  }
+  .feed-picker label {
+    margin-bottom: 0.3rem;
+    font-family: var(--body);
+    font-size: 0.78rem;
+    text-transform: none;
+  }
+  .feed-search-row input,
+  .feed-search-row button {
+    min-height: 44px;
+    border-width: 1px;
+  }
+  .feed-search-row button {
+    background: var(--green);
+    color: var(--paper);
+  }
+  .picker-note { margin-top: 0.3rem; font-size: 0.7rem; }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 0.45rem;
+  }
+  .action {
+    min-height: 40px;
+    justify-content: flex-start;
+    padding: 0;
+    border: 0;
+    color: var(--green);
+    font-size: 0.78rem;
+    text-decoration: underline;
+  }
+  .action-primary,
+  .action-secondary {
+    background: transparent;
+    color: var(--green);
+  }
+  .action .arrow { display: none; }
+  .action:hover {
+    box-shadow: none;
+    transform: none;
+  }
+  .hero-ledger {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding: 0;
+    border-top: 1px solid var(--line-ink);
+    border-right: 0;
+  }
+  .coverage-ledger {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border-top: 0;
+  }
+  /* The ledger computes to two columns at every width, so the dividers are
+     column-aware: the left cell of each row starts flush and the right cell
+     carries the rule between them. An earlier version of this block was
+     written for a single row of four and gave every cell but the first a left
+     divider, which indented "Countries in registry" by 17px against "Curated
+     feed records" directly above it on every viewport wider than 620px. */
+  .coverage-ledger div {
+    margin: 0;
+    padding: 0.65rem 1rem 0.65rem 0;
+    border-top: 0;
+  }
+  .coverage-ledger div:nth-child(even) {
+    padding-left: 1rem;
+    border-left: 1px solid var(--line-ink);
+  }
+  .coverage-ledger div:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .coverage-ledger div:nth-child(n + 3) {
+    border-top: 1px solid var(--line-ink);
+  }
+  .coverage-ledger dt {
+    font-family: var(--body);
+    font-size: 0.66rem;
+    text-transform: none;
+  }
+  .coverage-ledger dd {
+    margin-top: 0.12rem;
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  .scorecard-desk {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    border-top: 1px solid var(--ink);
+  }
+  .scorecard-toolbar {
+    min-height: 50px;
+    background: var(--paper-2);
+  }
+  .record-head {
+    min-height: 126px;
+    padding: 1.1rem;
+    background: var(--paper);
+    color: var(--ink);
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .record-head::after { display: none; }
+  .record-place {
+    margin-bottom: 0.35rem;
+    color: var(--green);
+    text-transform: none;
+  }
+  .record-head h2 { font-size: clamp(1.55rem, 3vw, 2.35rem); line-height: 1.05; }
+  .record-date,
+  .grade-group .desk-label,
+  .score-group .desk-label,
+  .score-of { color: var(--ink-soft); }
+  .grade-reel {
+    width: 62px;
+    height: 62px;
+    background: var(--paper);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    font-size: 2.8rem;
+  }
+  .grade-reel::after { display: none; }
+  .score-number { font-size: 2.4rem; }
+  .category-panel,
+  .fix-panel { background: var(--paper); }
+  .inspection { padding: 2.75rem 0; }
+  .ecosystem {
+    padding-top: 2.75rem;
+    border-top: 1px solid var(--line-ink);
+  }
+  .section-intro {
+    grid-template-columns: minmax(10rem, 0.55fr) minmax(0, 2.45fr);
+    margin-bottom: 1.35rem;
+  }
+  .section-code {
+    font-family: var(--body);
+    font-size: 0.72rem;
+    text-transform: none;
+  }
+  .section-intro h2 {
+    max-width: 32ch;
+    font-size: clamp(1.45rem, 3vw, 2.15rem);
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+  }
+  .section-intro .lede {
+    max-width: 74ch;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .route-track {
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .route-stop { padding: 1.1rem; }
+  .route-stop::before { display: none; }
+  .route-stop .stop-label {
+    margin-bottom: 0.35rem;
+    font-family: var(--body);
+    font-size: 0.68rem;
+    text-transform: none;
+  }
+  .route-stop h3 { margin-bottom: 0.4rem; font-size: 1rem; line-height: 1.25; }
+  .route-stop p { font-size: 0.82rem; }
+  .route-stop:hover { background: transparent; }
+  .service-index {
+    padding: 2.75rem 0;
+    background: var(--paper-2);
+  }
+  .service-index h2 {
+    margin: 0 0 1rem;
+    font-family: var(--display);
+    font-size: 1.45rem;
+  }
+  .utility-directory {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line-ink);
+  }
+  .utility-directory li {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.72fr) minmax(0, 1.28fr);
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .utility-directory li:nth-child(odd) { padding-right: 1.5rem; }
+  .utility-directory li:nth-child(even) {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--line-ink);
+  }
+  .utility-directory a { color: var(--green); font-weight: 700; }
+  .utility-directory span { color: var(--ink-soft); font-size: 0.82rem; }
+  .operating-notes { padding: 2.75rem 0; }
+  .operating-notes .section-intro { margin-bottom: 1.2rem; }
+  .notes-grid { border-top-width: 1px; }
+  .note-row {
+    grid-template-columns: minmax(12rem, 0.62fr) minmax(0, 2.38fr);
+  }
+  .note-row dt,
+  .note-row dd { padding-block: 0.8rem; font-size: 0.86rem; }
+  .movement {
+    background: var(--paper-2);
+    color: var(--ink);
+    border-block: 1px solid var(--line-ink);
+  }
+  .movement .wrap {
+    min-height: 0;
+    grid-template-columns: minmax(8rem, 0.55fr) minmax(0, 2.45fr) auto;
+    gap: 1.5rem;
+    padding-block: 1.5rem;
+  }
+  .movement .live-label {
+    color: var(--ink-soft);
+    font-family: var(--body);
+    font-size: 0.72rem;
+    text-transform: none;
+  }
+  .movement h2 { font-size: 1.25rem; line-height: 1.2; }
+  .movement p { margin-top: 0.3rem; color: var(--ink-soft); font-size: 0.84rem; }
+  .movement a { color: var(--green); font-weight: 700; white-space: nowrap; }
+
+  /* Workflow-first landing. The route line encodes what is live, external,
+     and still under pilot rather than decorating a dashboard. */
+  .service-desk {
+    grid-template-columns: minmax(20rem, 0.9fr) minmax(34rem, 1.1fr);
+    align-items: stretch;
+    border-bottom: 1px solid var(--ink);
+  }
+  .desk-intro {
+    grid-column: 1;
+    grid-row: 1;
+    padding: clamp(2rem, 4vw, 3.8rem) clamp(1.5rem, 3vw, 3rem) 1.4rem 0;
+    border-right: 0;
+  }
+  .desk-intro h1 {
+    max-width: 15ch;
+    margin: 0.55rem 0 0.85rem;
+    font-size: clamp(2.35rem, 3.4vw, 3.55rem);
+    letter-spacing: -0.035em;
+    line-height: 1;
+  }
+  .desk-summary { max-width: 48ch; font-size: 1.02rem; }
+  .desk-reassure { max-width: 55ch; }
+  .desk-tools {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: auto;
+    padding: 0 clamp(1.5rem, 3vw, 3rem) 1.45rem 0;
+    border: 0;
+  }
+  .hero-actions { gap: 1rem; }
+  .hero-ledger {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    padding: 0 clamp(1.5rem, 3vw, 3rem) 1.25rem 0;
+    border: 0;
+  }
+  .coverage-ledger {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--line-ink);
+  }
+  .coverage-ledger div,
+  .coverage-ledger div:nth-child(n + 3) {
+    padding-block: 0.65rem;
+  }
+  .coverage-ledger div:nth-child(n + 3) { border-top: 1px solid var(--line-ink); }
+
+  .workflow-run {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    min-width: 0;
+    padding: clamp(1.35rem, 3vw, 2.4rem);
+    background: var(--pine);
+    color: var(--on-pine);
+    border-left: 1px solid var(--ink);
+  }
+  .workflow-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .workflow-label {
+    margin: 0 0 0.25rem;
+    color: var(--amber);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .workflow-head h2 {
+    max-width: 20ch;
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(1.35rem, 2.3vw, 2rem);
+    line-height: 1.1;
+  }
+  .workflow-key {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .workflow-track {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .workflow-track::before {
+    content: "";
+    position: absolute;
+    top: 1.5rem;
+    bottom: 1.5rem;
+    left: 1.05rem;
+    width: 2px;
+    background: var(--amber);
+  }
+  .workflow-step {
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0.68rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .workflow-step:last-child { border-bottom: 0; }
+  .workflow-node {
+    width: 2.1rem;
+    height: 2.1rem;
+    display: grid;
+    place-items: center;
+    position: relative;
+    z-index: 1;
+    background: var(--pine);
+    border: 2px solid var(--amber);
+    border-radius: 50%;
+    color: var(--on-pine);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .workflow-step h3 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  .workflow-step p {
+    max-width: 48ch;
+    margin: 0.22rem 0 0;
+    color: #cfdcd2;
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+  .workflow-state {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.55rem;
+    padding: 0.15rem 0.4rem;
+    border: 1px solid currentColor;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .state-live { background: var(--amber); color: #2a1c00; border-color: var(--amber); }
+  .state-external { color: var(--on-pine); }
+  .state-pilot { color: #cfdcd2; border-style: dashed; }
+
+  .task-board,
+  .scorecard-demo {
+    padding: 2.75rem 0;
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .task-board .section-intro,
+  .scorecard-demo .section-intro { margin-bottom: 1.35rem; }
+  .task-register {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--ink);
+  }
+  .task-register > li {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.72fr) minmax(18rem, 1.45fr) minmax(16rem, 1fr);
+    gap: clamp(1rem, 3vw, 2.5rem);
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .task-register > li > p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.86rem;
+  }
+  .task-name span {
+    display: block;
+    margin-bottom: 0.18rem;
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .task-name h3 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: 1.15rem;
+    line-height: 1.15;
+  }
+  .task-register nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.9rem;
+  }
+  .task-register a {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--green);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .scorecard-demo .scorecard-desk {
+    grid-column: auto;
+    grid-row: auto;
+    border: 1px solid var(--ink);
+  }
+
+  @media (max-width: 900px) {
+    .service-desk { grid-template-columns: 1fr; }
+    .desk-intro,
+    .desk-tools,
+    .hero-ledger,
+    .workflow-run { grid-column: 1; }
+    .desk-intro { grid-row: 1; padding-inline: 0.8rem; }
+    .desk-tools {
+      grid-row: 2;
+      padding: 0 0.8rem 1.25rem;
+      border-left: 0;
+    }
+    .hero-ledger { grid-row: 3; padding-inline: 0.8rem; }
+    .workflow-run {
+      grid-row: 4;
+      border-top: 1px solid var(--ink);
+      border-left: 0;
+    }
+    .task-register > li {
+      grid-template-columns: minmax(11rem, 0.7fr) minmax(0, 1.3fr);
+    }
+    .task-register nav { grid-column: 2; }
+    .section-intro { grid-template-columns: 1fr; }
+    .section-code { margin-bottom: 0.35rem; }
+    .utility-directory { grid-template-columns: 1fr; }
+    .utility-directory li:nth-child(odd),
+    .utility-directory li:nth-child(even) {
+      padding-inline: 0;
+      border-left: 0;
+    }
+    .movement .wrap { grid-template-columns: 1fr; gap: 0.3rem; }
+  }
+
+  @media (max-width: 620px) {
+    .bulletin-meta { grid-template-columns: 1fr; }
+    .bulletin-meta .issue {
+      padding-right: 0;
+      border-right: 0;
+      border-bottom: 1px solid var(--line-ink);
+    }
+    .bulletin-meta .runline { padding-left: 0; }
+    .coverage-ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .coverage-ledger div:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+      border-top: 1px solid var(--line-ink);
+    }
+    .coverage-ledger div:nth-child(4) { border-top: 1px solid var(--line-ink); }
+    .utility-directory li { grid-template-columns: 1fr; gap: 0.15rem; }
+    .workflow-head { align-items: start; flex-direction: column; }
+    .workflow-key { justify-content: flex-start; }
+    .workflow-step { grid-template-columns: 2.2rem minmax(0, 1fr); }
+    .workflow-step > .workflow-state { grid-column: 2; justify-self: start; }
+    .task-register > li { grid-template-columns: 1fr; gap: 0.4rem; }
+    .task-register nav { grid-column: 1; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto; }
-    .rise { opacity: 1; transform: none; }
-    .reel-strip { transform: translateY(calc(92px * -4)); }
-    .bar .fill { width: var(--w); }
-    .card { opacity: 1; }
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="hero">
-  <div class="route" aria-hidden="true"></div>
-  <div class="wrap">
-    <div class="topbar">
-      <a class="brand" href="/" aria-current="page"><span class="dot" aria-hidden="true"></span><b>GTFS&nbsp;Scorecard</b></a>
+<header class="home-header">
+  <div class="wrap topbar">
+    <a class="brand" href="/" aria-current="page"><span class="brand-mark" aria-hidden="true"></span><span>GTFS Scorecard</span></a>
+    <button class="home-menu-toggle" type="button" aria-expanded="false" aria-controls="home-menu" aria-label="Open navigation menu">
+      <span class="menu-glyph" aria-hidden="true"></span><span>Menu</span>
+    </button>
+    <div class="topbar-controls" id="home-menu">
       <nav aria-label="Primary">
-        <a href="#how">How it works</a>
-        <a href="#explore">Explore</a>
-        <a href="#ntd"><abbr title="National Transit Database">NTD</abbr> ready?</a>
-        <a href="#who">Who it's for</a>
-        <a class="navcta" href="/app/">Open the app &rarr;</a>
+        <a class="navcta" href="/agencies/">Find an agency</a>
+        <a href="/pulse/">Coverage</a>
+        <a href="/app/#/?view=features">Feed features</a>
+        <a href="/tools/">Tools</a>
+        <a href="/how-to-read/">How it works</a>
+        <a href="/about/">About</a>
       </nav>
-      <div id="theme-control" class="topbar-theme"></div>
+      <div id="theme-control"></div>
     </div>
-
-    <main id="main" class="hero-grid">
-      <div>
-        <p class="eyebrow kicker rise">Free · checked daily · plain language</p>
-        <h1 class="rise d1">Is your transit data <em>any good?</em></h1>
-        <p class="lede rise d2">You inherited a <dfn><abbr title="General Transit Feed Specification">GTFS</abbr></dfn> feed from a vendor and have no way to know if it's right.
-          This reads your feed every day, runs the same validator the apps use, and tells you in plain
-          words: a grade, the three things to fix, and why each one matters to riders.</p>
-        <div class="hero-actions rise d3">
-          <a class="btn btn-primary" href="/app/">Check your agency <span class="arrow" aria-hidden="true">&rarr;</span></a>
-          <a class="btn btn-ghost" href="#how">See how it works</a>
-        </div>
-        <p class="reassure rise d4">No login. No cost. No realtime feed required.</p>
-      </div>
-
-      <!-- sample scorecard -->
-      <aside class="card" aria-label="Example scorecard">
-        <span class="tag">Example</span>
-        <div class="card-head">
-          <div class="reel" role="img" aria-label="Grade A">
-            <div class="reel-strip"><span style="color:var(--g-f)">F</span><span style="color:var(--g-d)">D</span><span style="color:var(--g-c)">C</span><span style="color:var(--g-b)">B</span><span style="color:var(--g-a)">A</span></div>
-          </div>
-          <div>
-            <h3>Tri-County Transit</h3>
-            <p class="sub">88 / 100 · checked today</p>
-          </div>
-        </div>
-        <div class="bars">
-          <div class="bar"><span>Correctness</span><span class="track"><span class="fill" style="--w:91%;background:var(--g-a)"></span></span><span class="num">91</span></div>
-          <div class="bar"><span>Freshness</span><span class="track"><span class="fill" style="--w:100%;background:var(--g-a)"></span></span><span class="num">100</span></div>
-          <div class="bar"><span>Rider experience</span><span class="track"><span class="fill" style="--w:72%;background:var(--g-c)"></span></span><span class="num">72</span></div>
-          <div class="bar subbar"><span>Accessibility</span><span class="track"><span class="fill" style="--w:60%;background:var(--g-d)"></span></span><span class="num">60</span></div>
-          <div class="bar"><span>Realtime</span><span class="track"><span class="fill" style="--w:0%"></span></span><span class="num" role="img" aria-label="not measured">—</span></div>
-        </div>
-        <div class="fix">
-          <span class="pin">FIX 1</span>
-          <p><b>Set wheelchair_boarding on every stop.</b> Riders who use a wheelchair can't
-            plan a trip when it's marked unknown. Often one default in your export.</p>
-        </div>
-      </aside>
-    </main>
   </div>
 </header>
 
-<!-- proof band -->
-<div class="board" role="group" aria-label="At a glance">
-  <div class="wrap">
-    <div class="cell"><div class="big" id="stat-agencies">1,100+</div><div class="lab">agencies tracked</div></div>
-    <div class="cell"><div class="big">Daily</div><div class="lab">re-checked</div></div>
-    <div class="cell"><div class="big">A&ndash;F</div><div class="lab">one clear grade</div></div>
-    <div class="cell"><div class="big">$0</div><div class="lab">open source</div></div>
-  </div>
-</div>
+<main id="main" tabindex="-1">
+  <section class="bulletin-hero" aria-labelledby="home-title">
+    <div class="wrap">
+      <div class="bulletin-meta">
+        <div class="issue">GTFS quality workflow</div>
+        <div class="runline"><span>Public feeds checked daily &middot; no login</span><a href="/status/">Run status</a></div>
+      </div>
+      <div class="service-desk">
+        <div class="desk-intro">
+          <p class="desk-kicker">Published feed evidence</p>
+          <h1 id="home-title">Find the next fix in a published GTFS feed.</h1>
+          <p class="desk-summary">Search an agency to open its latest scorecard and first recommended fix. You can also check a GTFS ZIP before publishing it.</p>
+          <p class="desk-reassure">Correctness uses MobilityData's canonical validator. A missing realtime feed does not lower the grade.</p>
+        </div>
 
-<!-- how it works -->
-<section class="band" id="how">
-  <div class="wrap">
-    <div class="sect-head">
-      <div>
-        <p class="sectlabel">The line</p>
-        <h2 class="secttitle">From a feed URL to a fix, in four stops.</h2>
-      </div>
-      <p class="sectlede">No setup. We track GTFS feeds across the United States and Canada. Find yours and read the grade.</p>
-    </div>
-    <div class="stops">
-      <div class="stop">
-        <span class="n">STOP 01</span>
-        <h3>We fetch your published feed</h3>
-        <p>The same <a class="ctx" href="https://gtfs.org/" target="_blank" rel="noopener">GTFS<span class="visually-hidden"> (opens in a new tab)</span></a> file trip planners read. Once a day, politely, straight from the URL you already publish.</p>
-      </div>
-      <div class="stop">
-        <span class="n">STOP 02</span>
-        <h3>We run the canonical validator</h3>
-        <p>The <a class="ctx" href="https://gtfs-validator.mobilitydata.org/" target="_blank" rel="noopener">MobilityData GTFS validator<span class="visually-hidden"> (opens in a new tab)</span></a> the apps and states use. We score on top of it; we don't reinvent the rules.</p>
-      </div>
-      <div class="stop">
-        <span class="n">STOP 03</span>
-        <h3>We translate it to plain language</h3>
-        <p>A letter grade and four category scores: correctness, freshness, rider experience, and realtime. Every finding is rewritten as a plain-language fix with an effort hint, never a failure.</p>
-      </div>
-      <div class="stop">
-        <span class="n">STOP 04</span>
-        <h3>You get the three things to do first</h3>
-        <p>Ordered by what hurts riders most. An expired feed comes before a cosmetic gap. Start at the top; one fix is a real win.</p>
-      </div>
-    </div>
-  </div>
-</section>
+        <div class="desk-tools">
+          <form class="feed-picker" id="feed-picker" action="/app/" method="get" role="search">
+            <label for="feed-search">Find a published feed</label>
+            <div class="feed-search-row">
+              <input id="feed-search" name="q" type="search" autocomplete="off" enterkeyhint="search" aria-controls="feed-results" aria-describedby="picker-status" placeholder="Agency name">
+              <button type="submit">Find</button>
+            </div>
+            <ul class="feed-results" id="feed-results" aria-label="Matching scorecards" hidden></ul>
+            <p class="picker-note" id="picker-status" role="status" aria-live="polite">Search the published directory. The selected record opens in the example below.</p>
+          </form>
 
-<!-- NTD certification readiness -->
-<section class="band" id="ntd">
-  <div class="wrap">
-    <div class="sect-head">
-      <div>
-        <p class="sectlabel">A new obligation</p>
-        <h2 class="secttitle">Ready for your NTD certification?</h2>
-      </div>
-      <p class="sectlede">Since Report Year 2023, every <a class="ctx" href="https://www.transit.dot.gov/ntd" target="_blank" rel="noopener"><abbr title="National Transit Database">NTD</abbr><span class="visually-hidden"> (opens in a new tab)</span></a> reporter with fixed-route or deviated-fixed-route service has to publish a valid, current feed and certify it each year. Plenty of small agencies inherited that duty with no easy way to check where they stand.</p>
-    </div>
-    <div class="who-grid" style="margin-top:2.2rem">
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role">Published</p>
-        <h3>The link works</h3>
-        <p>Your feed downloads from the public URL you report. That viable link is the first thing the <abbr title="Federal Transit Administration">FTA</abbr> looks for.</p>
-      </div>
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role">Valid</p>
-        <h3>No blocking errors</h3>
-        <p>It clears the canonical validator, the same bar the apps and state programs apply.</p>
-      </div>
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role">Current</p>
-        <h3>The calendar holds</h3>
-        <p>Service data has not lapsed, so trip planners keep showing your agency to riders.</p>
-      </div>
-    </div>
-    <p class="sect-foot">Each agency page reads these three for you and says, in plain words, whether the feed looks ready to certify. It is a heads-up, not an official determination; your annual <a class="ctx" href="https://www.transit.dot.gov/ntd" target="_blank" rel="noopener"><abbr title="FTA NTD certification form D-10">D-10</abbr> certification<span class="visually-hidden"> (opens in a new tab)</span></a> is the official one.</p>
-  </div>
-</section>
+          <nav class="hero-actions" aria-label="Start a feed-quality task">
+            <a class="action action-primary" href="/agencies/"><span>Browse published feeds</span><span class="arrow" aria-hidden="true">&rarr;</span></a>
+            <a class="action action-secondary" href="/check/"><span>Check a ZIP before publishing</span><span class="arrow" aria-hidden="true">&rarr;</span></a>
+          </nav>
+        </div>
 
-<!-- who it's for -->
-<section class="band who" id="who">
-  <div class="wrap">
-    <div class="sect-head">
-      <div>
-        <p class="sectlabel">Who it's for</p>
-        <h2 class="secttitle">Three roles, one screen.</h2>
-      </div>
-      <p class="sectlede">The person who runs an agency and the people who support or study agencies at scale face the same question. One page answers it for all of them.</p>
-    </div>
-    <div class="who-grid" style="margin-top:2.2rem">
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role">The transit manager</p>
-        <h3>You run a 20-bus agency</h3>
-        <p>A vendor made your feed and you can't tell if it's any good. Open one page, see where you stand, and hand the top fix to whoever exports your data.</p>
-      </div>
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role">The program liaison</p>
-        <h3>You support a whole region</h3>
-        <p>Follow your agencies into one list, sorted worst-first, with the feed about to expire flagged at the top. The screen to have open during an agency call.</p>
-      </div>
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role">The data team</p>
-        <h3>You publish or study feeds at scale</h3>
-        <p>Download the <a href="/data/">open national dataset</a>, see how many of a state's agencies are ready to certify, and compare which feed vendors produce the cleanest data.</p>
-      </div>
-    </div>
-  </div>
-</section>
+        <aside class="hero-ledger" aria-label="Coverage at a glance">
+          <dl class="coverage-ledger">
+            <div><dt>Curated feed records</dt><dd id="coverage-registry-count">2,100+</dd></div>
+            <div><dt>Published scorecards</dt><dd id="coverage-published-count">2,100+</dd></div>
+            <div><dt>Countries in registry</dt><dd id="coverage-country-count">40+</dd></div>
+            <div><dt>Monitoring</dt><dd>Scheduled daily</dd></div>
+          </dl>
+        </aside>
 
-<!-- explore: the full feature directory, grouped by use case -->
-<section class="band" id="explore">
-  <div class="wrap">
-    <div class="sect-head">
-      <div>
-        <p class="sectlabel">Everything on one site</p>
-        <h2 class="secttitle">Explore the whole scorecard.</h2>
+        <section class="workflow-run" aria-labelledby="workflow-run-h">
+          <header class="workflow-head">
+            <div>
+              <p class="workflow-label">Check to recheck</p>
+              <h2 id="workflow-run-h">Where the scorecard fits in the work</h2>
+            </div>
+            <ul class="workflow-key" aria-label="Workflow status key">
+              <li><span class="workflow-state state-live">Live</span></li>
+              <li><span class="workflow-state state-external">Your workflow</span></li>
+              <li><span class="workflow-state state-pilot">Pilot</span></li>
+            </ul>
+          </header>
+          <ol class="workflow-track">
+            <li class="workflow-step">
+              <span class="workflow-node" aria-hidden="true">1</span>
+              <div><h3>Identify the intended public feed</h3><p>Keep the source URL and feed identity attached to the record.</p></div>
+              <span class="workflow-state state-live">Live</span>
+            </li>
+            <li class="workflow-step">
+              <span class="workflow-node" aria-hidden="true">2</span>
+              <div><h3>Check the published data</h3><p>Run canonical validation plus freshness, rider-information, and optional realtime checks. A feed can follow the specification and still strand a rider, so <a href="/focus/#beyond-the-validator">some checks run past the validator</a>.</p></div>
+              <span class="workflow-state state-live">Live</span>
+            </li>
+            <li class="workflow-step">
+              <span class="workflow-node" aria-hidden="true">3</span>
+              <div><h3>Choose a concrete action</h3><p>Use the prioritized fix, affected field, rider relevance, and dated evidence.</p></div>
+              <span class="workflow-state state-live">Live</span>
+            </li>
+            <li class="workflow-step">
+              <span class="workflow-node" aria-hidden="true">4</span>
+              <div><h3>Change and publish the feed</h3><p>The agency, vendor, or support program works through its existing tools and channels.</p></div>
+              <span class="workflow-state state-external">Your workflow</span>
+            </li>
+            <li class="workflow-step">
+              <span class="workflow-node" aria-hidden="true">5</span>
+              <div><h3>Recheck the same feed</h3><p>The pilot tests feed identity and measurement comparability before calling a finding cleared.</p></div>
+              <span class="workflow-state state-pilot">Pilot</span>
+            </li>
+            <li class="workflow-step">
+              <span class="workflow-node" aria-hidden="true">6</span>
+              <div><h3>Preserve a closure receipt</h3><p>A verified closure requires an accepted action and a comparable recheck. This is not yet a proven service.</p></div>
+              <span class="workflow-state state-pilot">Pilot</span>
+            </li>
+          </ol>
+        </section>
       </div>
-      <p class="sectlede">One agency or the whole country, on a map or in a table. Every view links back to a plain-language fix.</p>
-    </div>
-    <div class="who-grid" style="margin-top:2.2rem">
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role" id="feat-agency">Check one agency</p>
-        <ul class="feat-list" aria-labelledby="feat-agency">
-          <li><a href="/app/">Your scorecard</a>: the grade, four category scores, and the top things to fix.</li>
-          <li><a href="/agencies/">Find your agency</a>: search every tracked feed by name, state, or grade.</li>
-          <li><a href="/compare/">Compare two agencies</a>: put two scorecards side by side.</li>
-          <li><a href="/subscribe.html">Watch your feed</a>: get an email before it expires or its grade slips.</li>
-          <li><a href="/how-to-read/">How to read a scorecard</a>: what each score means, in plain words.</li>
+
+      <section class="task-board" id="explore" aria-labelledby="task-board-h">
+        <div class="section-intro">
+          <p class="section-code">Choose the next job</p>
+          <div>
+            <h2 id="task-board-h">Start with the work you need to do.</h2>
+            <p class="lede">Each path uses the same dated feed evidence. The scorecard is one record in that workflow.</p>
+          </div>
+        </div>
+        <ul class="task-register">
+          <li>
+            <div class="task-name"><span>Published feed</span><h3>Maintain a feed</h3></div>
+            <p>Review the current findings, prioritize a fix, and follow later published records.</p>
+            <nav aria-label="Maintain a published feed">
+              <a id="scope-scorecard-link" href="/agency/unitrans/">Open selected record</a>
+              <a id="scope-feed-link" href="/agency/unitrans/feed.xml">Follow updates</a>
+            </nav>
+          </li>
+          <li>
+            <div class="task-name"><span>Before release</span><h3>Check before publishing</h3></div>
+            <p>Run a GTFS ZIP in the browser, correct the source, and rerun the same check.</p>
+            <nav aria-label="Check before publishing">
+              <a href="/check/">Check a GTFS ZIP</a>
+              <a href="https://github.com/marketplace/actions/gtfs-scorecard-gate">Add the GitHub Action</a>
+            </nav>
+          </li>
+          <li>
+            <div class="task-name"><span>Agency support</span><h3>Prepare a check-in</h3></div>
+            <p>Use the selected feed’s leading findings in a call brief, board view, or program rollup.</p>
+            <nav aria-label="Prepare agency support">
+              <a id="scope-brief-link" href="/agency/unitrans/brief/">Open selected brief</a>
+              <a id="scope-board-link" href="/agency/unitrans/board/">Board one-pager</a>
+              <a href="/program/all/">Program views</a>
+            </nav>
+          </li>
+          <li>
+            <div class="task-name"><span>Reuse evidence</span><h3>Use the public data</h3></div>
+            <p>Filter feed features, query the API, download records, or embed the selected grade.</p>
+            <nav aria-label="Reuse public evidence">
+              <a href="/app/#/?view=features">Feed features</a>
+              <a href="/data/">Data and API</a>
+              <a id="scope-badge-link" href="/data/artifacts/unitrans/badge.svg">Selected badge</a>
+            </nav>
+          </li>
         </ul>
-      </div>
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role" id="feat-country">See the whole country</p>
-        <ul class="feat-list" aria-labelledby="feat-country">
-          <li><a href="/map/">National map</a>: every tracked agency, coloured by grade.</li>
-          <li><a href="/routes/">Every route on one map</a>: all tracked route lines together.</li>
-          <li><a href="/pulse/">National pulse</a>: rankings, recent movers, and the trend, on one page.</li>
-          <li><a href="/problems/">Common problems</a>: the fixes that recur most across feeds.</li>
-        </ul>
-      </div>
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role" id="feat-programs">Support programs</p>
-        <ul class="feat-list" aria-labelledby="feat-programs">
-          <li><a href="/ntd/"><abbr title="National Transit Database">NTD</abbr> readiness</a>: which feeds look ready to certify.</li>
-          <li><a href="/equity/">Equity overlay</a>: where weak data meets high transit need.</li>
-          <li><a href="/realtime/">Realtime reliability</a>: feed uptime and freshness over time.</li>
-          <li><a href="/procurement/">For agencies</a>: putting data quality in a vendor contract.</li>
-        </ul>
-      </div>
-      <div class="who-card">
-        <span class="corner" aria-hidden="true"></span>
-        <p class="role" id="feat-tools">Data &amp; tools</p>
-        <ul class="feat-list" aria-labelledby="feat-tools">
-          <li><a href="/check/">Check a feed before you publish</a>: drop your GTFS zip in; it never leaves your browser.</li>
-          <li><a href="/try.html">Score any feed now</a>: paste a feed URL and get the full scorecard.</li>
-          <li><a href="/query/">Query the dataset</a>: run SQL over the national data, right in the page.</li>
-          <li><a href="/data/">Open data</a>: download the national dataset, CC BY 4.0.</li>
-          <li><a href="/api/v1/index.json">Public API</a>: versioned JSON endpoints, no key needed.</li>
-          <li><a href="/adoption/">What feeds publish</a>: optional features and accessibility-data coverage across feeds.</li>
-          <li><a href="/submit.html">Add your agency</a>: track a new feed in about ten minutes.</li>
-          <li><a href="/subscribe.html">Feed-health alerts</a>: hear when a feed's grade changes.</li>
-        </ul>
-      </div>
+      </section>
+
+      <section class="scorecard-demo" aria-labelledby="scorecard-demo-h">
+        <div class="section-intro">
+          <p class="section-code">Example evidence record</p>
+          <div>
+            <h2 id="scorecard-demo-h">Open the record behind a prioritized fix.</h2>
+            <p class="lede">The example keeps the grade, measured categories, source finding, and next action together. Switch feeds or search above to inspect another published record.</p>
+          </div>
+        </div>
+
+        <article class="scorecard-desk" id="live-scorecard" aria-labelledby="scorecard-agency" aria-busy="false" data-agency="unitrans">
+          <div class="scorecard-toolbar">
+            <div><p class="desk-label">Latest published scorecard</p><p class="pilot-context">Examples are shown separately; measured category sets can differ.</p></div>
+            <div class="pilot-switch" role="group" aria-label="Home pilots">
+              <button type="button" data-agency-id="unitrans" aria-pressed="true">Unitrans</button>
+              <button type="button" data-agency-id="yolobus" aria-pressed="false">Yolobus</button>
+            </div>
+            <noscript><p class="pilot-fallback">Open the <a href="/agency/unitrans/">Unitrans scorecard</a> or <a href="/agency/yolobus/">Yolobus scorecard</a>.</p></noscript>
+          </div>
+
+          <header class="record-head">
+            <div>
+              <p class="record-place" id="scorecard-place">Unitrans / Davis, California</p>
+              <h2 id="scorecard-agency"><bdi>Unitrans (ASUCD / City of Davis)</bdi></h2>
+              <p class="record-date">Published snapshot &middot; Checked <time id="scorecard-date" datetime="2026-07-10">July 10, 2026</time></p>
+            </div>
+            <div class="grade-group">
+              <span class="desk-label">Overall grade</span>
+              <div class="grade-reel" id="scorecard-grade" role="img" aria-label="Overall grade B">B</div>
+            </div>
+            <div class="score-group">
+              <span class="desk-label">Score across measured categories</span>
+              <strong class="score-number" id="scorecard-score">80.8</strong>
+              <span class="score-of">of 100</span>
+            </div>
+          </header>
+
+          <div class="score-workbench">
+            <section class="category-panel" aria-labelledby="category-heading">
+              <div class="panel-heading"><h3 id="category-heading">Quality categories</h3><span>Choose one</span></div>
+              <div id="category-list">
+                <div class="category-row" data-category-row="correctness">
+                  <button class="category-select" type="button" data-category="correctness" aria-controls="category-detail" aria-pressed="true"><span>Correctness</span><span class="category-value">84.8</span></button>
+                  <span class="category-meter" role="meter" aria-label="Correctness score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="84.8"><span style="width:84.8%"></span></span>
+                </div>
+                <div class="category-row" data-category-row="freshness">
+                  <button class="category-select" type="button" data-category="freshness" aria-controls="category-detail" aria-pressed="false"><span>Freshness</span><span class="category-value">100</span></button>
+                  <span class="category-meter" role="meter" aria-label="Freshness score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span style="width:100%"></span></span>
+                </div>
+                <div class="category-row" data-category-row="completeness">
+                  <button class="category-select" type="button" data-category="completeness" aria-controls="category-detail" aria-pressed="false"><span>Rider experience</span><span class="category-value">60.0</span></button>
+                  <span class="category-meter" role="meter" aria-label="Rider experience score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><span style="width:60%"></span></span>
+                </div>
+                <div class="category-row" data-category-row="realtime">
+                  <button class="category-select" type="button" data-category="realtime" aria-controls="category-detail" aria-pressed="false"><span>Realtime</span><span class="category-value">Not measured</span></button>
+                  <span class="category-meter is-unmeasured" aria-hidden="true"><span style="width:0"></span></span>
+                </div>
+              </div>
+              <div class="category-detail" id="category-detail">
+                <h4 id="category-detail-title">Correctness &middot; 84.8</h4>
+                <p id="category-detail-summary">The MobilityData validator flagged 4 kinds of issue across 96 instances: 0 errors, 72 warnings, and 24 informational notices.</p>
+              </div>
+            </section>
+
+            <section class="fix-panel" aria-labelledby="fix-heading">
+              <div class="panel-heading"><h3 id="fix-heading">Prioritized fixes</h3><span>Trace any one</span></div>
+              <ol class="fix-selector" id="fix-selector">
+                <li><button type="button" data-fix-index="0" aria-controls="fix-card trace-route" aria-pressed="true"><span class="fix-number">01</span><span class="fix-button-text">Accessibility at stops</span></button></li>
+                <li><button type="button" data-fix-index="1" aria-controls="fix-card trace-route" aria-pressed="false"><span class="fix-number">02</span><span class="fix-button-text">Accessibility on trips</span></button></li>
+                <li><button type="button" data-fix-index="2" aria-controls="fix-card trace-route" aria-pressed="false"><span class="fix-number">03</span><span class="fix-button-text">Unused route shapes</span></button></li>
+              </ol>
+              <div class="fix-card" id="fix-card">
+                <p class="fix-code" id="fix-code">01 / scorecard_wheelchair_boarding_unknown / stops.txt</p>
+                <h3 id="fix-title">State wheelchair boarding status for every stop.</h3>
+                <div class="fix-evidence">
+                  <p><strong>What the feed says</strong><span id="fix-what">296 of 296 stops leave this field unknown.</span></p>
+                  <p><strong>Why a rider cares</strong><span id="fix-why">Trip planners cannot tell riders who use wheelchairs whether they can board there.</span></p>
+                </div>
+                <p class="effort-line"><b id="fix-owner">Likely your team</b> &middot; <span id="fix-effort">One column in stops.txt; start verification with the busiest stops.</span></p>
+                <div class="record-actions">
+                  <a id="full-scorecard-link" href="/agency/unitrans/">Open the full scorecard &rarr;</a>
+                  <a id="brief-link" href="/agency/unitrans/brief/">Prepare for a call &rarr;</a>
+                  <button class="copy-view" id="copy-view" type="button">Copy this desk view</button>
+                </div>
+              </div>
+            </section>
+          </div>
+          <p class="measurement-note" id="measurement-note">Unitrans runs live bus tracking, but its data feed requires an access key the scorecard does not have. Realtime is excluded from this grade, with no deduction. Accessibility values describe what the feed publishes, not verified physical conditions.</p>
+          <p class="scorecard-status" id="scorecard-status" role="status" aria-live="polite">Showing the Unitrans published snapshot.</p>
+        </article>
+      </section>
+
+      <section class="inspection" id="how" aria-labelledby="inspection-h">
+        <div class="section-intro">
+          <p class="section-code">Selected fix trace</p>
+          <div>
+            <h2 id="inspection-h">Check the evidence before anyone acts.</h2>
+            <p class="lede">Choose any fix above and this route changes with it: source field, check applied, finding identifier, and dated record. This establishes the starting point. It does not claim that anyone accepted or completed the work.</p>
+          </div>
+        </div>
+        <ol class="route-track" id="trace-route">
+          <li class="route-stop">
+            <p class="stop-label">1 / Source field</p>
+            <h3 id="trace-source-title">Wheelchair boarding in stops.txt</h3>
+            <p id="trace-source-copy">The scorecard reads the same published stop records that rider applications receive.</p>
+            <ul class="source-files" id="trace-source-files" aria-label="Source files for the selected fix"><li><code>stops.txt</code></li></ul>
+          </li>
+          <li class="route-stop">
+            <p class="stop-label">2 / Check applied</p>
+            <h3 id="trace-method-title">Direct field coverage</h3>
+            <p id="trace-method-copy">The rider-experience rubric measures whether the published field states accessibility.</p>
+          </li>
+          <li class="route-stop">
+            <p class="stop-label">3 / Finding identifier</p>
+            <h3>Keep the code attached</h3>
+            <p>The identifier connects the plain-language fix to the dated record and rubric.</p>
+            <p style="margin-top:0.9rem"><span class="notice-code" id="trace-code">scorecard_wheelchair_boarding_unknown</span></p>
+          </li>
+          <li class="route-stop">
+            <p class="stop-label">4 / Dated evidence</p>
+            <h3 id="trace-record-title">Unitrans &middot; July 10, 2026</h3>
+            <p>The dated snapshot keeps the source, check, and finding identifier together.</p>
+            <p><a id="trace-record-link" href="/agency/unitrans/">Open the full evidence &rarr;</a></p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="inspection ecosystem" id="ecosystem" aria-labelledby="ecosystem-h">
+        <div class="section-intro">
+          <p class="section-code">Where it fits</p>
+          <div>
+            <h2 id="ecosystem-h">Use the scorecard between discovery and the next feed export.</h2>
+            <p class="lede">GTFS Scorecard adds dated evidence and prioritized fixes around canonical validation. Agencies, vendors, editors, and support programs still make and publish changes through their existing tools. The accepted-action recheck remains a pilot.</p>
+          </div>
+        </div>
+        <ol class="route-track">
+          <li class="route-stop">
+            <p class="stop-label">1 / Discover</p>
+            <h3>Identify the intended feed</h3>
+            <p><a href="https://mobilitydatabase.org/">Mobility Database</a> and <a href="https://www.transit.land/">Transitland</a> help people find public feeds and distinguish their sources or versions.</p>
+          </li>
+          <li class="route-stop">
+            <p class="stop-label">2 / Diagnose</p>
+            <h3>Apply canonical rules</h3>
+            <p>The <a href="https://github.com/MobilityData/gtfs-validator">MobilityData GTFS validator</a> supplies the specification findings used for correctness. The scorecard does not reimplement them.</p>
+          </li>
+          <li class="route-stop">
+            <p class="stop-label">3 / Change</p>
+            <h3>Fix and publish the feed</h3>
+            <p>An agency, vendor, editor, or support program decides what to change and publishes the new export through its existing workflow.</p>
+          </li>
+          <li class="route-stop">
+            <p class="stop-label">4 / Verify</p>
+            <h3>Pilot the final recheck</h3>
+            <p>GTFS Scorecard is testing whether an accepted action can be linked to a comparable recheck of the intended published feed. This is not yet a proven service.</p>
+          </li>
+        </ol>
+        <p class="evidence-base">The <a href="https://reports.dds.dot.ca.gov/">California GTFS Quality Dashboard</a> inspired this project's daily scorecard and support-program framing. GTFS Scorecard is independent and is not an official compliance determination.</p>
+      </section>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- recently improved (live movers) -->
-<section class="band improved" aria-labelledby="improved-h">
-  <div class="wrap">
-    <div class="sect-head">
-      <div>
-        <p class="sectlabel">Live</p>
-        <h2 class="secttitle" id="improved-h">Agencies are fixing their feeds.</h2>
+  <section class="operating-notes" aria-labelledby="notes-h">
+    <div class="wrap">
+      <div class="section-intro">
+        <p class="section-code">Scope and limits</p>
+        <div>
+          <h2 id="notes-h">What the score does not establish</h2>
+        </div>
       </div>
-      <p class="sectlede">Some feeds get better every day. A few that improved since their last check.</p>
+      <dl class="notes-grid">
+        <div class="note-row"><dt>Worldwide quality core</dt><dd>Correctness, freshness, rider experience, and optional realtime quality use one disclosed rubric wherever a covered feed is published.</dd></div>
+        <div class="note-row"><dt>Coverage boundary</dt><dd>The registry spans dozens of countries and more than 2,000 curated feed records, with most published records still in the United States and Canada. It is not a census. A missing place means not covered, never poor performance.</dd></div>
+        <div class="note-row"><dt>Regional modules</dt><dd>Country-specific views appear only where their sources apply. U.S. NTD readiness and equity context do not change the worldwide quality grade.</dd></div>
+        <div class="note-row"><dt>Realtime and compliance</dt><dd>No realtime feed means “not measured” and does not lower the grade. The scorecard measures published data, not legal compliance or transit service quality.</dd></div>
+        <div class="note-row"><dt>Remediation boundary</dt><dd>A finding that disappears is a finding clearance. It becomes a verified closure only when an accepted action is linked to a comparable recheck of the intended published feed.</dd></div>
+      </dl>
     </div>
-    <div class="movers" id="movers" hidden></div>
-    <p class="movers-fallback" id="movers-fallback">See which agencies improved or slipped on the <a href="/pulse/#changes">national pulse</a> page.</p>
-    <p style="margin-top:1.8rem"><a class="btn btn-ink" href="/pulse/#changes">See what changed <span class="arrow" aria-hidden="true">&rarr;</span></a></p>
-  </div>
-</section>
+  </section>
 
-<!-- final cta -->
-<section class="cta">
-  <div class="wrap">
-    <h2>Find your agency's grade in ten seconds.</h2>
-    <p>Built for small and rural agencies, everywhere they publish a feed.</p>
-    <a class="btn btn-primary" href="/app/">Open the scorecard <span class="arrow" aria-hidden="true">&rarr;</span></a>
-  </div>
-</section>
-
-<!-- Progressive enhancement: fill the live agency count from the published
-     directory. Static "1,100+" stands if the fetch fails or JS is off. -->
-<script>
-  fetch("/data/artifacts/directory.json")
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => {
-      const n = d && d.summary && d.summary.agencies;
-      if (n) document.getElementById("stat-agencies").textContent = n.toLocaleString();
-    })
-    .catch(() => {});
-
-  // Fill the "recently improved" strip from the same change feed the
-  // /changes/ page uses. The static fallback link stands if this fails.
-  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  fetch("/data/artifacts/changes/latest.json")
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => {
-      const items = ((d && d.changes) || [])
-        .filter((c) => !c.regressed && c.score_delta > 0)
-        .sort((a, b) => b.score_delta - a.score_delta)
-        .slice(0, 3);
-      if (!items.length) return;
-      const movers = document.getElementById("movers");
-      movers.innerHTML = items.map((c) => {
-        const grade = c.from_grade === c.to_grade
-          ? esc(c.to_grade)
-          : `${esc(c.from_grade)} &rarr; ${esc(c.to_grade)}`;
-        return `<a class="mover-card" href="/agency/${encodeURIComponent(c.id)}/">`
-          + `<p class="mname">${esc(c.name)}</p>`
-          + `<span class="mgrade">Grade <b>${grade}</b></span>`
-          + `<span class="mdelta"><span aria-hidden="true">&#9650;</span> up ${Math.round(Number(c.score_delta))} points</span>`
-          + `</a>`;
-      }).join("");
-      movers.hidden = false;
-      const fb = document.getElementById("movers-fallback");
-      if (fb) fb.hidden = true;
-    })
-    .catch(() => {});
-</script>
+  <section class="movement" id="pilot" aria-labelledby="movement-h">
+    <div class="wrap">
+      <p class="live-label">Pilot</p>
+      <div><h2 id="movement-h">Remediation workflow</h2><p>A 90-day pilot is testing whether a finding can move through an accepted request and comparable same-feed recheck. This is not yet a proven service.</p></div>
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/issues/194">Pilot details</a>
+    </div>
+  </section>
+</main>
 
 <footer>
-  <div class="wrap">
-    <p class="disc">A data-quality lens to help agencies improve their feeds. Not an official compliance determination from any transit program.</p>
-    <nav aria-label="Footer" style="display:flex; gap:1.4rem; flex-wrap:wrap">
-      <a href="/about/">About</a>
-      <a href="/app/">All agencies</a>
-      <a href="/map/">National map</a>
-      <a href="/routes/">All routes</a>
-      <a href="/pulse/">National pulse</a>
-      <a href="/problems/">Common problems</a>
-      <a href="/focus/">Focus areas</a>
-      <a href="/ntd/">NTD readiness</a>
-      <a href="/realtime/">Realtime</a>
-      <a href="/equity/">Equity</a>
-      <a href="/adoption/">What feeds publish</a>
-      <a href="/procurement/">For agencies</a>
-      <a href="/how-to-read/">How to read a scorecard</a>
-      <a href="/data/" aria-label="Open transit data downloads">Open data</a>
-      <a href="https://github.com/ChelseaKR/gtfs-scorecard" target="_blank" rel="noopener" aria-label="Source code on GitHub (opens in a new tab)">Source</a>
-      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/accessibility.md" target="_blank" rel="noopener">Accessibility<span class="visually-hidden"> (opens in a new tab)</span></a>
-      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md" target="_blank" rel="noopener">Listing policy<span class="visually-hidden"> (opens in a new tab)</span></a>
-      <a href="https://chelseakr.com" target="_blank" rel="noopener">Built by Chelsea Kelly-Reif<span class="visually-hidden"> (opens in a new tab)</span></a>
-    </nav>
+  <div class="wrap footer-grid">
+    <div class="footer-note"><h2>GTFS Scorecard</h2><p>An open-source data-quality lens for small transit agencies, piloted with Unitrans and Yolobus in Yolo County. It is not an official compliance determination.</p></div>
+    <nav aria-label="Use the scorecard"><h2>Use</h2><a href="/app/">All scorecards</a><a href="/tools/">Feed tools</a><a href="/data/">Open data</a><a href="/status/">Pipeline status</a></nav>
+    <nav aria-label="Explore the project"><h2>Explore</h2><a href="/pulse/">Coverage overview</a><a href="/problems/">Common problems</a><a href="/focus/">Focus areas</a><a href="/how-to-read/">How to read a scorecard</a></nav>
+    <nav aria-label="Project information"><h2>Project</h2><a href="/about/">About</a><a href="/support/">Get help or sponsor</a><a href="https://github.com/ChelseaKR/gtfs-scorecard" target="_blank" rel="noopener">Source<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/accessibility.md" target="_blank" rel="noopener">Accessibility<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md" target="_blank" rel="noopener">Listing policy<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://chelseakr.com" target="_blank" rel="noopener">Built by Chelsea Kelly-Reif<span class="visually-hidden"> (opens in a new tab)</span></a></nav>
   </div>
 </footer>
+
+<script>
+  (function () {
+    "use strict";
+    var topbar = document.querySelector(".topbar");
+    var toggle = document.querySelector(".home-menu-toggle");
+    var menu = document.getElementById("home-menu");
+    if (!(topbar instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement) || !menu) return;
+
+    function isOpen() { return topbar.classList.contains("menu-open"); }
+    function closeMenu(restoreFocus) {
+      topbar.classList.remove("menu-open");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Open navigation menu");
+      if (restoreFocus) toggle.focus();
+    }
+    function openMenu() {
+      topbar.classList.add("menu-open");
+      toggle.setAttribute("aria-expanded", "true");
+      toggle.setAttribute("aria-label", "Close navigation menu");
+    }
+
+    toggle.addEventListener("click", function () {
+      if (isOpen()) closeMenu(false);
+      else openMenu();
+    });
+    menu.addEventListener("click", function (event) {
+      var link = event.target instanceof Element ? event.target.closest("nav a") : null;
+      if (link) closeMenu(false);
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.defaultPrevented || event.key !== "Escape" || !isOpen()) return;
+      event.preventDefault();
+      closeMenu(true);
+    });
+    document.addEventListener("click", function (event) {
+      if (isOpen() && event.target instanceof Node && !topbar.contains(event.target)) closeMenu(false);
+    });
+    var mobile = window.matchMedia("(max-width: 1120px)");
+    function resetAtDesktop(event) {
+      if (!event.matches) closeMenu(false);
+    }
+    if (typeof mobile.addEventListener === "function") mobile.addEventListener("change", resetAtDesktop);
+    else if (typeof mobile.addListener === "function") mobile.addListener(resetAtDesktop);
+  })();
+</script>
 </body>
 </html>

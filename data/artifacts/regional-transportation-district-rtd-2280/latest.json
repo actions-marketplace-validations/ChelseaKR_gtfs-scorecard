@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "regional-transportation-district-rtd-2280",
-    "name": "Bustang"
-  },
-  "autofix": {
-    "available": false
+    "name": "Bustang",
+    "subdivision_code": "US-CO",
+    "subdivision_name": "Colorado"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 254,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -57,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 53,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 254,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 100.0,
@@ -67,8 +76,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 254,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -84,7 +93,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -151,13 +160,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "platform_without_parent_station",
@@ -179,20 +188,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 82,
+        "days_until_expiry": 50,
+        "effective_expiry_date": "2026-09-26",
         "feed_end_date": "2026-09-26",
         "feed_start_date": "2026-06-07",
-        "feed_version": "Jun26-36807-13-20-20260704-040323",
+        "feed_version": "Jun26-36929-18-25-20260805-034324",
         "has_feed_info": true,
         "last_service_date": "2026-09-26",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 83.3,
       "status": "measured",
-      "summary": "Service data covers the next 82 days.",
+      "summary": "Service data covers the next 50 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -201,6 +213,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -211,7 +235,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 84 days.",
+        "detail": "Service data covers the next 52 days.",
         "key": "current",
         "met": true
       },
@@ -227,17 +251,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "032b872405deaaf268a8d7a4cfd9fcf3f8a4dc3a2e3128a51f999788251bf08b",
-    "size_bytes": 804888,
+    "sha256": "e722914964835d9e21d975103cd6ac62c1dad91472f86a792021e2644fd30145",
+    "size_bytes": 804906,
     "static_url": "https://www.rtd-denver.com/files/gtfs/bustang-co-us.zip"
   },
   "fetch": {
-    "final_url": "https://www.rtd-denver.com/files/gtfs/bustang-co-us.zip",
+    "final_url": "https://nodejs-prod.rtd-denver.com/api/download/gtfs/bustang-co-us.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -108.564,
@@ -249,8 +274,28 @@
     "lon": -105.07808,
     "stop_count": 53
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 6,
+        "trip_count": 254,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 6,
+    "trip_count": 254
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "CDOT"
     ],
@@ -269,8 +314,13 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 84 days.",
+        "detail": "Service data covers the next 52 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
@@ -278,13 +328,14 @@
     "summary": "This feed is close to NTD-ready. 1 validator error to resolve."
   },
   "overall": {
-    "grade": "C",
-    "margin_to_lower_band": 3.4,
-    "margin_to_next_band": 6.6,
-    "score": 73.4
+    "grade": "D",
+    "margin_to_lower_band": 9.2,
+    "margin_to_next_band": 0.8,
+    "score": 69.2
   },
   "recommendations": [
     {
+      "category": "fares",
       "code": "scorecard_fares_v2_no_rider_categories",
       "count": 0,
       "effort": "Usually a short file naming the discount groups you already publish.",
@@ -296,6 +347,7 @@
       "why": "Without rider categories, apps can only show the full adult fare and can't surface senior, youth, or student discounts a rider may be eligible for."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 16,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -303,13 +355,13 @@
       "owner": "",
       "points": 0.0,
       "severity": "INFO",
-      "what": "16 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Wewatta St & 17th St\", \"West Glenwood Park & Ride\", \"18th St & Stout St\", and more).",
+      "what": "16 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"19th St & Stout St\", \"Broadway & W 14th Ave\", \"Broadway & Speer Blvd\", and more).",
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -407,9 +459,20 @@
     "stop_count": 53,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 254 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 254,
+    "trips_with_shape": 254
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "foreign_key_violation",
@@ -426,8 +489,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 254,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

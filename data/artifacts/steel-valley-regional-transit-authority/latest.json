@@ -1,32 +1,9 @@
 {
   "agency": {
     "id": "steel-valley-regional-transit-authority",
-    "name": "Steel Valley Regional Transit Authority"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/steel-valley-regional-transit-authority/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/steel-valley-regional-transit-authority/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 2,
-        "examples": [
-          "'stop_lon': ' -80.6265478' -> '-80.6265478'",
-          "'stop_lon': ' -80.63759' -> '-80.63759'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      },
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1,
-        "examples": [
-          "EGCC -> Egcc"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 3
+    "name": "Steel Valley Regional Transit Authority",
+    "subdivision_code": "US-OH",
+    "subdivision_name": "Ohio"
   },
   "categories": {
     "completeness": {
@@ -40,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -64,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 176,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 99.2,
         "pathways": {
           "has_entrances": false,
@@ -75,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 133,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 176,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.0,
@@ -96,13 +87,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 176,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "176 of 176 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "176 of 176 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -113,7 +104,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -136,13 +127,13 @@
         {
           "code": "route_long_name_contains_short_name",
           "count": 13,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "route_color_contrast",
@@ -153,7 +144,7 @@
           "points": 6.0,
           "severity": "WARNING",
           "what": "Some route colors don't contrast with their text color.",
-          "why": "Route badges become unreadable, especially for riders with low vision."
+          "why": "Route badges get hard to read, most of all for riders with low vision."
         },
         {
           "code": "route_short_name_too_long",
@@ -174,7 +165,7 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -185,19 +176,19 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "trip_coverage_not_active_for_next7_days",
@@ -213,13 +204,13 @@
         {
           "code": "big_gap_in_service",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Big gap in service (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         }
       ],
       "name": "correctness",
@@ -230,26 +221,29 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -187,
+        "days_until_expiry": -219,
+        "effective_expiry_date": "2025-12-31",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": true,
         "last_service_date": "2025-12-31",
-        "seasonal_boundary": false,
+        "seasonal_boundary": true,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
         {
-          "code": "scorecard_feed_expired",
+          "code": "scorecard_planned_service_boundary",
           "count": 1,
-          "effort": "Usually one export setting; export on a schedule so it never lapses again.",
-          "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
+          "effort": "One export when the next period's schedule is set.",
+          "fix": "Confirm your next service period is published: export its calendar and set feed_info feed_end_date past it.",
           "owner": "Likely your export tool",
-          "points": 100.0,
-          "severity": "ERROR",
-          "what": "Service data ended 187 day(s) ago.",
-          "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
+          "points": 50.0,
+          "severity": "WARNING",
+          "what": "The published calendar ended 219 day(s) ago at a boundary between the feed's own scheduled service periods.",
+          "why": "The calendar encodes distinct service periods (like academic terms), so this looks like a planned transition rather than a lapse \u2014 but trip planners still show nothing until the next period is published."
         },
         {
           "code": "scorecard_missing_feed_info_dates",
@@ -264,9 +258,9 @@
         }
       ],
       "name": "freshness",
-      "score": 0.0,
+      "score": 35.0,
       "status": "measured",
-      "summary": "Service data ended 187 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "This feed's calendar reached a scheduled service boundary 219 day(s) ago. Confirm your next service period is published so riders can keep planning trips.",
       "weight": 0.2
     },
     "realtime": {
@@ -275,6 +269,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -285,7 +291,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 178 days ago.",
+        "detail": "Service data expired 206 days ago.",
         "key": "current",
         "met": false
       },
@@ -296,7 +302,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 178 days ago. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 206 days ago. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: https://svrta.com/website-disclaimer/",
@@ -305,7 +311,14 @@
     "size_bytes": 811722,
     "static_url": "https://svrta.com/wp-content/uploads/2025/12/svrta-steubenville-oh-us-2.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://svrta.com/wp-content/uploads/2025/12/svrta-steubenville-oh-us-2.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -80.72912,
@@ -317,8 +330,28 @@
     "lon": -80.62718,
     "stop_count": 133
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 14,
+        "trip_count": 176,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 14,
+    "trip_count": 176
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "SVRTA"
     ],
@@ -337,22 +370,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 178 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 206 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 178 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 206 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 45.9,
-    "margin_to_next_band": 14.1,
-    "score": 45.9
+    "margin_to_lower_band": 54.7,
+    "margin_to_next_band": 5.3,
+    "score": 54.7
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 14,
       "effort": "A per-route color setting in your scheduling software.",
@@ -364,6 +403,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 68,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -376,8 +416,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -387,21 +427,197 @@
     "single_stop_trips": 0,
     "trips_total": 176
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 14,
+    "has_shapes": true,
+    "path": "data/artifacts/steel-valley-regional-transit-authority/geometry.geojson",
+    "route_count": 14,
+    "routes": [
+      {
+        "color": "8DB4E2",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "Blue",
+        "label": "Blue",
+        "long": "Blue - Fourth Street",
+        "short": "Blue",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F2DCDB",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "FirstFridays",
+        "label": "First Fridays",
+        "long": "First Fridays Shuttle",
+        "short": "First Fridays",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C4D79B",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "Green",
+        "label": "Green",
+        "long": "Green - Wintersville",
+        "short": "Green",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C4D79B",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "GreenXP",
+        "label": "Green",
+        "long": "Green - Express",
+        "short": "Green",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C4BD97",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "MnTripper",
+        "label": "Mingo",
+        "long": "Mingo/Rayland - Saturday",
+        "short": "Mingo",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FABF8F",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "Orange",
+        "label": "Orange",
+        "long": "Orange - Mingo Junction",
+        "short": "Orange",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CCC0DA",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "PurpleXP",
+        "label": "Purple",
+        "long": "Purple - Express",
+        "short": "Purple",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C4BD97",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "RaylandTripper",
+        "label": "Rayland",
+        "long": "Rayland - Tripper",
+        "short": "Rayland",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DA9694",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "Red",
+        "label": "Red",
+        "long": "Red - City Limits",
+        "short": "Red",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "92CDDC",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "RobinsonSat",
+        "label": "Robinson",
+        "long": "Robinson - Saturday",
+        "short": "Robinson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "92CDDC",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "RobinsonW",
+        "label": "Robinson",
+        "long": "Robinson - Weirton",
+        "short": "Robinson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DA9694",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "SteubenvilleSat",
+        "label": "Steubenville - Saturday",
+        "long": "Steubenville - Saturday",
+        "short": "Steubenville - Saturday",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D8E4BC",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "WedWintersville",
+        "label": "Wednesdays in Wintersville",
+        "long": "Wednesdays in Wintersville",
+        "short": "Wednesdays in Wintersville",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C4D79B",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "WintervilleSat",
+        "label": "Wintersville - Saturday",
+        "long": "Wintersville - Saturday",
+        "short": "Wintersville - Saturday",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 133,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "173 of 176 trips have a shape; 3 do not.",
+    "fix": "Fill in shapes.txt and trips.shape_id for the remaining trips so every trip has a path. Reduced, Rural, and Tribal NTD reporters need full coverage by Report Year 2026.",
+    "status": "at_risk",
+    "total_trips": 176,
+    "trips_with_shape": 173
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
-      "code": "scorecard_feed_expired",
+      "code": "scorecard_planned_service_boundary",
       "count": 1,
-      "effort": "Usually one export setting; export on a schedule so it never lapses again.",
-      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
+      "effort": "One export when the next period's schedule is set.",
+      "fix": "Confirm your next service period is published: export its calendar and set feed_info feed_end_date past it.",
       "owner": "Likely your export tool",
-      "points": 100.0,
+      "points": 50.0,
       "rank": 1,
-      "severity": "ERROR",
-      "what": "Service data ended 187 day(s) ago.",
-      "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
+      "severity": "WARNING",
+      "what": "The published calendar ended 219 day(s) ago at a boundary between the feed's own scheduled service periods.",
+      "why": "The calendar encodes distinct service periods (like academic terms), so this looks like a planned transition rather than a lapse \u2014 but trip planners still show nothing until the next period is published."
     },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -418,14 +634,14 @@
     {
       "code": "scorecard_missing_headsigns",
       "count": 176,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
-      "owner": "Likely your export tool",
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
       "points": 15.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "176 of 176 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "176 of 176 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     }
   ],
   "validator_version": "8.0.1"

@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "city-of-milton-freewater-public-transportation-2189",
-    "name": "City of Milton-Freewater Public Transportation"
-  },
-  "autofix": {
-    "available": false
+    "name": "City of Milton-Freewater Public Transportation",
+    "subdivision_code": "US-OR",
+    "subdivision_name": "Oregon"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 53,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 64.2,
+        "headsign_scored_pct": 64.2,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 132,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 53,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 53,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -96,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 19,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 5.4,
           "severity": "WARNING",
-          "what": "19 of 53 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "19 of 53 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         }
       ],
       "name": "completeness",
@@ -113,11 +126,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 8,
+        "distinct_codes": 5,
         "instances_by_severity": {
           "ERROR": 0,
-          "INFO": 2,
-          "WARNING": 32
+          "INFO": 0,
+          "WARNING": 31
         },
         "validator_version": "8.0.1"
       },
@@ -136,13 +149,13 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "fast_travel_between_consecutive_stops",
@@ -152,8 +165,8 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "route_short_name_too_long",
@@ -167,72 +180,42 @@
           "why": "See the linked rule for what this affects."
         },
         {
-          "code": "trip_coverage_not_active_for_next7_days",
+          "code": "trip_distance_exceeds_shape_distance_below_threshold",
           "count": 1,
-          "effort": "One setting in most export tools.",
-          "fix": "Trim past service periods the next time you export.",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Many of the feed's trips don't run at all in the next 7 days.",
-          "why": "It usually means old service periods are still in the export, making the feed bigger and harder to check."
-        },
-        {
-          "code": "trip_distance_exceeds_shape_distance_below_threshold",
-          "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "future_calendar",
-          "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'future_calendar' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 0.5,
-          "severity": "INFO",
-          "what": "Future calendar (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "future_feed",
-          "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'future_feed' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 0.5,
-          "severity": "INFO",
-          "what": "Future feed (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stop distances run a little past the end of the route line.",
+          "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
         }
       ],
       "name": "correctness",
-      "score": 73.0,
+      "score": 78.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 8 kinds of issue across 34 instances (0 error, 32 warning, 2 informational).",
+      "summary": "The MobilityData validator flagged 5 kinds of issue across 31 instances (0 error, 31 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 178,
+        "days_until_expiry": 146,
+        "effective_expiry_date": "2026-12-31",
         "feed_end_date": "2026-12-31",
         "feed_start_date": "2026-07-01",
         "feed_version": "UTC: 19-Jun-2026 14:07",
         "has_feed_info": true,
         "last_service_date": "2026-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 178 days.",
+      "summary": "Service data covers the next 146 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -241,6 +224,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -251,7 +246,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 187 days.",
+        "detail": "Service data covers the next 159 days.",
         "key": "current",
         "met": true
       },
@@ -271,7 +266,14 @@
     "size_bytes": 882791,
     "static_url": "https://oregon-gtfs.trilliumtransit.com/gtfs_data/ctuir-or-us/ctuir-or-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://oregon-gtfs.trilliumtransit.com/gtfs_data/ctuir-or-us/ctuir-or-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -119.70186,
@@ -283,8 +285,28 @@
     "lon": -118.78938,
     "stop_count": 132
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 9,
+        "trip_count": 53,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 9,
+    "trip_count": 53
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "451"
     ],
@@ -303,22 +325,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 187 days.",
+        "detail": "Service data covers the next 159 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "D",
-    "margin_to_lower_band": 9.3,
-    "margin_to_next_band": 0.7,
-    "score": 69.3
+    "grade": "C",
+    "margin_to_lower_band": 1.5,
+    "margin_to_next_band": 8.5,
+    "score": 71.5
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -330,6 +358,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 66,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -342,8 +371,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -353,9 +382,129 @@
     "single_stop_trips": 0,
     "trips_total": 53
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 9,
+    "has_shapes": true,
+    "path": "data/artifacts/city-of-milton-freewater-public-transportation-2189/geometry.geojson",
+    "route_count": 9,
+    "routes": [
+      {
+        "color": "34859B",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "3043",
+        "label": "Hermiston Hopper",
+        "long": "Hermiston Hopper",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A65852",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "3044",
+        "label": "La Grande Arrow",
+        "long": "La Grande Arrow",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "806E9C",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "3045",
+        "label": "Mission Metro",
+        "long": "Mission Metro",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A2B465",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "3049",
+        "label": "Walla Walla Whistler",
+        "long": "Walla Walla Whistler",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFC000",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "5804",
+        "label": "Hermiston Hart",
+        "long": "Hermiston Hart",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "009899",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "76843",
+        "label": "Milton - Freewater",
+        "long": "Milton - Freewater",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DA9693",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "77073",
+        "label": "Rocket-Tripper",
+        "long": "Rocket-Tripper",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00BEFD",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "77345",
+        "label": "Hermiston/Boardman Connector",
+        "long": "Hermiston/Boardman Connector",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "933835",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "Nixyaawii Community Shuttle",
+        "label": "Nixyaawii Community Shuttle",
+        "long": "",
+        "short": "Nixyaawii Community Shuttle",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 132,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 53 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 53,
+    "trips_with_shape": 53
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -372,8 +521,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 53,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

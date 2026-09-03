@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "whatcom-transportation-authority",
-    "name": "Whatcom Transportation Authority"
-  },
-  "autofix": {
-    "available": false
+    "name": "Whatcom Transportation Authority",
+    "subdivision_code": "US-WA",
+    "subdivision_name": "Washington"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 2545,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 880,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 2545,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 100.0,
@@ -69,7 +82,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -97,19 +110,19 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         }
       ],
       "name": "correctness",
@@ -120,20 +133,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 75,
+        "days_until_expiry": 43,
+        "effective_expiry_date": "2026-09-19",
         "feed_end_date": "2026-09-19",
         "feed_start_date": "2026-06-14",
         "feed_version": "S1000174",
         "has_feed_info": true,
         "last_service_date": "2026-09-19",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 71.7,
       "status": "measured",
-      "summary": "Service data covers the next 75 days.",
+      "summary": "Service data covers the next 43 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -142,6 +158,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": true,
@@ -152,7 +180,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 84 days.",
+        "detail": "Service data covers the next 56 days.",
         "key": "current",
         "met": true
       },
@@ -172,7 +200,14 @@
     "size_bytes": 2071170,
     "static_url": "https://github.com/whatcomtrans/publicwtadata/raw/master/GTFS/wta_gtfs_latest.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://raw.githubusercontent.com/whatcomtrans/publicwtadata/master/GTFS/wta_gtfs_latest.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.78748,
@@ -184,8 +219,28 @@
     "lon": -122.48119,
     "stop_count": 880
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 30,
+        "trip_count": 2545,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 30,
+    "trip_count": 2545
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "14"
     ],
@@ -204,22 +259,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 84 days.",
+        "detail": "Service data covers the next 56 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "A",
-    "margin_to_lower_band": 4.2,
-    "margin_to_next_band": null,
-    "score": 94.2
+    "grade": "B",
+    "margin_to_lower_band": 7.1,
+    "margin_to_next_band": 2.9,
+    "score": 87.1
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 11,
       "effort": "A per-route color setting in your scheduling software.",
@@ -231,6 +292,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 837,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -243,8 +305,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -254,9 +316,360 @@
     "single_stop_trips": 0,
     "trips_total": 2545
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 30,
+    "has_shapes": true,
+    "path": "data/artifacts/whatcom-transportation-authority/geometry.geojson",
+    "route_count": 30,
+    "routes": [
+      {
+        "color": "E5BFA1",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "Fairhaven&Downtown",
+        "short": "1",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B2D235",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "Eldridge&Downtown",
+        "short": "10",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "009FC3",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "14",
+        "label": "14",
+        "long": "Fairhaven&Downtown",
+        "short": "14",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F58220",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "15",
+        "label": "15",
+        "long": "Cordata/WCC&Downtown",
+        "short": "15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BBD976",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "18",
+        "label": "18",
+        "long": "Hospital&Cordata/WCC",
+        "short": "18",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0095DA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "190",
+        "label": "190",
+        "long": "Lincoln St&Downtown",
+        "short": "190",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8DC63F",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "232",
+        "label": "232",
+        "long": "Cordata/WCC&Downtown",
+        "short": "232",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "028848",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "24",
+        "label": "24",
+        "long": "Cordata",
+        "short": "24",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7A6026",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "26",
+        "label": "26",
+        "long": "Lynden&Cordata/WCC",
+        "short": "26",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "94B0BE",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "27",
+        "label": "27",
+        "long": "Ferndale&Cordata/WCC",
+        "short": "27",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "50B848",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "29",
+        "label": "29",
+        "long": "Cordata/Kline",
+        "short": "29",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D7DF23",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "3",
+        "label": "3",
+        "long": "Airport/Cordata&Airport/Downtown",
+        "short": "3",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FAA61A",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "331",
+        "label": "331",
+        "long": "Cordata/WCC&Downtown",
+        "short": "331",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E29957",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "45",
+        "label": "45",
+        "long": "KingMountain&Cordata/WCC",
+        "short": "45",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E7EFC1",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "47",
+        "label": "47",
+        "long": "Harbor&Downtown",
+        "short": "47",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F15A22",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "48",
+        "label": "48",
+        "long": "Cordata/WCC&Bakerview Spur",
+        "short": "48",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DA1F3D",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "49",
+        "label": "49",
+        "long": "Downtown&Bakerview Spur",
+        "short": "49",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "Samish/Fairhaven&Samish/Downtown",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFDD00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "50",
+        "label": "50",
+        "long": "LummiNation&Cordata/WCC",
+        "short": "50",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F287B7",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "512",
+        "label": "512",
+        "long": "Sudden Valley&Downtown",
+        "short": "512",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8F53A1",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "525",
+        "label": "525",
+        "long": "Barkley&Downtown",
+        "short": "525",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F8C1D9",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "533",
+        "label": "533",
+        "long": "Yew St",
+        "short": "533",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5F3075",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "540",
+        "label": "540",
+        "long": "Sunset&Downtown",
+        "short": "540",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008040",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6",
+        "label": "6",
+        "long": "Fraser&Downtown",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "7",
+        "label": "7",
+        "long": "Samish/WWU&Samish/Downtown",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B47236",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "71X",
+        "label": "71X",
+        "long": "Everson/Nooksack/Sumas&Cordata",
+        "short": "71X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "952D4F",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "72X",
+        "label": "72X",
+        "long": "Kendall&Bellingham",
+        "short": "72X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F05B7D",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "75",
+        "label": "75",
+        "long": "Blaine/Birch Bay&Bellingham",
+        "short": "75",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B86964",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "80X",
+        "label": "80X",
+        "long": "Mt. Vernon&Bellingham",
+        "short": "80X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F69896",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "9",
+        "label": "9",
+        "long": "Hospital&Downtown",
+        "short": "9",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 880,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 2545 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 2545,
+    "trips_with_shape": 2545
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "missing_recommended_field",
@@ -267,20 +680,20 @@
       "points": 4.0,
       "rank": 1,
       "severity": "WARNING",
-      "what": "Some files are missing recommended (not required) fields.",
+      "what": "Some files leave out fields that GTFS asks for but does not require.",
       "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
     },
     {
       "code": "missing_feed_contact_email_and_url",
       "count": 1,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "One field, set once in export settings.",
+      "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+      "owner": "Likely your export tool",
       "points": 4.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "feed_info.txt lists no contact email and no contact URL.",
+      "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
     },
     {
       "code": "scorecard_no_feed_contact",
@@ -292,7 +705,7 @@
       "rank": 3,
       "severity": "INFO",
       "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-      "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+      "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
     }
   ],
   "validator_version": "8.0.1"

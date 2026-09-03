@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "continuum",
-    "name": "Flex"
-  },
-  "autofix": {
-    "available": false
+    "name": "Continuum Flex",
+    "subdivision_code": "US-CO",
+    "subdivision_name": "Colorado"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
@@ -42,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": false,
+        "headsign_applicable_trips": 1,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 1,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -96,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 1,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "1 of 1 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "1 of 1 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_service",
@@ -147,13 +160,13 @@
         {
           "code": "missing_required_column",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_required_column' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Often an export setting; ask your vendor if it recurs.",
+          "fix": "Add the required column named in the finding to the flagged file.",
+          "owner": "Likely your export tool",
           "points": 12.0,
           "severity": "ERROR",
-          "what": "Missing required column (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "A file is missing a column that GTFS requires.",
+          "why": "Apps may reject the whole file, so riders could lose the affected routes or stops."
         },
         {
           "code": "foreign_key_violation",
@@ -185,7 +198,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -246,24 +259,24 @@
         {
           "code": "unknown_file",
           "count": 9,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -274,13 +287,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -1282,
+        "days_until_expiry": -1314,
+        "effective_expiry_date": "2023-01-01",
         "feed_end_date": "2023-01-01",
         "feed_start_date": "2022-01-07",
         "feed_version": "UTC: 07-Jan-2022 17:38",
         "has_feed_info": true,
         "last_service_date": "2023-01-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -292,14 +308,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 1282 day(s) ago.",
+          "what": "Service data ended 1314 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 1282 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 1314 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -308,6 +324,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -318,7 +346,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 1273 days ago.",
+        "detail": "Service data expired 1301 days ago.",
         "key": "current",
         "met": false
       },
@@ -329,7 +357,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 4 validator errors to resolve. Service data expired 1273 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 4 validator errors to resolve. Service data expired 1301 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -338,7 +366,14 @@
     "size_bytes": 7694,
     "static_url": "https://data.trilliumtransit.com/gtfs/continuum-co-us/continuum-co-us--flex-v2.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/continuum-co-us/continuum-co-us--flex-v2.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -104.78719,
@@ -350,8 +385,28 @@
     "lon": -104.78719,
     "stop_count": 1
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 1,
+        "trip_count": 1,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 1,
+    "trip_count": 1
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1727"
     ],
@@ -370,13 +425,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 1273 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 1301 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 4 validator errors to resolve. Service data expired 1273 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 4 validator errors to resolve. Service data expired 1301 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -386,8 +446,8 @@
   },
   "recommendations": [],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -420,9 +480,42 @@
     "single_stop_trips": 1,
     "trips_total": 1
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 0,
+    "has_shapes": false,
+    "path": "data/artifacts/continuum/geometry.geojson",
+    "route_count": 1,
+    "routes": [
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "18975",
+        "label": "Continuum of Colorado",
+        "long": "Continuum of Colorado",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 1,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "No trips in this feed have a shape_id linked to a row in shapes.txt.",
+    "fix": "Add shapes.txt with a shape_id for each trip's path, and set trips.shape_id to match. Reduced, Rural, and Tribal NTD reporters need this in their published GTFS starting Report Year 2026; Full Reporters needed it in Report Year 2025.",
+    "status": "not_ready",
+    "total_trips": 1,
+    "trips_with_shape": 0
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -433,7 +526,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 1282 day(s) ago.",
+      "what": "Service data ended 1314 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -451,14 +544,14 @@
     {
       "code": "missing_required_column",
       "count": 2,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'missing_required_column' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Often an export setting; ask your vendor if it recurs.",
+      "fix": "Add the required column named in the finding to the flagged file.",
+      "owner": "Likely your export tool",
       "points": 12.0,
       "rank": 3,
       "severity": "ERROR",
-      "what": "Missing required column (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "A file is missing a column that GTFS requires.",
+      "why": "Apps may reject the whole file, so riders could lose the affected routes or stops."
     }
   ],
   "validator_version": "8.0.1"

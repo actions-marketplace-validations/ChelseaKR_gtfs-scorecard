@@ -3,9 +3,6 @@
     "id": "mountain-view-community-shuttle",
     "name": "Mountain View Community Shuttle"
   },
-  "autofix": {
-    "available": false
-  },
   "categories": {
     "completeness": {
       "details": {
@@ -18,6 +15,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -42,7 +43,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 58,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +57,13 @@
           "pathway_count": 0
         },
         "stops": 58,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 58,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 100.0,
@@ -69,7 +80,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -97,7 +108,7 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -108,8 +119,8 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -125,46 +136,46 @@
         {
           "code": "route_long_name_contains_short_name",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "big_gap_in_service",
           "count": 19,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Big gap in service (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         },
         {
           "code": "unknown_file",
           "count": 6,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
@@ -175,13 +186,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 293,
+        "days_until_expiry": 261,
+        "effective_expiry_date": "2027-04-25",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": true,
         "last_service_date": "2027-04-25",
-        "seasonal_boundary": false,
+        "seasonal_boundary": true,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -200,7 +214,7 @@
       "name": "freshness",
       "score": 85.0,
       "status": "measured",
-      "summary": "Service data covers the next 293 days.",
+      "summary": "Service data covers the next 261 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -209,6 +223,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": true,
@@ -219,7 +245,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 302 days.",
+        "detail": "Service data covers the next 263 days.",
         "key": "current",
         "met": true
       },
@@ -235,11 +261,18 @@
   "feed": {
     "license_note": "License: https://opendatacommons.org/licenses/by/summary/",
     "reachable": true,
-    "sha256": "e54511e1dc9429e7c8315a991d9fe8e6a95e01b15e8ab2bf1a81f769055a0a5d",
-    "size_bytes": 142475,
+    "sha256": "b24286b4158e64fda9af24c359d00c380aa98b1a60a28ea3b37ea941102ffe89",
+    "size_bytes": 142408,
     "static_url": "https://gtfs.mvcommunityshuttle.com/gtfs.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://gtfs.mvcommunityshuttle.com/gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.10824,
@@ -251,8 +284,28 @@
     "lon": -122.08145,
     "stop_count": 58
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 4,
+        "trip_count": 58,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 4,
+    "trip_count": 58
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "MC"
     ],
@@ -271,13 +324,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 302 days.",
+        "detail": "Service data covers the next 263 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
@@ -287,6 +345,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 2,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -299,8 +358,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -310,9 +369,74 @@
     "single_stop_trips": 0,
     "trips_total": 58
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 4,
+    "has_shapes": true,
+    "path": "data/artifacts/mountain-view-community-shuttle/geometry.geojson",
+    "route_count": 4,
+    "routes": [
+      {
+        "color": "8C8C88",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "Gray",
+        "label": "GRAY",
+        "long": "Gray",
+        "short": "GRAY",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8C8C88",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "Gray_Weekend",
+        "label": "GRAY WE",
+        "long": "Gray Weekend",
+        "short": "GRAY WE",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF2B0A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "Red",
+        "label": "RED",
+        "long": "Red",
+        "short": "RED",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF2B0A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "Red_Weekend",
+        "label": "RED WE",
+        "long": "Red Weekend",
+        "short": "RED WE",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 58,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 58 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 58,
+    "trips_with_shape": 58
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_missing_feed_info_dates",
@@ -335,7 +459,7 @@
       "points": 4.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "Some files are missing recommended (not required) fields.",
+      "what": "Some files leave out fields that GTFS asks for but does not require.",
       "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
     },
     {
@@ -347,8 +471,8 @@
       "points": 4.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Some scheduled trips travel implausibly fast between stops.",
-      "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+      "what": "Some scheduled trips move faster between stops than a bus can.",
+      "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
     }
   ],
   "validator_version": "8.0.1"

@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "pioneer-valley-transit-authority-pvta-2416",
-    "name": "Pioneer Valley Transit Authority (PVTA)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/pioneer-valley-transit-authority-pvta-2416/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 3770,
-        "examples": [
-          "'stop_lat': '  42.477045' -> '42.477045'",
-          "'stop_lon': ' -72.607454' -> '-72.607454'",
-          "'stop_lat': '  42.454685' -> '42.454685'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 3770
+    "name": "Pioneer Valley Transit Authority (PVTA)",
+    "subdivision_code": "US-MA",
+    "subdivision_name": "Massachusetts"
   },
   "categories": {
     "completeness": {
@@ -27,11 +12,15 @@
           "measures": "presence_not_usability",
           "score": 93.5,
           "stops_marked_accessible_pct": 82.7,
-          "stops_marked_not_accessible_pct": 6.9,
+          "stops_marked_not_accessible_pct": 6.8,
           "stops_stated_pct": 89.6,
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": true,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -56,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 5032,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -66,12 +58,19 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 1885,
-        "trips": 5039,
+        "stops": 1884,
+        "translations": {
+          "feed_lang": "EN",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 5032,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 89.6,
         "wheelchair_marked_accessible_pct": 82.7,
-        "wheelchair_marked_not_accessible_pct": 6.9
+        "wheelchair_marked_not_accessible_pct": 6.8
       },
       "findings": [
         {
@@ -82,7 +81,7 @@
           "owner": "Likely your team",
           "points": 2.6,
           "severity": "WARNING",
-          "what": "196 of 1885 stops don't say whether a wheelchair user can board there.",
+          "what": "196 of 1884 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
@@ -105,18 +104,18 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 9,
+        "distinct_codes": 12,
         "instances_by_severity": {
-          "ERROR": 235,
+          "ERROR": 236,
           "INFO": 1,
-          "WARNING": 7514
+          "WARNING": 7511
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "equal_shape_distance_diff_coordinates",
-          "count": 170,
+          "count": 171,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'equal_shape_distance_diff_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
@@ -138,29 +137,29 @@
         },
         {
           "code": "equal_shape_distance_same_coordinates",
-          "count": 6468,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "count": 6463,
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "trip_distance_exceeds_shape_distance_below_threshold",
-          "count": 483,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "count": 495,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stop distances run a little past the end of the route line.",
+          "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
         },
         {
           "code": "equal_shape_distance_diff_coordinates_distance_below_threshold",
-          "count": 371,
+          "count": 359,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'equal_shape_distance_diff_coordinates_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
@@ -171,18 +170,18 @@
         },
         {
           "code": "stop_too_far_from_shape_using_user_distance",
-          "count": 169,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "count": 171,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "unusable_trip",
-          "count": 22,
+          "count": 18,
           "effort": "Worth a vendor question if it appears often.",
           "fix": "Check the flagged trips in your scheduling software; remove them or restore their missing stops.",
           "owner": "Likely your export tool",
@@ -190,6 +189,39 @@
           "severity": "WARNING",
           "what": "Some trips serve fewer than two stops.",
           "why": "A trip with one stop can't be ridden; planners ignore it and it may signal an export problem."
+        },
+        {
+          "code": "fast_travel_between_consecutive_stops",
+          "count": 2,
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the flagged stop times for transposed minutes.",
+          "owner": "",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
+        },
+        {
+          "code": "feed_expiration_date30_days",
+          "count": 1,
+          "effort": "Usually a re-export from your scheduling software.",
+          "fix": "Schedule a feed re-export now so the new calendar is live well before the current one ends.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "This feed's service calendar runs out within the next 30 days.",
+          "why": "If a new feed isn't published before it ends, trip planners will drop your agency and riders will see no service."
+        },
+        {
+          "code": "missing_recommended_field",
+          "count": 1,
+          "effort": "A field at a time; not urgent.",
+          "fix": "Review the flagged fields and fill in the ones your riders would use.",
+          "owner": "",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
+          "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -215,37 +247,58 @@
         }
       ],
       "name": "correctness",
-      "score": 9.5,
+      "score": 0.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 9 kinds of issue across 7750 instances (235 error, 7514 warning, 1 informational).",
+      "summary": "The MobilityData validator flagged 12 kinds of issue across 7748 instances (236 error, 7511 warning, 1 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 54,
-        "feed_end_date": "2026-08-29",
-        "feed_start_date": "2026-06-30",
-        "feed_version": "2026-06-30-1438",
+        "days_until_expiry": 15,
+        "effective_expiry_date": "2026-08-22",
+        "feed_end_date": "2026-08-22",
+        "feed_start_date": "2026-08-05",
+        "feed_version": null,
         "has_feed_info": true,
-        "last_service_date": "2026-08-29",
+        "last_service_date": "2026-08-22",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 65.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 15 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
       "name": "freshness",
-      "score": 90.0,
+      "score": 25.0,
       "status": "measured",
-      "summary": "Service data covers the next 54 days.",
+      "summary": "Service data runs out in 15 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 0.0,
-        "covered_trips": 0,
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": null,
+        "kinds_configured": 3,
         "kinds_reachable": 0,
+        "reachable_kinds": [],
         "rt_freshness": null,
         "samples": 9,
-        "scheduled_trips_in_window": 78,
+        "scheduled_trips_in_window": 66,
         "worst_lag_seconds": null
       },
       "findings": [
@@ -255,7 +308,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 33.3,
           "severity": "ERROR",
           "what": "The trip updates realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -266,7 +319,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 33.3,
           "severity": "ERROR",
           "what": "The vehicle positions realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -277,29 +330,31 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 33.3,
           "severity": "ERROR",
           "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 78,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 35.0,
-          "severity": "WARNING",
-          "what": "78 of 78 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
       "score": 0.0,
       "status": "measured",
-      "summary": "Sampled 9 times: 0 of 3 feeds healthy; 0.0% of scheduled trips had live predictions.",
+      "summary": "Sampled 9 times: 0 of 3 configured feeds healthy; vehicle position plausibility was not measurable.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -310,9 +365,9 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 60 days.",
+        "detail": "Service data runs out in 17 days; renew to qualify.",
         "key": "current",
-        "met": true
+        "met": false
       },
       {
         "detail": "States wheelchair access on 90% of stops and 100% of trips; the mark needs 90% of each.",
@@ -321,16 +376,30 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 2 validator errors to resolve. States wheelchair access on 90% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 2 validator errors to resolve. Service data runs out in 17 days; renew to qualify. States wheelchair access on 90% of stops and 100% of trips; the mark needs 90% of each."
+  },
+  "export_diff": {
+    "changes": [
+      "Service now runs through 2026-08-22 (was 2026-08-29)."
+    ],
+    "from_sha256": "b494a3ab7d0e8181da241f26841d9f18617d74e01b019fd042d1dd8eb470300b",
+    "to_sha256": "660fa7fcc17b53cb3341afb78306097cd93438c49f35d1c353c1d1e5052fff76"
   },
   "feed": {
     "license_note": "License: https://www.mass.gov/doc/developers-license-agreement-11132009/download",
     "reachable": true,
-    "sha256": "73acf6320f1756edf7d046bb6d7989cd96790bece283521b6bc9f9f8c75dc734",
-    "size_bytes": 2932778,
+    "sha256": "660fa7fcc17b53cb3341afb78306097cd93438c49f35d1c353c1d1e5052fff76",
+    "size_bytes": 2887302,
     "static_url": "https://www.pvta.com/g_trans/google_transit.zip"
   },
-  "generated_at": "2026-06-30T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.pvta.com/g_trans/google_transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -73.25379,
@@ -338,12 +407,32 @@
       -71.79518,
       42.59603
     ],
-    "lat": 42.1375,
-    "lon": -72.58242,
-    "stop_count": 1885
+    "lat": 42.13749,
+    "lon": -72.58241,
+    "stop_count": 1884
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 44,
+        "trip_count": 5032,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 44,
+    "trip_count": 5032
   },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "PVTA",
       "Link413"
@@ -363,22 +452,28 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 60 days.",
+        "detail": "Service data runs out in 17 days; renew before you certify.",
         "key": "current",
+        "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "at_risk",
-    "summary": "This feed is close to NTD-ready. 2 validator errors to resolve."
+    "summary": "This feed is close to NTD-ready. 2 validator errors to resolve. Service data runs out in 17 days; renew before you certify."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 45.7,
-    "margin_to_next_band": 14.3,
-    "score": 45.7
+    "margin_to_lower_band": 29.4,
+    "margin_to_next_band": 30.6,
+    "score": 29.4
   },
   "recommendations": [
     {
+      "category": "fares",
       "code": "scorecard_fares_v2_no_rider_categories",
       "count": 0,
       "effort": "Usually a short file naming the discount groups you already publish.",
@@ -390,6 +485,7 @@
       "why": "Without rider categories, apps can only show the full adult fare and can't surface senior, youth, or student discounts a rider may be eligible for."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 12,
       "effort": "A per-route color setting in your scheduling software.",
@@ -401,17 +497,19 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
-      "count": 1481,
+      "count": 1485,
       "effort": "A short text field per affected stop; start with the busiest.",
       "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
       "owner": "",
       "points": 0.0,
       "severity": "INFO",
-      "what": "1481 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Plainfield / Wason\", \"Bay / Aster\", \"Springfield / Medical Ctr Drive (across)\", and more).",
+      "what": "1485 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"Main / High (Haydenville)\", \"Plainfield / Wason\", \"Bay / Aster\", and more).",
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -424,28 +522,28 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
-    "boardable_stops": 1882,
+    "boardable_stops": 1881,
     "findings": [
       {
         "code": "scorecard_single_stop_trips",
-        "count": 22,
+        "count": 18,
         "effort": "Usually an export setting or a stop_times mapping in your software.",
         "fix": "Check your scheduling export: every trip should list each stop it calls at, in order, with times.",
         "owner": "Likely your export tool",
         "points": 0.0,
         "severity": "WARNING",
-        "what": "22 of 5039 trips list fewer than two stops.",
+        "what": "18 of 5032 trips list fewer than two stops.",
         "why": "A trip with one stop has no leg a rider can ride; trip planners can't route anyone on it, so the service effectively does not exist."
       }
     ],
     "orphan_stops": 0,
-    "single_stop_trips": 22,
-    "trips_total": 5039
+    "single_stop_trips": 18,
+    "trips_total": 5032
   },
   "route_map": {
     "drawn_route_count": 44,
@@ -938,36 +1036,35 @@
         "type_label": "Bus"
       }
     ],
-    "stop_count": 1885,
+    "stop_count": 1884,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 5032 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 5032,
+    "trips_with_shape": 5032
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
-      "code": "equal_shape_distance_diff_coordinates",
-      "count": 170,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'equal_shape_distance_diff_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
-      "points": 24.0,
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 65.0,
       "rank": 1,
-      "severity": "ERROR",
-      "what": "Equal shape distance diff coordinates (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
-    },
-    {
-      "code": "trip_distance_exceeds_shape_distance",
-      "count": 65,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
-      "points": 24.0,
-      "rank": 2,
-      "severity": "ERROR",
-      "what": "Trip distance exceeds shape distance (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "severity": "WARNING",
+      "what": "Service data runs out in 15 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
     },
     {
       "code": "scorecard_rt_trip_updates_unreachable",
@@ -975,10 +1072,22 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
-      "rank": 3,
+      "points": 33.3,
+      "rank": 2,
       "severity": "ERROR",
       "what": "The trip updates realtime feed failed during sampling.",
+      "why": "When this feed is down, riders see scheduled times presented as if they were live."
+    },
+    {
+      "code": "scorecard_rt_vehicle_positions_unreachable",
+      "count": 1,
+      "effort": "Usually a vendor support ticket.",
+      "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
+      "owner": "",
+      "points": 33.3,
+      "rank": 3,
+      "severity": "ERROR",
+      "what": "The vehicle positions realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     }
   ],

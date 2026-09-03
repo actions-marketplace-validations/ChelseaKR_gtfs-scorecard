@@ -1,31 +1,9 @@
 {
   "agency": {
     "id": "radford-transit-2415",
-    "name": "Radford Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/radford-transit-2415/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/radford-transit-2415/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1,
-        "examples": [
-          "CHBS -> Chbs"
-        ],
-        "label": "Recased shouting stop names"
-      },
-      {
-        "code": "autofix_route_name_case",
-        "count": 1,
-        "examples": [
-          "NRCC -> Nrcc"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 2
+    "name": "Radford Transit",
+    "subdivision_code": "US-VA",
+    "subdivision_name": "Virginia"
   },
   "categories": {
     "completeness": {
@@ -39,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
-          "headsigns": 0.0,
+          "headsigns": 8.9,
           "stop_names": 14.9,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 0.0
@@ -63,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": false,
+        "headsign_applicable_trips": 136,
+        "headsign_loop_exempt_trips": 200,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 59.5,
         "mixed_case_stop_name_pct": 99.2,
         "pathways": {
           "has_entrances": false,
@@ -74,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 120,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 336,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -95,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 336,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -116,14 +108,14 @@
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 336,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 15.0,
+          "count": 136,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
+          "points": 6.1,
           "severity": "WARNING",
-          "what": "336 of 336 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "136 of 336 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -138,7 +130,7 @@
         }
       ],
       "name": "completeness",
-      "score": 29.9,
+      "score": 38.8,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is not published.",
       "weight": 0.25
@@ -179,24 +171,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 5,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -207,32 +199,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 26,
-        "feed_end_date": "2026-08-01",
-        "feed_start_date": "2026-03-02",
-        "feed_version": "UTC: 02-Mar-2026 22:49",
+        "days_until_expiry": 178,
+        "effective_expiry_date": "2027-02-01",
+        "feed_end_date": "2027-02-01",
+        "feed_start_date": "2026-07-08",
+        "feed_version": "UTC: 08-Jul-2026 17:43",
         "has_feed_info": true,
-        "last_service_date": "2026-08-01",
+        "last_service_date": "2027-02-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expiring_soon",
-          "count": 1,
-          "effort": "One export setting.",
-          "fix": "Re-export with a validity window that reaches at least 60 days out.",
-          "owner": "Likely your export tool",
-          "points": 54.0,
-          "severity": "WARNING",
-          "what": "Service data runs out in 26 day(s).",
-          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 43.3,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Service data runs out in 26 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data covers the next 178 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -241,6 +224,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -251,7 +246,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 35 days.",
+        "detail": "Service data covers the next 191 days.",
         "key": "current",
         "met": true
       },
@@ -267,11 +262,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "bd2aad260d52ac55a2db032413c25941e8631ffad7bd1b013c6d025238c5e2ce",
-    "size_bytes": 255309,
+    "sha256": "491c89e78e0ad8f2367f1c2883ea83620435634b8c14ea8bc64da99a94907ff7",
+    "size_bytes": 255299,
     "static_url": "https://data.trilliumtransit.com/gtfs/radford-va-us/radford-va-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/radford-va-us/radford-va-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -80.69635,
@@ -283,8 +285,28 @@
     "lon": -80.55637,
     "stop_count": 120
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 14,
+        "trip_count": 336,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 14,
+    "trip_count": 336
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "5050"
     ],
@@ -303,22 +325,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 35 days.",
+        "detail": "Service data covers the next 191 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "D",
-    "margin_to_lower_band": 1.3,
-    "margin_to_next_band": 8.7,
-    "score": 61.3
+    "grade": "C",
+    "margin_to_lower_band": 8.2,
+    "margin_to_next_band": 1.8,
+    "score": 78.2
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -330,6 +358,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 5,
       "effort": "A per-route color setting in your scheduling software.",
@@ -341,6 +370,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 73,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -353,8 +383,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -376,22 +406,185 @@
     "single_stop_trips": 0,
     "trips_total": 336
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 13,
+    "has_shapes": true,
+    "path": "data/artifacts/radford-transit-2415/geometry.geojson",
+    "route_count": 14,
+    "routes": [
+      {
+        "color": "3182BD",
+        "color_name": "teal",
+        "has_shape": false,
+        "id": "77238",
+        "label": "100",
+        "long": "NRCC",
+        "short": "100",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "17BECF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "77239",
+        "label": "60",
+        "long": "South Beech Express",
+        "short": "60",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1F77B4",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "77240",
+        "label": "50",
+        "long": "Highlander Circle",
+        "short": "50",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A55194",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "77242",
+        "label": "41",
+        "long": "NRV Connect",
+        "short": "41",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A55194",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "77243",
+        "label": "40",
+        "long": "NRV Connect Late Night",
+        "short": "40",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A55194",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "77244",
+        "label": "40",
+        "long": "NRV Connect",
+        "short": "40",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2CA02C",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77245",
+        "label": "35",
+        "long": "New River Rapid",
+        "short": "35",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "637939",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "77246",
+        "label": "30",
+        "long": "New River Rapid",
+        "short": "30",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E6550D",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "77247",
+        "label": "25",
+        "long": "New River Rapid",
+        "short": "25",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FDAE6B",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "77248",
+        "label": "20",
+        "long": "New River Rapid",
+        "short": "20",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFF55",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "77249",
+        "label": "15",
+        "long": "University Express",
+        "short": "15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "756BB1",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "77250",
+        "label": "11",
+        "long": "University Express",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D62728",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "77251",
+        "label": "10",
+        "long": "University Express Sunday",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D62728",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "77252",
+        "label": "10",
+        "long": "University Express",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 120,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 336 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 336,
+    "trips_with_shape": 336
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
-    {
-      "code": "scorecard_feed_expiring_soon",
-      "count": 1,
-      "effort": "One export setting.",
-      "fix": "Re-export with a validity window that reaches at least 60 days out.",
-      "owner": "Likely your export tool",
-      "points": 54.0,
-      "rank": 1,
-      "severity": "WARNING",
-      "what": "Service data runs out in 26 day(s).",
-      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 120,
@@ -399,7 +592,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "WARNING",
       "what": "120 of 120 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -407,14 +600,26 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 336,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 3,
+      "rank": 2,
       "severity": "WARNING",
       "what": "336 of 336 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
+    },
+    {
+      "code": "scorecard_no_fare_data",
+      "count": 1,
+      "effort": "A small file for most flat-fare systems.",
+      "fix": "Add fare_attributes.txt (or Fares v2 files) with your fare structure. If your service is fare-free, ask to have it marked fare-free instead.",
+      "owner": "",
+      "points": 15.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "The feed contains no fare information.",
+      "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
     }
   ],
   "validator_version": "8.0.1"

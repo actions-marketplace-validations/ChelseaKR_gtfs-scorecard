@@ -1,12 +1,17 @@
+---
+date_published: "2026-07-04"
+date_modified: "2026-07-29"
+---
+
 # Fix: the feed has already expired
 
 Code: `scorecard_feed_expired`
 
 ## What this means
 
-The scorecard works out the last day your feed actually covers service, taking
-the later of `feed_info.txt`'s `feed_end_date` and the last date any calendar
-or calendar_dates entry runs service, and that day has already passed.
+The scorecard compares `feed_info.txt`'s `feed_end_date` with the last day any
+`calendar.txt` or `calendar_dates.txt` entry runs service, then uses whichever
+date comes first. That earlier date has already passed.
 
 ## Why it matters
 
@@ -39,3 +44,8 @@ export should stop carrying forward.
 
 Often a same-day fix: one export with the calendar reaching further out. The
 lasting fix is the export schedule so this never recurs.
+
+If riders are already reporting that your agency vanished from their apps, the
+wider walkthrough is
+[why agencies disappear from trip planners](https://gtfsscorecard.org/guide/disappeared-from-trip-planners/):
+expiry is the most common cause, but not the only one.

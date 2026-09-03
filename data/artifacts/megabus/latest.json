@@ -3,23 +3,6 @@
     "id": "megabus",
     "name": "Megabus"
   },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/megabus/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/megabus/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 2,
-        "examples": [
-          "'route_long_name': '600 - Wall Street ' -> '600 - Wall Street'",
-          "'route_long_name': '8-A Wall Street ' -> '8-A Wall Street'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 2
-  },
   "categories": {
     "completeness": {
       "details": {
@@ -32,6 +15,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
@@ -56,7 +43,10 @@
           "has_flex": true
         },
         "has_fares": false,
+        "headsign_applicable_trips": 984,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -67,6 +57,13 @@
           "pathway_count": 0
         },
         "stops": 999,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 984,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 17.6,
@@ -88,8 +85,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 984,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -188,8 +185,8 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "fast_travel_between_far_stops",
@@ -205,13 +202,13 @@
         {
           "code": "route_long_name_contains_short_name",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "unknown_column",
@@ -227,13 +224,13 @@
         {
           "code": "service_window_outside_feed_period",
           "count": 27,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "platform_without_parent_station",
@@ -249,13 +246,13 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
@@ -266,20 +263,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 118,
+        "days_until_expiry": 86,
+        "effective_expiry_date": "2026-11-01",
         "feed_end_date": "2026-11-01",
         "feed_start_date": "2026-04-14",
         "feed_version": "UTC: 14-Apr-2026 21:00",
         "has_feed_info": true,
         "last_service_date": "2026-11-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 118 days.",
+      "summary": "Service data covers the next 86 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -288,6 +288,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -298,7 +310,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 127 days.",
+        "detail": "Service data covers the next 99 days.",
         "key": "current",
         "met": true
       },
@@ -318,7 +330,14 @@
     "size_bytes": 9879959,
     "static_url": "https://data.trilliumtransit.com/gtfs/megabus-us/megabus-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/megabus-us/megabus-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -121.50401,
@@ -330,8 +349,28 @@
     "lon": -74.21923,
     "stop_count": 999
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 43,
+        "trip_count": 984,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 43,
+    "trip_count": 984
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "2356",
       "1801",
@@ -359,13 +398,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 127 days.",
+        "detail": "Service data covers the next 99 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "D",
@@ -375,6 +419,7 @@
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -386,6 +431,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 10,
       "effort": "A per-route color setting in your scheduling software.",
@@ -397,6 +443,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 703,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -408,6 +455,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -420,8 +468,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -443,9 +491,503 @@
     "single_stop_trips": 0,
     "trips_total": 984
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 33,
+    "has_shapes": true,
+    "path": "data/artifacts/megabus/geometry.geojson",
+    "route_count": 43,
+    "routes": [
+      {
+        "color": "AC61A7",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "15231",
+        "label": "ShortLine Hudson",
+        "long": "00-10 - Long Island - Monticello",
+        "short": "ShortLine Hudson",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED60A3",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "15232",
+        "label": "ShortLine Hudson",
+        "long": "200 - Northern District \u2013 Nanuet",
+        "short": "ShortLine Hudson",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "15245",
+        "label": "Rockland Coaches",
+        "long": "Weekend Express",
+        "short": "Rockland Coaches",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15246",
+        "label": "Rockland Coaches",
+        "long": "9/9A",
+        "short": "Rockland Coaches",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15247",
+        "label": "Rockland Coaches",
+        "long": "49",
+        "short": "Rockland Coaches",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15248",
+        "label": "Rockland Coaches",
+        "long": "47",
+        "short": "Rockland Coaches",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15249",
+        "label": "Rockland Coaches",
+        "long": "45",
+        "short": "Rockland Coaches",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15251",
+        "label": "Rockland Coaches",
+        "long": "20",
+        "short": "Rockland Coaches",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15253",
+        "label": "Rockland Coaches",
+        "long": "11A",
+        "short": "Rockland Coaches",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15255",
+        "label": "Community Coach",
+        "long": "77 Local",
+        "short": "Community Coach",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "15259",
+        "label": "Suburban Transit",
+        "long": "8-A Wall Street",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15260",
+        "label": "Suburban Transit",
+        "long": "100 - Princeton - NYC",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15261",
+        "label": "Suburban Transit",
+        "long": "200 - Hillsborough",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "15262",
+        "label": "Suburban Transit",
+        "long": "250 - Bridgewater - NYC",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15263",
+        "label": "Suburban Transit",
+        "long": "300 - Plainsboro - NYC",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "15264",
+        "label": "Suburban Transit",
+        "long": "350 - Hightstown - Jersey City",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15265",
+        "label": "Suburban Transit",
+        "long": "400 - East Brunswick - Miltown - NYC",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15266",
+        "label": "Suburban Transit",
+        "long": "500 - Crosstown",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15267",
+        "label": "Suburban Transit",
+        "long": "600 - Wall Street",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AB2B53",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "15268",
+        "label": "ShortLine Hudson",
+        "long": "900 - Bergen County, NJ",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "64AD45",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "15269",
+        "label": "ShortLine Hudson",
+        "long": "100 - Catskills",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B04876",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "15272",
+        "label": "ShortLine Hudson",
+        "long": "Eastside Woodbury Common",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B04876",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "15273",
+        "label": "ShortLine Hudson",
+        "long": "Eastside Manhattan Commuter Service",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED105B",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "15274",
+        "label": "ShortLine Hudson",
+        "long": "400 - Kerhonkson/Ellenville - NYC",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00ADE2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "15276",
+        "label": "ShortLine Hudson",
+        "long": "250 - Mahwah - Oakland - Wyckoff",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D649A4",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "15277",
+        "label": "ShortLine Hudson",
+        "long": "20-30 - Middletown - Newburgh Local",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8387C1",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "15278",
+        "label": "ShortLine Hudson",
+        "long": "500 - Monroe - Chester - Goshen",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008C84",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "15279",
+        "label": "ShortLine Hudson",
+        "long": "600 - Sullivan County",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF5059",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "15280",
+        "label": "ShortLine Hudson",
+        "long": "700 - Newburgh - Poughkeepsie",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8A91DC",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "15281",
+        "label": "ShortLine Hudson",
+        "long": "300 - NYC - Middletown",
+        "short": "ShortLine Hudson",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EC3159",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "15283",
+        "label": "ShortLine Hudson",
+        "long": "800 - Pennsylvania",
+        "short": "ShortLine Hudson",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "15300",
+        "label": "Community Coach",
+        "long": "77X Prospect Express",
+        "short": "Community Coach",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "15301",
+        "label": "Community Coach",
+        "long": "77X Express",
+        "short": "Community Coach",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "15315",
+        "label": "Suburban Transit",
+        "long": "700 - Atlantic City",
+        "short": "Suburban Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF6442",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "15649",
+        "label": "ShortLine Hudson",
+        "long": "Main Line",
+        "short": "ShortLine Hudson",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "16602",
+        "label": "Van Galder",
+        "long": "Chicago Airport Shuttle",
+        "short": "Van Galder",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CCDBE9",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "16603",
+        "label": "OWL",
+        "long": "Orange Westchester Link",
+        "short": "OWL",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E68800",
+        "color_name": "orange",
+        "has_shape": false,
+        "id": "33304",
+        "label": "Waukesha County Transit",
+        "long": "905",
+        "short": "Waukesha County Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E68800",
+        "color_name": "orange",
+        "has_shape": false,
+        "id": "33305",
+        "label": "Waukesha County Transit",
+        "long": "904",
+        "short": "Waukesha County Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "315CAE",
+        "color_name": "blue",
+        "has_shape": false,
+        "id": "33306",
+        "label": "Waukesha County Transit",
+        "long": "901",
+        "short": "Waukesha County Transit",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "4715",
+        "label": "Wisconsin Coach Lines",
+        "long": "Kenosha - Racine - Milwaukee",
+        "short": "Wisconsin Coach Lines",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "4716",
+        "label": "Wisconsin Coach Lines",
+        "long": "Airport Express",
+        "short": "Wisconsin Coach Lines",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1A7A46",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6182",
+        "label": "Newark Airport Express",
+        "long": "Newark Airport Express",
+        "short": "Newark Airport Express",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 999,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 984 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 984,
+    "trips_with_shape": 984
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -462,8 +1004,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 984,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

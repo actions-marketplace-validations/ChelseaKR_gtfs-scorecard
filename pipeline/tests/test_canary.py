@@ -337,6 +337,43 @@ def test_shadow_score_agency_baseline_half_reuses_the_cache(
     assert baseline["notices"] == {"cached_code": {"severity": "WARNING", "total": 1}}
 
 
+def test_shadow_score_agency_country_scopes_cache_and_raw_reports(
+    make_gtfs_zip: Callable[..., Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    zip_path = make_gtfs_zip(FEED_FILES)
+    agency = Agency(
+        id="demo",
+        name="Demo Transit",
+        static_gtfs_url="https://demo.example/gtfs.zip",
+        country="CA",
+    )
+    calls: list[tuple[str, str, str]] = []
+
+    def validate(
+        _gtfs_zip: Path,
+        output_dir: Path,
+        country_code: str = "US",
+        version: str = VALIDATOR_VERSION,
+    ) -> Path:
+        calls.append((country_code, version, output_dir.name))
+        output_dir.mkdir(parents=True, exist_ok=True)
+        report = output_dir / "report.json"
+        report.write_text(json.dumps({"summary": {"validatorVersion": version}, "notices": []}))
+        return report
+
+    monkeypatch.setattr(canary, "fetch_static", _fake_fetch(zip_path))
+    monkeypatch.setattr(canary, "run_validator", validate)
+
+    shadow_score_agency(agency, AS_OF, "8.1.0")
+
+    assert calls == [
+        ("CA", VALIDATOR_VERSION, "validator-ca"),
+        ("CA", "8.1.0", "validator-canary-8.1.0-ca"),
+    ]
+    assert load_cached("demo", "feedhash", VALIDATOR_VERSION, country_code="CA") is not None
+    assert load_cached("demo", "feedhash", VALIDATOR_VERSION, country_code="US") is None
+
+
 # ---------------------------------------------------------------------------
 # Orchestration + CLI
 # ---------------------------------------------------------------------------
@@ -349,6 +386,13 @@ def test_run_canary_writes_report_and_tolerates_failures(
         aid: Agency(id=aid, name=aid, static_gtfs_url=f"https://{aid}.example/gtfs.zip")
         for aid in ("alpha", "beta")
     }
+    agencies["retired"] = Agency(
+        id="retired",
+        name="Retired export",
+        static_gtfs_url="https://retired.example/gtfs.zip",
+        alias_of="alpha",
+        feed_status="deprecated",
+    )
     monkeypatch.setattr(canary, "AGENCIES", agencies)
 
     def fake_shadow(
@@ -365,6 +409,7 @@ def test_run_canary_writes_report_and_tolerates_failures(
     payload = json.loads(json_path.read_text())
     assert payload["agencies_compared"] == 1
     assert payload["skipped_agencies"] == ["beta"]  # one bad feed never sinks the run
+    assert "retired" not in md_path.read_text()
     assert payload["new_version"] == "8.1.0"
     assert "Skipped (fetch or validation failed): beta" in md_path.read_text()
 

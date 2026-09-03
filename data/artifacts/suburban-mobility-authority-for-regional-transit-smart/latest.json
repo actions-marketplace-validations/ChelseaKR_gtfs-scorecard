@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "suburban-mobility-authority-for-regional-transit-smart",
-    "name": "Suburban Mobility Authority for Regional Transit (SMART)"
-  },
-  "autofix": {
-    "available": false
+    "name": "Suburban Mobility Authority for Regional Transit (SMART)",
+    "subdivision_code": "US-MI",
+    "subdivision_name": "Michigan"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 3380,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 5329,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 3380,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.8,
@@ -91,82 +104,52 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 4,
+        "distinct_codes": 1,
         "instances_by_severity": {
           "ERROR": 0,
-          "INFO": 3,
-          "WARNING": 1
+          "INFO": 1,
+          "WARNING": 0
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
-          "code": "trip_coverage_not_active_for_next7_days",
-          "count": 1,
-          "effort": "One setting in most export tools.",
-          "fix": "Trim past service periods the next time you export.",
-          "owner": "Likely your export tool",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Many of the feed's trips don't run at all in the next 7 days.",
-          "why": "It usually means old service periods are still in the export, making the feed bigger and harder to check."
-        },
-        {
-          "code": "future_calendar",
-          "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'future_calendar' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 0.5,
-          "severity": "INFO",
-          "what": "Future calendar (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "future_feed",
-          "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'future_feed' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 0.5,
-          "severity": "INFO",
-          "what": "Future feed (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
           "code": "unknown_file",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
-      "score": 94.5,
+      "score": 99.5,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 4 kinds of issue across 4 instances (0 error, 1 warning, 3 informational).",
+      "summary": "The MobilityData validator flagged 1 kind of issue across 1 instance (0 error, 0 warning, 1 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 62,
+        "days_until_expiry": 30,
+        "effective_expiry_date": "2026-09-06",
         "feed_end_date": "2026-09-06",
         "feed_start_date": "2026-06-22",
         "feed_version": "S1000142",
         "has_feed_info": true,
         "last_service_date": "2026-09-06",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 50.0,
       "status": "measured",
-      "summary": "Service data covers the next 62 days.",
+      "summary": "Service data covers the next 30 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -175,6 +158,18 @@
       "summary": "This agency publishes realtime, but the feed needs an access key we don't have yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -185,7 +180,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 71 days.",
+        "detail": "Service data covers the next 43 days.",
         "key": "current",
         "met": true
       },
@@ -205,7 +200,14 @@
     "size_bytes": 7909109,
     "static_url": "https://apps1.smartbus.org/gtfs/smart_gtfs.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://apps1.smartbus.org/gtfs/smart_gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -83.53994,
@@ -217,8 +219,28 @@
     "lon": -83.14727,
     "stop_count": 5329
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 44,
+        "trip_count": 3380,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 44,
+    "trip_count": 3380
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -237,22 +259,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 71 days.",
+        "detail": "Service data covers the next 43 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "B",
-    "margin_to_lower_band": 5.2,
-    "margin_to_next_band": 4.8,
-    "score": 85.2
+    "grade": "C",
+    "margin_to_lower_band": 4.8,
+    "margin_to_next_band": 5.2,
+    "score": 74.8
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 23,
       "effort": "A per-route color setting in your scheduling software.",
@@ -264,6 +292,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 5211,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -276,8 +305,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -287,9 +316,514 @@
     "single_stop_trips": 0,
     "trips_total": 3380
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 44,
+    "has_shapes": true,
+    "path": "data/artifacts/suburban-mobility-authority-for-regional-transit-smart/geometry.geojson",
+    "route_count": 44,
+    "routes": [
+      {
+        "color": "59327D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "125",
+        "label": "125",
+        "long": "Fort-Eureka",
+        "short": "125",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "140",
+        "label": "140",
+        "long": "Southshore",
+        "short": "140",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "160",
+        "label": "160",
+        "long": "Downriver",
+        "short": "160",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59327D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "200",
+        "label": "200",
+        "long": "Michigan Local",
+        "short": "200",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59327D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "210",
+        "label": "210",
+        "long": "Michigan Local",
+        "short": "210",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "250",
+        "label": "250",
+        "long": "Ford Road",
+        "short": "250",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0792A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "255",
+        "label": "255",
+        "long": "Ford Road Express",
+        "short": "255",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0055B7",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "261",
+        "label": "261",
+        "long": "FAST Michigan",
+        "short": "261",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "275",
+        "label": "275",
+        "long": "Telegraph South",
+        "short": "275",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "280",
+        "label": "280",
+        "long": "Western Wayne Crosstown",
+        "short": "280",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "305",
+        "label": "305",
+        "long": "Grand River",
+        "short": "305",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "350",
+        "label": "350",
+        "long": "Wixom",
+        "short": "350",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "375",
+        "label": "375",
+        "long": "Telegraph North",
+        "short": "375",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "405",
+        "label": "405",
+        "long": "Northwestern Highway",
+        "short": "405",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "415",
+        "label": "415",
+        "long": "Greenfield",
+        "short": "415",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "420",
+        "label": "420",
+        "long": "Southfield",
+        "short": "420",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "430",
+        "label": "430",
+        "long": "Main Street",
+        "short": "430",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59327D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "450",
+        "label": "450",
+        "long": "Woodward Local",
+        "short": "450",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59327D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "460",
+        "label": "460",
+        "long": "Woodward Local",
+        "short": "460",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CE2A2A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "461",
+        "label": "461",
+        "long": "FAST Woodward",
+        "short": "461",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CE2A2A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "462",
+        "label": "462",
+        "long": "FAST Woodward",
+        "short": "462",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "492",
+        "label": "492",
+        "long": "Rochester",
+        "short": "492",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "494",
+        "label": "494",
+        "long": "Dequindre",
+        "short": "494",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "495",
+        "label": "495",
+        "long": "John R",
+        "short": "495",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59327D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "510",
+        "label": "510",
+        "long": "Van Dyke",
+        "short": "510",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "525",
+        "label": "525",
+        "long": "Groesbeck",
+        "short": "525",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0792A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "530",
+        "label": "530",
+        "long": "Schoenherr",
+        "short": "530",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "550",
+        "label": "550",
+        "long": "Garfield",
+        "short": "550",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59327D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "560",
+        "label": "560",
+        "long": "Gratiot Local",
+        "short": "560",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "67A333",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "561",
+        "label": "561",
+        "long": "FAST Gratiot",
+        "short": "561",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59327D",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "610",
+        "label": "610",
+        "long": "Kercheval-Harper",
+        "short": "610",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "932274",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "615",
+        "label": "615",
+        "long": "Jefferson",
+        "short": "615",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0792A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "620",
+        "label": "620",
+        "long": "Charlevoix",
+        "short": "620",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0792A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "635",
+        "label": "635",
+        "long": "East Jefferson",
+        "short": "635",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "710",
+        "label": "710",
+        "long": "Nine Mile Crosstown",
+        "short": "710",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "730",
+        "label": "730",
+        "long": "Ten Mile Crosstown",
+        "short": "730",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "740",
+        "label": "740",
+        "long": "Twelve Mile Crosstown",
+        "short": "740",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "759",
+        "label": "759",
+        "long": "Highland Road",
+        "short": "759",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "760",
+        "label": "760",
+        "long": "13 Mile / 14 Mile Crosstown",
+        "short": "760",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "780",
+        "label": "780",
+        "long": "15 Mile Crosstown",
+        "short": "780",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2BE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "790",
+        "label": "790",
+        "long": "Pontiac Crosstown",
+        "short": "790",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0792A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "805",
+        "label": "805",
+        "long": "Grand River P&R",
+        "short": "805",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0792A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "830",
+        "label": "830",
+        "long": "Downriver P&R",
+        "short": "830",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0792A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "851",
+        "label": "851",
+        "long": "West Bloomfield-Farmington Hills P&R",
+        "short": "851",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 5329,
+    "stop_points_capped": true
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 3380 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 3380,
+    "trips_with_shape": 3380
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -316,16 +850,16 @@
       "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
     },
     {
-      "code": "trip_coverage_not_active_for_next7_days",
+      "code": "unknown_file",
       "count": 1,
-      "effort": "One setting in most export tools.",
-      "fix": "Trim past service periods the next time you export.",
-      "owner": "Likely your export tool",
-      "points": 4.0,
+      "effort": "A quick look at the flagged file.",
+      "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
+      "owner": "",
+      "points": 0.5,
       "rank": 3,
-      "severity": "WARNING",
-      "what": "Many of the feed's trips don't run at all in the next 7 days.",
-      "why": "It usually means old service periods are still in the export, making the feed bigger and harder to check."
+      "severity": "INFO",
+      "what": "The feed includes a file that is not part of the GTFS spec.",
+      "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
     }
   ],
   "validator_version": "8.0.1"

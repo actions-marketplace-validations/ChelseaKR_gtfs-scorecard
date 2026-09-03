@@ -1,0 +1,100 @@
+# Utah (US) agencies — one manifest-listed shard of the GTFS Scorecard registry.
+#
+# The field reference and contribution workflow live in registry/README.md.
+# Every id must be unique across every shard listed by registry/index.yaml.
+agencies:
+  - id: suntran-utah
+    name: SunTran Utah
+    subdivision_code: US-UT
+    subdivision_name: Utah
+    static_gtfs_url: http://www.fivecounty.utah.gov/transit/google_transit.zip
+    mdb_id: 111
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  - id: utah-transit-authority-uta
+    name: Utah Transit Authority (UTA)
+    subdivision_code: US-UT
+    subdivision_name: Utah
+    static_gtfs_url: https://gtfsfeed.rideuta.com/GTFS.zip
+    mdb_id: 170
+    license_note: "License: http://developer.rideuta.com/TermsOfUse.aspx"
+
+  # Mobility Database mdb-1171 is deprecated and redirects to mdb-170.
+  - id: uta
+    name: UTA
+    alias_of: utah-transit-authority-uta
+    feed_status: deprecated
+    subdivision_code: US-UT
+    subdivision_name: Utah
+    static_gtfs_url: https://transitfeeds.com/p/utah-transportation-authority/59/latest/download
+    mdb_id: 1171
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  - id: elevated-transit
+    name: Elevated Transit
+    subdivision_code: US-UT
+    subdivision_name: Utah
+    static_gtfs_url: https://transitfeeds.com/p/elevated-transit/609/latest/download
+    mdb_id: 1207
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  - id: cache-valley-transit-district
+    name: Cache Valley Transit District
+    subdivision_code: US-UT
+    subdivision_name: Utah
+    static_gtfs_url: https://www.mycvtdbus.org/gtfs
+    mdb_id: ntd-80028
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  # Mobility Database mdb-2349 is deprecated and redirects to mdb-170.
+  - id: uta-2349
+    name: UTA
+    alias_of: utah-transit-authority-uta
+    feed_status: deprecated
+    subdivision_code: US-UT
+    subdivision_name: Utah
+    static_gtfs_url: https://gtfsfeed.rideuta.com/gtfs.zip
+    mdb_id: 2349
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  # United States small and rural depth wave (2026-07-18). National Park
+  # Service park transit published as a US Government work (public domain).
+  # The source zip was preflighted for a current service calendar; see
+  # docs/feeds.md.
+  - id: bryce-canyon-shuttle
+    name: Bryce Canyon Shuttle
+    subdivision_code: US-UT
+    subdivision_name: Utah
+    is_official: true
+    service_type: seasonal
+    static_gtfs_url: https://www.nps.gov/external-resources/gtfs/brca/bryce-canyon-shuttle.zip
+    license_note: Public domain as a United States Government work; published by the National Park Service GTFS program.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://www.nps.gov/subjects/developer/gtfs.htm
+      terms_url: https://www.nps.gov/aboutus/disclaimer.htm
+      scope: [gtfs_schedule]
+      attribution: National Park Service.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+
+  - id: zion-canyon-shuttle
+    name: Zion Canyon Shuttle
+    subdivision_code: US-UT
+    subdivision_name: Utah
+    is_official: true
+    service_type: seasonal
+    static_gtfs_url: https://www.nps.gov/external-resources/gtfs/zion/zion-canyon-shuttle.zip
+    license_note: Public domain as a United States Government work; published by the National Park Service GTFS program.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://www.nps.gov/subjects/developer/gtfs.htm
+      terms_url: https://www.nps.gov/aboutus/disclaimer.htm
+      scope: [gtfs_schedule]
+      attribution: National Park Service.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true

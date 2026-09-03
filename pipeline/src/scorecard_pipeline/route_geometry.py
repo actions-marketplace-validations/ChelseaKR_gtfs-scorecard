@@ -26,11 +26,13 @@ reproduces the artifact byte-for-byte.
 
 from __future__ import annotations
 
+import itertools
 import math
 from dataclasses import dataclass
 from typing import Any
 
 from .gtfs import read_tables
+from .modes import route_type_family, route_type_label
 
 # Coordinates are rounded to five decimals (~1.1 m) and lines simplified with a
 # tolerance a touch finer than that, so simplification never coarsens a feature
@@ -45,22 +47,6 @@ _SIMPLIFY_TOLERANCE_DEG = 0.00012
 # id) so the artifact and the on-page list stay bounded. summary.stop_count always
 # reports the true total.
 _STOP_POINT_CAP = 2000
-
-# Basic GTFS route_type values (GTFS Schedule reference). Extended route types are
-# folded to these families by range below. route_color in the feed always wins for
-# drawing; this label is what the accessible table says in words.
-_ROUTE_TYPE_LABEL: dict[int, str] = {
-    0: "Tram / light rail",
-    1: "Subway / metro",
-    2: "Rail",
-    3: "Bus",
-    4: "Ferry",
-    5: "Cable tram",
-    6: "Aerial lift",
-    7: "Funicular",
-    11: "Trolleybus",
-    12: "Monorail",
-}
 
 # Fallback line color when a route sets no route_color, keyed by the same families.
 # Chosen to stay distinguishable from one another; the table never relies on color
@@ -79,6 +65,17 @@ _ROUTE_TYPE_COLOR: dict[int, str] = {
 }
 _DEFAULT_COLOR = "4A4A4A"
 
+
+def _route_type_family(raw: str) -> int | None:
+    """Compatibility wrapper around the shared mode contract."""
+    return route_type_family(raw)
+
+
+def _route_type_label(raw: str) -> str:
+    """Compatibility wrapper around the shared mode contract."""
+    return route_type_label(raw)
+
+
 # Coarse named colors for the text description of each route's color, so the
 # table conveys color without relying on the swatch (WCAG 1.4.1). Nearest match
 # in sRGB; precision is not the point, a readable word is.
@@ -96,53 +93,6 @@ _NAMED_COLORS: list[tuple[str, tuple[int, int, int]]] = [
     ("black", (0x10, 0x10, 0x10)),
     ("white", (0xF0, 0xF0, 0xF0)),
 ]
-
-
-def _route_type_family(raw: str) -> int | None:
-    """Map a route_type string to a basic family int, folding extended types.
-
-    Extended route types (GTFS spec, the 100-1700 ranges) collapse to the closest
-    basic family so the label and fallback color stay meaningful. Returns None for
-    a blank or unparseable value.
-    """
-    raw = raw.strip()
-    if not raw:
-        return None
-    try:
-        value = int(raw)
-    except ValueError:
-        return None
-    if value in _ROUTE_TYPE_LABEL:
-        return value
-    # Extended types: fold by documented range to a basic family.
-    if 100 <= value <= 117:
-        return 2  # rail
-    if 200 <= value <= 299:
-        return 3  # coach -> bus family
-    if 400 <= value <= 405:
-        return 1  # urban rail / metro
-    if 700 <= value <= 716:
-        return 3  # bus
-    if value == 800:
-        return 11  # trolleybus
-    if 900 <= value <= 906:
-        return 0  # tram
-    if 1000 <= value <= 1021:
-        return 4  # water / ferry
-    if 1200 <= value <= 1207:
-        return 4  # ferry
-    if 1300 <= value <= 1307:
-        return 6  # aerial lift
-    if 1400 <= value <= 1405:
-        return 7  # funicular
-    return None
-
-
-def _route_type_label(raw: str) -> str:
-    family = _route_type_family(raw)
-    if family is None:
-        return "Transit line"
-    return _ROUTE_TYPE_LABEL[family]
 
 
 def _normalize_color(raw: str) -> str | None:
@@ -194,7 +144,7 @@ def _shape_length(points: list[tuple[float, float]]) -> float:
     approximate metric is enough.
     """
     total = 0.0
-    for (lat1, lon1), (lat2, lon2) in zip(points, points[1:], strict=False):
+    for (lat1, lon1), (lat2, lon2) in itertools.pairwise(points):
         scale = math.cos(math.radians((lat1 + lat2) / 2))
         total += math.hypot(lat2 - lat1, (lon2 - lon1) * scale)
     return total
@@ -254,7 +204,8 @@ def _ordered_shapes(shape_rows: list[dict[str, str]]) -> dict[str, list[tuple[fl
             seq = int((row.get("shape_pt_sequence") or "0").strip())
         except ValueError:
             continue
-        assert lat is not None and lon is not None
+        if lat is None or lon is None:  # guaranteed by _valid_lonlat(); not assert (-O strips it)
+            raise AssertionError("lat/lon None despite _valid_lonlat() passing")
         raw.setdefault(shape_id, []).append((seq, lat, lon))
     return {
         shape_id: [(lat, lon) for _, lat, lon in sorted(pts)]
@@ -386,7 +337,8 @@ def build_route_geometry(
         lat = _coord(row, "stop_lat")
         if not _valid_lonlat(lon, lat):
             continue
-        assert lon is not None and lat is not None
+        if lon is None or lat is None:  # guaranteed by _valid_lonlat(); not assert (-O strips it)
+            raise AssertionError("lon/lat None despite _valid_lonlat() passing")
         stop_id = (row.get("stop_id") or "").strip()
         name = (row.get("stop_name") or "").strip() or stop_id or "Unnamed stop"
         located.append((stop_id, name, lat, lon))

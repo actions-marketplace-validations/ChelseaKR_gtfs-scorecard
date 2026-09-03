@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "valley-metro-2274",
-    "name": "Valley Metro"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/valley-metro-2274/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 20,
-        "examples": [
-          "'stop_name': 'Jefferson & Kirk ' -> 'Jefferson & Kirk'",
-          "'stop_name': 'Carillion Roanoke Memorial Hospital ' -> 'Carillion Roanoke Memorial Hospital'",
-          "'stop_name': 'Radford University Carilion ' -> 'Radford University Carilion'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 20
+    "name": "Valley Metro",
+    "subdivision_code": "US-VA",
+    "subdivision_name": "Virginia"
   },
   "categories": {
     "completeness": {
@@ -60,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
-        "headsign_pct": 50.1,
+        "headsign_applicable_trips": 589,
+        "headsign_loop_exempt_trips": 0,
+        "headsign_pct": 49.9,
+        "headsign_scored_pct": 49.9,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -71,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 815,
+        "translations": {
+          "feed_lang": "en-US",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 589,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.5,
@@ -92,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 589,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -113,14 +108,14 @@
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 294,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "count": 295,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 7.5,
           "severity": "WARNING",
-          "what": "294 of 589 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "295 of 589 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         }
       ],
       "name": "completeness",
@@ -198,46 +193,46 @@
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 259,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "trip_distance_exceeds_shape_distance_below_threshold",
           "count": 120,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stop distances run a little past the end of the route line.",
+          "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
         },
         {
           "code": "route_long_name_contains_short_name",
           "count": 30,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "leading_or_trailing_whitespaces",
           "count": 19,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'leading_or_trailing_whitespaces' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Leading or trailing whitespaces (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some values have extra spaces at the start or end.",
+          "why": "A stray space can break a match, so a stop or route may fail to link across files."
         },
         {
           "code": "same_name_and_description_for_route",
@@ -319,13 +314,13 @@
         {
           "code": "unknown_file",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "unsorted_stop_times",
@@ -347,13 +342,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 26841,
+        "days_until_expiry": 26809,
+        "effective_expiry_date": "2099-12-31",
         "feed_end_date": null,
-        "feed_start_date": "2026-04-05",
-        "feed_version": "04/06/26",
+        "feed_start_date": "2026-07-29",
+        "feed_version": "7/30/2026",
         "has_feed_info": true,
         "last_service_date": "2099-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "unusually_distant",
         "service_type": "fixed"
       },
       "findings": [
@@ -372,7 +370,7 @@
       "name": "freshness",
       "score": 85.0,
       "status": "measured",
-      "summary": "Service data covers the next 26841 days.",
+      "summary": "Service is published through 2099-12-31, an unusually distant end date. It may be intentional, but confirm it before treating the feed as maintained.",
       "weight": 0.2
     },
     "realtime": {
@@ -381,6 +379,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -391,7 +401,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 26843 days.",
+        "detail": "The published window is current, but its service end date is unusually distant; confirm that date is intentional.",
         "key": "current",
         "met": true
       },
@@ -407,17 +417,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "4721df1fe204b2b9371bda67a3c07d73790d176b7eb2cbd8ac518c649dd29bee",
-    "size_bytes": 371063,
+    "sha256": "3a9c38cff76335dc8fe8127896b2a2acaadc4b85d996d79c0aa954e17e6af0f3",
+    "size_bytes": 372344,
     "static_url": "https://vmgoapp.com/gtfs"
   },
   "fetch": {
     "final_url": "https://vmgoapp.com/gtfs",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-07T00:00:00+00:00",
   "geo": {
     "bbox": [
       -80.42503,
@@ -429,8 +440,28 @@
     "lon": -79.95669,
     "stop_count": 815
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 33,
+        "trip_count": 589,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 33,
+    "trip_count": 589
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "163"
     ],
@@ -449,8 +480,13 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 26843 days.",
+        "detail": "The published window is current, but its service end date is unusually distant; confirm that date is intentional.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
@@ -465,6 +501,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 16,
       "effort": "A per-route color setting in your scheduling software.",
@@ -476,6 +513,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 100,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -487,11 +525,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 815,
     "findings": [
@@ -884,9 +917,20 @@
     "stop_count": 815,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 589 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 589,
+    "trips_with_shape": 589
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "decreasing_or_equal_stop_time_distance",

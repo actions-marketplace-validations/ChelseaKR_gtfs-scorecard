@@ -1,23 +1,9 @@
 {
   "agency": {
     "id": "wintran",
-    "name": "WinTran"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/wintran/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/wintran/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 1,
-        "examples": [
-          "'stop_code': '210 ' -> '210'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 1
+    "name": "WinTran",
+    "subdivision_code": "US-VA",
+    "subdivision_name": "Virginia"
   },
   "categories": {
     "completeness": {
@@ -31,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -55,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 32,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -66,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 209,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 32,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -87,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 32,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -98,13 +98,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 32,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "32 of 32 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "32 of 32 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -166,7 +166,7 @@
           "points": 4.0,
           "severity": "WARNING",
           "what": "Some route colors don't contrast with their text color.",
-          "why": "Route badges become unreadable, especially for riders with low vision."
+          "why": "Route badges get hard to read, most of all for riders with low vision."
         },
         {
           "code": "unknown_column",
@@ -182,24 +182,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -210,32 +210,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 26,
-        "feed_end_date": "2026-08-01",
-        "feed_start_date": "2026-01-22",
-        "feed_version": "UTC: 22-Jan-2026 19:11",
+        "days_until_expiry": 178,
+        "effective_expiry_date": "2027-02-01",
+        "feed_end_date": "2027-02-01",
+        "feed_start_date": "2026-07-09",
+        "feed_version": "UTC: 09-Jul-2026 19:04",
         "has_feed_info": true,
-        "last_service_date": "2026-08-01",
+        "last_service_date": "2027-02-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expiring_soon",
-          "count": 1,
-          "effort": "One export setting.",
-          "fix": "Re-export with a validity window that reaches at least 60 days out.",
-          "owner": "Likely your export tool",
-          "points": 54.0,
-          "severity": "WARNING",
-          "what": "Service data runs out in 26 day(s).",
-          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 43.3,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Service data runs out in 26 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data covers the next 178 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -244,6 +235,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -254,7 +257,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 35 days.",
+        "detail": "Service data covers the next 191 days.",
         "key": "current",
         "met": true
       },
@@ -270,11 +273,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "605a7e227dc97649cf56642dcc1b5fd96fc497a66bfed17a483eee00242bf707",
-    "size_bytes": 50966,
+    "sha256": "07ab3f79df2f05527626001d5499a5920609b634c5c495435bd120658bc8e6f2",
+    "size_bytes": 48774,
     "static_url": "https://data.trilliumtransit.com/gtfs/wintran-va-us/wintran-va-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/wintran-va-us/wintran-va-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -78.26818,
@@ -286,8 +296,28 @@
     "lon": -78.17034,
     "stop_count": 209
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 10,
+        "trip_count": 32,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 10,
+    "trip_count": 32
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1790"
     ],
@@ -306,22 +336,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 35 days.",
+        "detail": "Service data covers the next 191 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "D",
-    "margin_to_lower_band": 0.8,
-    "margin_to_next_band": 9.2,
-    "score": 60.8
+    "grade": "C",
+    "margin_to_lower_band": 4.9,
+    "margin_to_next_band": 5.1,
+    "score": 74.9
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -333,6 +369,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 4,
       "effort": "A per-route color setting in your scheduling software.",
@@ -344,6 +381,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 136,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -356,8 +394,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -379,22 +417,141 @@
     "single_stop_trips": 0,
     "trips_total": 32
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 2,
+    "has_shapes": true,
+    "path": "data/artifacts/wintran/geometry.geojson",
+    "route_count": 10,
+    "routes": [
+      {
+        "color": "FFFF00",
+        "color_name": "yellow",
+        "has_shape": false,
+        "id": "19157",
+        "label": "Amherst Street",
+        "long": "Amherst Street",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "15B0F1",
+        "color_name": "teal",
+        "has_shape": false,
+        "id": "19158",
+        "label": "Berryville Avenue",
+        "long": "Berryville Avenue",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FD0067",
+        "color_name": "red",
+        "has_shape": false,
+        "id": "19159",
+        "label": "Apple Blossom Mall",
+        "long": "Apple Blossom Mall",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FD0101",
+        "color_name": "red",
+        "has_shape": false,
+        "id": "19161",
+        "label": "Northside-Westminister Canterbury",
+        "long": "Northside-Westminister Canterbury",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FD6600",
+        "color_name": "orange",
+        "has_shape": false,
+        "id": "19162",
+        "label": "South Loudoun",
+        "long": "South Loudoun",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FD0101",
+        "color_name": "red",
+        "has_shape": false,
+        "id": "19494",
+        "label": "Northside-Salvation Army",
+        "long": "Northside-Salvation Army",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1DFF02",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "19495",
+        "label": "Trolley",
+        "long": "Trolley",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "71318C",
+        "color_name": "purple",
+        "has_shape": false,
+        "id": "19496",
+        "label": "Valley Avenue",
+        "long": "Valley Avenue",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5CC19C",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "76382",
+        "label": "Laurel Ridge",
+        "long": "Laurel Ridge",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0A3240",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "76842",
+        "label": "Blue Line",
+        "long": "Blue Line",
+        "short": "",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 209,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 32 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 32,
+    "trips_with_shape": 32
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
-    {
-      "code": "scorecard_feed_expiring_soon",
-      "count": 1,
-      "effort": "One export setting.",
-      "fix": "Re-export with a validity window that reaches at least 60 days out.",
-      "owner": "Likely your export tool",
-      "points": 54.0,
-      "rank": 1,
-      "severity": "WARNING",
-      "what": "Service data runs out in 26 day(s).",
-      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 209,
@@ -402,7 +559,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "WARNING",
       "what": "209 of 209 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -410,14 +567,26 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 32,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 3,
+      "rank": 2,
       "severity": "WARNING",
       "what": "32 of 32 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
+    },
+    {
+      "code": "scorecard_missing_headsigns",
+      "count": 32,
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
+      "points": 15.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "32 of 32 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     }
   ],
   "validator_version": "8.0.1"

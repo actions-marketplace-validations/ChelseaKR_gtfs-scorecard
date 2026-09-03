@@ -3,40 +3,15 @@
     "id": "golden-empire-transit-district-get",
     "name": "Golden Empire Transit District (GET)"
   },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/golden-empire-transit-district-get/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 1,
-        "examples": [
-          "'stop_name': 'White Lane & Mountain Vista ' -> 'White Lane & Mountain Vista'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      },
-      {
-        "code": "autofix_stop_name_case",
-        "count": 3,
-        "examples": [
-          "CSUB -> Csub",
-          "FIELD -> Field",
-          "CSUB -> Csub"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 4
-  },
   "categories": {
     "completeness": {
       "details": {
         "accessibility": {
           "measures": "presence_not_usability",
-          "score": 94.6,
-          "stops_marked_accessible_pct": 91.4,
+          "score": 94.7,
+          "stops_marked_accessible_pct": 91.5,
           "stops_marked_not_accessible_pct": 0.0,
-          "stops_stated_pct": 91.4,
+          "stops_stated_pct": 91.5,
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
@@ -49,7 +24,7 @@
           "fares": 15.0,
           "headsigns": 15.0,
           "stop_names": 15.0,
-          "wheelchair_stops": 22.8,
+          "wheelchair_stops": 22.9,
           "wheelchair_trips": 15.0
         },
         "fare_free": false,
@@ -68,7 +43,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 1951,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 99.7,
         "pathways": {
           "has_entrances": false,
@@ -79,22 +57,29 @@
           "pathway_count": 0
         },
         "stops": 1055,
-        "trips": 2250,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 1951,
         "wheelchair_accessible_pct": 100.0,
-        "wheelchair_boarding_pct": 91.4,
-        "wheelchair_marked_accessible_pct": 91.4,
+        "wheelchair_boarding_pct": 91.5,
+        "wheelchair_marked_accessible_pct": 91.5,
         "wheelchair_marked_not_accessible_pct": 0.0
       },
       "findings": [
         {
           "code": "scorecard_wheelchair_boarding_unknown",
-          "count": 91,
+          "count": 90,
           "effort": "A column in stops.txt; your scheduling software likely has it.",
           "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
           "owner": "Likely your team",
-          "points": 2.2,
+          "points": 2.1,
           "severity": "WARNING",
-          "what": "91 of 1055 stops don't say whether a wheelchair user can board there.",
+          "what": "90 of 1055 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
@@ -106,7 +91,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -117,11 +102,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 5,
+        "distinct_codes": 4,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 0,
-          "WARNING": 21
+          "WARNING": 20
         },
         "validator_version": "8.0.1"
       },
@@ -151,59 +136,51 @@
         {
           "code": "leading_or_trailing_whitespaces",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'leading_or_trailing_whitespaces' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Leading or trailing whitespaces (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some values have extra spaces at the start or end.",
+          "why": "A stray space can break a match, so a stop or route may fail to link across files."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "trip_coverage_not_active_for_next7_days",
-          "count": 1,
-          "effort": "One setting in most export tools.",
-          "fix": "Trim past service periods the next time you export.",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Many of the feed's trips don't run at all in the next 7 days.",
-          "why": "It usually means old service periods are still in the export, making the feed bigger and harder to check."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         }
       ],
       "name": "correctness",
-      "score": 78.0,
+      "score": 82.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 5 kinds of issue across 21 instances (0 error, 21 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 4 kinds of issue across 20 instances (0 error, 20 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 543,
+        "days_until_expiry": 511,
+        "effective_expiry_date": "2027-12-31",
         "feed_end_date": "2027-12-31",
-        "feed_start_date": "2026-07-04",
-        "feed_version": "20260704",
+        "feed_start_date": "2026-07-05",
+        "feed_version": "20260727",
         "has_feed_info": true,
         "last_service_date": "2027-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 543 days.",
+      "summary": "Service data covers the next 511 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -212,6 +189,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": true,
@@ -222,12 +211,12 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 545 days.",
+        "detail": "Service data covers the next 513 days.",
         "key": "current",
         "met": true
       },
       {
-        "detail": "States wheelchair access on 91% of stops and 100% of trips.",
+        "detail": "States wheelchair access on 92% of stops and 100% of trips.",
         "key": "accessible",
         "met": true
       }
@@ -238,17 +227,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "8d7b4a6a489771c46480f36650ea0f3e2d752af5171cbcd2f77503be163564f9",
-    "size_bytes": 737988,
+    "sha256": "4a2e0b32ec2ada4aa8f7c8b6aca4ff003780f45c8a086bb2b565a1e5a8fe0b3b",
+    "size_bytes": 645866,
     "static_url": "http://eta.getbus.org/rtt/public/utility/gtfs.aspx"
   },
   "fetch": {
-    "final_url": "http://eta.getbus.org/rtt/public/utility/gtfs.aspx",
+    "final_url": "http://eta.getbus.org/rtt/public/resource/gtfs.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -119.14572,
@@ -260,8 +250,28 @@
     "lon": -119.0212,
     "stop_count": 1055
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 17,
+        "trip_count": 1951,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 17,
+    "trip_count": 1951
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -280,22 +290,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 545 days.",
+        "detail": "Service data covers the next 513 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
-    "margin_to_lower_band": 7.3,
-    "margin_to_next_band": 2.7,
-    "score": 87.3
+    "margin_to_lower_band": 9.1,
+    "margin_to_next_band": 0.9,
+    "score": 89.1
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 6,
       "effort": "A per-route color setting in your scheduling software.",
@@ -307,6 +323,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 1033,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -319,8 +336,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -340,7 +357,7 @@
     ],
     "orphan_stops": 2,
     "single_stop_trips": 0,
-    "trips_total": 2250
+    "trips_total": 1951
   },
   "route_map": {
     "drawn_route_count": 16,
@@ -539,9 +556,20 @@
     "stop_count": 1055,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1951 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1951,
+    "trips_with_shape": 1951
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "mixed_case_recommended_field",
@@ -570,14 +598,14 @@
     {
       "code": "leading_or_trailing_whitespaces",
       "count": 1,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'leading_or_trailing_whitespaces' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Usually one export setting.",
+      "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
+      "owner": "Likely your export tool",
       "points": 4.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Leading or trailing whitespaces (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "Some values have extra spaces at the start or end.",
+      "why": "A stray space can break a match, so a stop or route may fail to link across files."
     }
   ],
   "validator_version": "8.0.1"

@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "bloomington-transit-2066",
-    "name": "Bloomington Transit"
-  },
-  "autofix": {
-    "available": false
+    "name": "Bloomington Transit",
+    "subdivision_code": "US-IN",
+    "subdivision_name": "Indiana"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 1000,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 467,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1000,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1000,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -91,7 +104,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -106,7 +119,7 @@
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 3,
-          "WARNING": 120
+          "WARNING": 110
         },
         "validator_version": "8.0.1"
       },
@@ -119,16 +132,16 @@
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "stop_without_stop_time",
-          "count": 12,
+          "count": 2,
           "effort": "A review pass in your scheduling software.",
           "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
           "owner": "Likely your export tool",
-          "points": 6.0,
+          "points": 4.0,
           "severity": "WARNING",
           "what": "Some stops exist in the feed but no trip ever stops at them.",
           "why": "Riders may walk to a stop where no bus is scheduled to arrive."
@@ -136,13 +149,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "missing_recommended_field",
@@ -152,7 +165,7 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -168,27 +181,30 @@
         }
       ],
       "name": "correctness",
-      "score": 77.5,
+      "score": 79.5,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 5 kinds of issue across 123 instances (0 error, 120 warning, 3 informational).",
+      "summary": "The MobilityData validator flagged 5 kinds of issue across 113 instances (0 error, 110 warning, 3 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 351,
-        "feed_end_date": "2027-06-22",
+        "days_until_expiry": 357,
+        "effective_expiry_date": "2027-07-30",
+        "feed_end_date": "2027-07-30",
         "feed_start_date": "2026-06-01",
-        "feed_version": "97",
+        "feed_version": "99",
         "has_feed_info": true,
-        "last_service_date": "2027-06-22",
+        "last_service_date": "2027-07-30",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 351 days.",
+      "summary": "Service data covers the next 357 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -197,6 +213,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -207,7 +235,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 360 days.",
+        "detail": "Service data covers the next 359 days.",
         "key": "current",
         "met": true
       },
@@ -223,11 +251,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "2b5ea2ed6c4b5ab2516c96e7c44e9a65bd48f1b623b7f4abf3f60c04c3f95b83",
-    "size_bytes": 424751,
+    "sha256": "98cd31651bcb2acd0782a5fcc701759be44e2a43b8279f86fb06ebc46e86abe8",
+    "size_bytes": 416501,
     "static_url": "https://s3.amazonaws.com/etatransit.gtfs/bloomingtontransit.etaspot.net/gtfs.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://s3.amazonaws.com/etatransit.gtfs/bloomingtontransit.etaspot.net/gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -86.59918,
@@ -239,8 +274,28 @@
     "lon": -86.53059,
     "stop_count": 467
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 12,
+        "trip_count": 1000,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 12,
+    "trip_count": 1000
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -259,22 +314,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 360 days.",
+        "detail": "Service data covers the next 359 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 5.3,
-    "margin_to_next_band": 4.7,
-    "score": 75.3
+    "margin_to_lower_band": 6.2,
+    "margin_to_next_band": 3.8,
+    "score": 76.2
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 5,
       "effort": "A per-route color setting in your scheduling software.",
@@ -286,6 +347,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 432,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -298,8 +360,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -307,23 +369,176 @@
     "findings": [
       {
         "code": "scorecard_orphan_stops",
-        "count": 12,
+        "count": 2,
         "effort": "A cleanup pass in your scheduling software.",
         "fix": "Remove stops no route serves, or add the trips that should call at them.",
         "owner": "Likely your export tool",
         "points": 0.0,
         "severity": "INFO",
-        "what": "12 of 467 boardable stops are never served by any trip.",
+        "what": "2 of 467 boardable stops are never served by any trip.",
         "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
       }
     ],
-    "orphan_stops": 12,
+    "orphan_stops": 2,
     "single_stop_trips": 0,
     "trips_total": 1000
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 12,
+    "has_shapes": true,
+    "path": "data/artifacts/bloomington-transit-2066/geometry.geojson",
+    "route_count": 12,
+    "routes": [
+      {
+        "color": "EC0E0E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "North Fee Lane BHS North",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "869A3A",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "11",
+        "label": "11",
+        "long": "W 17th / IU Campus Express",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5A5A5A",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "122928",
+        "label": "16",
+        "long": "West Side",
+        "short": "16",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "035EBF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "2S",
+        "label": "2S",
+        "long": "2 South Rogers",
+        "short": "2S",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "035EBF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "2W",
+        "label": "2W",
+        "long": "2 West 11th St via Showers Complex",
+        "short": "2W",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "239504",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "3E",
+        "label": "3",
+        "long": "East College Mall / IU Health Hospital",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B505F5",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "4S",
+        "label": "4S",
+        "long": "4 South High Street / Sherwood Oaks",
+        "short": "4S",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B505F5",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "4W",
+        "label": "4W",
+        "long": "4 West Bloomfield Road",
+        "short": "4W",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F50A68",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "Sare Road",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "80471C",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "6",
+        "label": "6",
+        "long": "Campus Shuttle",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "918800",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "7",
+        "label": "7",
+        "long": "South Walnut / Clear Creek",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "04B1DC",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "9",
+        "label": "9",
+        "long": "IU Campus / College Mall / Covenanter & Clarizz",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 467,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1000 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1000,
+    "trips_with_shape": 1000
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -340,8 +555,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 1000,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,
@@ -358,8 +573,8 @@
       "points": 8.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Some scheduled trips travel implausibly fast between stops.",
-      "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+      "what": "Some scheduled trips move faster between stops than a bus can.",
+      "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
     }
   ],
   "validator_version": "8.0.1"

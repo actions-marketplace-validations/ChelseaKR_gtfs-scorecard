@@ -39,8 +39,8 @@ complete the task without sighted, mouse-driven help.
 1. **Find an agency and read its grade.** From `/` open the app, search or filter to
    an agency, open it. Confirm the screen reader announces the agency name, the
    overall grade, and the "top fixes" — in a sensible order.
-2. **Read the NTD readiness block** on an agency page. The three checks
-   (published / valid / current) and the plain-language note should each be reachable
+2. **Read the NTD readiness block** on an agency page. The four checks
+   (published / valid / current / agency_id) and the plain-language note should each be reachable
    and announced.
 3. **Read a printable brief** (`/agency/<id>/brief/`). Headings and tables make sense
    when navigated by structure.
@@ -98,3 +98,8 @@ One row per pass. Keep it append-only; this is the conformance artifact.
 | Date | Tester | AT + browser | Tasks run | Result | Issues filed |
 | --- | --- | --- | --- | --- | --- |
 | _2026-06-22_ | _(template)_ | _NVDA+Firefox / VO+Safari_ | _1–8 + cross-cutting_ | _pass / pass-with-issues_ | _#nnn, …_ |
+| 2026-07-10 | Automated CI remediation | Chromium + axe, keyboard, 320px reflow, forced colors, reduced motion | Automated equivalents for 1–8 + cross-cutting | Pass; this is not a screen-reader attestation | None |
+
+The next quarterly pass must still be performed by a person using VoiceOver or
+NVDA. Automated browser coverage is evidence for reflow and operation, but it
+does not replace the review-gated assistive-technology walkthrough.

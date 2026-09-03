@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "high-desert-point",
-    "name": "High Desert Point"
-  },
-  "autofix": {
-    "available": false
+    "name": "High Desert Point",
+    "subdivision_code": "US-OR",
+    "subdivision_name": "Oregon"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 0,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 0.0,
         "pathways": {
           "has_entrances": false,
@@ -57,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 0,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 0,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -78,13 +87,13 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 0,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
           "what": "0 of 0 trips don't say whether the vehicle is wheelchair accessible.",
-          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+          "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
         },
         {
           "code": "scorecard_no_fare_data",
@@ -101,23 +110,12 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 0,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "INFO",
           "what": "About 0 stop names are written in ALL CAPS.",
           "why": "Mixed-case names are easier to read in apps and are read more naturally by screen readers."
-        },
-        {
-          "code": "scorecard_missing_headsigns",
-          "count": 0,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 15.0,
-          "severity": "WARNING",
-          "what": "0 of 0 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -128,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         },
         {
           "code": "scorecard_bad_agency_url",
@@ -195,13 +193,13 @@
         {
           "code": "unknown_file",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
@@ -213,12 +211,15 @@
     "freshness": {
       "details": {
         "days_until_expiry": null,
+        "effective_expiry_date": null,
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": null,
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "unknown",
         "service_type": "fixed"
       },
       "findings": [
@@ -246,6 +247,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -280,14 +293,28 @@
     "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-oregon-high-desert-point-gtfs-636.zip?alt=media",
     "max_attempts": 1,
     "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-01T00:00:00+00:00",
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [],
+    "primary_mode": null,
+    "primary_mode_label": null,
+    "route_count": 0,
+    "trip_count": 0
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "Your agency.txt sets no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked on the P-50 form.",
     "feed_agency_ids": [],
-    "status": "unknown"
+    "fix": "Add agency_id to agency.txt and use the same value wherever routes.txt identifies that agency. Keep it stable, and enter its crosswalk to the reporter's NTD ID on P-50. It does not need to equal the five-digit NTD ID.",
+    "status": "missing"
   },
   "ntd_readiness": {
     "pillars": [
@@ -305,10 +332,15 @@
         "detail": "No service end date could be read, so currency is unknown.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form.",
+        "key": "agency_id",
+        "status": "not_ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 2 validator errors to resolve. No service end date could be read, so currency is unknown."
+    "summary": "Resolve this before you certify on the D-10. 2 validator errors to resolve. No service end date could be read, so currency is unknown. agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form."
   },
   "overall": {
     "grade": "F",
@@ -332,9 +364,20 @@
     "stop_count": 0,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-04",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "trips.txt has no rows, so shape coverage can't be checked.",
+    "status": "not_ready",
+    "total_trips": 0,
+    "trips_with_shape": 0
+  },
+  "snapshot_date": "2026-08-01",
   "top_fixes": [
     {
       "code": "scorecard_no_expiry_date",

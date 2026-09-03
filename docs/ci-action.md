@@ -32,12 +32,13 @@ jobs:
         with:
           feed-url: https://example.org/gtfs/feed.zip
           name: Example Transit
+          country: CA
           min-grade: B
           min-days-to-expiry: 14
 ```
 
-`@v1` follows the latest v1 release. Pin a full version tag (`@v1.0.0`) or a
-commit SHA when you want an exact, unchanging contract.
+`@v1` follows the latest compatible v1 release. Pin the current full version
+tag (`@v1.5.0`) or a commit SHA when you want an exact, unchanging contract.
 
 ## Inputs
 
@@ -47,12 +48,47 @@ commit SHA when you want an exact, unchanging contract.
 | `min-grade` | no | _(skip)_ | Fail if the overall grade is below this letter: A, B, C, D, or F. |
 | `min-days-to-expiry` | no | _(skip)_ | Fail if the feed expires within this many days. A feed with no expiry date fails this check. |
 | `name` | no | feed host | Agency name shown in the printed report. |
+| `country` | no | `US` | Assigned ISO 3166-1 alpha-2 feed country passed to the validator. |
 | `html` | no | _(skip)_ | Path to also write a standalone HTML scorecard, relative to the workspace. |
-| `ref` | no | _(action version)_ | Ref of gtfs-scorecard to install the scorer from. Defaults to the version the action was called as, so `@v1` installs the v1 scorer. |
+| `json` | no | runner temporary file | Path for the complete machine-readable scorecard artifact. |
+| `summary` | no | `true` | Write a plain-language scorecard to the GitHub job summary. |
+| `ref` | no | _(ignored)_ | Deprecated compatibility input. The scorer is bundled with the Action release and always matches the selected Action ref. |
 
 Leave a threshold blank to skip it. With neither `min-grade` nor
 `min-days-to-expiry` set, the action prints the scorecard and always passes,
 which is useful as an informational step.
+
+One input fails with no threshold set, because it produces no scorecard to
+gate: an archive the scorer could read no schedule data out of — no stops and
+no trips — is refused rather than graded, exactly as a response body that is not
+a zip is. The step fails with `could not score <url>: ...` and `passed` is
+`false`. Until 2026-09, such a feed was graded and the default configuration
+reported `passed=true` for it.
+
+## Outputs and job summary
+
+The action exposes `grade`, `score`, `days-to-expiry`, `passed`, and
+`result-json`. The complete JSON is written before thresholds are applied, so
+later steps can upload or inspect it even when the gate fails.
+
+```yaml
+      - id: gtfs
+        uses: ChelseaKR/gtfs-scorecard@v1
+        with:
+          feed-url: https://example.org/gtfs/feed.zip
+          min-grade: B
+          json: artifacts/gtfs-scorecard.json
+
+      - if: always()
+        run: |
+          echo "grade=${{ steps.gtfs.outputs.grade }}"
+          echo "passed=${{ steps.gtfs.outputs.passed }}"
+          echo "result=${{ steps.gtfs.outputs.result-json }}"
+```
+
+By default the job summary includes the grade, service days remaining, and the
+top three fixes. Set `summary: "false"` to suppress it. A failed gate also emits
+a concise workflow annotation while preserving the full result file.
 
 ## Saving the HTML report
 
@@ -77,10 +113,10 @@ most want to read it.
 ## How it runs
 
 The action is a composite that sets up Java 17 (the validator is a Java tool)
-and `uv`, then runs the published `scorecard` CLI straight from this
-repository with `uvx`. No separate install or container build is needed. The
-first run downloads the validator jar, so expect a slower cold start and faster
-warm runs.
+and `uv`, then runs the bundled `scorecard` CLI from the same immutable Action
+release. It does not clone the service repository a second time. Release tags
+carry a bounded Action distribution tree rather than the scored artifact corpus.
+The first run downloads the validator jar, so expect a slower cold start.
 
 ## Notes
 

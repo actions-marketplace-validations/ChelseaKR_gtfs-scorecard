@@ -1,23 +1,9 @@
 {
   "agency": {
     "id": "carlsbad-municipal-transit-system-2284",
-    "name": "Carlsbad Municipal Transit System"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/carlsbad-municipal-transit-system-2284/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/carlsbad-municipal-transit-system-2284/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1,
-        "examples": [
-          "N.M.S.U. -> N.m.s.u."
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 1
+    "name": "Carlsbad Municipal Transit System",
+    "subdivision_code": "US-NM",
+    "subdivision_name": "New Mexico"
   },
   "categories": {
     "completeness": {
@@ -31,10 +17,14 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
-          "headsigns": 0.0,
+          "headsigns": 15.0,
           "stop_names": 14.7,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 15.0
@@ -55,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 0,
+        "headsign_loop_exempt_trips": 25,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 98.0,
         "pathways": {
           "has_entrances": false,
@@ -66,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 51,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 25,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.0,
@@ -83,21 +83,10 @@
           "severity": "WARNING",
           "what": "51 of 51 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
-        },
-        {
-          "code": "scorecard_missing_headsigns",
-          "count": 25,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 15.0,
-          "severity": "WARNING",
-          "what": "25 of 25 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
         }
       ],
       "name": "completeness",
-      "score": 59.7,
+      "score": 74.7,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
@@ -116,13 +105,13 @@
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "expired_calendar",
@@ -132,7 +121,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -166,13 +155,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -187,
+        "days_until_expiry": -219,
+        "effective_expiry_date": "2025-12-31",
         "feed_end_date": "2025-12-31",
         "feed_start_date": "2024-01-04",
         "feed_version": "20240105",
         "has_feed_info": true,
         "last_service_date": "2025-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -184,14 +176,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 187 day(s) ago.",
+          "what": "Service data ended 219 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 187 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 219 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -200,6 +192,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -210,7 +214,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 178 days ago.",
+        "detail": "Service data expired 206 days ago.",
         "key": "current",
         "met": false
       },
@@ -221,7 +225,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 178 days ago. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 206 days ago. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -230,7 +234,14 @@
     "size_bytes": 20948,
     "static_url": "https://irp.cdn-website.com/f12fb9e8/files/uploaded/google_transit.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://irp.cdn-website.com/f12fb9e8/files/uploaded/google_transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -104.26489,
@@ -242,8 +253,28 @@
     "lon": -104.23212,
     "stop_count": 51
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 3,
+        "trip_count": 25,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 3,
+    "trip_count": 25
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "carlsbad"
     ],
@@ -262,22 +293,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 178 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 206 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 178 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 206 days ago, so FTA would find the link out of date."
   },
   "overall": {
-    "grade": "F",
-    "margin_to_lower_band": 55.4,
-    "margin_to_next_band": 4.6,
-    "score": 55.4
+    "grade": "D",
+    "margin_to_lower_band": 0.1,
+    "margin_to_next_band": 9.9,
+    "score": 60.1
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -289,6 +326,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 8,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -301,8 +339,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -312,9 +350,63 @@
     "single_stop_trips": 0,
     "trips_total": 25
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 3,
+    "has_shapes": true,
+    "path": "data/artifacts/carlsbad-municipal-transit-system-2284/geometry.geojson",
+    "route_count": 3,
+    "routes": [
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "blue",
+        "label": "Blue",
+        "long": "East_West",
+        "short": "Blue",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00CC00",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "green",
+        "label": "Green",
+        "long": "South",
+        "short": "Green",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC0000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "red",
+        "label": "Red",
+        "long": "North",
+        "short": "Red",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 51,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 25 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 25,
+    "trips_with_shape": 25
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -325,7 +417,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 187 day(s) ago.",
+      "what": "Service data ended 219 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -341,16 +433,16 @@
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     },
     {
-      "code": "scorecard_missing_headsigns",
-      "count": 25,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
+      "code": "equal_shape_distance_same_coordinates",
+      "count": 2,
+      "effort": "Usually one export setting.",
+      "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
       "owner": "Likely your export tool",
-      "points": 15.0,
+      "points": 4.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "25 of 25 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "Some route lines list the same point twice in a row.",
+      "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
     }
   ],
   "validator_version": "8.0.1"

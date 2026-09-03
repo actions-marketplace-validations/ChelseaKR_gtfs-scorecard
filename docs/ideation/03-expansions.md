@@ -24,6 +24,10 @@ architecture or the existing rubric's spirit.
 
 ### EXP-01 — A measurement-confidence read on every scorecard
 
+**Status: Done (verified 2026-07-12).** `render_site._confidence_section`
+renders what was and was not measured on the agency page, sourced from the
+artifact's fetch provenance (`confidence.fetch_source`).
+
 **Pitch.** Show, on each card, how much of the grade the pipeline could actually
 measure and from what source, as one legible confidence signal.
 
@@ -49,6 +53,13 @@ tell a fully-measured A from a two-category A without opening the docs.
 
 ### EXP-02 — The grade story: an agency's history in plain language
 
+**Status: Done (verified 2026-07-12).** `timemachine.py` narrates the dated
+history and `feeddiff.py` reports what changed between the last two checks;
+both render on the agency page. Scope note: `feeddiff.py` diffs quality
+artifacts (findings appeared, cleared, moved), not the feed's own content.
+The structural export diff is EXP-18 in `06-sweep-2026-07-12.md`, shipped
+2026-07-12 and delivered to the digest and Atom feeds on 2026-08-05.
+
 **Pitch.** Auto-write a short, honest narrative of how a feed's grade moved and
 why, from the dated artifacts.
 
@@ -73,41 +84,37 @@ after," not "improved because"); wants retained history (fine today, firmer afte
 FIX-02/EXP-13). **Excellence bar:** a first-time reader understands a year of a
 feed's history in four sentences, each traceable to a dated artifact.
 
-### EXP-03 — Fix-effort estimates calibrated from real outcomes
+### EXP-03 — Finding-clearance timing from compatible histories
 
-**Status: Done (2026-07-04).** `effort_calibration.py` derives per-notice-code
-runs-to-clear episodes from the same dated-artifact walk the fix log runs
-(`publish.rebuild_index`), pooling them corpus-wide into
-`data/effort-calibration.json`. An episode opens the run a code first appears
-and closes the run it is verified gone (its category measured), mirroring the
-fix log's rule (`fixlog.diff_receipts`); recurrences are separate episodes and
-never-cleared episodes are counted as "still open" but excluded from the
-median. Codes with at least `MIN_SAMPLES` (5) closed episodes earn a week-
-rounded empirical band shown beneath the hand-authored effort hint on the
-findings list, the agency top-fixes, and the brief/board "effort" lines. The
-band is additive and gated on the calibration file existing, so renders
-without it are unchanged.
+**Status: Done (2026-07-04; trust wording corrected 2026-07-14).**
+`effort_calibration.py` derives per-notice-code clearance episodes from the
+same dated-artifact walk the fix log runs (`publish.rebuild_index`), pooling
+them into `data/effort-calibration.json`. An episode opens when a code first
+appears and closes when a later compatible check measures the category and no
+longer finds the code. Producer metadata must be complete and unchanged across
+the episode. Recurrences are separate episodes; never-cleared episodes are
+counted but excluded from the median. Codes with at least `MIN_SAMPLES` (5)
+closed episodes earn a week-rounded timing band.
 
-**Pitch.** Replace hand-authored effort hints with empirical ones: how long
-agencies actually take to clear each finding, measured across the corpus.
+**Pitch.** Show how long a finding remained visible before it disappeared from
+a compatible feed history. Do not present that interval as staff effort or as
+proof that an agency or vendor made a fix.
 
-**Impact.** Every fix carries an effort hint today ("likely a one-line export
-setting"), authored by judgment. With history retained, the corpus can state the
-truth — the median feed clears `missing_feed_contact` in about two weeks;
-`route_color_contrast` lingers for months. Data-grounded effort estimates make
-the top-three list credible and help a liaison triage. Distinct from RR:R5, which
-names the export setting, not the duration.
+**Impact.** Every finding carries an authored effort hint about the likely work
+inside an export tool. Clearance timing adds a separate observation about feed
+state, with a sample size and causal caveat. It can help a liaison plan a
+follow-up cadence without pretending the monitor observed the work itself.
 
-**Shape.** A batch over the artifact history (needs FIX-02's archive or at least
-retained artifacts) measuring, per notice code, the distribution of runs-to-clear
-after a code first appears; surface an empirical effort band on each finding
-beside the hand-authored hint ("agencies usually clear this within N weeks").
-Recompute monthly with the dataset release (`dataset.py`).
+**Shape.** A batch over retained artifact history measures, per notice code,
+the distribution of compatible checks from first appearance to disappearance.
+The page states that the timing does not show who changed the feed or why.
+Intervention-linked effort belongs in the verified remediation workflow, where
+an owner action and exact-feed recheck can be connected explicitly.
 
-**Effort:** M. **Risks/deps:** hard-depends on retained history (FIX-02, EXP-13);
-low-sample codes need a confidence floor before display. **Excellence bar:** the
-effort hint on any common finding is backed by a measured clear-time distribution,
-not a guess, and refreshes monthly.
+**Effort:** M. **Risks/deps:** retained history and complete producer contracts
+are required; low-sample codes need a confidence floor. **Excellence bar:** no
+methodology transition creates a false clearance, and no public copy calls an
+unattributed feed change a fix.
 
 ### EXP-04 — Freshness that understands service calendars, not just expiry dates
 
@@ -120,7 +127,17 @@ boundary as a planned transition (`scorecard_planned_service_boundary`,
 "confirm your next service period is published", score floored at 50); the
 `STALE_FEED_DAYS` hard floor still applies so a feed dead over a year is never
 softened, and the flag round-trips through the freshness sweep. Continuous
-calendars are unchanged. RR:R3 alert-tier wiring remains open.
+calendars are unchanged.
+
+**RR:R3 alert-tier wiring: done (2026-08-27).** `service_periods` gives the
+alert stack one read of whether a closing calendar is a transition or a lapse,
+taken from what the published artifact already states. `alerts._expiry_item`
+and `portfolio_digest._diff_member` use it to choose their words, so the daily
+email, the subscriber webhook, and the weekly cohort digest now say what the
+scorecard page says. Wording only: the lead-time tier, the ordering, the
+`days_until_expiry`, and whether anyone is told are all unchanged, and a feed
+lapsed a year or more is never softened. See
+[ADR 0047](../decisions/0047-seasonal-boundary-alert-wording.md).
 
 **Pitch.** Distinguish a feed that legitimately changes for a school break or
 summer service from one silently drifting toward expiry.
@@ -172,6 +189,10 @@ framed as progress.
 
 ### EXP-06 — An interactive methodology sandbox
 
+**Status: Done (verified 2026-07-12).** `/how-to-read/#sandbox` reweights the
+four categories client-side from the generated constants (FIX-03) and shows
+the effect, with a reset to the published weights.
+
 **Pitch.** Let a skeptic re-weight the rubric in the browser and watch the
 leaderboard reorder, live.
 
@@ -202,6 +223,11 @@ New surfaces and audiences built over data the pipeline already produces. None
 requires new always-on infrastructure; each opens a role the tool underserves.
 
 ### EXP-07 — A national vendor-regression radar, public and constructive
+
+**Status: Partial (verified 2026-07-12).** `vendor_regression_radar.py` runs
+in the daily job via `scorecard vendor-report`, but the output goes to the
+private run summary only. The public, constructive surface this item
+describes (and its vendor-interview gate) remains open.
 
 **Pitch.** Detect the day a scheduling-vendor export change quietly breaks the
 same finding across many of its feeds, and surface it constructively rather than
@@ -255,6 +281,11 @@ its detected tool.
 
 ### EXP-09 — A citable, per-agency feed-quality record
 
+**Status: Done (verified 2026-07-12).** The agency page carries a "Cite this
+record" affordance over the dated, schema-versioned artifacts, and the
+monthly `dataset-YYYY-MM` releases with `CITATION.cff` anchor the
+corpus-level citation.
+
 **Pitch.** Give every agency a stable, permanent, referenceable record of its
 feed quality over time, not just a live page.
 
@@ -276,6 +307,10 @@ resolves to a fixed, dated, reproducible record with its methodology stamped.
 
 ### EXP-10 — A consumer-facing data freshness and uptime commitment
 
+**Status: Done (verified 2026-07-12).** `status_commitment.py` states the
+cadence and uptime commitment and `/status/` renders it beside the actual
+refresh record (FIX-11), commitment and evidence on one page.
+
 **Pitch.** Publish a plain, machine-readable statement of how fresh the data is
 meant to be and how it has actually performed, so a downstream consumer can depend
 on it.
@@ -296,35 +331,50 @@ honestly.
 bar:** a consumer can read the actual freshness track record before depending on
 the data, and the stated commitment matches measured reality.
 
-### EXP-11 — A closed-loop guided fix with a verification receipt
+### EXP-11 — A guided change with a comparable finding-clearance record
+
+**Status: Done with a local-only patch boundary (reviewed 2026-07-14).** The
+explicit `scorecard autofix` command can produce a conservative changed copy
+for the user who invokes it. The daily service does not generate or host changed
+agency feeds. `fixlog.py` records a dated clearance only when a finding is absent
+from a later run under the same complete producer contract. The record makes no
+claim about who caused the change.
 
 **Pitch.** Walk a manager from a named finding, through the exact export setting
-and a safe auto-patch, to a dated receipt proving it cleared — one continuous
-loop.
+and a safe auto-patch, to a dated comparable-feed result, with action attribution
+kept in the participant's ticket or request.
 
 **Impact.** The pieces exist separately: `autofix.py` produces conservative
 patches for mechanically-certain cases; RR:R5/`tool_profiles.py` names the vendor
 export setting; RR:R4 shows cleared findings. The net-new value is stitching them
-into one guided session that ends in a linkable "fix receipt" (the
-`expansion-ideation-2026-07.md` "fix verification as a product" note). This is the
+into one guided session that ends in a linkable finding-clearance record. This is the
 retention moment the whole product is built around, made whole, while staying
 firmly on the safe side of the no-editor red line: the tool never publishes for
 the agency.
 
 **Shape.** A guided flow on the agency page: (1) the finding in plain language,
-(2) the tool-specific setting (`tool_profiles.py`) or a downloadable `autofix.py`
-patch for the mechanically-safe cases only, (3) after the agency republishes, an
-auto-detected cleared-finding receipt (RR:R4) with a permalink for a board packet
-or NTD narrative (pairs with RR:E6 and EXP-09). Explicit boundary copy: the
-scorecard shows the fix; the agency owns the publish. The shipped `/check/`
-client-side page is the safe upload surface.
+(2) the tool-specific setting (`tool_profiles.py`) or the explicit local
+`scorecard autofix` command for mechanically safe cases, (3) after the agency
+republishes, an auto-detected finding-clearance record (RR:R4) with a permalink
+for a board packet or NTD narrative (pairs with RR:E6 and EXP-09). Explicit
+boundary copy says the scorecard observes later feed state and a separate action
+record identifies who made the change. The shipped `/check/` client-side page is
+the safe upload surface.
 
-**Effort:** M. **Risks/deps:** brushes the "no feed editor" red line — the
-guardrail is that `autofix.py` stays conservative and the agency always publishes.
-**Excellence bar:** a manager goes from "what is wrong" to "proof it is fixed"
-without leaving the tool and without the tool ever touching their published feed.
+**Effort:** M. **Risks/deps:** brushes the "no feed editor" red line. The
+guardrail is that `autofix.py` stays conservative, runs only when a user invokes
+it on their own copy, and the agency always publishes.
+**Excellence bar:** a manager goes from "what is wrong" to a reproducible later
+feed-state check without the tool ever touching their published feed or claiming
+causality it cannot establish.
 
 ### EXP-12 — A scheduled portfolio digest for liaisons and state programs
+
+**Status: Done (2026-07-12).** `portfolio_digest.py` and the
+`scorecard portfolio-digest` command shipped earlier; the missing schedule
+now runs in the daily workflow on Mondays with `--save`, placing the digest in
+the private run summary and persisting each cohort's weekly baseline through
+S3. Email delivery stays behind its consent gate, as this item required.
 
 **Pitch.** Email a liaison a weekly "what moved in your cohort" digest, the way
 the agency alert loop already emails managers.
@@ -356,6 +406,10 @@ each is listed here to be evaluated, not started.
 
 ### EXP-13 — Predict which feeds are about to lapse, before the date says so
 
+**Status: Done (verified 2026-07-12).** `lapse_risk.assess` reads each
+feed's dated history for behavioral lapse patterns and feeds the alert loop
+(`alerts.py` kind `lapse_risk`, delivered by `notify.py`).
+
 **Pitch.** Use each feed's behavioral history to flag the feeds most likely to
 silently expire, ahead of the deterministic expiry window.
 
@@ -378,6 +432,11 @@ supporters earlier than the date-based alert, each with a stated, inspectable
 reason.
 
 ### EXP-14 — A place-based "open mobility data health" index across standards
+
+**Status: Partial (verified 2026-07-12).** `gbfs.py`, `fares.py`, and
+`flex.py` measure the adjacent standards and render on per-agency pages and
+the national adoption view. The place-based composite index this item
+actually proposes (and its named-place-user gate) remains open.
 
 **Pitch.** Score not just one GTFS feed but a place's whole open-mobility data
 picture — GTFS Schedule, GTFS-RT, GTFS-Flex, Fares v2, and GBFS — as one honest
@@ -466,10 +525,10 @@ calls for: a machine-readable methodology changelog (`score.py`), provenance
 stamping on every artifact (`publish.py`: `rubric_version` / `validator_version` /
 `feed_sha256`), renormalized scoring that never punishes the unmeasured
 (`score.py:build_scorecard`), and no-shaming fix tiers (`score.py:_fix_tier`).
-Sibling repos (`tods-validate`, `govchat-eval`, `outcome-receipts`) face the same
-"state it, do not certify it" problem. Codifying these in the shared `STANDARDS`
-(`/Users/chelsea/portfolio/STANDARDS`) makes the flagship's hardest-won ideas
-portable — which is the portfolio's actual thesis.
+Sibling repos (`tods-validate`, a private sibling project, and
+`outcome-receipts`) face the same "state it, do not certify it" problem.
+Codifying these in the shared standards project makes the flagship's
+hardest-won ideas portable — which is the portfolio's actual thesis.
 
 **Shape.** An ADR here plus a `STANDARDS` contribution codifying the pattern
 (methodology-changelog format, provenance-block shape, renormalization rule,

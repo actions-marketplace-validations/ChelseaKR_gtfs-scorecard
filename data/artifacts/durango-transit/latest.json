@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "durango-transit",
-    "name": "Durango Transit"
-  },
-  "autofix": {
-    "available": false
+    "name": "Durango Transit",
+    "subdivision_code": "US-CO",
+    "subdivision_name": "Colorado"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 196,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,7 +59,14 @@
           "pathway_count": 0
         },
         "stops": 107,
-        "trips": 168,
+        "translations": {
+          "feed_lang": "EN",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 196,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 94.4,
         "wheelchair_marked_accessible_pct": 93.5,
@@ -91,7 +104,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -102,11 +115,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 7,
+        "distinct_codes": 6,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 4,
-          "WARNING": 5
+          "WARNING": 4
         },
         "validator_version": "8.0.1"
       },
@@ -114,35 +127,24 @@
         {
           "code": "stops_match_shape_out_of_order",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+          "why": "Trip planners can draw the bus doubling back or skipping ahead, which confuses riders reading the map."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "missing_recommended_field",
-          "count": 1,
-          "effort": "A field at a time; not urgent.",
-          "fix": "Review the flagged fields and fill in the ones your riders would use.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
-          "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -158,13 +160,13 @@
         {
           "code": "service_window_outside_feed_period",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "feed_valid_beyond_total_service_window",
@@ -190,27 +192,30 @@
         }
       ],
       "name": "correctness",
-      "score": 82.5,
+      "score": 86.5,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 7 kinds of issue across 9 instances (0 error, 5 warning, 4 informational).",
+      "summary": "The MobilityData validator flagged 6 kinds of issue across 8 instances (0 error, 4 warning, 4 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 543,
+        "days_until_expiry": 511,
+        "effective_expiry_date": "2027-12-31",
         "feed_end_date": "2030-01-31",
         "feed_start_date": "2022-03-03",
-        "feed_version": null,
+        "feed_version": "2026.07 Route3-5 Split",
         "has_feed_info": true,
         "last_service_date": "2027-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 543 days.",
+      "summary": "Service data covers the next 511 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -219,6 +224,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": true,
@@ -229,7 +246,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 552 days.",
+        "detail": "Service data covers the next 516 days.",
         "key": "current",
         "met": true
       },
@@ -245,11 +262,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "492fc2a5a6dcb2931ac694b268faaaab9b0d0b59d073abc05530fb481d4591e5",
-    "size_bytes": 42417,
+    "sha256": "f1368548ab5603187703a7a8a0de116266b5ea61cdac6023024c2bd9dae8c62f",
+    "size_bytes": 46358,
     "static_url": "https://durangogov.org/DocumentCenter/View/17688/Durango-Transit-GTFS-Data"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.durangoco.gov/DocumentCenter/View/17688/Durango-Transit-GTFS-Data",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-02T00:00:00+00:00",
   "geo": {
     "bbox": [
       -107.91359,
@@ -261,8 +285,28 @@
     "lon": -107.87005,
     "stop_count": 107
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 6,
+        "trip_count": 196,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 6,
+    "trip_count": 196
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "DRT"
     ],
@@ -281,22 +325,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 552 days.",
+        "detail": "Service data covers the next 516 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
-    "margin_to_lower_band": 4.9,
-    "margin_to_next_band": 5.1,
-    "score": 84.9
+    "margin_to_lower_band": 6.6,
+    "margin_to_next_band": 3.4,
+    "score": 86.6
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 57,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -309,8 +359,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -318,11 +368,98 @@
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 168
+    "trips_total": 196
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 6,
+    "has_shapes": true,
+    "path": "data/artifacts/durango-transit/geometry.geojson",
+    "route_count": 6,
+    "routes": [
+      {
+        "color": "57E93A",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "107427",
+        "label": "Route 4",
+        "long": "Crestview - 160 W",
+        "short": "Route 4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "290CAD",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "FTL",
+        "label": "Route 2",
+        "long": "Fort Lewis College",
+        "short": "Route 2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "290CAD",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "FTLCS",
+        "label": "FLC XP",
+        "long": "Fort Lewis Express",
+        "short": "FLC XP",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0054A6",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "MTS",
+        "label": "Route 5",
+        "long": "Mercy / Three Springs",
+        "short": "Route 5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E91E15",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "TR",
+        "label": "Route 1",
+        "long": "Main Ave Trolley",
+        "short": "Route 1",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BF6113",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "WM",
+        "label": "Route 3",
+        "long": "Walmart",
+        "short": "Route 3",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 107,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 196 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 196,
+    "trips_with_shape": 196
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_no_fare_data",
@@ -339,26 +476,26 @@
     {
       "code": "stops_match_shape_out_of_order",
       "count": 2,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "A few minutes per flagged trip.",
+      "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+      "owner": "Likely your export tool",
       "points": 4.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+      "why": "Trip planners can draw the bus doubling back or skipping ahead, which confuses riders reading the map."
     },
     {
       "code": "missing_feed_contact_email_and_url",
       "count": 1,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "One field, set once in export settings.",
+      "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+      "owner": "Likely your export tool",
       "points": 4.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "feed_info.txt lists no contact email and no contact URL.",
+      "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
     }
   ],
   "validator_version": "8.0.1"

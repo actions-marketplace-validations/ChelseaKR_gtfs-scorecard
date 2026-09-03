@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "duke-university",
-    "name": "Duke University"
-  },
-  "autofix": {
-    "available": false
+    "name": "Duke University",
+    "subdivision_code": "US-NC",
+    "subdivision_name": "North Carolina"
   },
   "categories": {
     "completeness": {
@@ -18,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
-          "headsigns": 2.6,
+          "headsigns": 12.1,
           "stop_names": 15.0,
           "wheelchair_stops": 0.4,
           "wheelchair_trips": 0.0
@@ -42,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 807,
+        "headsign_loop_exempt_trips": 1400,
         "headsign_pct": 17.3,
+        "headsign_scored_pct": 80.7,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 127,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 2207,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 1.6,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 2207,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -84,14 +97,14 @@
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 1825,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 12.4,
+          "count": 425,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
+          "points": 2.9,
           "severity": "WARNING",
-          "what": "1825 of 2207 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "425 of 2207 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -106,7 +119,7 @@
         }
       ],
       "name": "completeness",
-      "score": 48.0,
+      "score": 57.5,
       "status": "measured",
       "summary": "2% of stops state wheelchair accessibility (2% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
@@ -152,7 +165,7 @@
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -191,24 +204,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -219,13 +232,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -330,
+        "days_until_expiry": -362,
+        "effective_expiry_date": "2025-08-10",
         "feed_end_date": "2025-08-10",
         "feed_start_date": "2025-05-05",
         "feed_version": "UTC: 05-May-2025 09:20",
         "has_feed_info": true,
         "last_service_date": "2025-08-10",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -237,14 +253,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 330 day(s) ago.",
+          "what": "Service data ended 362 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 330 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 362 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -253,6 +269,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -263,7 +291,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 321 days ago.",
+        "detail": "Service data expired 354 days ago.",
         "key": "current",
         "met": false
       },
@@ -274,7 +302,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 321 days ago. States wheelchair access on 2% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 354 days ago. States wheelchair access on 2% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -283,7 +311,14 @@
     "size_bytes": 304782,
     "static_url": "https://data.trilliumtransit.com/gtfs/duke-nc-us/duke-nc-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/duke-nc-us/duke-nc-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-30T00:00:00+00:00",
   "geo": {
     "bbox": [
       -78.95785,
@@ -295,8 +330,28 @@
     "lon": -78.93632,
     "stop_count": 127
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 11,
+        "trip_count": 2207,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 11,
+    "trip_count": 2207
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "240"
     ],
@@ -315,22 +370,28 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 321 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 354 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 321 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 354 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 38.6,
-    "margin_to_next_band": 21.4,
-    "score": 38.6
+    "margin_to_lower_band": 41.6,
+    "margin_to_next_band": 18.4,
+    "score": 41.6
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -342,6 +403,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 6,
       "effort": "A per-route color setting in your scheduling software.",
@@ -353,6 +415,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 112,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -365,8 +428,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -388,9 +451,151 @@
     "single_stop_trips": 0,
     "trips_total": 2207
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 11,
+    "has_shapes": true,
+    "path": "data/artifacts/duke-university/geometry.geojson",
+    "route_count": 11,
+    "routes": [
+      {
+        "color": "A257EA",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "13048",
+        "label": "SWS",
+        "long": "Swift Avenue Shuttle",
+        "short": "SWS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF9E00",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "16712",
+        "label": "CSW",
+        "long": "Smith Warehouse",
+        "short": "CSW",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "002888",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "16713",
+        "label": "CSF",
+        "long": "C1-Swift Weekend",
+        "short": "CSF",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "6666FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "1680",
+        "label": "LL",
+        "long": "LaSalle Loop",
+        "short": "LL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8D1400",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1681",
+        "label": "PR1",
+        "long": "Bassett-Research",
+        "short": "PR1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AA82E2",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "1683",
+        "label": "H2",
+        "long": "Hospital Loop",
+        "short": "H2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0149C",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1690",
+        "label": "H5",
+        "long": "Broad-Erwin",
+        "short": "H5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B11B2E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1693",
+        "label": "C1",
+        "long": "East-West",
+        "short": "C1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "10FCC3",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "19628",
+        "label": "H1",
+        "long": "Hospital",
+        "short": "H1",
+        "text_color": "EB1E1E",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00FF1F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "35258",
+        "label": "C",
+        "long": "Swift",
+        "short": "C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EBEE13",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "76447",
+        "label": "LNC",
+        "long": "Lancaster Commons",
+        "short": "LNC",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 127,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 2207 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 2207,
+    "trips_with_shape": 2207
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -401,7 +606,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 330 day(s) ago.",
+      "what": "Service data ended 362 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

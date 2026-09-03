@@ -7,6 +7,13 @@ sync with this page; every metric's docstring links back here.
 
 ## Sources the rubric maps to
 
+This is a project-authored scoring profile, identified in artifacts as
+`gtfs-scorecard-1.3`. Its weights, deductions, thresholds, grade bands, and fix
+ranking are GTFS Scorecard choices. California guidance informed those choices
+and is the normative quality bar for California agencies; it is not worldwide
+authority. A score outside California is a feed-quality assessment under this
+published profile, not a local compliance determination.
+
 1. **California Transit Data Guidelines v4.0** (Caltrans, December 2024) —
    the normative quality bar for California agencies.
    https://dot.ca.gov/cal-itp/california-transit-data-guidelines-v4_0
@@ -25,6 +32,25 @@ sync with this page; every metric's docstring links back here.
    automates a proxy for all seven of its fields; the field-by-field mapping is in
    [docs/crosswalk.md](crosswalk.md).
 
+## Ecosystem boundary
+
+GTFS Scorecard is downstream of MobilityData's validator, not an alternative to
+it. The validator owns specification and best-practice notices as GTFS evolves.
+The scorecard consumes those notice codes for correctness and links users back
+to their canonical rule documentation.
+
+This project owns the separate `gtfs-scorecard-1.3` policy layer: category
+weights, deductions, thresholds, grade bands, fix ordering, freshness and
+rider-facing completeness measures, and optional realtime observations. Those
+choices are versioned and inspectable, but they are not presented as an
+official MobilityData grade or a context-free quality standard.
+
+When a scorecard check overlaps a canonical validator concept, the canonical
+notice and rule remain authoritative. Reusable measurement should be consumed
+or contributed upstream where practical; presentation or scoring surface that a
+maintained ecosystem project already provides better should be retired rather
+than duplicated.
+
 ## Overall grade
 
 Four categories with fixed weights:
@@ -40,6 +66,17 @@ Categories not yet computed are excluded and the remaining weights
 renormalized, so an agency is never penalized for a category the scorecard
 hasn't measured. The same rule will apply per-agency when an agency has no
 realtime feed: "Not yet published" is a neutral status, not a zero.
+
+Freshness and rider experience read the feed's own contents, so an archive that
+describes no service — no stops and no trips — cannot be measured for either.
+Such a feed is **not graded at all**. Correctness could still score it, because
+the validator has notices to report about what is missing, but a letter built on
+correctness alone would describe a feed nobody read: an empty archive raises few
+notices, so it would earn a *high* grade rather than a low one. "Could not be
+read" is the only true answer, and it is the one published — the same refusal a
+response body that is not a GTFS zip already gets. A feed with stops and trips
+but no calendar at all is still a feed, and is still graded on what could be
+measured.
 
 Letter grades: A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60, F below.
 
@@ -129,6 +166,19 @@ Scoring:
 - Missing `feed_info` validity dates: minus 15, because without stated dates
   no app (and no scorecard) can warn the agency before riders notice.
 
+An effective end date more than ten calendar years after the check is reported
+as unusually distant. Ten years is a conservative review threshold chosen to
+leave ordinary multi-year planning alone while surfacing sentinel-like dates
+such as 2100. GTFS does not set this maximum, so this sits outside category
+findings as a display and trust advisory. It does not change the freshness
+score, grade, top-three fixes, finding prevalence, finding diffs, or fix
+receipts. The scorecard keeps the exact end date and raw day count in the
+artifact and adds `service_horizon_status` so pages and API consumers can avoid
+presenting a very large countdown as evidence that the feed is actively
+maintained. Presentation and API builders derive the same status from dated
+legacy records whose explicit status is absent; records without usable date
+evidence remain unknown.
+
 ## Rider experience completeness (25%)
 
 What it measures: the fields riders feel directly, anchored to v4.0
@@ -142,12 +192,18 @@ a values statement and the most common real gap in small-agency feeds.
 | `wheelchair_accessible` on trips | 15 | share of trips marked 1 or 2 |
 | Fare data present | 15 | fare_attributes.txt or Fares v2 files non-empty; an agency marked fare-free is credited here, not docked |
 | Readable stop names | 15 | share of stop names not written in ALL CAPS (4+ letter words; short tokens like "4 & B" don't count) |
-| Headsigns | 15 | share of trips with trip_headsign |
+| Headsigns | 15 | share of trips with `trip_headsign`; single-pattern, single-direction loops are credited when every trip on the route omits it and one stop pattern and shape show there is nothing to distinguish |
 | Contact | 15 | half for a working agency_url, half for feed_contact_email/url in feed_info (v4.0 Recommended) |
+
+Loop applicability is optional, conservative analysis. The scorecard streams
+`stop_times.txt` and only retains patterns for candidate trips. If the table is
+more than 64 MiB uncompressed, the analysis is skipped and the ordinary
+headsign check remains; a large feed never fails scoring or receives an
+exemption without complete evidence.
 
 ### Reported but not graded
 
-Five further signals are computed and shown on the agency page, but carry no
+Seven further signals are computed and shown on the agency page, but carry no
 points in this version, so they never move the grade. They surface real,
 rider-facing detail and are framed as fixes. Each stays ungraded on purpose until
 there are enough real feeds to calibrate a fair weight, and each has an ADR.
@@ -157,6 +213,18 @@ there are enough real feeds to calibrate a fair weight, and each has an ADR.
   on its own rather than blended into completeness. It reflects the same graded
   points and adds none; the chip and the sub-score key off it directly. The
   number states what the feed publishes, not whether a stop is physically usable.
+- **Accessibility depth signals** (EXP-05, `pipeline/src/scorecard_pipeline/accessibility.py`).
+  A second lens on the same category, modeled on the BlinkTag
+  `gtfs-accessibility-validator`, that looks past whether an accessibility field
+  is populated and asks whether it holds together: route-color/text-color
+  contrast against the WCAG 4.5:1 bar, stop names a screen reader is likely to
+  mispronounce with no `tts_stop_name` override, and whether a feed that models
+  stations or entrances also carries `pathways.txt`/`levels.txt` so a wheelchair
+  user's step-free route inside the station is describable. Shown as a small,
+  zero-deduction "accessibility depth signals" list nested inside the
+  accessibility sub-score above, framed as progress to make, never as a
+  deduction or a failing grade for a small agency. Same "states it, does not
+  certify usability" caveat as the sub-score above it.
 - **Fare-free** (docs/add-your-agency.md). An agency that runs fare-free by policy
   is credited for the fare component and shown a neutral note in place of the
   "no fare data" finding. A deliberate policy is not a gap, the same way a missing
@@ -175,6 +243,11 @@ there are enough real feeds to calibrate a fair weight, and each has an ADR.
   (elevator) route. A station feed with no pathways gets a finding; a flat
   stop-only feed, which is most small agencies, is never flagged. Shown with a
   "Station pathways" chip.
+- **Shapes readiness** (US agencies, schema 1.5). Whether every trip carries a
+  shape in shapes.txt, read against FTA's NTD shapes requirement (Full
+  Reporters RY2025; Reduced, Rural, and Tribal Reporters RY2026). Like the
+  NTD-readiness pillars, it is a data-quality heads-up, never an official
+  determination.
 
 
 ## Realtime quality (20%)
@@ -187,14 +260,22 @@ raw protobufs.
 
 | Component | Points | How scored |
 |---|---|---|
-| Reachability | 25 | each of TripUpdates / VehiclePositions / ServiceAlerts reachable and parseable on every sample |
+| Reachability | 25 | each GTFS-Realtime feed kind configured for the agency is reachable and parseable on every sample; feed kinds the agency does not publish are neutral |
 | Freshness | 25 | worst header-timestamp lag across samples; full credit at 60s or less (v4.0 asks for a 20s publish frequency; 60s allows fetch latency), zero at 10 minutes |
-| Trip coverage | 35 | share of trips scheduled during the sampling window (agency-local time, including after-midnight service) that appear in TripUpdates; v4.0 expects 100% |
-| Position plausibility | 15 | share of sampled vehicle positions within 250 m of their assigned trip's published route shape |
+| Trip coverage | 35 | when TripUpdates is configured, the share of trips scheduled during the sampling window (agency-local time, including after-midnight service) that appear in it; v4.0 expects 100% |
+| Position plausibility | 15 | when VehiclePositions is configured, the share of sampled vehicle positions within 250 m of their assigned trip's published route shape |
 
-Components a window can't measure (no trips scheduled, no vehicles seen,
-no shapes in the feed) drop out and the rest renormalize to 100; the
-summary says so.
+Feed kinds an agency does not publish are not treated as outages. Their dependent
+components drop out too: a VehiclePositions-only publisher is measured on that
+feed's reachability, freshness, and position plausibility, without TripUpdates
+coverage deductions. Components a configured feed cannot measure in a window
+(no trips scheduled, no vehicles seen, no shapes in the feed) also drop out and
+the rest renormalize to 100; the summary says so. The point value shown for
+each scored finding uses that same measurable denominator, so it matches the
+finding's category-score impact and ranks top fixes consistently. Informational
+findings remain worth zero points. If no sample from a configured endpoint
+succeeds, dependent measures such as trip coverage are unmeasurable rather than
+creating a second deduction for the same outage.
 
 Schedule-vs-RT drift is also computed from each window: every sampled
 TripUpdates prediction is compared with the static schedule (direct delay
@@ -206,6 +287,19 @@ late — is published in the category details and summary. Drift describes
 operations at least as much as data quality, so it carries no points; it
 becomes a finding only when p90 exceeds 30 minutes, which usually means
 predictions are keyed to the wrong trips.
+
+Service-alert content is also observed from each window's newest alerts
+snapshot: how many published alerts carry plain header text, a description,
+a stated cause and effect, and route or stop scoping, and how many ended
+more than 30 days before the sample and are still being served. Alerts are
+the one realtime payload riders read verbatim, so these observations are
+published in the category details, and an ended-weeks-ago alert or a
+textless alert appears as a fix with no point deduction. The checks are
+mechanical (presence and dates, never style). Content carries no points
+today; if a weight is ever proposed it enters through the governed
+shadow-scoring path below, announced before it takes effect, like any
+other rubric change. An agency publishing no alerts feed, or an empty one
+(no current disruptions), is a normal state and is never penalized.
 
 Agencies whose realtime exists but is key-gated show a neutral note in
 place of a score until access is arranged.
@@ -248,5 +342,30 @@ that changed band, and the notice-code drivers, plus a ready-to-paste
 same commit keeps every historical grade discontinuity attributable: a trend
 reader can always tell a feed change apart from a methodology change.
 
-Last verified: 2026-06-11 (guidelines v4.0, validator v8.0.1) ·
+Rubric 1.2's capability-aware Realtime correction has a checked
+[fixed-corpus impact report](rubric-impact-1.2.md): a replay over 31 published
+partial-feed artifacts projected 15 letter-band changes, with no downward
+changes. The report records the formula, transition table, affected agencies,
+and the limits of replaying rounded details instead of resampling live feeds.
+
+Rubric 1.3 corrects a headsign false positive found through feed-producer
+feedback in issue
+[#180](https://github.com/ChelseaKR/gtfs-scorecard/issues/180). The bounded
+before/after evidence and conservative loop-applicability rule are recorded in
+[ADR 0041](decisions/0041-context-aware-loop-headsigns.md). The literal field
+presence remains published separately from the context-adjusted score.
+
+The rubric itself is versioned: the current `RUBRIC_VERSION` is `1.3`
+(`pipeline/src/scorecard_pipeline/__init__.py`), stamped on every artifact,
+and the dated `METHODOLOGY_CHANGELOG` in `score.py` records what each version
+changed, so a trend reader can tell a feed change apart from a methodology
+change.
+
+Every artifact also carries a `scoring_profile` block with the stable profile
+identifier `gtfs-scorecard-1.3`, the rubric version, and this provenance boundary.
+The profile metadata is additive: it does not recalculate, rename, or move the
+overall score, category scores, grade, or top fixes. Jurisdiction overlays are
+not implemented by this contract.
+
+Last verified: 2026-07-24 (guidelines v4.0, validator v8.0.1, rubric v1.3) ·
 Recheck cadence: before each phase and before the rubric is cited publicly.

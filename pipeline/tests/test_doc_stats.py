@@ -1,0 +1,281 @@
+"""Tests for the corpus-figure gate (FIX-15) and its ungated-figure sweep.
+
+The registered-rule half of `check_doc_stats.py` only checks claims somebody
+remembered to register. The sweep is the half that catches the ones nobody did,
+so these tests are mostly about proving it actually flags an unregistered figure
+rather than passing vacuously.
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import re
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+CHECKER = ROOT / "pipeline" / "scripts" / "check_doc_stats.py"
+
+
+def _load() -> Any:
+    spec = importlib.util.spec_from_file_location("check_doc_stats", CHECKER)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+doc_stats = _load()
+
+
+# --- the sweep finds what the rule list does not ---------------------------
+
+
+def test_sweep_flags_a_corpus_figure_no_rule_covers() -> None:
+    # The CLAUDE.md failure in one line: a real-looking sentence, a real
+    # denominator, and nothing anywhere that would notice it going stale.
+    found = doc_stats.ungated_figures(
+        "docs/not-a-real-doc.md", "The registry tracks 1,500 feed records today.\n"
+    )
+    assert len(found) == 1
+    assert "1,500 feed records" in found[0]
+    assert "docs/not-a-real-doc.md:1" in found[0]
+    # The message has to say what to do, or it just blocks the commit.
+    assert "RULES" in found[0] and "POINT_IN_TIME" in found[0]
+
+
+def test_sweep_reports_the_line_the_figure_is_on() -> None:
+    text = "intro\n\nfiller\n\nAbout 2,400 configured feeds are tracked.\n"
+    (finding,) = doc_stats.ungated_figures("docs/not-a-real-doc.md", text)
+    assert ":5:" in finding
+
+
+def test_sweep_accepts_a_figure_an_existing_rule_checks() -> None:
+    # README's registry sentence is registered, so the sweep must stay quiet on
+    # it; otherwise every gated figure would have to be declared twice.
+    readme = (ROOT / "README.md").read_text()
+    assert "curated" in readme
+    assert doc_stats.ungated_figures("README.md", readme) == []
+
+
+def test_sweep_accepts_a_figure_declared_point_in_time() -> None:
+    expansion = (ROOT / "docs" / "global-expansion.md").read_text()
+    assert "1,296 feed records" in expansion
+    assert doc_stats.ungated_figures("docs/global-expansion.md", expansion) == []
+
+
+# --- and does not cry wolf -------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "See https://example.org/data/2500-feeds for the list.\n",
+        "Read `1500 feeds` from the fixture.\n",
+        "The [catalog](https://x.test/1200-agencies) is upstream.\n",
+        '<a href="/reports/3000-feeds">report</a>\n',
+    ],
+)
+def test_sweep_ignores_figures_inside_identifiers(text: str) -> None:
+    assert doc_stats.ungated_figures("docs/not-a-real-doc.md", text) == []
+
+
+def test_sweep_ignores_years_and_small_numbers() -> None:
+    assert doc_stats.ungated_figures("docs/x.md", "In 2026 feeds improved.\n") == []
+    # 26 countries, 12 shards, 3 fixes: real numbers, not corpus populations.
+    assert doc_stats.ungated_figures("docs/x.md", "Across 26 agencies this held.\n") == []
+
+
+# --- the declarations stay honest ------------------------------------------
+
+
+def test_every_point_in_time_declaration_still_matches() -> None:
+    # A declaration that has stopped matching is an exemption with nothing under
+    # it, which is exactly where a drifting figure could hide.
+    import re
+
+    for rel_path, pattern, reason in doc_stats.POINT_IN_TIME:
+        text = (ROOT / rel_path).read_text()
+        assert re.search(pattern, text), f"{rel_path}: {pattern!r} ({reason}) matches nothing"
+
+
+def test_point_in_time_declarations_each_state_a_reason() -> None:
+    for rel_path, _pattern, reason in doc_stats.POINT_IN_TIME:
+        assert reason.strip(), f"{rel_path}: a point-in-time exemption must say why"
+
+
+# --- scope ------------------------------------------------------------------
+
+
+def test_sweep_covers_the_documents_that_carry_public_corpus_figures() -> None:
+    swept = set(doc_stats.swept_docs())
+    for rel_path in (
+        "README.md",
+        "CLAUDE.md",
+        "docs/roadmap.md",
+        "docs/product-roadmap.md",
+        "docs/feeds.md",
+        "docs/support.md",
+        "web/support/index.html",
+    ):
+        assert rel_path in swept, rel_path
+
+
+def test_sweep_never_reads_private_working_notes() -> None:
+    # *.local.md is gitignored private context (CLAUDE.local.md and friends).
+    assert not [rel for rel in doc_stats.swept_docs() if rel.endswith(".local.md")]
+
+
+def test_sweep_skips_the_dated_record_documents() -> None:
+    swept = set(doc_stats.swept_docs())
+    assert "CHANGELOG.md" not in swept
+    # Subdirectories of docs/ are dated records; refreshing them would falsify
+    # the history they exist to hold.
+    assert not [rel for rel in swept if rel.startswith("docs/decisions/")]
+    assert not [rel for rel in swept if rel.startswith("docs/ideation/")]
+
+
+# --- the frozen denominators ------------------------------------------------
+#
+# `pages` and `scored` are read from data/artifacts/index.json, which automation
+# stopped writing at the S3 cutover. They describe the committed fallback
+# snapshot, not gtfsscorecard.org, and nothing in an offline `make verify` can
+# tell the difference. So the counts are reported with the snapshot's own date
+# beside them, and these tests keep that date attached.
+
+
+def test_published_counts_reports_the_snapshot_date_with_the_counts() -> None:
+    pages, scored, snapshot_date = doc_stats.published_counts()
+    assert pages > 0 and scored > 0
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", snapshot_date), snapshot_date
+
+
+def test_snapshot_date_is_the_newest_scoring_date_in_the_index() -> None:
+    index = json.loads((ROOT / "data" / "artifacts" / "index.json").read_text())
+    newest = max(
+        point["date"]
+        for entry in index["agencies"].values()
+        for point in entry.get("history") or []
+        if point.get("date")
+    )
+    assert doc_stats.published_counts()[2] == newest
+
+
+def test_the_reported_line_says_the_published_counts_are_not_live() -> None:
+    # Both the pass and the fail branch print this one line, so a later edit
+    # cannot drop the caveat from one of them and leave the other honest.
+    line = doc_stats.denominator_line(
+        {
+            "registry": 2185,
+            "pages": 1128,
+            "scored": 1128,
+            "europe_records": 528,
+            "europe_countries": 26,
+        },
+        "2026-07-10",
+    )
+    assert "2026-07-10" in line
+    assert "not the live corpus" in line
+    # The registry figure is read from YAML and does track the real thing, so
+    # the caveat must not be worded as if it covered that one too.
+    assert line.index("registry 2,185") < line.index("not the live corpus")
+
+
+def test_optional_rules_name_only_files_that_may_be_absent() -> None:
+    # OPTIONAL_RULES exists for files that may legitimately be missing from a
+    # checkout. Anything git tracks is always present, so it belongs in RULES,
+    # where a missing file is a failure rather than a skip.
+    #
+    # Ask git, not .git/info/exclude. That file is not version controlled, so
+    # reading it passes on a machine that happens to carry the line and fails
+    # in every fresh clone, including CI.
+    git = shutil.which("git")
+    assert git is not None
+    for rel_path, _pattern, _denominator, _mode in doc_stats.OPTIONAL_RULES:
+        tracked = (
+            subprocess.run(  # noqa: S603 - resolved git binary over this checkout
+                [git, "ls-files", "--error-unmatch", rel_path],
+                cwd=ROOT,
+                capture_output=True,
+                check=False,
+            ).returncode
+            == 0
+        )
+        assert not tracked, f"{rel_path} is tracked; use RULES"
+
+
+# --- a rule naming a file that vanished ------------------------------------
+
+
+def _isolate(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Run main() over just the rule list under test.
+
+    The corpus counts and the ungated-figure sweep have their own tests above;
+    holding them still here keeps this one about the missing-file branch.
+    """
+    monkeypatch.setattr(doc_stats, "registry_count", lambda: 2000)
+    monkeypatch.setattr(doc_stats, "published_counts", lambda: (2000, 2000, "2026-08-07"))
+    monkeypatch.setattr(doc_stats, "europe_counts", lambda: (500, 25))
+    monkeypatch.setattr(doc_stats, "swept_docs", list)
+    monkeypatch.setattr(doc_stats, "POINT_IN_TIME", [])
+    monkeypatch.setattr(doc_stats, "RULES", [])
+    monkeypatch.setattr(doc_stats, "OPTIONAL_RULES", [])
+
+
+def test_a_rule_naming_a_missing_required_file_fails_the_gate(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The loop that reads the rules used to `continue` past any missing file,
+    with a comment claiming a missing required doc "still raises". Nothing in
+    the loop told the two lists apart, so it did not: renaming README.md or
+    docs/roadmap.md silently removed those claims from the gate, and only the
+    printed `checked` count moved. A gate that stops checking without saying so
+    is the defect this whole script exists to prevent, one level up."""
+    _isolate(monkeypatch)
+    monkeypatch.setattr(
+        doc_stats,
+        "RULES",
+        [
+            (
+                r"docs/this-document-does-not-exist.md",
+                r"more than ([\d,]+)\s+feed records",
+                "registry",
+                "floor",
+            )
+        ],
+    )
+
+    assert doc_stats.main() == 1
+
+    out = capsys.readouterr().out
+    assert "docs/this-document-does-not-exist.md" in out
+    assert "does not exist" in out
+
+
+def test_a_rule_naming_a_missing_optional_file_is_still_skipped(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """OPTIONAL_RULES keeps its skip: AGENTS.md is in .git/info/exclude, so CI
+    genuinely does not have it. The skip is now counted and printed rather than
+    being invisible."""
+    _isolate(monkeypatch)
+    monkeypatch.setattr(
+        doc_stats,
+        "OPTIONAL_RULES",
+        [
+            (
+                r"NOT-IN-ANY-CHECKOUT.md",
+                r"more than ([\d,]+)\s+feed records",
+                "registry",
+                "floor",
+            )
+        ],
+    )
+
+    assert doc_stats.main() == 0
+    assert "1 optional rule(s) skipped" in capsys.readouterr().out

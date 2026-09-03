@@ -29,13 +29,17 @@ import statistics
 from pathlib import Path
 from typing import Any
 
-from .completeness import completeness
-from .config import AGENCIES, Agency, raw_dir, repo_root
+from .config import AGENCIES, Agency, raw_dir, repo_root, utc_today
 from .fetch import FetchResult, fetch_static
-from .gtfs import read_feed_dates
-from .metrics import correctness, freshness
-from .score import GRADE_BANDS, build_scorecard
-from .validate import VALIDATOR_VERSION, ValidationReport, parse_report, run_validator
+from .metrics import correctness
+from .score import GRADE_BANDS, build_scorecard, score_feed_content
+from .validate import (
+    VALIDATOR_VERSION,
+    ValidationReport,
+    country_scoped_output_dir,
+    parse_report,
+    run_validator,
+)
 from .vcache import load_cached, store_cached
 
 log = logging.getLogger(__name__)
@@ -83,10 +87,15 @@ def _scored_result(
     """Score one validator report exactly the way the daily run does (minus
     realtime, which no validator version affects), so the grade shift the diff
     sees is purely validator-driven."""
+    reader_path = fetched.reader_view_path
     cats = [
         correctness(report),
-        freshness(read_feed_dates(str(fetched.path)), today=date, service_type=agency.service_type),
-        completeness(str(fetched.path), fare_free=agency.fare_free),
+        *score_feed_content(
+            str(reader_path),
+            today=date,
+            service_type=agency.service_type,
+            fare_free=agency.fare_free,
+        ),
     ]
     scorecard = build_scorecard(cats)
     return agency_result(agency.id, report, scorecard.grade, scorecard.overall_score)
@@ -105,19 +114,45 @@ def shadow_score_agency(
     """
     fetched = fetch_static(agency, date)
 
-    baseline_report = load_cached(agency.id, fetched.sha256, VALIDATOR_VERSION)
+    baseline_report = load_cached(
+        agency.id,
+        fetched.sha256,
+        VALIDATOR_VERSION,
+        country_code=agency.country,
+    )
     if baseline_report is None:
-        base_dir = raw_dir() / agency.id / date.isoformat() / "validator"
+        base_dir = country_scoped_output_dir(
+            raw_dir() / agency.id / date.isoformat() / "validator",
+            agency.country,
+        )
         base_path = base_dir / "report.json"
         if not base_path.exists():
-            base_path = run_validator(fetched.path, base_dir)
+            base_path = run_validator(
+                fetched.path,
+                base_dir,
+                country_code=agency.country,
+            )
         baseline_report = parse_report(base_path)
-        store_cached(agency.id, fetched.sha256, VALIDATOR_VERSION, baseline_report)
+        store_cached(
+            agency.id,
+            fetched.sha256,
+            VALIDATOR_VERSION,
+            baseline_report,
+            country_code=agency.country,
+        )
 
-    cand_dir = raw_dir() / agency.id / date.isoformat() / f"validator-canary-{candidate_version}"
+    cand_dir = country_scoped_output_dir(
+        raw_dir() / agency.id / date.isoformat() / f"validator-canary-{candidate_version}",
+        agency.country,
+    )
     cand_path = cand_dir / "report.json"
     if not cand_path.exists():
-        cand_path = run_validator(fetched.path, cand_dir, version=candidate_version)
+        cand_path = run_validator(
+            fetched.path,
+            cand_dir,
+            country_code=agency.country,
+            version=candidate_version,
+        )
     candidate_report = parse_report(cand_path)
 
     return (
@@ -365,15 +400,19 @@ def run_canary(
     canary: failures are logged, listed in the report as skipped, and the
     comparison proceeds over the agencies that did score.
     """
-    as_of = date or dt.date.today()
-    sample = sample_agencies(sorted(AGENCIES), size=sample_size, seed=seed)
+    as_of = date or utc_today()
+    sample = sample_agencies(
+        sorted(agency_id for agency_id, agency in AGENCIES.items() if agency.is_canonical_feed),
+        size=sample_size,
+        seed=seed,
+    )
     baseline: list[dict[str, Any]] = []
     candidate: list[dict[str, Any]] = []
     skipped: list[str] = []
     for agency_id in sample:
         try:
             base, cand = shadow_score_agency(AGENCIES[agency_id], as_of, candidate_version)
-        except Exception as exc:  # noqa: BLE001 - one bad feed must not sink the canary
+        except Exception as exc:
             log.warning("%s: skipped in canary run (%s)", agency_id, exc)
             skipped.append(agency_id)
             continue

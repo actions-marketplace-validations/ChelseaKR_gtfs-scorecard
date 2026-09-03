@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "ride-connection",
-    "name": "Ride Connection"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/ride-connection/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/ride-connection/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 4,
-        "examples": [
-          "'route_long_name': 'GroveLink West Loop ' -> 'GroveLink West Loop'",
-          "'route_long_name': 'GroveLink East Loop ' -> 'GroveLink East Loop'",
-          "'route_long_name': 'Tualatin Shuttle Red Line ' -> 'Tualatin Shuttle Red Line'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 4
+    "name": "Ride Connection",
+    "subdivision_code": "US-OR",
+    "subdivision_name": "Oregon"
   },
   "categories": {
     "completeness": {
@@ -33,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
-          "headsigns": 10.6,
+          "headsigns": 11.4,
           "stop_names": 15.0,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 0.0
@@ -57,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
-        "headsign_pct": 70.8,
+        "headsign_applicable_trips": 637,
+        "headsign_loop_exempt_trips": 40,
+        "headsign_pct": 70.2,
+        "headsign_scored_pct": 76.1,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -68,7 +59,14 @@
           "pathway_count": 0
         },
         "stops": 142,
-        "trips": 671,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 677,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -88,25 +86,25 @@
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 671,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "count": 677,
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "671 of 671 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "677 of 677 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 196,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 4.4,
+          "count": 162,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
+          "points": 3.6,
           "severity": "WARNING",
-          "what": "196 of 671 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "162 of 677 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -121,7 +119,7 @@
         }
       ],
       "name": "completeness",
-      "score": 55.6,
+      "score": 56.4,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
@@ -162,24 +160,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 6,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -190,20 +188,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 210,
+        "days_until_expiry": 178,
+        "effective_expiry_date": "2027-02-01",
         "feed_end_date": "2027-02-01",
-        "feed_start_date": "2026-06-17",
-        "feed_version": "UTC: 17-Jun-2026 20:49",
+        "feed_start_date": "2026-07-30",
+        "feed_version": "UTC: 30-Jul-2026 16:18",
         "has_feed_info": true,
         "last_service_date": "2027-02-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 210 days.",
+      "summary": "Service data covers the next 178 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -212,6 +213,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -222,7 +235,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 219 days.",
+        "detail": "Service data covers the next 180 days.",
         "key": "current",
         "met": true
       },
@@ -238,11 +251,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "77b82630a6f6c3a5c1f19673214708121859380f9ac44bf4eae4ab2679574e7c",
-    "size_bytes": 924587,
+    "sha256": "8b7e3f6bd8a0fdc3386b435554ba856ad989a0c3da0021b8725fcae28c71120d",
+    "size_bytes": 927695,
     "static_url": "https://oregon-gtfs.trilliumtransit.com/gtfs_data/rideconnection-or-us/rideconnection-or-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://oregon-gtfs.trilliumtransit.com/gtfs_data/rideconnection-or-us/rideconnection-or-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -123.14324,
@@ -254,8 +274,28 @@
     "lon": -122.83643,
     "stop_count": 142
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 12,
+        "trip_count": 677,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 12,
+    "trip_count": 677
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "133"
     ],
@@ -274,22 +314,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 219 days.",
+        "detail": "Service data covers the next 180 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
-    "margin_to_lower_band": 3.4,
-    "margin_to_next_band": 6.6,
-    "score": 83.4
+    "margin_to_lower_band": 3.7,
+    "margin_to_next_band": 6.3,
+    "score": 83.7
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -301,6 +347,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 135,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -313,8 +360,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -334,11 +381,164 @@
     ],
     "orphan_stops": 4,
     "single_stop_trips": 0,
-    "trips_total": 671
+    "trips_total": 677
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 12,
+    "has_shapes": true,
+    "path": "data/artifacts/ride-connection/geometry.geojson",
+    "route_count": 12,
+    "routes": [
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "1109",
+        "label": "GroveLink Employment Loop",
+        "long": "GroveLink Employment Loop",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3757AE",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "1459",
+        "label": "Tualatin Shuttle Blue Line",
+        "long": "Tualatin Shuttle Blue Line",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "18716",
+        "label": "GroveLink Saturday",
+        "long": "GroveLink Saturday",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "18717",
+        "label": "CorneliusLink Saturday",
+        "long": "CorneliusLink Saturday",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BD0023",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1998",
+        "label": "Tualatin Shuttle Red Line",
+        "long": "Tualatin Shuttle Red Line",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "3226",
+        "label": "North Hillsboro Link",
+        "long": "North Hillsboro Link",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "724",
+        "label": "WestLink",
+        "long": "WestLink",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "738",
+        "label": "King City Link",
+        "long": "King City Link",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77037",
+        "label": "CorneliusLink",
+        "long": "CorneliusLink",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77196",
+        "label": "GroveLink West Loop",
+        "long": "GroveLink West Loop",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77197",
+        "label": "GroveLink East Loop",
+        "long": "GroveLink East Loop",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00853F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77199",
+        "label": "BethanyLink",
+        "long": "BethanyLink",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 142,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 677 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 677,
+    "trips_with_shape": 677
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -354,27 +554,27 @@
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 671,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "count": 677,
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "671 of 671 trips don't say whether the vehicle is wheelchair accessible.",
+      "what": "677 of 677 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
     },
     {
-      "code": "scorecard_missing_headsigns",
-      "count": 196,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
+      "code": "stop_without_stop_time",
+      "count": 4,
+      "effort": "A review pass in your scheduling software.",
+      "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
       "owner": "Likely your export tool",
-      "points": 4.4,
+      "points": 4.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "196 of 671 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "Some stops exist in the feed but no trip ever stops at them.",
+      "why": "Riders may walk to a stop where no bus is scheduled to arrive."
     }
   ],
   "validator_version": "8.0.1"

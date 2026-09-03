@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "fresno-area-express-fax",
-    "name": "Fresno Area Express (FAX)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/fresno-area-express-fax/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1086,
-        "examples": [
-          "SW WEST - BULLARD -> Sw West - Bullard",
-          "SW WEST - SHAW -> Sw West - Shaw",
-          "SW WEST - SHIELDS -> Sw West - Shields"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 1086
+    "name": "Fresno Area Express (FAX)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -40,7 +25,7 @@
           "contact": 7.5,
           "fares": 15.0,
           "headsigns": 0.0,
-          "stop_names": 4.2,
+          "stop_names": 4.3,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 0.0
         },
@@ -60,8 +45,11 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 3354,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
-        "mixed_case_stop_name_pct": 27.7,
+        "headsign_scored_pct": 0.0,
+        "mixed_case_stop_name_pct": 28.9,
         "pathways": {
           "has_entrances": false,
           "has_levels": false,
@@ -70,8 +58,15 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 1503,
-        "trips": 3300,
+        "stops": 1480,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 3354,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -80,47 +75,47 @@
       "findings": [
         {
           "code": "scorecard_wheelchair_boarding_unknown",
-          "count": 1503,
+          "count": 1480,
           "effort": "A column in stops.txt; your scheduling software likely has it.",
           "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
           "owner": "Likely your team",
           "points": 25.0,
           "severity": "WARNING",
-          "what": "1503 of 1503 stops don't say whether a wheelchair user can board there.",
+          "what": "1480 of 1480 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 3300,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "count": 3354,
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "3300 of 3300 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "3354 of 3354 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
           "code": "scorecard_stop_names_all_caps",
-          "count": 1086,
+          "count": 1053,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
-          "points": 10.8,
+          "points": 10.7,
           "severity": "INFO",
-          "what": "About 1086 stop names are written in ALL CAPS.",
+          "what": "About 1053 stop names are written in ALL CAPS.",
           "why": "Mixed-case names are easier to read in apps and are read more naturally by screen readers."
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 3300,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "count": 3354,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "3300 of 3300 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "3354 of 3354 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -131,29 +126,29 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
-      "score": 26.7,
+      "score": 26.8,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
     },
     "correctness": {
       "details": {
-        "distinct_codes": 6,
+        "distinct_codes": 10,
         "instances_by_severity": {
           "ERROR": 0,
-          "INFO": 0,
-          "WARNING": 1163
+          "INFO": 2,
+          "WARNING": 1072
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "mixed_case_recommended_field",
-          "count": 1088,
+          "count": 1058,
           "effort": "Often a bulk fix in your scheduling software.",
           "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
           "owner": "Likely your export tool",
@@ -164,36 +159,47 @@
         },
         {
           "code": "stop_too_far_from_shape_using_user_distance",
-          "count": 71,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 8.0,
+          "count": 7,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
+        },
+        {
+          "code": "stops_match_shape_out_of_order",
+          "count": 2,
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+          "why": "Trip planners can draw the bus doubling back or skipping ahead, which confuses riders reading the map."
         },
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "missing_recommended_field",
@@ -216,30 +222,66 @@
           "severity": "WARNING",
           "what": "Some stops sit far from the route line they belong to.",
           "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        },
+        {
+          "code": "trip_coverage_not_active_for_next7_days",
+          "count": 1,
+          "effort": "One setting in most export tools.",
+          "fix": "Trim past service periods the next time you export.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Many of the feed's trips don't run at all in the next 7 days.",
+          "why": "It usually means old service periods are still in the export, making the feed bigger and harder to check."
+        },
+        {
+          "code": "future_calendar",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'future_calendar' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.5,
+          "severity": "INFO",
+          "what": "Future calendar (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
+          "code": "future_feed",
+          "count": 1,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'future_feed' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 0.5,
+          "severity": "INFO",
+          "what": "Future feed (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
         }
       ],
       "name": "correctness",
-      "score": 68.0,
+      "score": 61.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 6 kinds of issue across 1163 instances (0 error, 1163 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 10 kinds of issue across 1074 instances (0 error, 1072 warning, 2 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 34,
-        "feed_end_date": "2026-08-09",
-        "feed_start_date": "2026-06-01",
-        "feed_version": "6.1.26 Production_20260515",
+        "days_until_expiry": 86,
+        "effective_expiry_date": "2026-11-01",
+        "feed_end_date": "2026-11-01",
+        "feed_start_date": "2026-08-10",
+        "feed_version": "8.10.26 Production_20260729",
         "has_feed_info": true,
-        "last_service_date": "2026-08-09",
-        "seasonal_boundary": false,
+        "last_service_date": "2026-11-01",
+        "seasonal_boundary": true,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 56.7,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 34 days.",
+      "summary": "Service data covers the next 86 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -270,7 +312,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 35 days.",
+        "detail": "Service data covers the next 88 days.",
         "key": "current",
         "met": true
       },
@@ -286,17 +328,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "77c310f7b7e639205bc0cf8ca918dad71c353dd13d284006d52e7f8a6769acfe",
-    "size_bytes": 1373256,
+    "sha256": "4f76287f8c05ae0f5e2589d665d7b9a0419c2e7267d7b78ef5634f7752d7783d",
+    "size_bytes": 1378079,
     "static_url": "http://gis4u.fresno.gov/downloads/fax_gtfs.zip"
   },
   "fetch": {
     "final_url": "http://gis4u.fresno.gov/downloads/fax_gtfs.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-05T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -119.90897,
@@ -304,12 +347,32 @@
       -119.68191,
       36.88854
     ],
-    "lat": 36.77222,
-    "lon": -119.78367,
-    "stop_count": 1503
+    "lat": 36.77233,
+    "lon": -119.78279,
+    "stop_count": 1480
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 19,
+        "trip_count": 3354,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 19,
+    "trip_count": 3354
   },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "01"
     ],
@@ -328,22 +391,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 35 days.",
+        "detail": "Service data covers the next 88 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "F",
-    "margin_to_lower_band": 52.3,
-    "margin_to_next_band": 7.7,
-    "score": 52.3
+    "grade": "D",
+    "margin_to_lower_band": 0.1,
+    "margin_to_next_band": 9.9,
+    "score": 60.1
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 5,
       "effort": "A per-route color setting in your scheduling software.",
@@ -355,28 +424,29 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
-      "count": 1352,
+      "count": 1333,
       "effort": "A short text field per affected stop; start with the busiest.",
       "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
       "owner": "",
       "points": 0.0,
       "severity": "INFO",
-      "what": "1352 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"NE Brawley - Shields\", \"SE Shaw - Brawley\", \"SW Shaw - West\", and more).",
+      "what": "1333 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"NE Brawley - Shields\", \"SE Shaw - Brawley\", \"SW Shaw - West\", and more).",
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
-    "boardable_stops": 1503,
+    "boardable_stops": 1480,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 3300
+    "trips_total": 3354
   },
   "route_map": {
     "drawn_route_count": 19,
@@ -388,7 +458,7 @@
         "color": "007DB0",
         "color_name": "teal",
         "has_shape": true,
-        "id": "4232",
+        "id": "4251",
         "label": "01",
         "long": "FAX Q",
         "short": "01",
@@ -399,7 +469,7 @@
         "color": "402020",
         "color_name": "black",
         "has_shape": true,
-        "id": "4233",
+        "id": "4252",
         "label": "03",
         "long": "Herndon",
         "short": "03",
@@ -410,7 +480,7 @@
         "color": "9FCC3B",
         "color_name": "yellow",
         "has_shape": true,
-        "id": "4234",
+        "id": "4253",
         "label": "09",
         "long": "Shaw",
         "short": "09",
@@ -421,7 +491,7 @@
         "color": "D25E3A",
         "color_name": "red",
         "has_shape": true,
-        "id": "4235",
+        "id": "4254",
         "label": "12",
         "long": "Brawley / Inspiration Park",
         "short": "12",
@@ -432,7 +502,7 @@
         "color": "25408F",
         "color_name": "blue",
         "has_shape": true,
-        "id": "4236",
+        "id": "4255",
         "label": "20",
         "long": "Hughes/Mckinley",
         "short": "20",
@@ -443,7 +513,7 @@
         "color": "008286",
         "color_name": "teal",
         "has_shape": true,
-        "id": "4237",
+        "id": "4256",
         "label": "22",
         "long": "West Ave/Tulare",
         "short": "22",
@@ -454,7 +524,7 @@
         "color": "2FB457",
         "color_name": "green",
         "has_shape": true,
-        "id": "4238",
+        "id": "4257",
         "label": "26",
         "long": "Palm/Butler",
         "short": "26",
@@ -465,7 +535,7 @@
         "color": "E21C8E",
         "color_name": "pink",
         "has_shape": true,
-        "id": "4239",
+        "id": "4258",
         "label": "28",
         "long": "DSS/Manchester/West Fresno",
         "short": "28",
@@ -476,7 +546,7 @@
         "color": "55FFCC",
         "color_name": "teal",
         "has_shape": true,
-        "id": "4240",
+        "id": "4259",
         "label": "29",
         "long": "Church",
         "short": "29",
@@ -487,7 +557,7 @@
         "color": "ED1C2E",
         "color_name": "red",
         "has_shape": true,
-        "id": "4241",
+        "id": "4260",
         "label": "32",
         "long": "Fresno St",
         "short": "32",
@@ -498,7 +568,7 @@
         "color": "E67A1E",
         "color_name": "orange",
         "has_shape": true,
-        "id": "4242",
+        "id": "4261",
         "label": "33",
         "long": "Belmont",
         "short": "33",
@@ -509,7 +579,7 @@
         "color": "993F98",
         "color_name": "purple",
         "has_shape": true,
-        "id": "4243",
+        "id": "4262",
         "label": "34",
         "long": "First Street",
         "short": "34",
@@ -520,7 +590,7 @@
         "color": "6065AE",
         "color_name": "purple",
         "has_shape": true,
-        "id": "4244",
+        "id": "4263",
         "label": "35",
         "long": "Olive",
         "short": "35",
@@ -531,7 +601,7 @@
         "color": "00B1EB",
         "color_name": "teal",
         "has_shape": true,
-        "id": "4245",
+        "id": "4264",
         "label": "38",
         "long": "Cedar",
         "short": "38",
@@ -542,7 +612,7 @@
         "color": "964B36",
         "color_name": "brown",
         "has_shape": true,
-        "id": "4246",
+        "id": "4265",
         "label": "39",
         "long": "Fyi/Clinton",
         "short": "39",
@@ -553,7 +623,7 @@
         "color": "BE9CC9",
         "color_name": "pink",
         "has_shape": true,
-        "id": "4247",
+        "id": "4266",
         "label": "41",
         "long": "Malaga/Shields/Chestnut",
         "short": "41",
@@ -564,7 +634,7 @@
         "color": "FBAF19",
         "color_name": "yellow",
         "has_shape": true,
-        "id": "4248",
+        "id": "4267",
         "label": "45",
         "long": "Ashlan",
         "short": "45",
@@ -575,7 +645,7 @@
         "color": "006A44",
         "color_name": "green",
         "has_shape": true,
-        "id": "4249",
+        "id": "4268",
         "label": "58",
         "long": "NE Fresno",
         "short": "58",
@@ -586,7 +656,7 @@
         "color": "F39AB8",
         "color_name": "pink",
         "has_shape": true,
-        "id": "4250",
+        "id": "4269",
         "label": "58E",
         "long": "Childrens Hospital",
         "short": "58E",
@@ -594,54 +664,59 @@
         "type_label": "Bus"
       }
     ],
-    "stop_count": 1503,
+    "stop_count": 1480,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.7",
-  "shapes_readiness": {
-    "detail": "All 3300 trips have a shape in shapes.txt.",
-    "status": "ready",
-    "total_trips": 3300,
-    "trips_with_shape": 3300
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
   },
-  "snapshot_date": "2026-07-06",
+  "shapes_readiness": {
+    "detail": "All 3354 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 3354,
+    "trips_with_shape": 3354
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
-      "count": 1503,
+      "count": 1480,
       "effort": "A column in stops.txt; your scheduling software likely has it.",
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
       "rank": 1,
       "severity": "WARNING",
-      "what": "1503 of 1503 stops don't say whether a wheelchair user can board there.",
+      "what": "1480 of 1480 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 3300,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "count": 3354,
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "3300 of 3300 trips don't say whether the vehicle is wheelchair accessible.",
+      "what": "3354 of 3354 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
     },
     {
       "code": "scorecard_missing_headsigns",
-      "count": 3300,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
-      "owner": "Likely your export tool",
+      "count": 3354,
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
       "points": 15.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "3300 of 3300 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "3354 of 3354 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     }
   ],
   "validator_version": "8.0.1"

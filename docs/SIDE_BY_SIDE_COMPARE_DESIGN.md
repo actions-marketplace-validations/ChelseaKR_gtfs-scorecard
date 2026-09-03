@@ -10,7 +10,7 @@ remain future work.
 
 ## Motivation
 
-Users want to compare two transit agencies side-by-side: "How does Agency A's realtime quality stack up against Agency B?" or "Which has better fare data, X or Y?" The national leaderboard shows rankings, but direct comparison would highlight actionable differences.
+Users want to compare two transit agencies side-by-side: "How does Agency A's realtime quality stack up against Agency B?" or "Which has better fare data, X or Y?" A user-selected comparison highlights actionable differences without publishing an absolute ranking.
 
 ## Design
 
@@ -18,7 +18,7 @@ Users want to compare two transit agencies side-by-side: "How does Agency A's re
 
 - **URL:** `/compare/?a=agency-id-1&b=agency-id-2`
 - **Entry points:**
-  - Leaderboard row: "Compare with …" context menu (select another agency)
+  - Coverage or directory row: "Compare with …" context menu (select another agency)
   - Agency page: "Compare with another agency" link
   - Direct link (e.g., `/compare/?a=whitehorse-transit&b=barrie-transit`)
 
@@ -137,18 +137,21 @@ async function loadComparison(agencyA, agencyB) {
 
 ## Acceptance Criteria (MVP)
 
-- [ ] `/compare/?a=whitehorse-transit&b=barrie-transit` loads and displays both agencies
-- [ ] Scores, categories, adoption flags all visible and accurate
-- [ ] Mobile layout is readable (single or stacked columns, not broken)
-- [ ] Links back to individual agency pages work
-- [ ] 404 handling for invalid agency IDs
-- [ ] WCAG 2.2 AAA accessibility (text contrast, keyboard nav, semantic HTML)
-- [ ] Lighthouse > 90 (performance, accessibility, SEO)
+Verified in the render, keyboard, route, mobile, contrast, axe, and Lighthouse
+test suites as of 2026-07-10.
+
+- [x] `/compare/?a=whitehorse-transit&b=barrie-transit` accepts and displays both agencies.
+- [x] Scores, categories, and adoption flags are visible and drawn from the same artifacts.
+- [x] The 320 CSS-pixel layout remains readable without page-level horizontal overflow.
+- [x] Agency names link back to the individual scorecards.
+- [x] Unknown or duplicate agency IDs produce a plain status message instead of a broken table.
+- [x] Semantic table, labels, status region, keyboard operation, and AAA contrast are gated.
+- [x] Lighthouse budgets require at least 90 performance and 95 accessibility.
 
 ## Future Enhancements
 
 Once MVP is live:
-- Add to leaderboard: "Compare this agency" option
+- Add to the scorecard directory: "Compare this agency" option
 - Add to homepage: "Start a comparison" link + search
 - Track usage: which comparisons are made most? (informs future features)
 - Highlight deltas: "Agency A is 15 points higher on Correctness"

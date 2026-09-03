@@ -13,6 +13,7 @@ const POLL_INTERVAL_MS = 3000;
 const POLL_TIMEOUT_MS = 3 * 60 * 1000;
 
 const form = /** @type {HTMLFormElement} */ (document.getElementById("try-form"));
+const hosted = /** @type {HTMLElement} */ (document.getElementById("hosted-scorer"));
 const status = /** @type {HTMLElement} */ (document.getElementById("try-status"));
 const result = /** @type {HTMLElement} */ (document.getElementById("try-result"));
 
@@ -29,25 +30,62 @@ function esc(text) {
   return div.innerHTML;
 }
 
+/** Encode untrusted text for a quoted HTML attribute. `esc` deliberately
+ *  leaves quote characters alone (safe in text content); a value that reaches
+ *  an attribute must also neutralize `"`/`'` or it can close the attribute
+ *  early and add its own (job data is user-submitted). @param {unknown} text */
+function escAttr(text) {
+  return esc(text).replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
+/** Return the URL only if it is http(s); otherwise "#". Blocks javascript:/data:
+ *  URLs in the job response from becoming clickable XSS sinks.
+ *  @param {string} url @returns {string} */
+function safeUrl(url) {
+  try {
+    const u = new URL(url, location.href);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.href : "#";
+  } catch {
+    return "#";
+  }
+}
+
 /** @param {string} [grade] */
 function gradeClass(grade) {
-  return `grade-${String(grade || "f").toLowerCase()}`;
+  const normalized = String(grade || "F").toUpperCase();
+  const safe = ["A", "B", "C", "D", "F"].includes(normalized) ? normalized : "F";
+  return `grade-${safe.toLowerCase()}`;
 }
 
 if (!TRY_URL) {
-  setStatus(
-    "Instant scoring is not enabled on this deployment yet. Use the form below instead.",
-    "info"
-  );
-  form?.querySelector("button")?.setAttribute("disabled", "true");
+  // The available GitHub request is already first in the document. Keep an
+  // unavailable control out of the task flow instead of presenting a disabled
+  // primary button.
+  hosted.hidden = true;
 } else {
+  hosted.hidden = false;
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(form).entries());
     const url = String(data.url || "").trim();
     const name = String(data.name || "").trim();
-    if (!/^https?:\/\/.+/i.test(url)) {
+    const country = String(data.country || "").trim().toUpperCase();
+    const urlField = /** @type {HTMLInputElement} */ (form.querySelector("#try-url"));
+    const countryField = /** @type {HTMLInputElement} */ (
+      form.querySelector("#try-country")
+    );
+    urlField.removeAttribute("aria-invalid");
+    countryField.removeAttribute("aria-invalid");
+    if (!urlField.validity.valid || !/^https?:\/\/.+/i.test(url)) {
       setStatus("The GTFS Schedule URL should start with http:// or https://.", "err");
+      urlField.setAttribute("aria-invalid", "true");
+      urlField.focus();
+      return;
+    }
+    if (!countryField.validity.valid || !/^[A-Z]{2}$/.test(country)) {
+      setStatus("Enter a two-letter ISO country or territory code, like CA or NZ.", "err");
+      countryField.setAttribute("aria-invalid", "true");
+      countryField.focus();
       return;
     }
 
@@ -61,7 +99,7 @@ if (!TRY_URL) {
       const resp = await fetch(TRY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, name }),
+        body: JSON.stringify({ url, name, country }),
       });
       const body = await resp.json().catch(() => ({}));
       if (resp.status === 429) {
@@ -76,7 +114,7 @@ if (!TRY_URL) {
         "Downloading your feed and running the validator. This takes about a minute…",
         "info"
       );
-      await poll(body.job_id, url, name);
+      await poll(body.job_id, url, name, country);
     } catch {
       setStatus("Could not reach the scoring service. Please try again later.", "err");
     } finally {
@@ -85,8 +123,13 @@ if (!TRY_URL) {
   });
 }
 
-/** @param {string} jobId @param {string} url @param {string} name */
-async function poll(jobId, url, name) {
+/**
+ * @param {string} jobId
+ * @param {string} url
+ * @param {string} name
+ * @param {string} country
+ */
+async function poll(jobId, url, name, country) {
   const deadline = Date.now() + POLL_TIMEOUT_MS;
   const base = TRY_URL.replace(/\/$/, "");
   while (Date.now() < deadline) {
@@ -101,7 +144,7 @@ async function poll(jobId, url, name) {
     }
     if (job.status === "done") {
       setStatus("Done.", "ok");
-      await showResult(job, url, name);
+      await showResult(job, url, name, country);
       return;
     }
     if (job.status === "error") {
@@ -115,8 +158,13 @@ async function poll(jobId, url, name) {
   );
 }
 
-/** @param {any} job @param {string} url @param {string} name */
-async function showResult(job, url, name) {
+/**
+ * @param {any} job
+ * @param {string} url
+ * @param {string} name
+ * @param {string} country
+ */
+async function showResult(job, url, name, country) {
   /** @type {any} */
   let artifact = null;
   if (job.result_url) {
@@ -127,13 +175,16 @@ async function showResult(job, url, name) {
       /* fall back to the grade-only summary below */
     }
   }
-  const trackUrl = `submit.html?url=${encodeURIComponent(url)}${name ? `&name=${encodeURIComponent(name)}` : ""}`;
+  const trackUrl =
+    `submit.html?url=${encodeURIComponent(url)}` +
+    `${name ? `&name=${encodeURIComponent(name)}` : ""}` +
+    `&country=${encodeURIComponent(country)}`;
 
   if (!artifact) {
     result.innerHTML = `
       <h2 class="section-title" id="try-result-h" tabindex="-1">Overall grade: ${esc(job.grade || "—")}</h2>
-      <p><a href="${esc(job.result_url || "#")}">View the full result</a></p>
-      <p class="field"><a class="submit-button" href="${esc(trackUrl)}">Track this feed daily</a></p>`;
+      <p><a href="${escAttr(safeUrl(job.result_url || "#"))}">View the full result</a></p>
+      <p class="field"><a class="submit-button" href="${escAttr(trackUrl)}">Track this feed daily</a></p>`;
   } else {
     const cats = CATEGORY_ORDER.map((key) => {
       const cat = artifact.categories?.[key];
@@ -151,8 +202,8 @@ async function showResult(job, url, name) {
         (${esc(String(artifact.overall?.score ?? "—"))}/100)</h2>
       <dl>${cats}</dl>
       ${fixes ? `<h3>Top things to fix</h3><ol>${fixes}</ol>` : "<p>Nothing urgent turned up. This feed passed every check we translate into fixes.</p>"}
-      <p><a href="${esc(job.result_url || "#")}">View the full JSON result</a></p>
-      <p class="field"><a class="submit-button" href="${esc(trackUrl)}">Track this feed daily</a></p>`;
+      <p><a href="${escAttr(safeUrl(job.result_url || "#"))}">View the full JSON result</a></p>
+      <p class="field"><a class="submit-button" href="${escAttr(trackUrl)}">Track this feed daily</a></p>`;
   }
   result.hidden = false;
   /** @type {HTMLElement | null} */ (result.querySelector("#try-result-h"))?.focus();

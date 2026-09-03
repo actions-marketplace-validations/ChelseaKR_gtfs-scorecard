@@ -11,8 +11,8 @@ file (``render-site`` runs it too); ``tests/test_generated_constants.py``
 fails CI when the committed copy no longer matches a fresh render.
 
 Constants whose semantics live elsewhere are imported from their home module
-(``metrics.STALE_FEED_DAYS``, ``score.GRADE_BANDS``, ``site_shell``'s category
-and severity labels, the ``rule_links`` table). Presentation constants that had
+(``metrics`` freshness thresholds, ``score.GRADE_BANDS``, ``site_shell``'s
+category and severity labels, the ``rule_links`` table). Presentation constants that had
 no single Python home before (grade order and rank, size-tier display words,
 the fix-guide base URL) are defined here, and the Python renderers import them
 from here for the same one-definition guarantee.
@@ -25,7 +25,14 @@ from pathlib import Path
 from typing import Any
 
 from .config import repo_root
-from .metrics import STALE_FEED_DAYS
+from .jurisdiction_guidance import (
+    JURISDICTION_GUIDANCE,
+    SUPPORT_RESOURCES,
+    UNIVERSAL_GUIDANCE,
+    US_NTD_GUIDANCE,
+    US_STATE_SUBDIVISION_CODES,
+)
+from .metrics import SERVICE_HORIZON_REVIEW_YEARS, STALE_FEED_DAYS
 from .rule_links import AUTHORITY_LABELS, RULE_LINKS, VALIDATOR_RULES_PAGE
 from .score import GRADE_BANDS
 from .site_shell import CATEGORY_LABELS, CATEGORY_ORDER, SEVERITY_LABELS
@@ -49,11 +56,25 @@ TIER_LABELS = {"small": "small", "medium": "mid-size", "large": "large"}
 # Repo-relative path of the generated ES module.
 GENERATED_PATH = Path("web") / "src" / "generated" / "constants.js"
 
+# Repo-relative path of the generated string-catalog module. Same contract:
+# the app imports its externalized English copy from here instead of keeping
+# literals inline, and the reviewed catalog in locales/app.en.json is the one
+# place that copy is edited.
+STRINGS_GENERATED_PATH = Path("web") / "src" / "generated" / "strings.js"
+
+_STRINGS_HEADER = (
+    "// GENERATED — do not edit; run `scorecard render-constants`.\n"
+    "// Source of truth: pipeline/src/scorecard_pipeline/locales/app.en.json\n"
+    "// (the interactive app's reviewed English string catalog; i18n.py owns\n"
+    "// the catalog contract and the derived en-XA pseudolocale).\n"
+    "// pipeline/tests/test_generated_constants.py fails CI when this file drifts.\n"
+)
+
 _HEADER = (
     "// GENERATED — do not edit; run `scorecard render-constants`.\n"
     "// Source of truth: pipeline/src/scorecard_pipeline/constants_export.py\n"
-    "// (grade bands from score.py, STALE_FEED_DAYS from metrics.py, category and\n"
-    "// severity labels from site_shell.py, rule links from rule_links.py).\n"
+    "// (grade bands from score.py, freshness thresholds from metrics.py, category\n"
+    "// and severity labels from site_shell.py, rule links from rule_links.py).\n"
     "// pipeline/tests/test_generated_constants.py fails CI when this file drifts.\n"
 )
 
@@ -63,6 +84,7 @@ def _exports() -> dict[str, Any]:
     order they are emitted. Every value must be JSON-serializable."""
     return {
         "STALE_FEED_DAYS": STALE_FEED_DAYS,
+        "SERVICE_HORIZON_REVIEW_YEARS": SERVICE_HORIZON_REVIEW_YEARS,
         "GRADE_BANDS": [{"min_score": floor, "grade": letter} for floor, letter in GRADE_BANDS],
         "GRADE_ORDER": GRADE_ORDER,
         "GRADE_RANK": GRADE_RANK,
@@ -82,6 +104,11 @@ def _exports() -> dict[str, Any]:
             }
             for code, link in RULE_LINKS.items()
         },
+        "UNIVERSAL_GUIDANCE": UNIVERSAL_GUIDANCE,
+        "US_NTD_GUIDANCE": US_NTD_GUIDANCE,
+        "JURISDICTION_GUIDANCE": JURISDICTION_GUIDANCE,
+        "SUPPORT_RESOURCES": SUPPORT_RESOURCES,
+        "US_STATE_SUBDIVISION_CODES": US_STATE_SUBDIVISION_CODES,
     }
 
 
@@ -100,4 +127,21 @@ def write_constants(path: Path | None = None) -> Path:
     target = path if path is not None else repo_root() / GENERATED_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(render_constants_js())
+    return target
+
+
+def render_strings_js() -> str:
+    """The generated string-catalog ES module as one deterministic string."""
+    from .i18n import load_app_catalog, validate_catalogs
+
+    validate_catalogs()
+    catalog = json.dumps(load_app_catalog("en"), sort_keys=True, indent=2, ensure_ascii=False)
+    return f"{_STRINGS_HEADER}\nexport const STRINGS = {catalog};\n"
+
+
+def write_strings(path: Path | None = None) -> Path:
+    """Write the generated string-catalog module and return the path written."""
+    target = path if path is not None else repo_root() / STRINGS_GENERATED_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(render_strings_js())
     return target

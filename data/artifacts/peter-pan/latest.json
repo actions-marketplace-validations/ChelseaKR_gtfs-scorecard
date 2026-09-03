@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "peter-pan",
-    "name": "Peter Pan"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/peter-pan/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/peter-pan/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_route_name_case",
-        "count": 36,
-        "examples": [
-          "ALBANY - SPRINGFIELD - PROVIDENCE -> Albany - Springfield - Providence",
-          "BALTIMORE - NEWARK -> Baltimore - Newark",
-          "NEWARK - BALTIMORE -> Newark - Baltimore"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 36
+    "name": "Peter Pan",
+    "subdivision_code": "US-MA",
+    "subdivision_name": "Massachusetts"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
@@ -57,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": false,
+        "headsign_applicable_trips": 576,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 99.1,
+        "headsign_scored_pct": 99.1,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 97,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 576,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 576,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -111,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 5,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 0.1,
           "severity": "WARNING",
-          "what": "5 of 576 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "5 of 576 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -178,7 +176,7 @@
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -195,13 +193,13 @@
         {
           "code": "route_long_name_contains_short_name",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "trip_coverage_not_active_for_next7_days",
@@ -228,24 +226,24 @@
         {
           "code": "service_window_outside_feed_period",
           "count": 25,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
@@ -256,13 +254,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -552,
+        "days_until_expiry": -584,
+        "effective_expiry_date": "2024-12-31",
         "feed_end_date": "2024-12-31",
         "feed_start_date": "2024-06-07",
         "feed_version": "UTC: 07-Jun-2024 22:29",
         "has_feed_info": true,
         "last_service_date": "2024-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -274,14 +275,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 552 day(s) ago.",
+          "what": "Service data ended 584 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 552 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 584 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -290,6 +291,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -300,7 +313,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 543 days ago.",
+        "detail": "Service data expired 571 days ago.",
         "key": "current",
         "met": false
       },
@@ -311,7 +324,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 543 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 571 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -320,7 +333,14 @@
     "size_bytes": 6040365,
     "static_url": "https://data.trilliumtransit.com/gtfs/peterpan-ma-us/peterpan-ma-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/peterpan-ma-us/peterpan-ma-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -77.03004,
@@ -332,8 +352,28 @@
     "lon": -72.24956,
     "stop_count": 97
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 51,
+        "trip_count": 576,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 51,
+    "trip_count": 576
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "642",
       "641"
@@ -353,13 +393,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 543 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 571 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 543 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 571 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -369,6 +414,7 @@
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -380,6 +426,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 51,
       "effort": "A per-route color setting in your scheduling software.",
@@ -391,6 +438,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 27,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -403,8 +451,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -426,9 +474,591 @@
     "single_stop_trips": 0,
     "trips_total": 576
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 51,
+    "has_shapes": true,
+    "path": "data/artifacts/peter-pan/geometry.geojson",
+    "route_count": 51,
+    "routes": [
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14253",
+        "label": "Peter Pan",
+        "long": "AMHERST - NORTHAMPTON - SPRINGFIELD - WORCESTER - BOSTON",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14255",
+        "label": "Peter Pan",
+        "long": "BOSTON - WORCESTER - HARTFORD - WATERBURY - NEW YORK Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14256",
+        "label": "Peter Pan",
+        "long": "BOSTON - NEW YORK Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14257",
+        "label": "Peter Pan",
+        "long": "BOSTON - WORCESTER - SPRINGFIELD - NORTHAMPTON - AMHERST",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14260",
+        "label": "Peter Pan",
+        "long": "NEW YORK - WATERBURY - HARTFORD - WORCESTER - BOSTON Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14263",
+        "label": "Peter Pan",
+        "long": "SILVER SPRING CONNECTOR SHUTTLE",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14265",
+        "label": "Peter Pan",
+        "long": "PHILADELPHIA - NEW YORK Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14267",
+        "label": "Peter Pan",
+        "long": "AMHERST - NORTHAMPTON - SPRINGFIELD - HARTFORD - NEW YORK Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14268",
+        "label": "Peter Pan",
+        "long": "WASHINGTON DC - BALTIMORE - NEW YORK Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14281",
+        "label": "Peter Pan",
+        "long": "NEW YORK - HARTFORD - SPRINGFIELD - NORTHAMPTON - AMHERST Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14284",
+        "label": "Peter Pan",
+        "long": "NEW YORK - BALTIMORE - WASHINGTON DC Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14294",
+        "label": "Peter Pan",
+        "long": "ALBANY - SPRINGFIELD - PROVIDENCE",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14313",
+        "label": "Peter Pan",
+        "long": "BOSTON LOGAN AIRPORT - BOSTON - HYANNIS",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14329",
+        "label": "Peter Pan",
+        "long": "PROVIDENCE - SPRINGFIELD - ALBANY",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14333",
+        "label": "Peter Pan",
+        "long": "BOSTON LOGAN AIRPORT - BOSTON - PROVIDENCE",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14335",
+        "label": "Peter Pan",
+        "long": "BOSTON LOGAN AIRPORT - BOSTON - FALMOUTH - WOODS HOLE",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14337",
+        "label": "Peter Pan",
+        "long": "NEW YORK - BOSTON Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14338",
+        "label": "Peter Pan",
+        "long": "AMHERST - NORTHAMPTON - BOSTON College Express",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14339",
+        "label": "Peter Pan",
+        "long": "AMHERST - NORTHAMPTON - NEW YORK College Express",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14343",
+        "label": "Peter Pan",
+        "long": "HYANNIS - PROVINCETOWN",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14344",
+        "label": "Peter Pan",
+        "long": "PROVINCETOWN - HYANNIS",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14345",
+        "label": "Peter Pan",
+        "long": "WOODS HOLE - FALMOUTH - BOSTON - BOSTON LOGAN AIRPORT",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14346",
+        "label": "Peter Pan",
+        "long": "HYANNIS - BOSTON - BOSTON LOGAN AIRPORT",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14347",
+        "label": "Peter Pan",
+        "long": "PROVIDENCE - BOSTON - BOSTON LOGAN AIRPORT",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14348",
+        "label": "Peter Pan",
+        "long": "CAPE COD - PROVIDENCE - NEW YORK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14349",
+        "label": "Peter Pan",
+        "long": "NEW YORK - PHILADELPHIA Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14350",
+        "label": "Peter Pan",
+        "long": "NEW YORK - PROVIDENCE Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14351",
+        "label": "Peter Pan",
+        "long": "PROVIDENCE - NEW YORK Express Service",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14353",
+        "label": "Peter Pan",
+        "long": "NEW YORK - PROVIDENCE - CAPE COD",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14354",
+        "label": "Peter Pan",
+        "long": "PHILADELPHIA - BALTIMORE - WASHINGTON DC",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14355",
+        "label": "Peter Pan",
+        "long": "WASHINGTON DC - BALTIMORE - PHILADELPHIA",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14357",
+        "label": "Peter Pan",
+        "long": "NEW YORK - WATERBURY - BERKSHIRES - WILLIAMSTOWN",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14472",
+        "label": "Peter Pan",
+        "long": "WILLIAMSTOWN - BERKSHIRES - WATERBURY - NEW YORK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76980",
+        "label": "Peter Pan",
+        "long": "BALTIMORE - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76981",
+        "label": "Peter Pan",
+        "long": "NEWARK - BALTIMORE",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76982",
+        "label": "Peter Pan",
+        "long": "BOSTON LOGAN AIRPORT - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76983",
+        "label": "Peter Pan",
+        "long": "NEWARK - BOSTON LOGAN AIRPORT",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76984",
+        "label": "Peter Pan",
+        "long": "HARTFORD - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76986",
+        "label": "Peter Pan",
+        "long": "Peter Pan - NEWARK - HARTFORD",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76987",
+        "label": "Peter Pan",
+        "long": "WORCESTER - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76988",
+        "label": "Peter Pan",
+        "long": "NEWARK - WORCESTER",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77007",
+        "label": "Peter Pan",
+        "long": "NEWARK - WASHINGTON DC",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77027",
+        "label": "Peter Pan",
+        "long": "NEW YORK - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77028",
+        "label": "Peter Pan",
+        "long": "NEWARK - NEW YORK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77029",
+        "label": "Peter Pan",
+        "long": "PHILADELPHIA - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77030",
+        "label": "Peter Pan",
+        "long": "NEWARK - PHILADELPHIA",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77031",
+        "label": "Peter Pan",
+        "long": "WASHINGTON DC - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77033",
+        "label": "Peter Pan",
+        "long": "BOSTON SOUTH STATION - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77034",
+        "label": "Peter Pan",
+        "long": "PNEWARK - BOSTON SOUTH STATION",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77035",
+        "label": "Peter Pan",
+        "long": "SILVER SPRING - NEWARK",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3C974D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "77036",
+        "label": "Peter Pan",
+        "long": "NEWARK - SILVER SPRING",
+        "short": "Peter Pan",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 97,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 576 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 576,
+    "trips_with_shape": 576
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -439,7 +1069,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 552 day(s) ago.",
+      "what": "Service data ended 584 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -457,8 +1087,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 576,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,

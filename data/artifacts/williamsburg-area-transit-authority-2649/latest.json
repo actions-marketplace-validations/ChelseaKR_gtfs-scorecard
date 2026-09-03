@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "williamsburg-area-transit-authority-2649",
-    "name": "Williamsburg Area Transit Authority"
-  },
-  "autofix": {
-    "available": false
+    "name": "Williamsburg Area Transit Authority",
+    "subdivision_code": "US-VA",
+    "subdivision_name": "Virginia"
   },
   "categories": {
     "completeness": {
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 1260,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 87.3,
+        "headsign_scored_pct": 87.3,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -57,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 590,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1260,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -78,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1260,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -100,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 160,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 1.9,
           "severity": "WARNING",
-          "what": "160 of 1260 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "160 of 1260 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -117,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         },
         {
           "code": "scorecard_station_no_pathways",
@@ -201,16 +210,30 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 31,
+        "days_until_expiry": 24,
+        "effective_expiry_date": "2026-08-31",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
-        "last_service_date": "2026-08-06",
+        "last_service_date": "2026-08-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 56.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 24 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        },
         {
           "code": "scorecard_missing_feed_info_dates",
           "count": 1,
@@ -224,9 +247,9 @@
         }
       ],
       "name": "freshness",
-      "score": 36.7,
+      "score": 25.0,
       "status": "measured",
-      "summary": "Service data covers the next 31 days.",
+      "summary": "Service data runs out in 24 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
@@ -257,9 +280,9 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 31 days.",
+        "detail": "Service data runs out in 25 days; renew to qualify.",
         "key": "current",
-        "met": true
+        "met": false
       },
       {
         "detail": "States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each.",
@@ -268,22 +291,23 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data runs out in 25 days; renew to qualify. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "f1724d1dbffe98ee0404955a9d65b979430d9b40e537c9bf58a96b40f660e633",
-    "size_bytes": 247762,
+    "sha256": "f5f927c52fe92c478ec026d2ca9b7baf03ceabd509f3e7f1337e76215c9429e3",
+    "size_bytes": 247744,
     "static_url": "https://gtfs.wata.cadavl.com/WATA/GTFS/GTFS_WATA.zip"
   },
   "fetch": {
     "final_url": "https://gtfs.wata.cadavl.com/WATA/GTFS/GTFS_WATA.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-06T00:00:00+00:00",
+  "generated_at": "2026-08-06T00:00:00+00:00",
   "geo": {
     "bbox": [
       -76.82154,
@@ -295,8 +319,28 @@
     "lon": -76.72827,
     "stop_count": 590
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 13,
+        "trip_count": 1260,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 13,
+    "trip_count": 1260
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1567"
     ],
@@ -315,22 +359,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 31 days.",
+        "detail": "Service data runs out in 25 days; renew before you certify.",
         "key": "current",
+        "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
-    "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "status": "at_risk",
+    "summary": "This feed is close to NTD-ready. Service data runs out in 25 days; renew before you certify."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 58.6,
-    "margin_to_next_band": 1.4,
-    "score": 58.6
+    "margin_to_lower_band": 55.7,
+    "margin_to_next_band": 4.3,
+    "score": 55.7
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 4,
       "effort": "A per-route color setting in your scheduling software.",
@@ -342,6 +392,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 474,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -353,6 +404,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -364,6 +416,11 @@
       "why": "Without pathways and levels, a wheelchair user can't tell whether a step-free route exists inside the station, and trip planners can't route anyone through it."
     }
   ],
+  "recompute": {
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
+    "kind": "freshness"
+  },
   "routability": {
     "boardable_stops": 295,
     "findings": [
@@ -536,16 +593,33 @@
     "stop_count": 590,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.7",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
   "shapes_readiness": {
     "detail": "All 1260 trips have a shape in shapes.txt.",
     "status": "ready",
     "total_trips": 1260,
     "trips_with_shape": 1260
   },
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 56.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 24 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 590,
@@ -553,7 +627,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 1,
+      "rank": 2,
       "severity": "WARNING",
       "what": "590 of 590 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -561,26 +635,14 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 1260,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
-      "owner": "Likely your export tool",
-      "points": 15.0,
-      "rank": 2,
-      "severity": "WARNING",
-      "what": "1260 of 1260 trips don't say whether the vehicle is wheelchair accessible.",
-      "why": "Even with accessible stops, riders need to know the bus itself can take them."
-    },
-    {
-      "code": "scorecard_missing_feed_info_dates",
-      "count": 1,
-      "effort": "Two fields, set once in export settings.",
-      "fix": "Add feed_info.txt with feed_start_date and feed_end_date to your export.",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "feed_info.txt is missing its start/end dates (the file itself is absent)",
-      "why": "Apps and this scorecard can't warn anyone before the feed goes stale without stated validity dates."
+      "what": "1260 of 1260 trips don't say whether the vehicle is wheelchair accessible.",
+      "why": "Even with accessible stops, riders need to know the bus itself can take them."
     }
   ],
   "validator_version": "8.0.1"

@@ -5,6 +5,23 @@ branding:
   icon: "check-circle"
   color: "green"
 
+outputs:
+  grade:
+    description: "Overall letter grade (A, B, C, D, or F)."
+    value: ${{ steps.gate.outputs.grade }}
+  score:
+    description: "Overall numeric score from 0 to 100."
+    value: ${{ steps.gate.outputs.score }}
+  days-to-expiry:
+    description: "Published service days remaining, or blank when unavailable."
+    value: ${{ steps.gate.outputs.days-to-expiry }}
+  passed:
+    description: "true when scoring and every configured threshold passed."
+    value: ${{ steps.gate.outputs.passed }}
+  result-json:
+    description: "Path to the complete scorecard JSON artifact for later workflow steps."
+    value: ${{ steps.gate.outputs.result-json }}
+
 inputs:
   feed-url:
     description: "Direct link to a GTFS Schedule zip to score."
@@ -21,12 +38,24 @@ inputs:
     description: "Agency name to show in the report (default: the feed host)."
     required: false
     default: ""
+  country:
+    description: "Assigned ISO 3166-1 alpha-2 feed country used by the validator."
+    required: false
+    default: "US"
   html:
     description: "Path to also write a standalone HTML scorecard (relative to the workspace). Leave blank to skip."
     required: false
     default: ""
+  json:
+    description: "Path for the complete scorecard JSON. Defaults to a runner temporary file."
+    required: false
+    default: ""
+  summary:
+    description: "Write a plain-language scorecard to the GitHub job summary (true or false)."
+    required: false
+    default: "true"
   ref:
-    description: "Ref of gtfs-scorecard to install the scorer from (branch, tag, or SHA). Defaults to the version this action was called as, so pinning the action (e.g. @v1) installs the matching scorer; falls back to main."
+    description: "Deprecated compatibility input. The scorer is bundled with the Action release, so its version always matches the Action ref."
     required: false
     default: ""
 
@@ -34,30 +63,51 @@ runs:
   using: "composite"
   steps:
     - name: Set up Java for the GTFS validator
-      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+      uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
       with:
         distribution: temurin
         java-version: "17"
     - name: Set up uv
-      uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+      uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
+      with:
+        version: "0.11.29"
+        enable-cache: false
+        ignore-empty-workdir: true
     - name: Run the scorecard gate
+      id: gate
       shell: bash
       env:
         FEED_URL: ${{ inputs.feed-url }}
         MIN_GRADE: ${{ inputs.min-grade }}
         MIN_DAYS: ${{ inputs.min-days-to-expiry }}
         FEED_NAME: ${{ inputs.name }}
+        FEED_COUNTRY: ${{ inputs.country }}
         HTML_OUT: ${{ inputs.html }}
-        # An explicit ref wins; otherwise install the scorer from the same ref
-        # this action was referenced at (github.action_ref), so @v1 is reproducible
-        # rather than floating on main. Falls back to main for local/`./` use.
-        SCORECARD_REF: ${{ inputs.ref != '' && inputs.ref || github.action_ref || 'main' }}
+        JSON_OUT: ${{ inputs.json }}
+        WRITE_SUMMARY: ${{ inputs.summary }}
+        # Keep the downloaded Action tree immutable and all feed/validator
+        # scratch data under the runner's temporary directory.
+        SCORECARD_ROOT: ${{ runner.temp }}/gtfs-scorecard-work
+        UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/gtfs-scorecard-venv
       run: |
         set -euo pipefail
+        result_json="${JSON_OUT:-${RUNNER_TEMP}/gtfs-scorecard-result.json}"
         args=("$FEED_URL")
+        args+=(--country "$FEED_COUNTRY")
         if [[ -n "$FEED_NAME" ]]; then args+=(--name "$FEED_NAME"); fi
         if [[ -n "$HTML_OUT" ]]; then args+=(--html "$HTML_OUT"); fi
         if [[ -n "$MIN_GRADE" ]]; then args+=(--min-grade "$MIN_GRADE"); fi
         if [[ -n "$MIN_DAYS" ]]; then args+=(--min-days-to-expiry "$MIN_DAYS"); fi
-        uvx --from "git+https://github.com/ChelseaKR/gtfs-scorecard@${SCORECARD_REF}#subdirectory=pipeline" \
+        args+=(--json-out "$result_json")
+        set +e
+        uv run --project "${GITHUB_ACTION_PATH}/pipeline" --locked --no-dev \
           scorecard try "${args[@]}"
+        gate_rc=$?
+        set -e
+        python "${GITHUB_ACTION_PATH}/action/render_result.py" \
+          --json "$result_json" \
+          --gate-rc "$gate_rc" \
+          --min-grade "$MIN_GRADE" \
+          --min-days "$MIN_DAYS" \
+          --write-summary "$WRITE_SUMMARY"
+        exit "$gate_rc"

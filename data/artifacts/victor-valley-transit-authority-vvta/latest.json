@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "victor-valley-transit-authority-vvta",
-    "name": "Victor Valley Transit Authority (VVTA)"
-  },
-  "autofix": {
-    "available": false
+    "name": "Victor Valley Transit Authority (VVTA)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 15.4
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 1921,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 1065,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1921,
         "wheelchair_accessible_pct": 15.4,
         "wheelchair_boarding_pct": 0.0,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1626,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 12.7,
           "severity": "WARNING",
@@ -102,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -130,7 +143,7 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -141,8 +154,8 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "expired_calendar",
@@ -152,7 +165,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -169,13 +182,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "trip_coverage_not_active_for_next7_days",
@@ -208,13 +221,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -464,
+        "days_until_expiry": -496,
+        "effective_expiry_date": "2025-03-29",
         "feed_end_date": "2025-03-29",
         "feed_start_date": "2024-10-06",
         "feed_version": "2024.09",
         "has_feed_info": true,
         "last_service_date": "2025-03-29",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -226,14 +242,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 464 day(s) ago.",
+          "what": "Service data ended 496 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 464 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 496 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -242,6 +258,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -252,7 +280,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 455 days ago.",
+        "detail": "Service data expired 489 days ago.",
         "key": "current",
         "met": false
       },
@@ -263,7 +291,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 455 days ago. States wheelchair access on 0% of stops and 15% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 489 days ago. States wheelchair access on 0% of stops and 15% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -272,7 +300,14 @@
     "size_bytes": 852256,
     "static_url": "https://data.trilliumtransit.com/gtfs/victorville-ca-us/victorville-ca-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/victorville-ca-us/victorville-ca-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-31T00:00:00+00:00",
   "geo": {
     "bbox": [
       -117.64701,
@@ -284,10 +319,31 @@
     "lon": -117.29266,
     "stop_count": 1065
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 33,
+        "trip_count": 1921,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 33,
+    "trip_count": 1921
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "Your agency.txt sets no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked on the P-50 form.",
     "feed_agency_ids": [],
-    "status": "unknown"
+    "fix": "Add agency_id to agency.txt and use the same value wherever routes.txt identifies that agency. Keep it stable, and enter its crosswalk to the reporter's NTD ID on P-50. It does not need to equal the five-digit NTD ID.",
+    "status": "missing"
   },
   "ntd_readiness": {
     "pillars": [
@@ -302,13 +358,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 455 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 489 days ago, so FTA would find the link out of date.",
         "key": "current",
+        "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form.",
+        "key": "agency_id",
         "status": "not_ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 455 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 489 days ago, so FTA would find the link out of date. agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form."
   },
   "overall": {
     "grade": "F",
@@ -318,6 +379,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 1028,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -330,8 +392,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -341,9 +403,393 @@
     "single_stop_trips": 0,
     "trips_total": 1921
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 33,
+    "has_shapes": true,
+    "path": "data/artifacts/victor-valley-transit-authority-vvta/geometry.geojson",
+    "route_count": 33,
+    "routes": [
+      {
+        "color": "2AD2C9",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "Barstow City Hall - Armory + Chateau",
+        "short": "1",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F4DA40",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "111",
+        "label": "111",
+        "long": "Fort Irwin - Barstow",
+        "short": "111",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F8A3BC",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "114",
+        "label": "114",
+        "long": "Fort Irwin - Hesperia",
+        "short": "114",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00B5E2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "115",
+        "label": "115",
+        "long": "Fort Irwin - Helendale",
+        "short": "115",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "44D62C",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "118",
+        "label": "118",
+        "long": "Fort Irwin - Hesperia via Barstow",
+        "short": "118",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F93822",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "15",
+        "label": "15",
+        "long": "Barstow - Victorville - San Benrardino",
+        "short": "15",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "97D700",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "2",
+        "label": "2",
+        "long": "Barstow City Hall - Barstow College",
+        "short": "2",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2CD5C4",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "20",
+        "label": "20",
+        "long": "Hesperia Super Target - Pinon Hills",
+        "short": "20",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FB637E",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "21",
+        "label": "21",
+        "long": "Hesperia Super Target - Wrightwood",
+        "short": "21",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "44D62C",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "22",
+        "label": "22",
+        "long": "Victorville - Helendale",
+        "short": "22",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2AD2C9",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "23",
+        "label": "23",
+        "long": "Apple Valley - Lucerne Valley",
+        "short": "23",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF3EB5",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "27",
+        "label": "27",
+        "long": "Barstow - Hinkley",
+        "short": "27",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BFB800",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "28",
+        "label": "28",
+        "long": "Barstow - Helendale",
+        "short": "28",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CAA2DD",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "29",
+        "label": "29",
+        "long": "Barstow - Newberry Springs",
+        "short": "29",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF9D47",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "3",
+        "label": "3",
+        "long": "Barstow City Hall - Lenwood",
+        "short": "3",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F3D03E",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "31",
+        "label": "31",
+        "long": "Victorville - Highway 395 + Crossroads",
+        "short": "31",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8B84D7",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "32",
+        "label": "32",
+        "long": "Victorville - North Adelanto",
+        "short": "32",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "97D700",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "33",
+        "label": "33",
+        "long": "Hwy 395 + Crossroads - Bartlett + Greening",
+        "short": "33",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF9D47",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "40",
+        "label": "40",
+        "long": "Apple Valley Post Office - Walmart",
+        "short": "40",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFA8BA",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "41",
+        "label": "41",
+        "long": "Apple Valley - Victorville",
+        "short": "41",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "49D9FD",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "42",
+        "label": "42",
+        "long": "Victor Valley College - Public Safety Training Center",
+        "short": "42",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "97D700",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "43",
+        "label": "43",
+        "long": "Apple Valley Post Office - Victor Valley College",
+        "short": "43",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF6A39",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "47",
+        "label": "47",
+        "long": "Apple Valley Post Office - Bear Valley + Navajo",
+        "short": "47",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D8AE15",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "49",
+        "label": "49",
+        "long": "Apple Valley - Victor Valley Mall",
+        "short": "49",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0E721",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "50",
+        "label": "50",
+        "long": "Victorville - Hesperia",
+        "short": "50",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF9D47",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "52",
+        "label": "52",
+        "long": "Victor Valley Transportation Center - Mall of Victor Valley",
+        "short": "52",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "85ADFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "53",
+        "label": "53",
+        "long": "Victor Valley College - Mall of Victor Valley",
+        "short": "53",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FB637E",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "55",
+        "label": "55",
+        "long": "Victor Valley Transportation Center - Victor Valley College",
+        "short": "55",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2AD2C9",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "56",
+        "label": "56",
+        "long": "Victor Valley Transportation Center - Lorene + 7th",
+        "short": "56",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F4DA40",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "6",
+        "label": "6",
+        "long": "Barstow City Hall - Rimrock + N St",
+        "short": "6",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F1B434",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "64",
+        "label": "64",
+        "long": "Hesperia Post Office - Super Target",
+        "short": "64",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2CD5C4",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "66",
+        "label": "66",
+        "long": "Hesperia East Deviation",
+        "short": "66",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F7B8FF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "68",
+        "label": "68",
+        "long": "Hesperia Post Office - Super Target",
+        "short": "68",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 1065,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1921 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1921,
+    "trips_with_shape": 1921
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -354,7 +800,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 464 day(s) ago.",
+      "what": "Service data ended 496 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

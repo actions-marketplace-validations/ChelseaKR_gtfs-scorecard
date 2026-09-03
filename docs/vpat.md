@@ -3,13 +3,16 @@
 **Name of product:** GTFS Scorecard (public website, single-page app, GitHub Action)
 **Report date:** 2026-06-22
 **Standard evaluated:** Revised Section 508 Standards (36 CFR Part 1194), which
-incorporate **WCAG 2.0 Level AA**. The product is built and tested to **WCAG 2.2 Level
-AAA** (see `docs/accessibility.md`), which exceeds this bar.
+incorporate **WCAG 2.0 Level AA**. The product targets **WCAG 2.2 Level AAA** and
+enforces automated accessibility gates described in `docs/accessibility.md`.
 
 **Evaluation methods:** automated checks (`pipeline/scripts/check_contrast.py` for
-contrast across every theme; axe-core and Lighthouse in CI — `.github/workflows/a11y.yml`),
-plus manual keyboard and assistive-technology review. Evidence and per-criterion AAA
-notes live in `docs/accessibility.md`.
+contrast across every theme; axe-core on representative routes in
+`.github/workflows/a11y.yml`; Lighthouse on the landing page in
+`.github/workflows/pages.yml`) plus browser-based keyboard review. The planned
+NVDA/Firefox and VoiceOver/Safari passes have
+not yet been recorded; `docs/accessibility-testing.md` is the evidence log and must be
+completed before this report claims assistive-technology verification.
 
 ## Conformance levels used
 
@@ -51,7 +54,7 @@ notes live in `docs/accessibility.md`.
 | --- | --- | --- | --- |
 | 1.2.4 / 1.2.5 Captions / Audio Description | AA | Not Applicable | No multimedia. |
 | 1.4.3 Contrast (Minimum) | AA | Supports | All themes clear AAA 7:1; gated by `check_contrast.py`. Exceeds the AA 4.5:1 bar. |
-| 1.4.4 Resize Text | AA | Supports | Reflows to 200%+ with relative units; verified in Phase 2 zoom matrix. |
+| 1.4.4 Resize Text | AA | Supports | Uses relative units and responsive layouts; browser QA covers 200% text resize and 320px reflow. |
 | 1.4.5 Images of Text | AA | Supports | Text is live text; no images of text. |
 | 2.4.5 Multiple Ways | AA | Supports | Primary nav, breadcrumbs, search, agency index, map, and footer links. |
 | 2.4.6 Headings and Labels | AA | Supports | Descriptive headings and labels throughout. |
@@ -100,8 +103,8 @@ notes live in `docs/accessibility.md`.
   The conformant equivalents exist elsewhere and are linked prominently at the top of
   the page, with a "Skip to the accessible agency list" bypass before the map: the
   sortable, screen-reader-friendly **agencies list (`/agencies/`)**, the
-  **leaderboard (`/leaderboard/`)**, and each **per-agency scorecard's route table**
-  (`/agency/<id>/`), which together carry the same route, type, grade, and agency
+  **coverage change view (`/pulse/#changes`)**, and each **per-agency scorecard's
+  route table** (`/agency/<id>/`), which together carry the same route, type, grade, and agency
   information in operable, semantic form. We report this page as **Partially Supports**:
   the page chrome conforms; the map widget's internal exploration does not, and is not
   the route to the data.
@@ -110,7 +113,7 @@ notes live in `docs/accessibility.md`.
 
 | Criterion | Conformance | Remarks |
 | --- | --- | --- |
-| 302.1 Without Vision | Supports (verification in Phase 2) | Semantic structure, alt text, ARIA; screen-reader walkthrough recorded in Phase 2. |
+| 302.1 Without Vision | Not Evaluated | Semantic structure, alt text, and ARIA are present; the planned screen-reader walkthrough is not yet recorded. |
 | 302.2 With Limited Vision | Supports | AAA contrast, 200%+ reflow, a color-theme mechanism incl. high contrast. |
 | 302.3 Without Perception of Color | Supports | No color-only meaning (1.4.1). |
 | 302.4 Without Hearing | Not Applicable | No audio. |
@@ -144,5 +147,7 @@ Not Applicable. The product is web content and software; it ships no hardware.
 
 ## Revision history
 
+- 2026-07-13 — Corrected the evaluation-method description, recorded the 200%
+  text-resize check, and kept screen-reader testing explicitly pending.
 - 2026-06-22 — Initial 508-edition report. Companion to `docs/accessibility.md`
   (WCAG 2.2 AAA detail) and `docs/section-508-plan.md` (remaining work).

@@ -120,7 +120,7 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 118,
+        "days_until_expiry": 114,
         "feed_end_date": "2026-11-01",
         "feed_start_date": "2026-04-24",
         "feed_version": "UTC: 24-Apr-2026 20:37",
@@ -133,7 +133,7 @@
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 118 days.",
+      "summary": "Service data covers the next 114 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -232,8 +232,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-07-10",
+    "feed_fetched_date": "2026-07-09",
     "kind": "freshness"
   },
   "routability": {
@@ -245,7 +245,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-07-10",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",

@@ -238,7 +238,7 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -400,
+        "days_until_expiry": -404,
         "feed_end_date": "2025-06-01",
         "feed_start_date": "2024-12-23",
         "feed_version": "UTC: 24-Dec-2024 01:24",
@@ -256,14 +256,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 400 day(s) ago.",
+          "what": "Service data ended 404 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 400 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 404 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -272,6 +272,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -282,7 +294,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 398 days ago.",
+        "detail": "Service data expired 404 days ago.",
         "key": "current",
         "met": false
       },
@@ -293,7 +305,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 398 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 404 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -309,7 +321,7 @@
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-07-10T00:00:00+00:00",
   "geo": {
     "bbox": [
       -124.17378,
@@ -341,13 +353,13 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 398 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 404 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 398 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 404 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -357,6 +369,7 @@
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -368,6 +381,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 200,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -379,11 +393,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 256,
     "findings": [
@@ -480,8 +489,14 @@
     "stop_points_capped": false
   },
   "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "schema_version": "1.7",
+  "shapes_readiness": {
+    "detail": "All 100 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 100,
+    "trips_with_shape": 100
+  },
+  "snapshot_date": "2026-07-10",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -492,7 +507,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 400 day(s) ago.",
+      "what": "Service data ended 404 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "greater-attleboro-taunton-regional-transit-authority-gatra",
-    "name": "Greater Attleboro Taunton Regional Transit Authority (GATRA)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/greater-attleboro-taunton-regional-transit-authority-gatra/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/greater-attleboro-taunton-regional-transit-authority-gatra/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 2,
-        "examples": [
-          "SRTA -> Srta",
-          "SRTA -> Srta"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 2
+    "name": "Greater Attleboro Taunton Regional Transit Authority (GATRA)",
+    "subdivision_code": "US-MA",
+    "subdivision_name": "Massachusetts"
   },
   "categories": {
     "completeness": {
@@ -32,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -56,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 910,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 99.6,
         "pathways": {
           "has_entrances": false,
@@ -67,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 567,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 910,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -88,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 910,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -110,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 910,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "910 of 910 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "910 of 910 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -127,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         },
         {
           "code": "scorecard_station_no_pathways",
@@ -184,7 +183,7 @@
           "code": "unused_shape",
           "count": 7,
           "effort": "One setting.",
-          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
@@ -199,19 +198,19 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "missing_recommended_file",
@@ -221,7 +220,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
@@ -255,13 +254,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -442,
+        "days_until_expiry": -474,
+        "effective_expiry_date": "2025-04-20",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2025-04-20",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -273,7 +275,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 442 day(s) ago.",
+          "what": "Service data ended 474 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -291,7 +293,7 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 442 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 474 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -300,6 +302,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -310,7 +324,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 433 days ago.",
+        "detail": "Service data expired 461 days ago.",
         "key": "current",
         "met": false
       },
@@ -321,7 +335,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 433 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 461 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -330,7 +344,14 @@
     "size_bytes": 1190317,
     "static_url": "https://data.trilliumtransit.com/gtfs/gatra-ma-us/gatra-ma-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/gatra-ma-us/gatra-ma-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -71.40655,
@@ -342,8 +363,28 @@
     "lon": -71.08838,
     "stop_count": 567
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 25,
+        "trip_count": 910,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 25,
+    "trip_count": 910
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "GATRA"
     ],
@@ -362,13 +403,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 433 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 461 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 433 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 461 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -378,6 +424,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 3,
       "effort": "A per-route color setting in your scheduling software.",
@@ -389,6 +436,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 200,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -400,6 +448,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -412,8 +461,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -435,9 +484,305 @@
     "single_stop_trips": 0,
     "trips_total": 910
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 25,
+    "has_shapes": true,
+    "path": "data/artifacts/greater-attleboro-taunton-regional-transit-authority-gatra/geometry.geojson",
+    "route_count": 25,
+    "routes": [
+      {
+        "color": "592E84",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "Attleboro/N. Attleborough",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1D376C",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "11",
+        "label": "11",
+        "long": "South Attleboro Connector",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008657",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "12",
+        "label": "12",
+        "long": "Attleboro/South Attleboro",
+        "short": "12",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7DBD42",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "14",
+        "label": "14",
+        "long": "North Attleborough/Plainville",
+        "short": "14",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F4C414",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "15",
+        "label": "15",
+        "long": "Sturdy Hospital/La Salette",
+        "short": "15",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF8A21",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "16",
+        "label": "16",
+        "long": "Seekonk/Attleboro",
+        "short": "16",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF4B5E",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "18",
+        "label": "18",
+        "long": "Taunton/Norton/Attleboro",
+        "short": "18",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "56C1A6",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "2",
+        "label": "2",
+        "long": "Broadway/Market Basket",
+        "short": "2",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A31F36",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "4",
+        "label": "4",
+        "long": "Weir/Westside",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFC5A4",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "Walmart/E. Taunton/Target",
+        "short": "5",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A950",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6",
+        "label": "6",
+        "long": "Whittenton",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B3BE35",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "7",
+        "label": "7",
+        "long": "School St./Route 44",
+        "short": "7",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "8",
+        "label": "8",
+        "long": "County St./Target",
+        "short": "8",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "595E4D",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "Downtown Middleborough Shuttle",
+        "label": "DMS",
+        "long": "Downtown Middleborough Shuttle",
+        "short": "DMS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "005BFA",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "Freedom Link",
+        "label": "FL",
+        "long": "Freedom Link",
+        "short": "FL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0E3990",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "Liberty Link",
+        "label": "LIB",
+        "long": "Liberty Link",
+        "short": "LIB",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AE2721",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "Link 1",
+        "label": "L1",
+        "long": "Wareham/Onset/Wareham",
+        "short": "L1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "37810A",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "Link 2",
+        "label": "L2",
+        "long": "Cranberry Plaza To Buzzards Bay",
+        "short": "L2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "001EBD",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "Link 4",
+        "label": "L4",
+        "long": "Cranberry Plaza To West Wareham",
+        "short": "L4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "438128",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "Manomet/Cedarville Link",
+        "label": "MC",
+        "long": "Manomet/Cedarville Link",
+        "short": "MC",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EA5F25",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "Mayflower Link",
+        "label": "ML",
+        "long": "Mayflower Link",
+        "short": "ML",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4598CC",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "Medway T Shuttle",
+        "label": "MT",
+        "long": "Medway T Shuttle",
+        "short": "MT",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D3312C",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "SAIL",
+        "label": "SAI",
+        "long": "Marshfield/Duxbury/Kingston",
+        "short": "SAI",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF0033",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "Wareham Plymouth Connection",
+        "label": "WP",
+        "long": "Wareham Plymouth Connection",
+        "short": "WP",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "70A4F7",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "Wareham-New Bedford Connection",
+        "label": "WNB",
+        "long": "Wareham-New Bedford Connection",
+        "short": "WNB",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 567,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 910 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 910,
+    "trips_with_shape": 910
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -448,7 +793,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 442 day(s) ago.",
+      "what": "Service data ended 474 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -466,8 +811,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 910,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,

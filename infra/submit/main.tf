@@ -1,5 +1,5 @@
 # Self-serve submission: a Lambda behind an HTTP API Gateway that opens a PR
-# adding an agency to agencies.yaml (docs/roadmap.md, Year 1). The web form
+# adding an agency to registry/intake.yaml (docs/roadmap.md, Year 1). The web form
 # POSTs here.
 #
 # Uses API Gateway (not a Lambda function URL) because this account blocks public
@@ -18,8 +18,24 @@ terraform {
   }
 }
 
+# Cost allocation: see the note in infra/artifacts/main.tf. `project` is the
+# activated cost-allocation tag key, so untagged resources are invisible to the
+# per-project budget; declaring it here covers every taggable resource in this
+# module.
+locals {
+  default_tags = {
+    project    = var.project
+    component  = "submit"
+    managed-by = "terraform"
+  }
+}
+
 provider "aws" {
   region = var.region
+
+  default_tags {
+    tags = local.default_tags
+  }
 }
 
 variable "project" {

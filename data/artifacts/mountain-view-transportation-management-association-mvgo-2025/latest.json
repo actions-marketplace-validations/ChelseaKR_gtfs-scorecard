@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "mountain-view-transportation-management-association-mvgo-2025",
-    "name": "Mountain View Transportation Management Association (MVgo)"
-  },
-  "autofix": {
-    "available": false
+    "name": "Mountain View Transportation Management Association (MVgo)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 104,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 35,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 104,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 100.0,
@@ -69,7 +82,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         },
         {
           "code": "scorecard_station_no_pathways",
@@ -108,7 +121,7 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -125,35 +138,35 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "big_gap_in_service",
           "count": 20,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Big gap in service (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         },
         {
           "code": "unknown_file",
           "count": 6,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
@@ -164,13 +177,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 179,
+        "days_until_expiry": 147,
+        "effective_expiry_date": "2027-01-01",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": true,
         "last_service_date": "2027-01-01",
-        "seasonal_boundary": false,
+        "seasonal_boundary": true,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -189,25 +205,66 @@
       "name": "freshness",
       "score": 85.0,
       "status": "measured",
-      "summary": "Service data covers the next 179 days.",
+      "summary": "Service data covers the next 147 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": null,
+        "alerts_content": {
+          "alerts": 2,
+          "ended_over_30_days_ago": 0,
+          "with_cause_and_effect": 0,
+          "with_description": 2,
+          "with_header_text": 2,
+          "with_informed_entity": 2
+        },
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": 100.0,
+        "covered_trips": 7,
+        "drift": {
+          "median_seconds": 0,
+          "observations": 672,
+          "on_time_share_pct": 87.1,
+          "p90_abs_seconds": 530
+        },
+        "kinds_configured": 3,
         "kinds_reachable": 3,
+        "reachable_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 0,
+        "scheduled_trips_in_window": 7,
+        "vehicles_checked": 18,
+        "vehicles_on_route_pct": 100.0,
         "worst_lag_seconds": 0
       },
       "findings": [],
       "name": "realtime",
       "score": 100.0,
       "status": "measured",
-      "summary": "Sampled 9 times outside service hours: 3 of 3 feeds healthy.",
+      "summary": "Sampled 9 times: 3 of 3 configured feeds healthy; 100.0% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 0s behind schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": true,
@@ -218,7 +275,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 188 days.",
+        "detail": "Service data covers the next 149 days.",
         "key": "current",
         "met": true
       },
@@ -234,11 +291,18 @@
   "feed": {
     "license_note": "License: https://mvgo.org/developers/",
     "reachable": true,
-    "sha256": "eee7c1b24720b2e98b416d220c87208d4a703b7f7a9b83f135c89ab6e93a840c",
-    "size_bytes": 275671,
+    "sha256": "930ffee14aa5fc4554e2872d5798e309873ec8510a33113720c5e75270e9334f",
+    "size_bytes": 303503,
     "static_url": "https://mvgo.org/data/gtfs.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://gtfs.mvgo.org/gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.11162,
@@ -250,8 +314,28 @@
     "lon": -122.07813,
     "stop_count": 35
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 10,
+        "trip_count": 104,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 10,
+    "trip_count": 104
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "533"
     ],
@@ -270,13 +354,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 188 days.",
+        "detail": "Service data covers the next 149 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
@@ -286,6 +375,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 5,
       "effort": "A per-route color setting in your scheduling software.",
@@ -297,6 +387,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 4,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -308,6 +399,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -320,8 +412,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -331,9 +423,140 @@
     "single_stop_trips": 0,
     "trips_total": 104
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 10,
+    "has_shapes": true,
+    "path": "data/artifacts/mountain-view-transportation-management-association-mvgo-2025/geometry.geojson",
+    "route_count": 10,
+    "routes": [
+      {
+        "color": "1F51FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "5783",
+        "label": "A - AM",
+        "long": "Whisman, Clyde & Middlefield",
+        "short": "A - AM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E08926",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "5784",
+        "label": "B - AM",
+        "long": "Shoreline, La Avenida, Crittenden",
+        "short": "B - AM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E08926",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "5785",
+        "label": "B - PM",
+        "long": "Shoreline, Crittenden, La Avenida",
+        "short": "B - PM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1F51FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "5786",
+        "label": "A - PM",
+        "long": "Middlefield, Clyde & Whisman",
+        "short": "A - PM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "43B5AE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "5787",
+        "label": "C - AM",
+        "long": "Charleston, Garcia & San Antonio (Counterclockwise loop)",
+        "short": "C - AM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "43B5AE",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "5788",
+        "label": "C - PM",
+        "long": "Charleston, Garcia & San Antonio (Counterclockwise loop)",
+        "short": "C - PM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FDDD00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "5789",
+        "label": "D - AM",
+        "long": "San Antonio, Garcia & Charleston (Clockwise loop)",
+        "short": "D - AM",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FDDD00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "5790",
+        "label": "D - PM",
+        "long": "San Antonio, Garcia & Charleston (Clockwise loop)",
+        "short": "D - PM",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FDDD00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "5791",
+        "label": "D - PM Concert",
+        "long": "San Antonio, Garcia & Charleston (Clockwise loop) - Concert",
+        "short": "D - PM Concert",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E08926",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "5792",
+        "label": "B - PM Concert",
+        "long": "Shoreline, Crittenden, La Avenida - Concert",
+        "short": "B - PM Concert",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 35,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 104 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 104,
+    "trips_with_shape": 104
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_missing_feed_info_dates",
@@ -356,7 +579,7 @@
       "points": 6.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "Some files are missing recommended (not required) fields.",
+      "what": "Some files leave out fields that GTFS asks for but does not require.",
       "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
     },
     {

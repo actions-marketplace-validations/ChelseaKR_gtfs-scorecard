@@ -186,13 +186,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -96,
+        "days_until_expiry": -128,
+        "effective_expiry_date": "2026-04-01",
         "feed_end_date": "2026-04-01",
         "feed_start_date": "2025-09-13",
         "feed_version": "UTC: 13-Sep-2025 15:57",
         "has_feed_info": true,
         "last_service_date": "2026-04-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -204,14 +207,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 96 day(s) ago.",
+          "what": "Service data ended 128 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 96 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 128 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -321,8 +324,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -334,7 +337,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -345,7 +348,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 96 day(s) ago.",
+      "what": "Service data ended 128 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

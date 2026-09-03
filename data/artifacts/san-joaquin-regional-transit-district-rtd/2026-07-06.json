@@ -224,7 +224,7 @@
         "met": true
       },
       {
-        "detail": "Service data runs out in 20 days; renew to qualify.",
+        "detail": "Service data runs out in 19 days; renew to qualify.",
         "key": "current",
         "met": false
       },
@@ -235,7 +235,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data runs out in 20 days; renew to qualify. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data runs out in 19 days; renew to qualify. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: http://sanjoaquinrtd.com/preview/terms-of-use/",
@@ -250,7 +250,7 @@
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-05T00:00:00+00:00",
+  "generated_at": "2026-07-06T00:00:00+00:00",
   "geo": {
     "bbox": [
       -121.89784,
@@ -282,13 +282,13 @@
         "status": "ready"
       },
       {
-        "detail": "Service data runs out in 20 days; renew before you certify.",
+        "detail": "Service data runs out in 19 days; renew before you certify.",
         "key": "current",
         "status": "at_risk"
       }
     ],
     "status": "at_risk",
-    "summary": "This feed is close to NTD-ready. Service data runs out in 20 days; renew before you certify."
+    "summary": "This feed is close to NTD-ready. Service data runs out in 19 days; renew before you certify."
   },
   "overall": {
     "grade": "D",
@@ -309,11 +309,6 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 870,
     "findings": [],

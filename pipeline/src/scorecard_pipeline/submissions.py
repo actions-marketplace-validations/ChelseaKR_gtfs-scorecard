@@ -2,9 +2,9 @@
 
 The roadmap's Year 1 onboarding path (docs/roadmap.md): an agency or a liaison
 submits a feed URL through a short web form, and instead of asking them to learn
-YAML, a small serverless function opens a pull request that adds the
-agencies.yaml block. A human still reviews and merges, so nothing reaches the
-live scorecard unvetted.
+YAML, a small serverless function opens a pull request that adds an entry to
+``registry/intake.yaml``. A human still reviews and merges, so nothing reaches
+the live scorecard unvetted.
 
 This module is the pure core of that function: it validates the form with the
 same rules the registry loader uses (so a bad submission is rejected with one
@@ -33,7 +33,7 @@ class Submission:
 
     agency_id: str
     branch: str
-    file_content: str  # the full new agencies.yaml
+    file_content: str  # the full new registry/intake.yaml
     commit_message: str
     pr_title: str
     pr_body: str
@@ -45,7 +45,7 @@ def _clean(form: dict[str, str], key: str) -> str:
 
 
 def form_to_entry(form: dict[str, str]) -> dict[str, object]:
-    """Build an agencies.yaml entry mapping from submitted form fields.
+    """Build a registry entry mapping from submitted form fields.
 
     The id is derived from the agency name so submitters never supply a slug.
     Realtime URLs are optional and only included when given.
@@ -56,6 +56,23 @@ def form_to_entry(form: dict[str, str]) -> dict[str, object]:
         "name": name,
         "static_gtfs_url": _clean(form, "static_gtfs_url"),
     }
+    country = _clean(form, "country").upper()
+    subdivision_code = _clean(form, "subdivision_code").upper()
+    subdivision_name = _clean(form, "subdivision_name")
+    if not country and (subdivision_code or subdivision_name):
+        raise AgencyConfigError("Country is required when a subdivision code or name is submitted.")
+    if bool(subdivision_code) != bool(subdivision_name):
+        raise AgencyConfigError(
+            "Submit both an ISO subdivision code and subdivision name, or leave both blank."
+        )
+    # An omitted country is the legacy API shape and intentionally keeps the
+    # registry's US default. New browser submissions always send this field.
+    if country:
+        entry["country"] = country
+    if subdivision_code:
+        entry["subdivision_code"] = subdivision_code
+    if subdivision_name:
+        entry["subdivision_name"] = subdivision_name
     rt_urls = {field: _clean(form, field) for field in RT_FIELDS if _clean(form, field)}
     if rt_urls:
         entry["rt_urls"] = rt_urls
@@ -66,11 +83,15 @@ def form_to_entry(form: dict[str, str]) -> dict[str, object]:
     return entry
 
 
-def build_submission(form: dict[str, str], existing_yaml: str) -> Submission:
-    """Validate a submission and produce the new agencies.yaml plus PR metadata.
+def build_submission(
+    form: dict[str, str], existing_yaml: str, known_ids: set[str] | None = None
+) -> Submission:
+    """Validate a submission and produce the new intake shard plus PR metadata.
 
     Raises AgencyConfigError (with a plain-language message) if the entry is
-    invalid or duplicates an agency already in the registry.
+    invalid or duplicates an agency already in the registry. ``existing_yaml``
+    is the intake shard the new entry is appended to; ``known_ids`` covers
+    entries already curated into another manifest-listed shard.
     """
     entry = form_to_entry(form)
     if not entry["name"]:
@@ -78,6 +99,7 @@ def build_submission(form: dict[str, str], existing_yaml: str) -> Submission:
 
     existing = yaml.safe_load(existing_yaml) or {}
     existing_ids = {a.get("id") for a in existing.get("agencies", []) if isinstance(a, dict)}
+    existing_ids |= known_ids or set()
 
     # Reuse the registry's own validator so the form enforces the same rules.
     parse_agencies({"agencies": [entry]})
@@ -95,6 +117,9 @@ def build_submission(form: dict[str, str], existing_yaml: str) -> Submission:
         id=agency_id,
         name=str(entry["name"]),
         static_gtfs_url=str(entry["static_gtfs_url"]),
+        country=str(entry.get("country") or "US"),
+        subdivision_code=str(entry.get("subdivision_code") or ""),
+        subdivision_name=str(entry.get("subdivision_name") or ""),
         rt_urls=dict(rt_urls_entry) if isinstance(rt_urls_entry, dict) else {},
         rt_note=str(entry.get("rt_note") or ""),
         license_note=str(entry.get("license_note") or ""),
@@ -104,6 +129,9 @@ def build_submission(form: dict[str, str], existing_yaml: str) -> Submission:
 
     submitter = _clean(form, "submitter_email")
     credit = f"\n\nSubmitted via the self-serve form by {submitter}." if submitter else ""
+    location = str(entry.get("country") or "US")
+    if entry.get("subdivision_code"):
+        location += f" / {entry['subdivision_code']} ({entry.get('subdivision_name', '')})"
     return Submission(
         agency_id=agency_id,
         branch=f"submit-{agency_id}",
@@ -111,8 +139,9 @@ def build_submission(form: dict[str, str], existing_yaml: str) -> Submission:
         commit_message=f"feat(agency): add {entry['name']} via self-serve form",
         pr_title=f"Add {entry['name']} to the scorecard",
         pr_body=(
-            f"Adds **{entry['name']}** (`{agency_id}`) to `agencies.yaml`.\n\n"
+            f"Adds **{entry['name']}** (`{agency_id}`) to `registry/intake.yaml`.\n\n"
             f"- Static GTFS: {entry['static_gtfs_url']}\n"
+            f"- Location: {location}\n"
             f"- Realtime: {'yes' if proposal.rt_urls else 'none submitted'}\n\n"
             "The daily pipeline will score it automatically once merged. Please "
             "verify the feed URL and license before merging." + credit

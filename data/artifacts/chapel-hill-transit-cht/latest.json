@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "chapel-hill-transit-cht",
-    "name": "Chapel Hill Transit (CHT)"
-  },
-  "autofix": {
-    "available": false
+    "name": "Chapel Hill Transit (CHT)",
+    "subdivision_code": "US-NC",
+    "subdivision_name": "North Carolina"
   },
   "categories": {
     "completeness": {
@@ -18,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
-          "headsigns": 9.6,
+          "headsigns": 9.9,
           "stop_names": 15.0,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 0.0
@@ -42,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 1500,
+        "headsign_loop_exempt_trips": 29,
         "headsign_pct": 64.0,
+        "headsign_scored_pct": 65.9,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 538,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1529,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1529,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -84,14 +97,14 @@
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 551,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 5.4,
+          "count": 522,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
+          "points": 5.1,
           "severity": "WARNING",
-          "what": "551 of 1529 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "522 of 1529 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -106,7 +119,7 @@
         }
       ],
       "name": "completeness",
-      "score": 54.6,
+      "score": 54.9,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
@@ -141,7 +154,7 @@
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -191,24 +204,24 @@
         {
           "code": "service_window_outside_feed_period",
           "count": 9,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
@@ -219,13 +232,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -552,
+        "days_until_expiry": -584,
+        "effective_expiry_date": "2024-12-31",
         "feed_end_date": "2024-12-31",
         "feed_start_date": "2024-05-21",
         "feed_version": "UTC: 21-May-2024 14:03",
         "has_feed_info": true,
         "last_service_date": "2024-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -237,14 +253,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 552 day(s) ago.",
+          "what": "Service data ended 584 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 552 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 584 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -253,6 +269,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -263,7 +291,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 543 days ago.",
+        "detail": "Service data expired 571 days ago.",
         "key": "current",
         "met": false
       },
@@ -274,7 +302,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 543 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 571 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -283,7 +311,14 @@
     "size_bytes": 573900,
     "static_url": "https://data.trilliumtransit.com/gtfs/chapel-hill-transit-nc-us/chapel-hill-transit-nc-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/chapel-hill-transit-nc-us/chapel-hill-transit-nc-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -79.11195,
@@ -295,12 +330,32 @@
     "lon": -79.05718,
     "stop_count": 538
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 24,
+        "trip_count": 1529,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 24,
+    "trip_count": 1529
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id 243; the NTD asks for your five-digit NTD ID (40051) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is 243; your National Transit Database ID is 40051. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "243"
     ],
-    "fix": "Change the agency_id to 40051 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Confirm that P-50 crosswalks agency_id 243 to NTD ID 40051, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "40051",
     "status": "mismatch"
   },
@@ -317,22 +372,28 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 543 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 571 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 543 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 571 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 41.5,
-    "margin_to_next_band": 18.5,
-    "score": 41.5
+    "margin_to_lower_band": 41.6,
+    "margin_to_next_band": 18.4,
+    "score": 41.6
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -344,6 +405,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 12,
       "effort": "A per-route color setting in your scheduling software.",
@@ -355,6 +417,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 13,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -367,8 +430,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -390,9 +453,294 @@
     "single_stop_trips": 0,
     "trips_total": 1529
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 24,
+    "has_shapes": true,
+    "path": "data/artifacts/chapel-hill-transit-cht/geometry.geojson",
+    "route_count": 24,
+    "routes": [
+      {
+        "color": "540B0F",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "1723",
+        "label": "A",
+        "long": "Martin Luther King Jr. Blvd / Northside / University Place",
+        "short": "A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B61E23",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1724",
+        "label": "CCX",
+        "long": "Chatham County Express",
+        "short": "CCX",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EC048B",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1725",
+        "label": "CL",
+        "long": "Sage / Old Oxford Rd / UNC Hospitals",
+        "short": "CL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED1D2C",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1726",
+        "label": "CM",
+        "long": "Carrboro / Merritt Mill Rd",
+        "short": "CM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F48A91",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1728",
+        "label": "CW",
+        "long": "Carrboro / Weaver Street / UNC",
+        "short": "CW",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "707449",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "1729",
+        "label": "D",
+        "long": "UNC Hospitals / Franklin St / Old Durham Rd",
+        "short": "D",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A0CF72",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "1732",
+        "label": "F",
+        "long": "Colony Woods / Franklin St / McDougle School",
+        "short": "F",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D70E8C",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1733",
+        "label": "FCX",
+        "long": "Friday Center Express",
+        "short": "FCX",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2A745",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "1735",
+        "label": "G",
+        "long": "Booker Creek / UNC Hospitals",
+        "short": "G",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5E9DD5",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "1736",
+        "label": "HS",
+        "long": "Morris Grove Elementary / Smith Level Rd",
+        "short": "HS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8C8CC4",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "1738",
+        "label": "J",
+        "long": "Carrboro / Downtown Chapel Hill / Jones Ferry Rd",
+        "short": "J",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "96835D",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "1739",
+        "label": "JFX",
+        "long": "Jones Ferry Road Express",
+        "short": "JFX",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F37228",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "1741",
+        "label": "N",
+        "long": "Estes Park / UNC Hospitals / Meadowmont",
+        "short": "N",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "23408A",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "1742",
+        "label": "NS",
+        "long": "Eubanks Rd / Southern Village",
+        "short": "NS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B7D433",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "1743",
+        "label": "NU",
+        "long": "RR Lot / UNC Hospitals",
+        "short": "NU",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "23408A",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "1745",
+        "label": "RU",
+        "long": "Campus Reverse Shuttle",
+        "short": "RU",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5E9DD5",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "1746",
+        "label": "S",
+        "long": "UNC Campus / Friday Center South Park & Ride",
+        "short": "S",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2A745",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "1747",
+        "label": "Safe Ride G",
+        "long": "Franklin Street / Glen Lennox / Meadowmont",
+        "short": "Safe Ride G",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8C8CC4",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "1748",
+        "label": "Safe Ride J",
+        "long": "Franklin Street / Carrboro / Rock Creek",
+        "short": "Safe Ride J",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "86CDAC",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "1749",
+        "label": "Safe Ride T",
+        "long": "Franklin Street / MLK, Jr. Blvd / Timberlyne",
+        "short": "Safe Ride T",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "86CDAC",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "1750",
+        "label": "T",
+        "long": "MLK, Jr. Blvd / UNC Hospitals",
+        "short": "T",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8ECEF1",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "1752",
+        "label": "U",
+        "long": "Campus Shuttle",
+        "short": "U",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7B205A",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "6821",
+        "label": "B",
+        "long": "Baity Hill / UNC Hospitals",
+        "short": "B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4B8D22",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "76838",
+        "label": "420",
+        "long": "Hillsborough-Chapel Hill (GoTriangle Route Operated by Chapel Hill Transit)",
+        "short": "420",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 538,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1529 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1529,
+    "trips_with_shape": 1529
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -403,7 +751,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 552 day(s) ago.",
+      "what": "Service data ended 584 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

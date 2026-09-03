@@ -5,11 +5,40 @@
 # Java validator via scorecard_pipeline.cli.run_adhoc.
 FROM public.ecr.aws/lambda/python:3.12
 
-# Java 17 for the validator jar.
-RUN dnf install -y java-17-amazon-corretto-headless && dnf clean all
+# Apply Amazon Linux security fixes from a reviewed, content-addressed
+# repository snapshot, then add Java 17 for the validator jar. The immutable
+# GUID avoids both the stale base-image snapshot and a mutable `latest` build.
+ARG AL2023_REPO_GUID=85f850e94b099c03219caec40bfba27b4d5a4f494da0cecd49502a9ad5cd201e
+RUN mkdir -p /tmp/al2023-pinned \
+    && printf '%s\n' \
+        '[amazonlinux]' \
+        'name=Amazon Linux 2023 pinned security snapshot' \
+        "baseurl=https://cdn.amazonlinux.com/al2023/core/guids/${AL2023_REPO_GUID}/\$basearch/" \
+        'enabled=1' \
+        'gpgcheck=1' \
+        'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-amazon-linux-2023' \
+        > /tmp/al2023-pinned/amazonlinux.repo \
+    && dnf upgrade -y --setopt=reposdir=/tmp/al2023-pinned \
+    && dnf install -y --setopt=reposdir=/tmp/al2023-pinned java-17-amazon-corretto-headless \
+    && dnf clean all \
+    && rm -rf /tmp/al2023-pinned
+
+# Drop the AWS Lambda Runtime Interface Emulator, for the reasons spelled out
+# in infra/compute/Dockerfile: it is a local-testing shim, it is the only Go
+# binary in the image, and its vendored Go standard library is a standing
+# source of container CVEs. This handler is deployed only as a
+# `package_type = "Image"` Lambda, where the managed runtime sets
+# AWS_LAMBDA_RUNTIME_API and /lambda-entrypoint.sh execs /var/runtime/bootstrap
+# without touching the emulator. The grep fails the build if a future base
+# image stops gating the emulator on that variable.
+RUN grep -qF -- '-z "${AWS_LAMBDA_RUNTIME_API}"' /lambda-entrypoint.sh \
+    && rm -f /usr/local/bin/aws-lambda-rie
 
 # The pipeline package (this handler imports scorecard_pipeline.cli.run_adhoc).
 COPY pipeline /opt/pipeline
+# Hatch maps this immutable public schema into the installed wheel. Preserve
+# the repository-relative source path while building the package in the image.
+COPY web/schemas/sync-source-metadata-1.2.schema.json /opt/web/schemas/sync-source-metadata-1.2.schema.json
 RUN pip install --no-cache-dir /opt/pipeline boto3
 
 # Bake the validator jar into the image so a cold start never depends on a

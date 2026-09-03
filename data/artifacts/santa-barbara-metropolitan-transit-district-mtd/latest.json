@@ -3,21 +3,6 @@
     "id": "santa-barbara-metropolitan-transit-district-mtd",
     "name": "Santa Barbara Metropolitan Transit District (MTD)"
   },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/santa-barbara-metropolitan-transit-district-mtd/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_route_name_case",
-        "count": 1,
-        "examples": [
-          "UCSB -> Ucsb"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 1
-  },
   "categories": {
     "completeness": {
       "details": {
@@ -58,7 +43,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 7715,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -69,6 +57,13 @@
           "pathway_count": 0
         },
         "stops": 556,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 7715,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 100.0,
@@ -124,20 +119,35 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 41,
+        "days_until_expiry": 9,
+        "effective_expiry_date": "2026-08-16",
         "feed_end_date": "2026-08-16",
         "feed_start_date": "2026-06-15",
         "feed_version": "S1000258",
         "has_feed_info": true,
         "last_service_date": "2026-08-16",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 71.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 9 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
       "name": "freshness",
-      "score": 68.3,
+      "score": 15.0,
       "status": "measured",
-      "summary": "Service data covers the next 41 days.",
+      "summary": "Service data runs out in 9 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
@@ -149,18 +159,18 @@
   },
   "confidence": {
     "feed_age_days": 0,
-    "fetch_source": "origin",
-    "level": "medium",
+    "fetch_source": "mirror",
+    "level": "provisional",
     "measured_categories": 3,
     "notes": [
       "Realtime quality was not measured this run. It does not count against the grade.",
-      "The feed was downloaded from the agency's own URL."
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
     ],
     "rt_windows": 0,
     "total_categories": 4
   },
   "conformance": {
-    "awarded": true,
+    "awarded": false,
     "criteria": [
       {
         "detail": "Passes validation with no errors.",
@@ -168,9 +178,9 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 42 days.",
+        "detail": "Service data runs out in 12 days; renew to qualify.",
         "key": "current",
-        "met": true
+        "met": false
       },
       {
         "detail": "States wheelchair access on 100% of stops and 100% of trips.",
@@ -178,8 +188,8 @@
         "met": true
       }
     ],
-    "status": "awarded",
-    "summary": "This feed earns the conformance mark: valid, current, and stating wheelchair access on nearly every stop and trip."
+    "status": "not_yet",
+    "summary": "This feed is close to the conformance mark. Service data runs out in 12 days; renew to qualify."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -189,12 +199,14 @@
     "static_url": "http://sbmtd.gov/google_transit/feed.zip"
   },
   "fetch": {
-    "final_url": "http://sbmtd.gov/google_transit/feed.zip",
-    "max_attempts": 4,
-    "source": "origin",
+    "final_url": "https://files.mobilitydatabase.org/mdb-1246/latest.zip",
+    "max_attempts": 1,
+    "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
+    "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-05T00:00:00+00:00",
+  "generated_at": "2026-08-04T00:00:00+00:00",
   "geo": {
     "bbox": [
       -119.90581,
@@ -206,8 +218,28 @@
     "lon": -119.72169,
     "stop_count": 556
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 25,
+        "trip_count": 7715,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 25,
+    "trip_count": 7715
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -226,22 +258,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 42 days.",
+        "detail": "Service data runs out in 12 days; renew before you certify.",
         "key": "current",
+        "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
-    "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "status": "at_risk",
+    "summary": "This feed is close to NTD-ready. Service data runs out in 12 days; renew before you certify."
   },
   "overall": {
-    "grade": "B",
-    "margin_to_lower_band": 6.8,
-    "margin_to_next_band": 3.2,
-    "score": 86.8
+    "grade": "C",
+    "margin_to_lower_band": 3.5,
+    "margin_to_next_band": 6.5,
+    "score": 73.5
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 10,
       "effort": "A per-route color setting in your scheduling software.",
@@ -253,6 +291,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 533,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -265,8 +304,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -561,16 +600,33 @@
     "stop_count": 556,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.7",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
   "shapes_readiness": {
     "detail": "All 7715 trips have a shape in shapes.txt.",
     "status": "ready",
     "total_trips": 7715,
     "trips_with_shape": 7715
   },
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 71.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 9 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "fast_travel_between_consecutive_stops",
       "count": 57,
@@ -578,7 +634,7 @@
       "fix": "Check the flagged stop times for transposed minutes.",
       "owner": "",
       "points": 8.0,
-      "rank": 1,
+      "rank": 2,
       "severity": "WARNING",
       "what": "Some scheduled trips move faster between stops than a bus can.",
       "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
@@ -590,7 +646,7 @@
       "fix": "Remove past service periods the next time you export the feed.",
       "owner": "Likely your export tool",
       "points": 4.0,
-      "rank": 2,
+      "rank": 3,
       "severity": "WARNING",
       "what": "Some service calendars in the feed have already ended.",
       "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."

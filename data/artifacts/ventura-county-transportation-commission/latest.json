@@ -1,23 +1,9 @@
 {
   "agency": {
     "id": "ventura-county-transportation-commission",
-    "name": "Ventura County Transportation Commission"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/ventura-county-transportation-commission/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/ventura-county-transportation-commission/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1,
-        "examples": [
-          "CSUCI -> Csuci"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 1
+    "name": "Ventura County Transportation Commission",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -31,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -55,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 495,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 99.2,
         "pathways": {
           "has_entrances": false,
@@ -66,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 120,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 495,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -87,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 495,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -154,7 +154,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -193,24 +193,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -221,13 +221,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -325,
+        "days_until_expiry": -357,
+        "effective_expiry_date": "2025-08-15",
         "feed_end_date": "2025-08-15",
         "feed_start_date": "2025-05-07",
         "feed_version": "UTC: 07-May-2025 21:06",
         "has_feed_info": true,
         "last_service_date": "2025-08-15",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -239,14 +242,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 325 day(s) ago.",
+          "what": "Service data ended 357 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 325 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 357 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -255,6 +258,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -265,7 +280,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 316 days ago.",
+        "detail": "Service data expired 349 days ago.",
         "key": "current",
         "met": false
       },
@@ -276,7 +291,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 316 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 349 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -285,7 +300,14 @@
     "size_bytes": 1214728,
     "static_url": "https://data.trilliumtransit.com/gtfs/vctc-ca-us/vctc-ca-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/vctc-ca-us/vctc-ca-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-30T00:00:00+00:00",
   "geo": {
     "bbox": [
       -119.86559,
@@ -297,12 +319,32 @@
     "lon": -119.17642,
     "stop_count": 120
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 24,
+        "trip_count": 495,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 24,
+    "trip_count": 495
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id 607; the NTD asks for your five-digit NTD ID (90164) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is 607; your National Transit Database ID is 90164. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "607"
     ],
-    "fix": "Change the agency_id to 90164 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Confirm that P-50 crosswalks agency_id 607 to NTD ID 90164, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90164",
     "status": "mismatch"
   },
@@ -319,13 +361,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 316 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 349 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 316 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 349 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -335,6 +382,7 @@
   },
   "recommendations": [
     {
+      "category": "fares",
       "code": "scorecard_fares_v2_no_rider_categories",
       "count": 0,
       "effort": "Usually a short file naming the discount groups you already publish.",
@@ -346,6 +394,7 @@
       "why": "Without rider categories, apps can only show the full adult fare and can't surface senior, youth, or student discounts a rider may be eligible for."
     },
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -357,6 +406,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 56,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -369,8 +419,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -392,9 +442,294 @@
     "single_stop_trips": 0,
     "trips_total": 495
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 24,
+    "has_shapes": true,
+    "path": "data/artifacts/ventura-county-transportation-commission/geometry.geojson",
+    "route_count": 24,
+    "routes": [
+      {
+        "color": "FFD24F",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "11663",
+        "label": "50",
+        "long": "Hwy 101",
+        "short": "50",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "9A1F21",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "11672",
+        "label": "60",
+        "long": "Hwy 126",
+        "short": "60",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5360C6",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "11674",
+        "label": "70",
+        "long": "East County",
+        "short": "70",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF8200",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "11678",
+        "label": "77",
+        "long": "Cross County Limited",
+        "short": "77",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "76A0C4",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "11679",
+        "label": "80",
+        "long": "Coastal Express",
+        "short": "80",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3F547C",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "11681",
+        "label": "80X",
+        "long": "Coastal Express",
+        "short": "80X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BEC5D5",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "11682",
+        "label": "81",
+        "long": "Coastal Express",
+        "short": "81",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "36C7EB",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "11683",
+        "label": "81B",
+        "long": "Coastal Express",
+        "short": "81B",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0076C8",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "11686",
+        "label": "84",
+        "long": "Coastal Express",
+        "short": "84",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "73B8E5",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "11687",
+        "label": "84U",
+        "long": "Coastal Express",
+        "short": "84U",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0A7ECA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "11688",
+        "label": "85",
+        "long": "Coastal Express",
+        "short": "85",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A1BCE5",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "11689",
+        "label": "85C",
+        "long": "Coastal Express",
+        "short": "85C",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2DF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "11690",
+        "label": "86",
+        "long": "Coastal Express",
+        "short": "86",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "94D0F0",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "11691",
+        "label": "87",
+        "long": "Coastal Express",
+        "short": "87",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "002E5C",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "11692",
+        "label": "88",
+        "long": "Coastal Express",
+        "short": "88",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7E8EAB",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "11693",
+        "label": "89",
+        "long": "Coastal Express",
+        "short": "89",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4FAD2F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14122",
+        "label": "99",
+        "long": "CSU Channel Islands",
+        "short": "99",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "82BB27",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "5266",
+        "label": "90",
+        "long": "C Street/CSUCI",
+        "short": "90",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "007836",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "5267",
+        "label": "97",
+        "long": "Cam Metrolink/CSUCI",
+        "short": "97",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFE7B1",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "76445",
+        "label": "55X",
+        "long": "Hwy 101",
+        "short": "55X",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5B2D89",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "77082",
+        "label": "71",
+        "long": "East County",
+        "short": "71",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ACADD5",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "77083",
+        "label": "74",
+        "long": "East County",
+        "short": "74",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7373B6",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "77084",
+        "label": "74X",
+        "long": "East County",
+        "short": "74X",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8462A7",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "77087",
+        "label": "71C",
+        "long": "East County",
+        "short": "71C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 120,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 495 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 495,
+    "trips_with_shape": 495
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -405,7 +740,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 325 day(s) ago.",
+      "what": "Service data ended 357 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

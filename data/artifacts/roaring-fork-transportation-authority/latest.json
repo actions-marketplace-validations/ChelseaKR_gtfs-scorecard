@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "roaring-fork-transportation-authority",
-    "name": "Roaring Fork Transportation Authority"
-  },
-  "autofix": {
-    "available": false
+    "name": "Roaring Fork Transportation Authority",
+    "subdivision_code": "US-CO",
+    "subdivision_name": "Colorado"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 28129,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 211,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 28129,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.0,
@@ -80,7 +93,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -95,27 +108,27 @@
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 0,
-          "WARNING": 9
+          "WARNING": 12
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "expired_calendar",
-          "count": 6,
+          "count": 9,
           "effort": "One setting in most export tools.",
           "fix": "Remove past service periods the next time you export the feed.",
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
           "code": "unused_shape",
           "count": 2,
           "effort": "One setting.",
-          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
@@ -125,37 +138,40 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         }
       ],
       "name": "correctness",
       "score": 86.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 3 kinds of issue across 9 instances (0 error, 9 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 3 kinds of issue across 12 instances (0 error, 12 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 76,
+        "days_until_expiry": 44,
+        "effective_expiry_date": "2026-09-20",
         "feed_end_date": "2026-09-20",
         "feed_start_date": "2026-06-01",
         "feed_version": "S1000162",
         "has_feed_info": true,
         "last_service_date": "2026-09-20",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 73.3,
       "status": "measured",
-      "summary": "Service data covers the next 76 days.",
+      "summary": "Service data covers the next 44 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -164,6 +180,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -174,7 +202,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 85 days.",
+        "detail": "Service data covers the next 51 days.",
         "key": "current",
         "met": true
       },
@@ -194,7 +222,14 @@
     "size_bytes": 3598554,
     "static_url": "https://data.trilliumtransit.com/gtfs/rfta-co-us/rfta-co-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/rfta-co-us/rfta-co-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-31T00:00:00+00:00",
   "geo": {
     "bbox": [
       -107.78402,
@@ -206,8 +241,28 @@
     "lon": -106.92416,
     "stop_count": 211
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 17,
+        "trip_count": 28129,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 17,
+    "trip_count": 28129
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -226,22 +281,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 85 days.",
+        "detail": "Service data covers the next 51 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "B",
-    "margin_to_lower_band": 3.7,
-    "margin_to_next_band": 6.3,
-    "score": 83.7
+    "grade": "C",
+    "margin_to_lower_band": 7.1,
+    "margin_to_next_band": 2.9,
+    "score": 77.1
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -253,6 +314,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 129,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -265,8 +327,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -276,9 +338,217 @@
     "single_stop_trips": 0,
     "trips_total": 28129
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 17,
+    "has_shapes": true,
+    "path": "data/artifacts/roaring-fork-transportation-authority/geometry.geojson",
+    "route_count": 17,
+    "routes": [
+      {
+        "color": "A17DB1",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "BG",
+        "label": "BG",
+        "long": "Burlingame",
+        "short": "BG",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C1CD23",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "BRT",
+        "label": "BRT",
+        "long": "VelociRFTA",
+        "short": "BRT",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2BBFF0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "CC",
+        "label": "CC",
+        "long": "Carbondale Circulator",
+        "short": "CC",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "99CBE5",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "CL",
+        "label": "CL",
+        "long": "Cemetery Lane",
+        "short": "CL",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A691",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "CM",
+        "label": "CM",
+        "long": "Castle Maroon",
+        "short": "CM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "82151D",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "FL",
+        "label": "FL",
+        "long": "Flyer",
+        "short": "FL",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "6ABF69",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "HC",
+        "label": "HC",
+        "long": "Hunter Creek",
+        "short": "HC",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F37322",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "HGB",
+        "label": "HGB",
+        "long": "Hogback",
+        "short": "HGB",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A44927",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "JAS",
+        "label": "JAS",
+        "long": "Jazz Aspen Snowmass",
+        "short": "JAS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2D6FB7",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "L",
+        "label": "L",
+        "long": "Local Valley",
+        "short": "L",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5B524D",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "MS",
+        "label": "MS",
+        "long": "Music School",
+        "short": "MS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4D4D7D",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "MV",
+        "label": "MV",
+        "long": "Mountain Valley",
+        "short": "MV",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "006838",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "RG",
+        "label": "RG",
+        "long": "Ride Glenwood",
+        "short": "RG",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2C3681",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "SM",
+        "label": "SM",
+        "long": "Snowmass/Aspen",
+        "short": "SM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "006838",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "SMV",
+        "label": "SMV",
+        "long": "Snowmass-Valley",
+        "short": "SMV",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EA7F80",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "WC",
+        "label": "WC",
+        "long": "Woody Creek",
+        "short": "WC",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D5A4CB",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "XT",
+        "label": "XT",
+        "long": "Cross Town",
+        "short": "XT",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 211,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 28129 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 28129,
+    "trips_with_shape": 28129
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -294,21 +564,21 @@
     },
     {
       "code": "expired_calendar",
-      "count": 6,
+      "count": 9,
       "effort": "One setting in most export tools.",
       "fix": "Remove past service periods the next time you export the feed.",
       "owner": "Likely your export tool",
       "points": 6.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "Some service calendars in the feed have already expired.",
+      "what": "Some service calendars in the feed have already ended.",
       "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
     },
     {
       "code": "unused_shape",
       "count": 2,
       "effort": "One setting.",
-      "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+      "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
       "owner": "Likely your export tool",
       "points": 4.0,
       "rank": 3,

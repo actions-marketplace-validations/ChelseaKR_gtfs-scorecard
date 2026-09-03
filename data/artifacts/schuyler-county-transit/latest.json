@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "schuyler-county-transit",
-    "name": "Schuyler County Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/schuyler-county-transit/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/schuyler-county-transit/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 2,
-        "examples": [
-          "'route_long_name': ' Rural Flex Connections' -> 'Rural Flex Connections'",
-          "'route_long_name': ' Corning Connections' -> 'Corning Connections'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 2
+    "name": "Schuyler County Transit",
+    "subdivision_code": "US-NY",
+    "subdivision_name": "New York"
   },
   "categories": {
     "completeness": {
@@ -32,6 +17,10 @@
           "trips_stated_pct": 93.9
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -56,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 49,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 49.0,
+        "headsign_scored_pct": 49.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -67,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 25,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 49,
         "wheelchair_accessible_pct": 93.9,
         "wheelchair_boarding_pct": 0.0,
@@ -88,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 3,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 0.9,
           "severity": "WARNING",
@@ -110,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 25,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 7.7,
           "severity": "WARNING",
-          "what": "25 of 49 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "25 of 49 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -127,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -166,8 +165,8 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "expired_calendar",
@@ -177,7 +176,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -199,7 +198,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
@@ -233,13 +232,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -918,
+        "days_until_expiry": -950,
+        "effective_expiry_date": "2023-12-31",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2023-12-31",
-        "seasonal_boundary": false,
+        "seasonal_boundary": true,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -251,7 +253,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 918 day(s) ago.",
+          "what": "Service data ended 950 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -269,7 +271,7 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 918 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 950 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -278,6 +280,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -288,7 +302,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 909 days ago.",
+        "detail": "Service data expired 937 days ago.",
         "key": "current",
         "met": false
       },
@@ -299,7 +313,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 909 days ago. States wheelchair access on 0% of stops and 94% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 937 days ago. States wheelchair access on 0% of stops and 94% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: https://data.ny.gov/download/77gx-ii52/application/pdf",
@@ -308,7 +322,14 @@
     "size_bytes": 154513,
     "static_url": "https://s3.amazonaws.com/datatools-511ny/public/Schuyler_County_Public_Transit.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://s3.amazonaws.com/datatools-511ny/public/Schuyler_County_Public_Transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -77.05117,
@@ -320,8 +341,28 @@
     "lon": -76.84863,
     "stop_count": 25
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 6,
+        "trip_count": 49,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 6,
+    "trip_count": 49
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "SCPT-Schuyler-ny-us"
     ],
@@ -340,13 +381,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 909 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 937 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 909 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 937 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -356,6 +402,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 3,
       "effort": "A per-route color setting in your scheduling software.",
@@ -367,6 +414,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 8,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -379,8 +427,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -390,9 +438,96 @@
     "single_stop_trips": 0,
     "trips_total": 49
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 6,
+    "has_shapes": true,
+    "path": "data/artifacts/schuyler-county-transit/geometry.geojson",
+    "route_count": 6,
+    "routes": [
+      {
+        "color": "598626",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "RT1",
+        "label": "01",
+        "long": "Village Connections",
+        "short": "01",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D0021B",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "RT2",
+        "label": "02",
+        "long": "Corning Connections",
+        "short": "02",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0066FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "RT3",
+        "label": "03",
+        "long": "Rural Flex Connections",
+        "short": "03",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1157AA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "RT5",
+        "label": "05",
+        "long": "Rural Flex Connections",
+        "short": "05",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "6CB619",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "RT6",
+        "label": "06",
+        "long": "Tompkins Connections",
+        "short": "06",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F5A623",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "RT7",
+        "label": "07",
+        "long": "Elmira Connections",
+        "short": "07",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 25,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 49 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 49,
+    "trips_with_shape": 49
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -403,7 +538,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 918 day(s) ago.",
+      "what": "Service data ended 950 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

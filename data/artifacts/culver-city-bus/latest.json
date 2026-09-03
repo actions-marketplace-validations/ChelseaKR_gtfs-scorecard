@@ -3,9 +3,6 @@
     "id": "culver-city-bus",
     "name": "Culver City Bus"
   },
-  "autofix": {
-    "available": false
-  },
   "categories": {
     "completeness": {
       "details": {
@@ -18,6 +15,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +43,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 10311,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +57,13 @@
           "pathway_count": 0
         },
         "stops": 417,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 10311,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.2,
@@ -91,24 +102,24 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 8,
+        "distinct_codes": 9,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 13,
-          "WARNING": 22
+          "WARNING": 27
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "expired_calendar",
-          "count": 14,
+          "count": 18,
           "effort": "One setting in most export tools.",
           "fix": "Remove past service periods the next time you export the feed.",
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -125,24 +136,24 @@
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "feed_expiration_date30_days",
-          "count": 1,
-          "effort": "Usually a re-export from your scheduling software.",
-          "fix": "Schedule a feed re-export now so the new calendar is live well before the current one ends.",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "This feed's service calendar runs out within the next 30 days.",
-          "why": "If a new feed isn't published before it ends, trip planners will drop your agency and riders will see no service."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
+        },
+        {
+          "code": "feed_expiration_date7_days",
+          "count": 1,
+          "effort": "Usually a re-export from your scheduling software.",
+          "fix": "Export and publish an updated GTFS feed that covers at least the next 30 days of service.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "This feed's service calendar runs out within the next 7 days.",
+          "why": "When the calendar ends, Google Maps and other trip planners drop your agency entirely. Riders see no service at all."
         },
         {
           "code": "missing_recommended_field",
@@ -152,14 +163,25 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
+        },
+        {
+          "code": "trip_coverage_not_active_for_next7_days",
+          "count": 1,
+          "effort": "One setting in most export tools.",
+          "fix": "Trim past service periods the next time you export.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Many of the feed's trips don't run at all in the next 7 days.",
+          "why": "It usually means old service periods are still in the export, making the feed bigger and harder to check."
         },
         {
           "code": "unused_shape",
           "count": 1,
           "effort": "One setting.",
-          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
@@ -169,13 +191,13 @@
         {
           "code": "big_gap_in_service",
           "count": 10,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Big gap in service (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         },
         {
           "code": "unknown_column",
@@ -190,39 +212,42 @@
         }
       ],
       "name": "correctness",
-      "score": 72.8,
+      "score": 68.8,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 8 kinds of issue across 35 instances (0 error, 22 warning, 13 informational).",
+      "summary": "The MobilityData validator flagged 9 kinds of issue across 40 instances (0 error, 27 warning, 13 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 6,
+        "days_until_expiry": -26,
+        "effective_expiry_date": "2026-07-12",
         "feed_end_date": "2026-07-12",
         "feed_start_date": "2026-01-12",
         "feed_version": "S1000250_2026.01.09",
         "has_feed_info": true,
         "last_service_date": "2026-07-12",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
         {
-          "code": "scorecard_feed_expiring_soon",
+          "code": "scorecard_feed_expired",
           "count": 1,
-          "effort": "One export setting.",
-          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "effort": "Usually one export setting; export on a schedule so it never lapses again.",
+          "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
           "owner": "Likely your export tool",
-          "points": 74.0,
-          "severity": "WARNING",
-          "what": "Service data runs out in 6 day(s).",
-          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+          "points": 100.0,
+          "severity": "ERROR",
+          "what": "Service data ended 26 day(s) ago.",
+          "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
-      "score": 10.0,
+      "score": 0.0,
       "status": "measured",
-      "summary": "Service data runs out in 6 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data ended 26 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -231,6 +256,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -241,7 +278,7 @@
         "met": true
       },
       {
-        "detail": "Service data runs out in 15 days; renew to qualify.",
+        "detail": "Service data expired 13 days ago.",
         "key": "current",
         "met": false
       },
@@ -252,7 +289,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data runs out in 15 days; renew to qualify. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 13 days ago. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -261,7 +298,15 @@
     "size_bytes": 1844113,
     "static_url": "https://www.culvercity.org/files/assets/public/documents/information-technology/maps/gtfsexport.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-california-culver-city-bus-gtfs-38.zip?alt=media",
+    "max_attempts": 1,
+    "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
+    "source": "mirror",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -118.47152,
@@ -273,8 +318,28 @@
     "lon": -118.40666,
     "stop_count": 417
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 12,
+        "trip_count": 10311,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 12,
+    "trip_count": 10311
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -293,22 +358,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data runs out in 15 days; renew before you certify.",
+        "detail": "Service data expired 13 days ago, so FTA would find the link out of date.",
         "key": "current",
-        "status": "at_risk"
+        "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
-    "status": "at_risk",
-    "summary": "This feed is close to NTD-ready. Service data runs out in 15 days; renew before you certify."
+    "status": "not_ready",
+    "summary": "Resolve this before you certify on the D-10. Service data expired 13 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 57.8,
-    "margin_to_next_band": 2.2,
-    "score": 57.8
+    "margin_to_lower_band": 53.6,
+    "margin_to_next_band": 6.4,
+    "score": 53.6
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 5,
       "effort": "A per-route color setting in your scheduling software.",
@@ -320,6 +391,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 400,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -331,6 +403,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -343,8 +416,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -366,21 +439,174 @@
     "single_stop_trips": 0,
     "trips_total": 10311
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 11,
+    "has_shapes": true,
+    "path": "data/artifacts/culver-city-bus/geometry.geojson",
+    "route_count": 12,
+    "routes": [
+      {
+        "color": "E2442E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "Washington Boulevard",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E2442E",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1C1",
+        "label": "1C1",
+        "long": "Culver City Downtown Circulator",
+        "short": "1C1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "9D3782",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "2",
+        "label": "2",
+        "long": "Inglewood Boulevard",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1C5183",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "3",
+        "label": "3",
+        "long": "Crosstown",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFF734",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "4",
+        "label": "4",
+        "long": "Jefferson Boulevard",
+        "short": "4",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5D35A9",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "Braddock Drive",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5D35A9",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "5C1",
+        "label": "5C1",
+        "long": "Arts District/Clarksdale",
+        "short": "5C1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5D35A9",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "5C2",
+        "label": "5C2",
+        "long": "Overland/Fox Hills",
+        "short": "5C2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F17C35",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "6",
+        "label": "6",
+        "long": "Sepulveda Boulevard",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7F7F7F",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "6R",
+        "label": "Rapid 6",
+        "long": "Sepulveda Boulevard",
+        "short": "Rapid 6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "17A8E6",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "7",
+        "label": "7",
+        "long": "Culver Boulevard",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFFFF",
+        "color_name": "white",
+        "has_shape": false,
+        "id": "9999",
+        "label": "9999",
+        "long": "Test Route",
+        "short": "9999",
+        "text_color": "000000",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 417,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 10311 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 10311,
+    "trips_with_shape": 10311
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
-      "code": "scorecard_feed_expiring_soon",
+      "code": "scorecard_feed_expired",
       "count": 1,
-      "effort": "One export setting.",
-      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "effort": "Usually one export setting; export on a schedule so it never lapses again.",
+      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
       "owner": "Likely your export tool",
-      "points": 74.0,
+      "points": 100.0,
       "rank": 1,
-      "severity": "WARNING",
-      "what": "Service data runs out in 6 day(s).",
-      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+      "severity": "ERROR",
+      "what": "Service data ended 26 day(s) ago.",
+      "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -396,14 +622,14 @@
     },
     {
       "code": "expired_calendar",
-      "count": 14,
+      "count": 18,
       "effort": "One setting in most export tools.",
       "fix": "Remove past service periods the next time you export the feed.",
       "owner": "Likely your export tool",
       "points": 6.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Some service calendars in the feed have already expired.",
+      "what": "Some service calendars in the feed have already ended.",
       "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
     }
   ],

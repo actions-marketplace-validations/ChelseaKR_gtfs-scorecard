@@ -13,6 +13,7 @@ is not archived; this works from the artifacts on hand.
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
 from typing import Any
 
@@ -91,7 +92,7 @@ def history_events(
     then an expiry-window crossing, then a notable score swing. A steady feed
     produces nothing."""
     events: list[Event] = []
-    for prev, curr in zip(history, history[1:], strict=False):
+    for prev, curr in itertools.pairwise(history):
         date = str(curr.get("date", ""))
         prev_grade, curr_grade = prev.get("grade"), curr.get("grade")
         prev_score, curr_score = prev.get("score"), curr.get("score")
@@ -122,6 +123,13 @@ def history_events(
 _STORY_MIDDLE_BUDGET = 3
 
 
+def _story_finding_label(code: str, what: str) -> str:
+    """A sentence-ready finding name, preferring the artifact's plain-language
+    description and retaining a readable fallback for older sparse artifacts."""
+    label = what.strip().rstrip(".") or code.replace("_", " ")
+    return label[:1].lower() + label[1:]
+
+
 def grade_story(
     history: list[dict[str, Any]], artifacts: list[dict[str, Any]] | None = None
 ) -> list[str]:
@@ -146,7 +154,7 @@ def grade_story(
 
     middle: list[str] = []
     # 1) Grade-band moves (a changed letter grade), oldest first.
-    for prev, curr in zip(history, history[1:], strict=False):
+    for prev, curr in itertools.pairwise(history):
         prev_grade, curr_grade = prev.get("grade"), curr.get("grade")
         if prev_grade is not None and curr_grade is not None and prev_grade != curr_grade:
             date = str(curr.get("date", ""))
@@ -161,7 +169,10 @@ def grade_story(
         prev_codes = finding_codes(prev)
         cleared = sorted(c for c in prev_codes if c not in finding_codes(curr))
         if cleared:
-            middle.append(f"On {_artifact_date(curr)} it cleared {', '.join(cleared)}.")
+            labels = [_story_finding_label(code, prev_codes[code]) for code in cleared]
+            middle.append(
+                f"On {_artifact_date(curr)} the check no longer reported: {'; '.join(labels)}."
+            )
 
     if not middle:
         # No band move, expiry crossing, or cleared finding. The grade held, but

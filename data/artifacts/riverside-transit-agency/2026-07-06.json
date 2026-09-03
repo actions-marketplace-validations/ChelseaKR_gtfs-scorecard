@@ -239,39 +239,39 @@
     },
     "realtime": {
       "details": {
-        "coverage_pct": 85.7,
-        "covered_trips": 6,
+        "coverage_pct": 96.2,
+        "covered_trips": 100,
         "drift": {
-          "median_seconds": 75,
-          "observations": 251,
-          "on_time_share_pct": 71.7,
-          "p90_abs_seconds": 331
+          "median_seconds": 32,
+          "observations": 3473,
+          "on_time_share_pct": 61.4,
+          "p90_abs_seconds": 373
         },
         "kinds_reachable": 3,
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 7,
-        "vehicles_checked": 21,
-        "vehicles_on_route_pct": 100.0,
-        "worst_lag_seconds": 29
+        "scheduled_trips_in_window": 104,
+        "vehicles_checked": 286,
+        "vehicles_on_route_pct": 99.7,
+        "worst_lag_seconds": 28
       },
       "findings": [
         {
           "code": "scorecard_rt_trip_coverage",
-          "count": 1,
+          "count": 4,
           "effort": "A vendor data-mapping question.",
           "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
           "owner": "",
-          "points": 5.0,
+          "points": 1.3,
           "severity": "WARNING",
-          "what": "1 of 7 trips scheduled during the sampling window had no live predictions.",
+          "what": "4 of 104 trips scheduled during the sampling window had no live predictions.",
           "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
-      "score": 95.0,
+      "score": 98.6,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 85.7% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 75s behind schedule.",
+      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 96.2% of scheduled trips had live predictions; 99.7% of vehicles on their route; predictions ran a median of 32s behind schedule.",
       "weight": 0.2
     }
   },
@@ -365,9 +365,9 @@
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 2.9,
-    "margin_to_next_band": 7.1,
-    "score": 72.9
+    "margin_to_lower_band": 3.6,
+    "margin_to_next_band": 6.4,
+    "score": 73.6
   },
   "recommendations": [
     {

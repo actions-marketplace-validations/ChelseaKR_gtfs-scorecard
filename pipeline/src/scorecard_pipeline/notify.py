@@ -23,6 +23,7 @@ import yaml
 
 from .alerts import Digest, render_digest
 from .config import repo_root
+from .instance import BASE_URL
 from .portfolio_digest import PortfolioDigest, render_portfolio_digest
 
 # Enough to catch a typo without policing addresses, but restricted to the
@@ -31,7 +32,7 @@ from .portfolio_digest import PortfolioDigest, render_portfolio_digest
 EMAIL_RE = re.compile(r"^[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
 # The alert kinds a subscriber can opt into; mirrors AlertItem.kind in alerts.py.
-ALERT_KINDS = frozenset({"expiry", "regression", "anomaly"})
+ALERT_KINDS = frozenset({"expiry", "lapse_risk", "regression", "anomaly", "export_change"})
 
 
 class SubscriptionError(ValueError):
@@ -83,7 +84,7 @@ class Email:
     body: str
 
 
-def parse_subscribers(raw: object) -> list[Subscriber]:
+def parse_subscribers(raw: object) -> list[Subscriber]:  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
     """Validate parsed YAML into Subscriber records."""
     if not isinstance(raw, dict) or not isinstance(raw.get("subscribers"), list):
         raise SubscriptionError("subscriptions.yaml must have a top-level 'subscribers:' list")
@@ -193,7 +194,7 @@ def subscriber_from_item(item: dict[str, Any]) -> Subscriber:
 def load_subscribers_from_dynamo(table_name: str, region: str = "us-west-2") -> list[Subscriber]:
     """Read every subscriber from the DynamoDB store. boto3 is imported lazily so
     the core pipeline keeps no AWS dependency; only this path needs it."""
-    import boto3  # type: ignore[import-not-found]  # noqa: PLC0415 - lazy, optional dep
+    import boto3  # type: ignore[import-not-found]
 
     table = boto3.resource("dynamodb", region_name=region).Table(table_name)
     items: list[dict[str, Any]] = []
@@ -339,9 +340,7 @@ def send_webhooks(notifications: list[WebhookNotification], timeout: float = 10.
     return sent
 
 
-def verification_email(
-    email: str, token: str, base_url: str = "https://gtfsscorecard.org"
-) -> Email:
+def verification_email(email: str, token: str, base_url: str = BASE_URL) -> Email:
     """The double opt-in confirmation email. Sending this, and only marking a
     subscriber verified when the link is followed, is what lets us promise that
     no agency receives mail it did not ask for."""
@@ -358,7 +357,7 @@ def verification_email(
 def send_via_ses(emails: list[Email], sender: str, region: str = "us-west-2") -> int:
     """Send each email through Amazon SES. boto3 is imported lazily so the core
     pipeline has no AWS dependency; only the send path needs it."""
-    import boto3  # noqa: PLC0415 - lazy, optional dep
+    import boto3
 
     ses = boto3.client("ses", region_name=region)
     for email in emails:

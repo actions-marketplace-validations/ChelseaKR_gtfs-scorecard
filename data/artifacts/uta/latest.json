@@ -1,45 +1,9 @@
 {
   "agency": {
     "id": "uta",
-    "name": "UTA"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/uta/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/uta/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 36,
-        "examples": [
-          "'stop_desc': '1235 ' -> '1235'",
-          "'stop_desc': '1227 ' -> '1227'",
-          "'stop_desc': '444 ' -> '444'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      },
-      {
-        "code": "autofix_stop_name_case",
-        "count": 12,
-        "examples": [
-          "ORCHARD DR @ 2122 S -> Orchard Dr @ 2122 S",
-          "MAIN ST @ 1595 N -> Main St @ 1595 N",
-          "STATE ST @ 575 S -> State St @ 575 S"
-        ],
-        "label": "Recased shouting stop names"
-      },
-      {
-        "code": "autofix_route_name_case",
-        "count": 77,
-        "examples": [
-          "1700 SOUTH -> 1700 South",
-          "200 SOUTH -> 200 South",
-          "STATE STREET NORTH -> State Street North"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 125
+    "name": "UTA",
+    "subdivision_code": "US-UT",
+    "subdivision_name": "Utah"
   },
   "categories": {
     "completeness": {
@@ -81,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 10959,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 99.8,
         "pathways": {
           "has_entrances": false,
@@ -92,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 5246,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 10959,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 40.7,
@@ -130,7 +104,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -159,7 +133,7 @@
           "points": 24.0,
           "severity": "ERROR",
           "what": "Some trips have stop times whose distances along the route go backwards.",
-          "why": "Apps can show buses jumping backwards or mis-order stops."
+          "why": "Apps can show transit vehicles jumping backwards or mis-order stops."
         },
         {
           "code": "equal_shape_distance_diff_coordinates",
@@ -208,13 +182,13 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 76,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong path or point riders to the wrong boarding location."
         },
         {
           "code": "stop_too_far_from_shape",
@@ -225,7 +199,7 @@
           "points": 6.0,
           "severity": "WARNING",
           "what": "Some stops sit far from the route line they belong to.",
-          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+          "why": "Trip planners may draw the transit vehicle route through the wrong path or point riders to the wrong boarding location."
         },
         {
           "code": "service_has_no_active_day_of_the_week",
@@ -241,13 +215,13 @@
         {
           "code": "stops_match_shape_out_of_order",
           "count": 9,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+          "why": "Trip planners can draw the transit vehicle doubling back or skipping ahead, which confuses riders reading the map."
         },
         {
           "code": "expired_calendar",
@@ -274,13 +248,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "trip_coverage_not_active_for_next7_days",
@@ -296,13 +270,13 @@
         {
           "code": "trip_headsign_matches_intermediate_stop",
           "count": 16,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_headsign_matches_intermediate_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Set trip_headsign to the trip's last stop or its overall destination.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Trip headsign matches intermediate stop (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some trip headsigns name a stop along the way, not the final destination.",
+          "why": "The sign should tell riders where the transit vehicle ends up, so a midpoint name can send them the wrong way."
         }
       ],
       "name": "correctness",
@@ -313,13 +287,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -814,
+        "days_until_expiry": -846,
+        "effective_expiry_date": "2024-04-13",
         "feed_end_date": "2024-04-13",
         "feed_start_date": "2023-11-26",
         "feed_version": "2023 DEC_20231214",
         "has_feed_info": true,
         "last_service_date": "2024-04-13",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -331,14 +308,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 814 day(s) ago.",
+          "what": "Service data ended 846 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 814 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 846 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -347,6 +324,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -357,7 +346,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 812 days ago.",
+        "detail": "Service data expired 844 days ago.",
         "key": "current",
         "met": false
       },
@@ -368,7 +357,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 2 validator errors to resolve. Service data expired 812 days ago. States wheelchair access on 41% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 2 validator errors to resolve. Service data expired 844 days ago. States wheelchair access on 41% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -378,13 +367,14 @@
     "static_url": "https://transitfeeds.com/p/utah-transportation-authority/59/latest/download"
   },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-utah-uta-gtfs-1171.zip?alt=media",
+    "final_url": "https://files.mobilitydatabase.org/mdb-1171/latest.zip",
     "max_attempts": 1,
     "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -112.30446,
@@ -396,10 +386,45 @@
     "lon": -111.91021,
     "stop_count": 5246
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": true,
+    "measured": true,
+    "modes": [
+      {
+        "key": "tram",
+        "label": "Tram / light rail",
+        "route_count": 4,
+        "trip_count": 1516,
+        "trip_share_pct": 13.8
+      },
+      {
+        "key": "rail",
+        "label": "Rail",
+        "route_count": 1,
+        "trip_count": 107,
+        "trip_share_pct": 1.0
+      },
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 81,
+        "trip_count": 9336,
+        "trip_share_pct": 85.2
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 86,
+    "trip_count": 10959
+  },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "Your agency.txt sets no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked on the P-50 form.",
     "feed_agency_ids": [],
-    "status": "unknown"
+    "fix": "Add agency_id to agency.txt and use the same value wherever routes.txt identifies that agency. Keep it stable, and enter its crosswalk to the reporter's NTD ID on P-50. It does not need to equal the five-digit NTD ID.",
+    "status": "missing"
   },
   "ntd_readiness": {
     "pillars": [
@@ -414,13 +439,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 812 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 844 days ago, so FTA would find the link out of date.",
         "key": "current",
+        "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form.",
+        "key": "agency_id",
         "status": "not_ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 2 validator errors to resolve. Service data expired 812 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 2 validator errors to resolve. Service data expired 844 days ago, so FTA would find the link out of date. agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form."
   },
   "overall": {
     "grade": "F",
@@ -430,6 +460,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 17,
       "effort": "A per-route color setting in your scheduling software.",
@@ -441,6 +472,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 4883,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -453,8 +485,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -1420,9 +1452,20 @@
     "stop_count": 5246,
     "stop_points_capped": true
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 10959 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 10959,
+    "trips_with_shape": 10959
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -1433,7 +1476,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 814 day(s) ago.",
+      "what": "Service data ended 846 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -1446,7 +1489,7 @@
       "rank": 2,
       "severity": "ERROR",
       "what": "Some trips have stop times whose distances along the route go backwards.",
-      "why": "Apps can show buses jumping backwards or mis-order stops."
+      "why": "Apps can show transit vehicles jumping backwards or mis-order stops."
     },
     {
       "code": "equal_shape_distance_diff_coordinates",

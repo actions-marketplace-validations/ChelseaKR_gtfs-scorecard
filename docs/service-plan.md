@@ -59,7 +59,7 @@ an agency return.
   an address at the agency domain, or a token placed in `feed_info`). Verification
   is a hard gate: nothing is emailed to an unverified address.
 - **Opt-in granularity.** A subscriber chooses which alert kinds they want
-  (expiry only, or expiry and regression) and which agencies they follow.
+  (any subset of expiry, lapse risk, regression, export change, and anomaly) and which agencies they follow.
 - **Built so far:** the alert digest (`alerts.py`); per-subscriber filtering, the
   verification gate, and per-kind opt-in (`notify.py`). **Live infrastructure:**
   SES sending is verified for `gtfsscorecard.org` and the digest send path works;
@@ -82,6 +82,10 @@ than invented.
   headsigns) that an automated validator cannot catch. The Rider-experience
   category should align with it explicitly and automate what it can.
 
+**Built so far:** the crosswalk is written ([crosswalk.md](crosswalk.md)) and
+rendered as an on-site page at `/crosswalk/`, and agency pages carry the
+California Minimum GTFS Guidelines checklist.
+
 ### Stage 3 — The supporter workspace
 
 For liaisons and customer-success roles: a cohort dashboard (the rollups exist),
@@ -90,6 +94,13 @@ one-click call-prep export, private notes per agency, and shared-fix detection
 across a portfolio ("one export setting fixes these five agencies"). This is the
 feature that puts the supporter audience in the tool daily, and they are the
 distribution channel to agencies.
+
+**Built so far:** the weekly portfolio digest for liaisons (scheduled in the
+daily workflow, Mondays), the call-prep brief at `/agency/<id>/brief/`,
+shared-fix detection on every program page, and the client-side supporter
+workspace: saved cohorts and per-agency private notes, kept in the browser's
+own storage so nothing personal ever reaches the pipeline. Custom
+MPO-boundary cohorts remain open (RR:E10).
 
 ### Stage 4 — Close the loop on fixes
 
@@ -101,15 +112,17 @@ one-time fixer into an advocate.
 ### Stage 5 — Realtime depth and the compliance hook
 
 Finish realtime scoring (scoped; gated on keyless or key-managed endpoints), and
-flag the [2025–26 NTD requirement to align `agency_id` to the NTD ID](https://www.federalregister.gov/documents/2025/07/10/2025-12813/national-transit-database-reporting-changes-and-clarifications-for-report-years-2025-and-2026).
+flag the RY2026 NTD requirement to provide a stable `agency_id` for every
+represented reporter and crosswalk it to the NTD ID on P-50. The feed value does
+not have to equal the five-digit NTD ID.
 Rural agencies are struggling with it, it is federal, and it lives in a GTFS
 field — so it gives agencies a compliance reason to care, not only a quality one.
 
-**Built so far:** the `agency_id` flag. When an agency's five-digit NTD ID is on
-file (`ntd_id` in the registry), each scorecard's NTD readiness section checks
-whether the feed's `agency_id` matches it and names the fix when it does not. It
-carries no score and shows as not-yet-checked when we have no NTD ID, so an
-agency we cannot check is never penalized. See
+**Built so far:** the `agency_id` presence pillar and equality flag. Presence is
+checked for every US feed and affects only the NTD-readiness status. When an
+agency's five-digit NTD ID is on file (`ntd_id` in the registry), the scorecard
+also compares it with the feed value. A difference is allowed, carries no score,
+and points the reader to the required P-50 crosswalk. See
 [ADR 0016](decisions/0016-ntd-id-alignment.md).
 
 ### Stage 6 — Generalize beyond California, deliberately
@@ -153,9 +166,7 @@ scorecard stays free. Realistic support: operating it under a state data program
 or with National RTAP; federal technical-assistance and innovation funding
 ([FTA 5311(b)(3) RTAP](https://www.transit.dot.gov/funding/grants/rural-transportation-assistance-program-5311b3),
 [FTA 5312](https://www.transit.dot.gov/funding/grants/public-transportation-innovation-5312));
-and open-source contribution with sponsored hosting. A paid tier, if any, is for
-the consultancies and programs that manage many agencies (the Stage 3
-workspace), never for the agencies themselves.
+and open-source contribution with sponsored hosting.
 
 ## What "started" looks like (next 90 days)
 

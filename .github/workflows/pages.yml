@@ -3,13 +3,36 @@ name: Deploy site
 on:
   push:
     branches: [main]
+    # `rt-monitor.yml` pushes a data-only observation commit every three hours
+    # (ADR 0012). Each push used to trigger a whole extra site build, which
+    # re-hydrates the published corpus from S3 for data the `refresh.yml` deploy
+    # republishes anyway. Ignoring the path drops eight redundant builds a day;
+    # the observations still reach the site at the next intraday refresh (at
+    # most three hours later), which matches the three-hour sampling cadence
+    # they are recorded at.
+    paths-ignore:
+      - "data/rt-health/**"
   workflow_call:
+    inputs:
+      perf_gate:
+        # "block" fails the deploy when the Lighthouse performance budgets
+        # are missed; "advisory" reports the miss as a warning and deploys
+        # anyway. Data-refresh callers pass "advisory" so a performance
+        # variance can never hold fresh data hostage; code pushes always
+        # block (ideation FIX-14). Accessibility blocks in both modes.
+        type: string
+        required: false
+        default: block
+    secrets:
+      PAGES_AWS_ROLE_ARN:
+        required: false
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+
+env:
+  PAGES_AWS_ROLE_ARN: ${{ secrets.PAGES_AWS_ROLE_ARN }}
 
 concurrency:
   group: pages
@@ -17,55 +40,483 @@ concurrency:
 
 jobs:
   # Deploy gate for the declared quality bar (CLAUDE.md: "Lighthouse
-  # accessibility score >= 95"): render and assemble _site exactly as a11y.yml
-  # does, serve it locally, and assert the score with Lighthouse CI. Thresholds
-  # live in lighthouserc.json at the repo root; only the accessibility category
-  # is asserted because that is the only category the >=95 claim covers (BL-12).
+  # accessibility score >= 95", "loads under 2s on 4G"): render and assemble
+  # _site exactly as a11y.yml does, serve it locally, and assert with
+  # Lighthouse CI. Thresholds live in lighthouserc.json at the repo root.
+  # Accessibility always blocks. The performance budgets block on code pushes
+  # and are advisory on data-refresh deploys, where the moving input is data
+  # size and a synthetic perf variance must not stale the pages (FIX-14; the
+  # 2026-07-11 dispatch run showed the failure mode).
   lighthouse:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      deployed_sha: ${{ steps.assemble.outputs.deployed_sha }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
-          ref: main
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+          # Bind the rendered deployment to the caller's exact revision. For
+          # Daily scorecard this is the head SHA reported by the completed run;
+          # for push/dispatch it is that event's own immutable revision.
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
           python-version: "3.12"
       - name: Install the pipeline
         working-directory: pipeline
         run: uv sync --locked
-      - name: Render the static site
-        working-directory: pipeline
-        run: uv run scorecard render-site
-      - name: Assemble the Pages site (mirrors deploy)
+      - name: Authenticate to AWS (read-only, artifacts bucket)
+        if: ${{ vars.ARTIFACTS_BUCKET != '' && env.PAGES_AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        with:
+          role-to-assume: ${{ env.PAGES_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
+      - name: Sync published artifacts from S3
+        if: ${{ vars.ARTIFACTS_BUCKET != '' && env.PAGES_AWS_ROLE_ARN != '' }}
         run: |
+          # S3 is authoritative. index.json already carries complete score
+          # histories, so rendering needs latest.json plus today's and
+          # yesterday's dated snapshots for recent finding diffs. The next
+          # step validates each index/latest pair and restores a missing current
+          # dated record from those same latest.json bytes. This bounded set
+          # avoids downloading the 400-day archive or any private pipeline files.
+          # Route geometry is deliberately not in this set: it is two thirds of
+          # the corpus by bytes and almost never changes, so the cached mirror
+          # below fetches only the objects S3 has actually modified.
+          today=$(date -u +%Y-%m-%d)
+          yesterday=$(date -u -d yesterday +%Y-%m-%d)
+          retry_s3_sync() {
+            local label="$1"
+            shift
+            local attempt
+            for attempt in 1 2 3; do
+              if "$@"; then
+                return 0
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                echo "S3 sync failed after ${attempt} attempts: ${label}" >&2
+                return 1
+              fi
+              echo "S3 changed during ${label}; retrying (${attempt}/3)." >&2
+              sleep $((attempt * 5))
+            done
+          }
+          retry_s3_sync "published artifacts" aws s3 sync \
+            "s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts" data/artifacts \
+            --exclude "*" \
+            --include "directory.json" --include "index.json" \
+            --include "scoring.json" --include "sensitivity.json" \
+            --include "canada-equity.json" \
+            --include "changes/*" --include "rollups/*" --include "run/*" \
+            --include "*/latest.json" --include "*/badge.json" --include "*/badge.svg" \
+            --include "*/conformance.json" --include "*/mark.svg" \
+            --include "*/${today}.json" --include "*/${yesterday}.json" \
+            --only-show-errors
+          retry_s3_sync "fix-log cache" aws s3 sync \
+            "s3://${{ vars.ARTIFACTS_BUCKET }}/cache/fixlog" data/artifacts \
+            --only-show-errors
+          aws s3 cp "s3://${{ vars.ARTIFACTS_BUCKET }}/data/liveness.json" \
+            data/liveness.json --only-show-errors || true
+
+      # Route geometry is the heaviest thing the renderer reads: ~2,300 objects
+      # and ~380 MB, against ~190 MB for everything else in the bounded set
+      # above. It only changes when an agency publishes new shapes, yet every
+      # site build re-downloaded all of it, and this workflow runs on each
+      # intraday refresh as well as on push. Keep a runner-side mirror in the
+      # Actions cache instead and let `aws s3 sync` fetch just the objects S3
+      # has modified since the mirror was taken. `sync` transfers an object when
+      # its size differs or its S3 last-modified is newer than the local copy,
+      # and the cache preserves the mirrored files' mtimes, so a same-size
+      # rewrite is still picked up. The mirror is a copy of published public
+      # data, so it carries nothing private.
+      - name: Restore the route-geometry mirror
+        id: geometry-mirror
+        if: ${{ vars.ARTIFACTS_BUCKET != '' && env.PAGES_AWS_ROLE_ARN != '' }}
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: data/artifacts/*/geometry.geojson
+          key: route-geometry-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            route-geometry-v1-
+
+      - name: Sync changed route geometry from S3
+        id: geometry
+        if: ${{ vars.ARTIFACTS_BUCKET != '' && env.PAGES_AWS_ROLE_ARN != '' }}
+        env:
+          ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/geometry-sync.log"
+          for attempt in 1 2 3; do
+            if aws s3 sync \
+              "s3://${ARTIFACTS_BUCKET}/data/artifacts" data/artifacts \
+              --exclude "*" --include "*/geometry.geojson" \
+              --no-progress > "$log" 2>&1; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              cat "$log" >&2
+              echo "Route geometry did not sync after ${attempt} attempts." >&2
+              exit 1
+            fi
+            echo "S3 changed during the route-geometry sync; retrying (${attempt}/3)." >&2
+            sleep $((attempt * 5))
+          done
+          # One line per transferred object; the count decides whether the
+          # mirror is worth re-saving below.
+          downloads=$(grep -c '^download:' "$log" || true)
+          echo "Route geometry objects refreshed from S3: ${downloads}"
+          echo "downloads=${downloads}" >> "$GITHUB_OUTPUT"
+
+      # Saving on every run would push a fresh ~400 MB entry into the repo's
+      # 10 GB cache 25 times a day and evict everything else. Save only when the
+      # mirror actually moved, or when there was no mirror to restore.
+      - name: Save the route-geometry mirror
+        if: ${{ vars.ARTIFACTS_BUCKET != '' && env.PAGES_AWS_ROLE_ARN != '' && (steps.geometry.outputs.downloads != '0' || steps.geometry-mirror.outputs.cache-matched-key == '') }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: data/artifacts/*/geometry.geojson
+          key: route-geometry-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Materialize validated current dated records
+        working-directory: pipeline
+        run: >-
+          uv run python scripts/materialize_current_artifacts.py
+          --artifacts-root ../data/artifacts
+      - name: Render and assemble the Pages site
+        id: assemble
+        run: |
+          cd pipeline
+          # A code-only deployment may hydrate rollups produced before a
+          # registry alias was retired. Rebuild them against the current
+          # canonical registry boundary before either their JSON or program
+          # pages cross into the deployed site.
+          uv run scorecard rollups
+          uv run scorecard render-site
+          cd ..
           mkdir -p _site/data
           cp -r web/. _site/
-          cp -r data/artifacts _site/data/artifacts
-      - name: Lighthouse CI (accessibility >= 95)
+          # Fail closed: raw fix logs remain available to the renderer above,
+          # but only the documented public filenames cross into Pages.
+          bash pipeline/scripts/assemble_public_artifacts.sh \
+            data/artifacts _site/data/artifacts
+          deployed_sha=$(git rev-parse HEAD)
+          manifest_entries=$(mktemp)
+          for path in catalog.json catalog.csv dataset.json dataset.csv ntd.json \
+                      api/v1/agencies.parquet data/artifacts/index.json; do
+            test -f "_site/$path"
+            sha=$(sha256sum "_site/$path" | cut -d ' ' -f 1)
+            jq -nc --arg path "$path" --arg sha "$sha" \
+              '{key: $path, value: $sha}' >> "$manifest_entries"
+          done
+          jq -s '{schema_version: 1, files: from_entries}' \
+            "$manifest_entries" > _site/release-manifest.json
+          rm -f "$manifest_entries"
+          manifest_sha=$(sha256sum _site/release-manifest.json | cut -d ' ' -f 1)
+          deployment_id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          jq -n --arg commit "$deployed_sha" \
+            --argjson source_run_id "$GITHUB_RUN_ID" \
+            --argjson source_run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg deployment_id "$deployment_id" \
+            --arg release_manifest_sha256 "$manifest_sha" \
+            '{schema_version: 3, commit: $commit,
+              source_run_id: $source_run_id,
+              source_run_attempt: $source_run_attempt,
+              deployment_id: $deployment_id,
+              release_manifest_sha256: $release_manifest_sha256}' \
+            > _site/deployment.json
+          echo "deployed_sha=$deployed_sha" >> "$GITHUB_OUTPUT"
+      - name: Enforce the structural SEO contract
+        working-directory: pipeline
+        run: >-
+          uv run python scripts/check_site_seo.py
+          --site-root ../_site
+          --config ../site-seo.json
+          --report ../seo-report.json
+      - name: Retain the structural SEO report
+        # RELIABILITY (issue #297): the previous `error` setting meant that
+        # when an earlier step in this job failed (so the SEO check above
+        # never ran and never wrote seo-report.json), this always-run
+        # retention step failed too — with a different, more prominent error
+        # ("No files were found with the provided path: seo-report.json")
+        # that read as the headline failure and buried the real, earlier
+        # cause. `warn` (matching the Lighthouse retention step below, which
+        # already uses it) lets a missing report pass through quietly so the
+        # first red step in the job stays the true root cause.
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: seo-report-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          path: seo-report.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Enforce generated page-size budgets
+        env:
+          PERF_GATE: ${{ inputs.perf_gate || 'block' }}
         run: |
+          set +e
+          (
+            cd pipeline
+            uv run python scripts/check_site_budgets.py \
+              --site-root ../_site \
+              --config ../site-budgets.json
+          )
+          budget_status=$?
+          set -e
+          if [ "$budget_status" -eq 0 ]; then
+            exit 0
+          fi
+          if [ "$budget_status" -eq 1 ] && [ "$PERF_GATE" = "advisory" ]; then
+            echo "::warning title=Generated page-size budget missed (advisory)::This data-refresh deploy exceeded a deterministic HTML byte budget and deployed anyway. Investigate before the next code push, where the budget blocks."
+            echo "Generated page-size budget missed on a data-refresh deploy (advisory); see the output above." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          exit "$budget_status"
+      - name: Lighthouse CI (core and representative routes)
+        env:
+          PERF_GATE: ${{ inputs.perf_gate || 'block' }}
+        run: |
+          set -o pipefail
+          CORE_CONFIG=lighthouserc.json
+          ROUTES_CONFIG=lighthouserc.routes.json
+          if [ "$PERF_GATE" = "advisory" ]; then
+            # Derive the advisory config from the blocking one so the two can
+            # never drift: accessibility keeps its error level, every other
+            # assertion is demoted to a warning.
+            for source in lighthouserc.json lighthouserc.routes.json; do
+              destination="${source%.json}.advisory.json"
+              jq '.ci.assert.assertions |= with_entries(
+                    if .key == "categories:accessibility" then .
+                    else .value[0] = "warn" end)' \
+                "$source" > "$destination"
+            done
+            CORE_CONFIG=lighthouserc.advisory.json
+            ROUTES_CONFIG=lighthouserc.routes.advisory.json
+          fi
           python3 -m http.server 8080 --directory _site &
           SRV=$!
-          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8080/ >/dev/null && break; sleep 1; done
-          npx --yes @lhci/cli@0.14 autorun
-          kill $SRV
+          trap 'kill "$SRV" 2>/dev/null || true' EXIT
+          ready=false
+          for _attempt in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8080/ >/dev/null; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            echo "Generated site did not become ready." >&2
+            exit 1
+          fi
+          npx --yes @lhci/cli@0.14 autorun \
+            --config="$CORE_CONFIG" 2>&1 | tee lhci-core.log
+          npx --yes @lhci/cli@0.14 autorun \
+            --config="$ROUTES_CONFIG" 2>&1 | tee lhci-representative.log
+          if [ "$PERF_GATE" = "advisory" ] && grep -Eq "warning for" \
+            lhci-core.log lhci-representative.log; then
+            echo "::warning title=Performance budget missed (advisory)::This data-refresh deploy missed a Lighthouse performance budget and deployed anyway (FIX-14). Investigate before the next code push, where the budget blocks."
+            echo "Performance budget missed on a data-refresh deploy (advisory, FIX-14); see the Lighthouse output above." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Retain Lighthouse reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: lighthouse-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            lhci-reports/
+            lhci-*.log
+          if-no-files-found: warn
+          retention-days: 14
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
 
   deploy:
     needs: lighthouse
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          ref: main
-      - name: Assemble static site
-        run: |
-          mkdir -p _site/data
-          cp -r web/. _site/
-          cp -r data/artifacts _site/data/artifacts
-      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
-        with:
-          path: _site
-      - uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+      - uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
         id: deployment
+
+  production-smoke:
+    needs: [lighthouse, deploy]
+    runs-on: ubuntu-latest
+    # One edge TTL (600s) plus slack, so the wait below can never outlive the
+    # job that contains it.
+    timeout-minutes: 20
+    permissions: {}
+    steps:
+      # Pages is fronted by Fastly with `cache-control: max-age=600`, and
+      # Fastly does not vary its cache key on the query string: `/deployment
+      # .json?deploy=<id>` is answered from the same cached object as
+      # `/deployment.json` (verified against production: four requests with
+      # distinct query strings returned one object whose `age` kept counting
+      # up, `x-cache: HIT` throughout). `Cache-Control: no-cache` and `Pragma:
+      # no-cache` on the request are ignored too. So the `?deploy=` buster this
+      # check used to carry was inert, and the retry loop around it was
+      # decorative: the first request after `deploy-pages` returns can land
+      # before the origin has flipped, which caches the *previous* deployment's
+      # bytes at this runner's edge for the next ten minutes, and every 5s
+      # retry then re-reads that same stale copy until the budget runs out.
+      #
+      # It stayed hidden while deployment.json's only identity was `commit`,
+      # because consecutive deploys often carry the same commit and a stale
+      # copy still satisfied the check. Schema 3's run-scoped identity changes
+      # on every deploy, so a stale copy now always fails it. The 2026-08-14
+      # daily run failed exactly this way (107s, the full old budget) while its
+      # deployment was in fact live and serving, which reddened the daily and
+      # tripped the freshness watchdog over data that was never stale.
+      #
+      # The assertions below are unchanged and still fail closed. What changes
+      # is that a miss now waits out the edge TTL it is actually blocked on
+      # instead of hammering a cached response, and reports which assertion
+      # failed and what production served instead of a bare mismatch.
+      - name: Verify the deployed crawl surface
+        env:
+          BASE_URL: https://gtfsscorecard.org
+          DEPLOYED_SHA: ${{ needs.lighthouse.outputs.deployed_sha }}
+          DEPLOYMENT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+          # Ceiling on the whole wait. One full edge TTL plus slack: enough for
+          # a poisoned cache entry to expire once, not enough to sit on a
+          # genuinely broken deploy.
+          SMOKE_BUDGET_SECONDS: "900"
+        run: |
+          set -euo pipefail
+          smoke_dir=$(mktemp -d)
+          trap 'rm -rf "$smoke_dir"' EXIT
+
+          fail_reason=""
+          served_age=0
+          served_max_age=600
+
+          fetch_surface() {
+            fail_reason=""
+            # deployment.json first: its response headers are what the backoff
+            # below reasons about.
+            if ! curl -fsSL --max-time 30 -D "$smoke_dir/deployment.headers" \
+                "${BASE_URL}/deployment.json" -o "$smoke_dir/deployment.json"; then
+              fail_reason="could not fetch /deployment.json"
+              return 1
+            fi
+            served_age=$(awk 'BEGIN { a = 0 }
+              tolower($1) == "age:" { a = $2 + 0 }
+              END { print a }' "$smoke_dir/deployment.headers")
+            served_max_age=$(awk 'BEGIN { m = 600 }
+              tolower($0) ~ /^cache-control:/ && match($0, /max-age=[0-9]+/) {
+                m = substr($0, RSTART + 8, RLENGTH - 8) + 0
+              }
+              END { print m }' "$smoke_dir/deployment.headers")
+            local spec path name
+            for spec in \
+              "/:home.html" \
+              "/robots.txt:robots.txt" \
+              "/sitemap.xml:sitemap.xml" \
+              "/agency/unitrans/:unitrans.html" \
+              "/agency/yolobus/:yolobus.html"; do
+              path="${spec%:*}"
+              name="${spec##*:}"
+              if ! curl -fsSL --max-time 30 "${BASE_URL}${path}" \
+                  -o "$smoke_dir/$name"; then
+                fail_reason="could not fetch ${path}"
+                return 1
+              fi
+            done
+            return 0
+          }
+
+          assert_surface() {
+            fail_reason=""
+            if ! jq -e --arg commit "$DEPLOYED_SHA" \
+                --arg deployment_id "$DEPLOYMENT_ID" \
+                --argjson source_run_id "$GITHUB_RUN_ID" \
+                --argjson source_run_attempt "$GITHUB_RUN_ATTEMPT" \
+                '.schema_version == 3 and .commit == $commit
+                 and .source_run_id == $source_run_id
+                 and .source_run_attempt == $source_run_attempt
+                 and .deployment_id == $deployment_id
+                 and (.release_manifest_sha256 | test("^[0-9a-f]{64}$"))' \
+                "$smoke_dir/deployment.json" >/dev/null 2>&1; then
+              local served_id
+              served_id=$(jq -r '.deployment_id // "absent"' \
+                "$smoke_dir/deployment.json" 2>/dev/null || echo "unparseable")
+              fail_reason="deployment.json is not this deployment (production served deployment_id=${served_id}, expected ${DEPLOYMENT_ID})"
+              return 1
+            fi
+            local label file needle
+            while IFS='|' read -r label file needle; do
+              [ -n "$label" ] || continue
+              if ! grep -Fq "$needle" "$smoke_dir/$file"; then
+                fail_reason="${label} missing from ${file}"
+                return 1
+              fi
+            done <<'ASSERTIONS'
+          home canonical|home.html|<link rel="canonical" href="https://gtfsscorecard.org/">
+          sitemap directive|robots.txt|Sitemap: https://gtfsscorecard.org/sitemap.xml
+          unitrans sitemap entry|sitemap.xml|<loc>https://gtfsscorecard.org/agency/unitrans/</loc>
+          yolobus sitemap entry|sitemap.xml|<loc>https://gtfsscorecard.org/agency/yolobus/</loc>
+          unitrans canonical|unitrans.html|<link rel="canonical" href="https://gtfsscorecard.org/agency/unitrans/">
+          unitrans board title|unitrans.html|<h1 class="board-title"><bdi>Unitrans
+          yolobus canonical|yolobus.html|<link rel="canonical" href="https://gtfsscorecard.org/agency/yolobus/">
+          yolobus board title|yolobus.html|<h1 class="board-title"><bdi>Yolobus
+          ASSERTIONS
+            return 0
+          }
+
+          # Give the origin a moment to flip before the first read. A request
+          # that arrives too early does not just fail, it caches the stale
+          # answer for a full TTL, so a few seconds here is much cheaper than
+          # the ten-minute recovery it avoids.
+          sleep 5
+
+          deadline=$(( $(date -u +%s) + SMOKE_BUDGET_SECONDS ))
+          attempt=0
+          while :; do
+            attempt=$(( attempt + 1 ))
+            if fetch_surface && assert_surface; then
+              echo "Production crawl surface matched ${DEPLOYMENT_ID} on attempt ${attempt}."
+              exit 0
+            fi
+            now=$(date -u +%s)
+            if [ "$now" -ge "$deadline" ]; then
+              break
+            fi
+            # Sleep until the cached copy the edge is holding expires; re-reading
+            # it sooner returns the identical bytes by construction.
+            wait_for=10
+            if [ "$served_age" -gt 0 ]; then
+              ttl_remaining=$(( served_max_age - served_age + 5 ))
+              if [ "$ttl_remaining" -gt "$wait_for" ]; then
+                wait_for="$ttl_remaining"
+              fi
+            fi
+            budget_remaining=$(( deadline - now ))
+            if [ "$wait_for" -gt "$budget_remaining" ]; then
+              wait_for="$budget_remaining"
+            fi
+            if [ "$wait_for" -lt 1 ]; then
+              wait_for=1
+            fi
+            echo "attempt ${attempt}: ${fail_reason}; edge copy age=${served_age}s of max-age=${served_max_age}s, retrying in ${wait_for}s"
+            sleep "$wait_for"
+          done
+
+          {
+            echo "::error title=Production crawl surface did not match this deployment::${fail_reason}"
+            echo "Expected deployment_id=${DEPLOYMENT_ID} commit=${DEPLOYED_SHA}"
+            echo "Gave up after ${attempt} attempts over ${SMOKE_BUDGET_SECONDS}s."
+            echo "Last /deployment.json production served:"
+            cat "$smoke_dir/deployment.json" 2>/dev/null || echo "(nothing readable)"
+            echo
+            echo "Its response headers (age/x-served-by show whether this was a cached copy):"
+            cat "$smoke_dir/deployment.headers" 2>/dev/null || echo "(nothing readable)"
+          } >&2
+          exit 1

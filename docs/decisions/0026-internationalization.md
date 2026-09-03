@@ -63,17 +63,19 @@ Smallest viable pilot, buildable as one PR:
 
 - **Discover:** `scorecard sync --country CA` already filters the Mobility
   Database by `location.country_code`; add a handful of Canadian feeds to
-  `agencies.yaml`. The catalog `mdb_id` follows moved URLs.
+  the agency registry. The catalog `mdb_id` follows moved URLs.
 - **Make the model country-aware:** add a `country` field to the agency registry
   and the `Agency` model, defaulting to `US` so every current entry is unchanged,
   and carry it into the published artifact's `agency` block.
 - **Gate the US-only per-agency surfaces on `country == "US"`:** NTD-readiness
-  and NTD-id alignment (both keyed to the FTA five-digit NTD ID) render only for
+  (including required agency_id presence) and optional NTD-ID equality render only for
   US agencies; a Canadian feed shows the GTFS-quality core (correctness,
   freshness, completeness, realtime) without a hollow NTD box.
-- **Subdivision:** the US-state subdivision mapping returns empty for a Canadian
-  province, so a pilot agency lands in the existing "Unlocated" bucket. Extending
-  province handling is a later refinement, not a blocker.
+- **Subdivision:** carry ISO 3166-2 `subdivision_code` and a
+  practitioner-facing `subdivision_name` alongside `country`. The Canada pilots
+  use `CA-YT` / Yukon and `CA-ON` / Ontario. Keep the published `state` field for
+  existing US consumers, but make the portable subdivision fields the contract
+  for new grouping and display work.
 - **National rollups:** the ACS-equity, adoption, and accessibility national
   rollups stay US-framed for now; non-US agencies are simply outside them until
   Tier 2 localizes the context data.
@@ -95,6 +97,23 @@ and tests.
   matter most (discovery, validation) long before it solves Europe.
 - Europe (NeTEx) and a true cross-country equity overlay remain open, and each is
   its own decision; this ADR does not commit to either.
+
+## Implementation update (2026-07-12)
+
+The no-build frontend now routes dates, counts, and agency-name collation through
+`web/src/locale.js`, using the page's BCP 47 `lang` value and the browser's
+`Intl` implementation. The same module sets the root writing direction, with a
+browser contract covering a right-to-left locale. English remains the declared
+default; this removes the earlier `en-US` formatting assumption without claiming
+that the full practitioner interface has been translated.
+
+The registry and published API now use an additive location contract:
+`country` is an ISO 3166-1 alpha-2 code, `subdivision_code` is an ISO 3166-2
+code, and `subdivision_name` is the local practitioner-facing display name.
+`country` continues to default to `US`, and the legacy `state` field remains
+available for current US consumers. This preserves existing integrations while
+letting new directory and rollup work group provinces, territories, states, and
+other first-level subdivisions without country-specific field names.
 
 ## Open questions
 
@@ -133,8 +152,76 @@ is open and small-area; most other countries would start from population-only
 geometry. The Global South GTFS landscape stayed unanswered in that pass and is
 being researched separately.
 
+## Update (2026-07): portable directory navigation
+
+The interactive directory now reads the additive country and subdivision
+rollups described here. It exposes country-scoped subdivision controls and
+portable `?country=CA&subdivision=CA-ON` links while retaining the US state
+choropleth. Existing `?state=California` bookmarks are interpreted as US
+subdivisions and are rewritten only after the visitor changes a control. A
+directory document without the new fields continues to use the former state
+controls, which keeps partial and cached deployments usable.
+
+## Global ISO vocabulary and coverage checklist
+
+Location validity and current scorecard coverage are separate concerns. The
+packaged vocabulary accepts all 249 assigned ISO 3166-1 countries and all 5,046
+ISO 3166-2 subdivisions. It is generated deterministically from the pinned
+`pycountry` Debian `iso-codes` snapshot, with CLDR country display names from
+the pinned Babel snapshot. The generation dependencies are not runtime
+dependencies, and the generated JSON travels inside the installed wheel.
+
+The agency registry determines where scorecards exist today. Adding the first
+agency in a country never requires an application-code or location-allowlist
+change. The write boundary still rejects malformed, unassigned, cross-country,
+and unknown codes. Source-specific aliases remain narrow and reviewed; an
+unknown or ambiguous subdivision name is never guessed.
+
+Before publishing the first production agency in a country:
+
+1. Verify at least one canonical GTFS Schedule endpoint, its license or
+   redistribution terms, update cadence, and operator or local-steward context.
+   The Global South pilot also requires the consent and partnership gates in
+   ADR 0028 before a feed is listed.
+2. Exercise one synthetic canary through registry parsing, artifact validation,
+   directory and `api/v1/by-location.json` generation, country/subdivision search,
+   portable deep links, static rendering, and mobile/keyboard accessibility. Keep
+   omitted historical `country` values defaulting to `US`, and keep the legacy
+   `state` and `by-state.json` contracts unchanged.
+3. Confirm every US-only surface stays absent for the canary: FTA NTD readiness,
+   NTD identifier alignment, ACS equity, and US guidance. Add local guidance or
+   an equity overlay only when a cited source exists; neither is required to
+   score the universal GTFS core.
+4. Review the public scope copy, structured data, map framing, and MCP/API search
+   descriptions so the new country is visible without being described as US,
+   Canadian, or unlocated. For a new interface language, complete the locale,
+   translation, pseudolocale, and RTL gates separately before claiming support.
+
+Only after those checks pass should production agency records be added. Adding
+coverage does not change weights, thresholds, grades, or the shared
+`scoring_profile`; any jurisdiction-specific scoring change needs its own decision.
+
 ## Related
 
 ADR 0015 (equity, state-level first), 0016 (NTD id alignment), 0025
 (access-to-opportunity scope). All three are US-anchored surfaces this decision
 makes conditional abroad.
+
+## Update (2026-07-15): consumer feature discovery and European GTFS boundary
+
+Direct consumer feedback separated two kinds of translation work. GTFS
+publishers can provide rider-facing values through `translations.txt`; the
+scorecard now measures that file and its BCP 47 language tags as an optional
+feature, without moving a grade. Translating the scorecard interface remains a
+separate, steward-reviewed project.
+
+The feature finder is now a primary navigation stop because the participant
+looked there first and did not find the existing footer link. The same surface
+states its U.S.-heavy denominator so portable country controls are not mistaken
+for representative regional coverage.
+
+Europe is split once more: a reviewed **European GTFS beta** can proceed without
+NeTEx conversion when it passes the explicit cohort gate in
+[`../global-expansion.md`](../global-expansion.md). It must be labeled as GTFS
+coverage only. NeTEx ingestion remains the heavier Tier 3 decision described
+above.

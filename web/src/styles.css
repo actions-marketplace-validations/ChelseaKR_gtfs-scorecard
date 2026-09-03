@@ -1,8 +1,37 @@
 /* GTFS Scorecard — roadway signage aesthetic.
    Enamel sign-blank ground, guide-sign green, signal-yellow accents; type set
    in Overpass (the open digitization of the FHWA's Highway Gothic, the
-   letterforms on road signs) with Public Sans (USWDS) for running text.
+   letterforms on road signs), Public Sans (USWDS) for running text, and
+   Atkinson Hyperlegible Mono for compact data and wayfinding labels.
    Mobile-first. Severity and grades always carry text; color reinforces only. */
+
+/* The three type families are served locally (Latin variable-font subsets), so
+   the signage identity survives blocked third-party requests and works offline.
+   See /fonts/README.md and the adjacent OFL license files. */
+@font-face {
+  font-family: "Overpass";
+  font-style: normal;
+  font-weight: 400 900;
+  /* A delayed swap changes line metrics and can move the scorecard after
+     first paint. Prefer a stable system fallback when the local font misses
+     the short initial load window. */
+  font-display: optional;
+  src: url("/fonts/overpass-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible Mono";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: optional;
+  src: url("/fonts/atkinson-hyperlegible-mono-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: optional;
+  src: url("/fonts/public-sans-latin.woff2") format("woff2");
+}
 
 :root {
   color-scheme: light dark;
@@ -29,15 +58,33 @@
   --shadow: 0 1px 2px rgb(32 36 31 / 0.08), 0 4px 14px rgb(32 36 31 / 0.07);
   --font-display: "Overpass", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Public Sans", "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "Overpass Mono", ui-monospace, "SF Mono", monospace;
+  --font-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", monospace;
   --board: #102a20;        /* dark pine ground: guide-sign green, near black */
   --board-2: #163a2c;
   --amber: #fdc70a;        /* the signal accent: warning-sign yellow */
+  /* Semantic component colors stay separate from grade data colors. A grade
+     may be green without being an interactive success state. */
+  --success-text: #1d5c40;
+  --success-fill: #1d5c40;
+  --success-on: #f4f6f0;
+  --success-surface: #edf4ee;
+  /* Named layout primitives. Legacy selectors keep working while new surfaces
+     use these three intentional widths. */
+  --container-prose: 44rem;
+  --container-data: 78rem;
+  --container-site: 90rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
 }
 
 * { box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }
+[id] { scroll-margin-top: 1rem; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -53,13 +100,16 @@ body {
   font-size: 1rem;
   line-height: 1.55;
   color: var(--ink);
-  background:
-    radial-gradient(at 15% 0%, rgb(255 255 255 / 0.55), transparent 45%),
-    var(--paper);
+  background: var(--paper);
+}
+
+abbr[title="General Transit Feed Specification"] {
+  font-style: normal;
+  text-decoration: none;
 }
 
 .wrap {
-  max-width: 44rem;
+  max-width: var(--container-prose);
   margin-inline: auto;
   padding-inline: 1.1rem;
 }
@@ -68,10 +118,124 @@ body {
    applies to blocks of text), so pages whose value is tabular get the room
    to show it. Prose inside keeps its own max-width via .page-lede etc. */
 main.wrap-wide {
-  max-width: 78rem;
+  max-width: var(--container-data);
 }
 main.wrap-wide .page-title {
   font-size: clamp(1.7rem, 4vw, 2.2rem);
+}
+
+/* The long agency scorecard is a report, not a narrow article. Its body keeps
+   the readable measure while a subject-specific route map makes the sequence
+   visible and reachable. */
+.agency-report { min-width: 0; }
+.report-head,
+.report-content { min-width: 0; }
+.report-route {
+  margin: 1rem 0 1.5rem;
+  padding: 0.85rem 0.9rem;
+  overflow-x: auto;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.report-route-kicker {
+  margin: 0;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.report-route-title {
+  margin: 0.1rem 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.report-route ol {
+  position: relative;
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.report-route ol::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  height: 0;
+  border-top: 2px dashed var(--line);
+  pointer-events: none;
+}
+.report-route li { position: relative; }
+.report-route a {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.35rem 0.55rem;
+  color: var(--ink);
+  background: var(--card);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.report-route a:hover { color: var(--green); }
+.report-route a > span {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border: 2px solid var(--green);
+  border-radius: 50%;
+  background: var(--card);
+}
+@media (min-width: 64rem) {
+  main.agency-report {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    grid-template-rows: auto 1fr;
+    column-gap: clamp(1.5rem, 3vw, 2.75rem);
+    align-items: start;
+  }
+  .agency-report .report-head { grid-column: 1; grid-row: 1; }
+  .agency-report .report-content { grid-column: 1; grid-row: 2; }
+  .agency-report .report-route {
+    position: sticky;
+    top: 1rem;
+    grid-column: 2;
+    grid-row: 1 / 3;
+    margin: 0;
+    overflow: visible;
+  }
+  .report-route ol {
+    display: grid;
+    width: auto;
+    min-width: 0;
+    gap: 0;
+  }
+  .report-route ol::before {
+    left: 15px;
+    right: auto;
+    top: 12px;
+    bottom: 12px;
+    width: 0;
+    height: auto;
+    border-top: 0;
+    border-inline-start: 2px dashed var(--line);
+  }
+  .report-route a { width: 100%; padding-inline: 0.6rem; }
 }
 
 /* Two small tables side by side instead of a single narrow stack. Grid order
@@ -81,6 +245,7 @@ main.wrap-wide .page-title {
   gap: 0 2.4rem;
   align-items: start;
 }
+.section-grid > * { min-width: 0; }
 @media (min-width: 900px) {
   .section-grid { grid-template-columns: 1fr 1fr; }
   .section-grid > .span-2 { grid-column: 1 / -1; }
@@ -91,6 +256,8 @@ main.wrap-wide .page-title {
 @media (max-width: 640px) {
   .leaderboard {
     display: block;
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -98,6 +265,107 @@ main.wrap-wide .page-title {
 
 a { color: var(--green); text-underline-offset: 0.15em; }
 a:hover { color: var(--green-bright); }
+
+/* Canonical action primitive. Legacy controls keep their existing selectors;
+   new work uses these variants so button hierarchy is predictable. */
+.button,
+.report-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.55rem 0.9rem;
+  color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:hover,
+.report-action:hover { color: var(--ink); border-color: var(--ink); }
+.button-primary,
+.report-action-primary {
+  color: var(--success-on);
+  background: var(--success-fill);
+  border-color: var(--success-fill);
+}
+.button-primary:hover,
+.report-action-primary:hover { color: var(--success-on); filter: brightness(1.06); }
+.button-secondary { color: var(--green); background: var(--card); }
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+.action-panel {
+  max-width: var(--measure);
+  margin: 0 0 2rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-inline-start: 5px solid var(--green);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.action-panel > :last-child { margin-bottom: 0; }
+.support-paths {
+  display: grid;
+  gap: 1rem;
+  margin: 0 0 2.5rem;
+}
+.support-path {
+  min-width: 0;
+  padding: 1.1rem 1.15rem;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.support-path-featured { border-top: 5px solid var(--amber); }
+.support-path-kicker {
+  margin: 0 0 0.2rem;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.support-path h2 {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+.support-path p { margin-block: 0 0.75rem; }
+.support-path > :last-child { margin-bottom: 0; }
+@media (min-width: 64rem) {
+  .support-paths { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Sponsor tiers on /support/: a definition list so each amount is announced
+   with the cost line it is sized to. Reuses the card tokens; no new colors. */
+.sponsor-tiers {
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.35rem 1rem;
+}
+.sponsor-tiers dt {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sponsor-tiers dd { margin: 0; }
+@media (max-width: 40rem) {
+  .sponsor-tiers { grid-template-columns: minmax(0, 1fr); gap: 0.15rem; }
+  .sponsor-tiers dd { margin: 0 0 0.6rem; }
+}
 
 :focus-visible {
   outline: 3px solid var(--focus);
@@ -133,8 +401,8 @@ a:hover { color: var(--green-bright); }
 /* ---------- header / footer ---------- */
 
 /* Primary navigation: a transit wayfinding bar. Each section is a stop on a
-   route line, and the current page is the filled "you are here" stop
-   (aria-current). A pine band in every theme so the chrome reads consistently;
+   route line, and the stop you are at is filled (aria-current: "page" on the
+   page itself, "true" on the hub of the section you are inside). A pine band in every theme so the chrome reads consistently;
    cream text clears AAA (verified in pipeline/scripts/check_contrast.py). */
 .site-header {
   position: relative;
@@ -151,8 +419,8 @@ a:hover { color: var(--green-bright); }
   left: 0;
   right: 0;
   bottom: 0;
-  height: 2px;
-  background: repeating-linear-gradient(to right, rgba(244, 246, 240, 0.22) 0 7px, transparent 7px 14px);
+  height: 0;
+  border-top: 2px dashed rgba(244, 246, 240, 0.22);
 }
 /* The header spans the full viewport (the dashed route line in ::after already
    does), so the wayfinding stops use the whole width instead of overflowing the
@@ -160,10 +428,11 @@ a:hover { color: var(--green-bright); }
    of sections. Body content keeps its 44rem .wrap; only the chrome goes wide. */
 .site-header > .wrap {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
   min-height: 64px;
-  max-width: 90rem;
+  max-width: var(--container-site);
   margin-inline: auto;
   padding-inline: clamp(1rem, 2vw, 2.25rem);
 }
@@ -171,6 +440,7 @@ a:hover { color: var(--green-bright); }
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
+  min-height: 44px;
   text-decoration: none;
   color: #f4f6f0;
   flex: none;
@@ -198,14 +468,21 @@ a:hover { color: var(--green-bright); }
 }
 .nav-cluster {
   display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.2rem;
+  min-width: 0;
   margin-left: auto;
 }
 .nav-stops {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.1rem;
+  min-width: 0;
 }
 .nav-stop {
   position: relative;
@@ -238,10 +515,14 @@ a:hover { color: var(--green-bright); }
 .nav-stop:hover .pip {
   background: rgba(111, 200, 160, 0.4);
 }
-.nav-stop[aria-current="page"] {
+/* Filled for both aria-current values: "page" when this stop is the page you
+   are on, "true" when it is the section you are inside. The two states look
+   the same on screen and read differently to a screen reader, which is the
+   point: only one of them is a claim about which page you are on. */
+.nav-stop[aria-current] {
   color: #f4f6f0;
 }
-.nav-stop[aria-current="page"] .pip {
+.nav-stop[aria-current] .pip {
   background: #6fc8a0;
   box-shadow: 0 0 0 4px #102a20, 0 0 9px rgba(111, 200, 160, 0.6);
 }
@@ -273,9 +554,9 @@ a:hover { color: var(--green-bright); }
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-/* Twelve wayfinding stops only fit on one line above ~1400px; below that the bar
-   would overflow, so collapse to the stacked menu (nav.js) instead of clipping. */
-@media (max-width: 1400px) {
+/* Six wayfinding stops fit on a normal laptop. Collapse only when the complete
+   bar would actually crowd the brand and theme control. */
+@media (max-width: 1040px) {
   .nav-menu-btn {
     display: inline-flex;
   }
@@ -316,13 +597,71 @@ a:hover { color: var(--green-bright); }
   margin-top: 4rem;
   border-top: 3px solid #fdc70a;
   background: var(--board);
-  padding-block: 1.4rem 2.2rem;
+  padding-block: 2rem 2.4rem;
   font-size: 0.9rem;
   color: #cfdcd2;
 }
 .site-footer a { color: #f4f6f0; }
 .site-footer a:hover { color: #fff; }
 .site-footer strong { color: #f4f6f0; }
+.site-footer > .wrap {
+  max-width: var(--container-site);
+  padding-inline: clamp(1rem, 3vw, 2.25rem);
+}
+.footer-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 32rem);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-bottom: 1.35rem;
+  margin-bottom: 1.35rem;
+  border-bottom: 1px solid rgb(244 246 240 / 0.2);
+}
+.footer-intro p { margin: 0; color: #cfdcd2; }
+.footer-brand {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem clamp(1.4rem, 3vw, 3rem);
+}
+.footer-grid section { min-width: 0; }
+.footer-grid h2 {
+  margin: 0 0 0.65rem;
+  color: #f4f6f0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.footer-grid ul { list-style: none; margin: 0; padding: 0; }
+.footer-grid li { margin: 0; }
+.footer-grid .footer-subhead {
+  margin-top: 0.55rem;
+  color: #bcccbd;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.footer-grid a {
+  width: fit-content;
+  min-height: 44px;
+  padding-block: 0.25rem;
+  line-height: 1.25;
+}
+@media (max-width: 760px) {
+  .footer-intro { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 340px) {
+  .footer-grid { grid-template-columns: 1fr; }
+}
 
 /* 2.4.13 focus appearance on the dark chrome band. The global --focus ring is a
    dark blue tuned for the light page; on the pine header/footer it falls to
@@ -388,6 +727,7 @@ main:focus { outline: none; }
   max-width: 42rem;
   margin: 0 0 1.2rem;
   line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .picker-controls {
@@ -453,12 +793,33 @@ main:focus { outline: none; }
 .grade-jump { margin: 0 0 1.6rem; color: var(--ink-soft); }
 .grade-jump a { margin: 0 0.15rem; }
 .grade-count { font-family: var(--font-body); font-weight: 400; font-size: 0.9rem; color: var(--ink-soft); }
+.directory-pager {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.2rem;
+  justify-content: space-between;
+  margin: 1.2rem 0 1.6rem;
+}
+.directory-pager a,
+.directory-pager > span {
+  min-height: 44px;
+  padding: 0.65rem 0;
+}
+.directory-pager > span {
+  color: var(--ink-soft);
+}
+.directory-pager [aria-current="page"] {
+  color: var(--ink);
+  font-weight: 700;
+}
 .facet-chip {
   font: inherit;
   font-size: 0.9rem;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+  min-width: 44px;
   min-height: 44px;
   padding: 0.4rem 0.9rem;
   border: 1.5px solid var(--line);
@@ -594,15 +955,297 @@ main:focus { outline: none; }
 }
 .grade-seg .seg-n { color: var(--ink-soft); font-weight: 400; font-variant-numeric: tabular-nums; }
 
-/* browse by state */
+/* ---------- shared visualization grammar ----------
+   Ranked percentages use a zero-based "service route": a labelled line starts
+   at a stop marker and runs to the exact value. The semantic list is both chart
+   and text equivalent, so no fact depends on SVG, hover, or color. */
+.service-chart {
+  margin: 0 0 1.3rem;
+  padding: 1rem 1.05rem 0.85rem;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.service-chart figcaption { display: grid; gap: 0.15rem; margin-bottom: 0.9rem; }
+.service-chart-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.service-chart-note { color: var(--ink-soft); font-size: 0.82rem; }
+.service-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.85rem; }
+.service-bar { min-width: 0; }
+.service-bar-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 0.3rem;
+}
+.service-bar-label { font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.service-bar-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.service-bar-detail { display: block; color: var(--ink-soft); font-size: 0.7rem; font-weight: 400; }
+.service-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 0.62rem;
+  border-radius: 999px;
+  background: var(--paper-deep);
+}
+.service-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--value) * 1%);
+  min-width: 0;
+  border-radius: 999px;
+  background: var(--green);
+}
+.service-stop {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0.68rem;
+  height: 0.68rem;
+  border: 2px solid var(--green);
+  border-radius: 50%;
+  background: var(--card);
+  transform: translate(-1px, -50%);
+}
+.service-scale {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.3rem 0 0;
+  padding-left: 0.1rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+.viz-data { margin-top: -0.4rem; }
+.viz-data > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--green);
+  cursor: pointer;
+}
+.problems-chart { max-width: 58rem; }
+.problem-example { color: var(--ink-soft); font-size: 0.9rem; }
+.events,
+.event { min-width: 0; }
+.event p { overflow-wrap: anywhere; }
+
+/* Ordered bucket distributions use columns. Labels name the bands because the
+   intervals are intentionally not drawn as a continuous, equal-width axis. */
+.bucket-chart,
+.movement-chart {
+  margin: 0 0 1.3rem;
+  padding: 1rem 1.05rem 0.85rem;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.bucket-chart figcaption,
+.movement-chart figcaption { display: grid; gap: 0.15rem; margin-bottom: 0.9rem; }
+.bucket-bars {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(var(--bins), minmax(0, 1fr));
+  gap: 0.45rem;
+  align-items: end;
+  margin: 0;
+  padding: 0;
+}
+.bucket-bar {
+  display: grid;
+  grid-template-rows: auto 7rem auto;
+  gap: 0.3rem;
+  min-width: 0;
+  text-align: center;
+}
+.bucket-value {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.bucket-column {
+  position: relative;
+  display: block;
+  height: 100%;
+  border-bottom: 2px solid var(--line);
+}
+.bucket-column > span {
+  position: absolute;
+  inset: auto 12% 0;
+  height: calc(var(--height) * 1%);
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--green);
+}
+.bucket-label { color: var(--ink-soft); font-size: 0.7rem; line-height: 1.25; overflow-wrap: anywhere; }
+
+/* Significant movers form a part-to-whole band. Words and counts carry the
+   direction; green and rust are redundant reinforcement. */
+.movement-chart { max-width: 42rem; }
+.movement-counts {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 0.4rem;
+  padding: 0;
+}
+.movement-counts li { font-size: 0.9rem; }
+.movement-counts strong { font-family: var(--font-mono); font-size: 1.15rem; }
+.movement-band { display: flex; width: 100%; height: 0.75rem; gap: 3px; }
+.movement-band span { flex: var(--share) 1 0; border-radius: 999px; }
+.movement-band .movement-up { background: var(--grade-a); }
+.movement-band .movement-down { background: var(--grade-f); }
+.movement-note { margin: 0.45rem 0 0; color: var(--ink-soft); font-size: 0.78rem; }
+
+/* Consumer feature finder. The thin signal line and dark results board reuse
+   the transit-signage language without turning each control into a card. */
+.feature-explorer {
+  margin: 0 0 1.7rem;
+  padding: 1.35rem 0 1.5rem;
+  border-top: 4px solid var(--amber);
+  border-bottom: 1.5px solid var(--line);
+}
+.feature-explorer-head { max-width: 44rem; }
+.feature-explorer-head .section-title { margin-top: 0; }
+.feature-explorer-head > p:last-child { color: var(--ink-soft); }
+.feature-eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.feature-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1.25rem;
+  margin: 1.15rem 0 0.9rem;
+}
+.feature-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0.8rem 1rem 0.9rem;
+  border: 0;
+  border-left: 4px solid var(--green);
+  background: var(--card);
+}
+.feature-fieldset legend {
+  padding: 0 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.required-feature-filters { grid-column: 1 / -1; }
+.required-feature-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.5rem;
+}
+.required-feature-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+.feature-fieldset input[type="checkbox"] {
+  inline-size: 1.2rem;
+  block-size: 1.2rem;
+  margin: 0;
+  accent-color: var(--green);
+  flex: 0 0 auto;
+}
+.feature-fieldset input[type="checkbox"]:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.accessibility-thresholds > label,
+.translation-filters > label,
+.mode-filters > label,
+.use-case-filters > label {
+  display: block;
+  margin: 0.65rem 0 0.25rem;
+  font-weight: 600;
+}
+.accessibility-thresholds select,
+.translation-filters select,
+.mode-filters select,
+.ferry-profile-filters select,
+.use-case-filters select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.7rem;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.accessibility-thresholds select:focus-visible,
+.translation-filters select:focus-visible,
+.mode-filters select:focus-visible,
+.ferry-profile-filters select:focus-visible,
+.use-case-filters select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.translation-filters select:disabled,
+.mode-filters select:disabled,
+.ferry-profile-filters select:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+.coverage-limit {
+  max-width: 52rem;
+  margin: 0.85rem 0 0;
+  padding: 0.8rem 1rem;
+  border-left: 4px solid var(--amber);
+  background: var(--card);
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+}
+@media (max-width: 40rem) {
+  .required-feature-options { grid-template-columns: 1fr; }
+}
+
+/* browse by location */
 .state-browse { margin: 0 0 1.4rem; }
 .state-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.country-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.location-groups { display: grid; gap: 1rem; }
+.location-group {
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.location-group h3 { margin: 0 0 0.6rem; font-size: 1rem; }
+.location-group[hidden] { display: none; }
 .state-chip {
   font: inherit;
   font-size: 0.9rem;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+  min-width: 44px;
   min-height: 44px;
   padding: 0.4rem 0.85rem;
   border: 1.5px solid var(--line);
@@ -618,6 +1261,105 @@ main:focus { outline: none; }
 .state-chip[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: var(--paper); }
 .state-chip[aria-pressed="true"] .state-n { color: rgb(242 243 238 / 0.75); }
 .state-chip-muted { color: var(--ink-soft); }
+
+.feature-match-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: start;
+  margin: 0 0 1.2rem;
+  padding: 1rem 1.15rem 1.1rem;
+  border-top: 5px solid var(--amber);
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--board);
+  box-shadow: var(--shadow);
+}
+.feature-match-kicker {
+  margin: 0;
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.feature-match-board .agency-count {
+  color: #f2f3ee;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: normal;
+}
+.feature-match-board[data-active="false"] .agency-count {
+  max-width: 34ch;
+  color: var(--board-soft);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.feature-match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 0.15rem;
+  gap: 0.65rem 1rem;
+}
+.feature-match-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--amber);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.feature-match-actions a:hover { color: #f2f3ee; }
+.feature-match-board[data-active="false"] .feature-download-btn,
+.feature-match-board[data-active="false"] .feature-clear-btn { display: none; }
+.feature-download-btn {
+  min-height: 44px;
+  padding: 0.55rem 0.9rem;
+  border: 2px solid var(--amber);
+  border-radius: var(--radius);
+  background: var(--amber);
+  color: #171b16;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.feature-download-btn:hover:not(:disabled) { background: #ffdc55; }
+.feature-download-btn:focus-visible { outline: 3px solid #f2f3ee; outline-offset: 3px; }
+.feature-download-btn:disabled {
+  border-color: var(--board-soft);
+  background: transparent;
+  color: var(--board-soft);
+  cursor: not-allowed;
+}
+.feature-clear-btn {
+  min-height: 44px;
+  padding: 0.45rem 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--amber);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+.feature-clear-btn:hover:not(:disabled) { color: #f2f3ee; }
+.feature-clear-btn:focus-visible { outline: 3px solid #f2f3ee; outline-offset: 2px; }
+.feature-clear-btn:disabled { color: var(--board-soft); cursor: not-allowed; }
+.feature-evidence {
+  margin: 0.3rem 0 0;
+  color: var(--green-bright);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 44rem) {
+  .feature-download-btn { width: 100%; }
+}
 
 .results-hint { color: var(--ink-soft); margin: 0.4rem 0 0; }
 .show-more-wrap { margin: 1.1rem 0 0; }
@@ -637,6 +1379,61 @@ main:focus { outline: none; }
 
 .peer-note { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--green-bright); }
 .peer-context { margin: 0.4rem 0 0; font-size: 0.9rem; color: #d3e0d4; }
+
+/* Percentiles are positions, not quantities, so the board uses a marker on a
+   fixed ruler instead of a filled bar. Exact values remain visible above it. */
+.percentile-strip {
+  width: min(100%, 25rem);
+  margin-top: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgb(244 246 240 / 0.18);
+}
+.percentile-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) auto;
+  gap: 0.1rem 0.8rem;
+  margin-top: 0.45rem;
+}
+.percentile-row:first-child { margin-top: 0; }
+.percentile-label,
+.percentile-value {
+  color: #eef3eb;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.percentile-value { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.percentile-track {
+  position: relative;
+  grid-column: 1 / -1;
+  display: block;
+  height: 0.75rem;
+}
+.percentile-line {
+  position: absolute;
+  inset: 0.32rem 0 auto;
+  height: 2px;
+  background: rgb(244 246 240 / 0.35);
+}
+.percentile-marker {
+  position: absolute;
+  left: calc(var(--position) * 1%);
+  top: 0;
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 2px solid var(--board);
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 0 1px var(--amber);
+  transform: translateX(-50%);
+}
+.percentile-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--board-soft);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
 
 /* US choropleth: states shaded by share of feeds expired (good green to rust),
    reinforced by each state's title/aria text and the legend. */
@@ -666,10 +1463,42 @@ main:focus { outline: none; }
 }
 .us-state.selected { stroke: var(--ink); stroke-width: 2.4; }
 
-.map-beyond {
-  margin: 0.5rem 0 0;
-  font-size: 0.9rem;
+/* Drill-down header shown when the world map zooms into one country's
+   subdivisions: a Back control plus the country name. */
+.map-drill-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.5rem;
+  flex-wrap: wrap;
 }
+.map-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 44px;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.map-back:hover { border-color: var(--ink); }
+.map-back:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.map-drill-title { font-weight: 700; color: var(--ink); }
+/* How much coverage this drill-down shows, stated in text beside the country
+   name so the count never rests on the fill color. Wraps under the title on a
+   narrow phone rather than pushing the row wider than the map. */
+.map-drill-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
 .map-legend {
   display: flex;
   flex-wrap: wrap;
@@ -687,6 +1516,16 @@ main:focus { outline: none; }
 .map-swatch.q2 { background: #e7c46a; }
 .map-swatch.q3 { background: #d6894e; }
 .map-swatch.q4 { background: #b5482a; }
+
+/* Legend footnote: names the color encoding in prose and says what the counts
+   and the unshaded areas mean, so meaning never rests on color alone. */
+.map-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  max-width: 44rem;
+}
 
 /* ---------- scorecard hero ---------- */
 
@@ -768,7 +1607,7 @@ main:focus { outline: none; }
   vertical-align: 0.08em;
   white-space: nowrap;
 }
-.ntd-ready { color: var(--grade-a); }
+.ntd-ready { color: var(--success-text); }
 .ntd-at_risk { color: var(--warning); }
 .ntd-not_ready { color: var(--error); }
 .ntd-unknown { color: var(--info); }
@@ -793,12 +1632,12 @@ main:focus { outline: none; }
 .rec-what { margin: 0 0 0.3rem; font-weight: 600; }
 .rec-fix { margin: 0; color: var(--ink-soft); }
 /* Curator-verified operating status: a calm, reassuring note, not a warning. */
-.op-note { color: var(--grade-a); font-weight: 600; }
+.op-note { color: var(--success-text); font-weight: 600; }
 .operating-note {
   margin: 0.6rem 0 0;
   padding: 0.7rem 1rem;
-  border-left: 4px solid var(--grade-a);
-  background: #dceadf;
+  border-left: 4px solid var(--success-fill);
+  background: var(--success-surface);
   border-radius: 6px;
   color: var(--ink);
   font-size: 0.9rem;
@@ -815,6 +1654,7 @@ main:focus { outline: none; }
   text-align: left;
   padding: 0.4rem 0.6rem;
   border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
 }
 .leaderboard th {
   font-size: 0.8rem;
@@ -834,11 +1674,47 @@ main:focus { outline: none; }
   background: var(--card);
 }
 /* Placeholder text inside the map container; MapLibre clears it when it
-   initialises, so it only shows while (or if) the CDN library never loads. */
+   initialises, so it shows until the visitor requests the enhancement. */
 .national-map .map-fallback {
   padding: 1.2rem;
   color: var(--muted, inherit);
   max-width: 44ch;
+}
+
+.map-load-panel {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-block: 1rem 0.75rem;
+}
+
+.map-load-panel .fineprint {
+  margin: 0;
+  max-width: 52rem;
+}
+.map-load-panel .button[hidden] {
+  display: none;
+}
+
+.national-map-pending {
+  align-items: center;
+  display: flex;
+  height: auto;
+  justify-content: center;
+  min-height: 12rem;
+}
+
+@media (max-width: 40rem) {
+  .map-load-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .map-load-panel .button {
+    text-align: center;
+    width: 100%;
+  }
 }
 .map-legend {
   display: flex;
@@ -896,8 +1772,18 @@ main:focus { outline: none; }
 .map-filters-intro { margin: 0 0 0.4rem; color: var(--ink-soft); font-size: 0.9rem; }
 .map-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; }
 .map-filter-row label { font-weight: 600; }
+.map-filter-row label:has(input) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  cursor: pointer;
+}
 .map-filter-row select {
   font: inherit;
+  min-width: 0;
+  min-height: 44px;
+  max-width: 100%;
   padding: 0.35rem 0.5rem;
   border: 1.5px solid var(--line);
   border-radius: var(--radius);
@@ -905,6 +1791,13 @@ main:focus { outline: none; }
   color: var(--ink);
 }
 .map-filter-row select:focus-visible { outline: 3px solid var(--green); outline-offset: 1px; }
+.compare-filter {
+  flex-basis: 16rem;
+  max-width: 28rem;
+}
+.compare-filter + .visually-hidden + select {
+  flex: 1 1 15rem;
+}
 .map-count { margin: 0.4rem 0; color: var(--ink-soft); font-size: 0.9rem; }
 .map-count #map-result-count { font-weight: 700; color: var(--ink); }
 .map-table td:nth-child(2), .map-table td:nth-child(4) { font-variant-numeric: tabular-nums; }
@@ -946,13 +1839,18 @@ main:focus { outline: none; }
 .need-swatch.need-moderate::after {
   content: "";
   position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(
-    45deg, rgb(40 17 9 / 0.6) 0 1px, transparent 1px 4px);
+  inset: -50%;
+  width: 1px;
+  background: currentColor;
+  color: rgb(40 17 9 / 0.6);
+  box-shadow: 4px 0 currentColor, 8px 0 currentColor, 12px 0 currentColor,
+    16px 0 currentColor, 20px 0 currentColor, 24px 0 currentColor;
+  transform: rotate(45deg);
 }
 .need-swatch.need-moderate::after {
-  background-image: repeating-linear-gradient(
-    45deg, rgb(58 29 18 / 0.55) 0 1px, transparent 1px 7px);
+  color: rgb(58 29 18 / 0.55);
+  box-shadow: 7px 0 currentColor, 14px 0 currentColor, 21px 0 currentColor,
+    28px 0 currentColor;
 }
 
 /* Per-agency route + stop map (agency/<id>/index.html). The map is a visual
@@ -990,7 +1888,9 @@ main:focus { outline: none; }
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  min-height: 44px;
   margin-right: 1.2rem;
+  cursor: pointer;
 }
 .route-skip-targets {
   margin: 0.4rem 0 1rem;
@@ -1055,6 +1955,14 @@ main:focus { outline: none; }
   min-height: 44px;
   display: flex;
   align-items: center;
+}
+.subdivision-rollup > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: fit-content;
+  color: var(--green);
+  cursor: pointer;
 }
 .stop-list {
   columns: 2 16rem;
@@ -1164,7 +2072,7 @@ main:focus { outline: none; }
 .all-clear {
   background: var(--card);
   border: 1.5px solid var(--line);
-  border-left: 6px solid var(--grade-a);
+  border-left: 6px solid var(--success-fill);
   border-radius: var(--radius);
   padding: 1rem 1.1rem;
   margin: 0;
@@ -1243,6 +2151,7 @@ main:focus { outline: none; }
   font-weight: 600;
   display: inline-flex;
   align-items: center;
+  min-width: 44px;
   min-height: 44px;
   color: var(--ink);
   background: var(--card);
@@ -1301,10 +2210,10 @@ main:focus { outline: none; }
 .trend-axis { font-size: 0.8rem; color: var(--ink-soft); margin: 0.3rem 0 0; }
 .trend-sub { font-size: 1rem; margin: 0 0 0.6rem; }
 .delta-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; max-width: 26rem; }
-/* Findings that cleared since the previous run: a specific fix that landed. */
+/* Findings absent from a later compatible check; no causal attribution. */
 .cleared-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: grid; gap: 0.45rem; max-width: 40rem; }
 .cleared-row { font-size: 0.9rem; line-height: 1.45; }
-.cleared-mark { color: var(--grade-a); font-weight: 700; }
+.cleared-mark { color: var(--success-text); font-weight: 700; }
 .delta-row {
   display: flex;
   justify-content: space-between;
@@ -1331,12 +2240,15 @@ main:focus { outline: none; }
   padding: 0;
   display: grid;
   gap: 0.8rem;
+  min-width: 0;
 }
 .finding {
+  min-width: 0;
   background: var(--card);
   border: 1.5px solid var(--line);
   border-radius: var(--radius);
   padding: 0.9rem 1.05rem;
+  overflow-wrap: anywhere;
 }
 .finding-head {
   display: flex;
@@ -1364,6 +2276,20 @@ main:focus { outline: none; }
 .finding .how strong { color: var(--green); }
 .finding .code { font-size: 0.74rem; color: var(--ink-soft); }
 .finding .fix-guide { color: var(--green); font-weight: 600; white-space: nowrap; }
+.availability {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6rem;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.45rem;
+  color: var(--green);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  vertical-align: 0.1em;
+}
 /* Link to the authoritative gtfs-validator / GTFS rule a finding maps to. */
 .rule-ref { color: var(--green); font-weight: 600; }
 .feed-details .rule-ref { font-weight: 600; }
@@ -1487,7 +2413,7 @@ main:focus { outline: none; }
   border-radius: 999px;
 }
 .pill-warn { background: #f3e0d4; color: var(--grade-d); }
-.pill-ok { background: #dceadf; color: var(--grade-a); }
+.pill-ok { background: var(--success-surface); color: var(--success-text); }
 
 /* ---------- self-serve submission form ---------- */
 
@@ -1500,7 +2426,8 @@ main:focus { outline: none; }
   padding: 0.9rem 1rem;
 }
 .submit-form fieldset label { font-weight: 400; margin-top: 0.6rem; }
-.submit-form input {
+.submit-form input:not([type="checkbox"]),
+.submit-form select {
   width: 100%;
   font-family: var(--font-body);
   font-size: 1rem;
@@ -1511,6 +2438,7 @@ main:focus { outline: none; }
   background: var(--card);
   color: var(--ink);
 }
+.submit-form select { cursor: pointer; }
 /* 2.5.5: checkbox controls and their labels get a >=44px tall hit area. */
 .submit-form fieldset label {
   display: flex;
@@ -1519,7 +2447,8 @@ main:focus { outline: none; }
   min-height: 44px;
 }
 .submit-form fieldset input[type="checkbox"] { width: 1.15rem; height: 1.15rem; }
-.submit-form input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.submit-form input:focus-visible,
+.submit-form select:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
 .submit-form .req { font-weight: 400; color: var(--ink-soft); font-size: 0.8rem; }
 .submit-form .hint { display: block; margin-top: 0.35rem; font-size: 0.8rem; color: var(--ink-soft); }
 .submit-button {
@@ -1542,7 +2471,38 @@ main:focus { outline: none; }
 .submit-button:disabled { opacity: 0.6; cursor: progress; }
 .form-status { margin-top: 0.4rem; font-size: 0.9rem; }
 .form-status-err { color: var(--error); font-weight: 600; }
-.form-status-ok { color: var(--grade-a); font-weight: 600; }
+.form-status-ok { color: var(--success-text); font-weight: 600; }
+
+/* Plan cards on /bundle/: the price line is the one thing the server sets.
+   No new colors; the mono face keeps amounts from reading as prose. */
+.plan-price {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+
+/* The browser's default file picker is only about 22px tall on mobile. Keep
+   the pre-publish check's local-only upload control at the same target size as
+   the rest of the site's form controls. */
+.feed-details input[type="file"] {
+  width: 100%;
+  min-height: 44px;
+  max-width: 100%;
+  font: inherit;
+  color: var(--ink);
+}
+.feed-details input[type="file"]::file-selector-button {
+  min-height: 44px;
+  margin-right: 0.7rem;
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
 
 /* ---------- embeddable badge ---------- */
 
@@ -1598,15 +2558,8 @@ main:focus { outline: none; }
   /* The board ground is always dark, so its text stays a fixed light cream
      regardless of the active theme (it must not follow --paper, which flips). */
   color: #f4f6f0;
-  background:
-    radial-gradient(110% 80% at 92% -20%, rgb(253 199 10 / 0.14), transparent 55%),
-    radial-gradient(90% 90% at -10% 120%, rgb(46 110 81 / 0.45), transparent 60%),
-    var(--board);
+  background: var(--board);
   padding: clamp(1.3rem, 4vw, 2.2rem);
-}
-.board-hero::before { /* faint LED scanlines */
-  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
-  background-image: repeating-linear-gradient(rgb(0 0 0 / 0.14) 0 1px, transparent 1px 4px);
 }
 .board-inner { position: relative; z-index: 1; }
 .board-kicker {
@@ -1620,6 +2573,16 @@ main:focus { outline: none; }
 .board-title { font-family: var(--font-display); font-weight: 900;
   font-size: clamp(2rem, 5.5vw, 3.4rem); line-height: .98; letter-spacing: -.02em; margin: 0 0 .2rem; }
 .board-sub { font-family: var(--font-mono); font-size: .8rem; color: #bcccbd; margin: 0 0 1.6rem; }
+.board-mode {
+  display: inline-flex; align-items: center; gap: .65rem;
+  margin: -.7rem 0 1.5rem; padding: .35rem .7rem .35rem .55rem;
+  border: 1px solid rgb(188 204 189 / .42); border-block-start: 2px solid var(--amber);
+  border-radius: 3px; color: #f4f6f0; background: rgb(9 39 31 / .66);
+  font-family: var(--font-mono); font-size: .76rem;
+}
+.board-mode span {
+  color: var(--amber); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase;
+}
 
 .grade-block { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(1rem, 3vw, 2rem); }
 .reel {
@@ -1632,10 +2595,10 @@ main:focus { outline: none; }
   background: rgb(0 0 0 / 0.55); z-index: 2; }
 .reel-strip {
   display: grid; grid-auto-rows: var(--reel-h);
-  transform: translateY(0);
-  animation: flapTo 1.7s cubic-bezier(.2,.85,.25,1) .35s both;
+  /* The grade is decision-critical. Show the measured value immediately
+     instead of briefly displaying an incorrect F while a reel animates. */
+  transform: translateY(var(--flap-end, 0));
 }
-@keyframes flapTo { to { transform: translateY(var(--flap-end, 0)); } }
 .reel-strip span { display: grid; place-items: center; color: #f4f6f0;
   font-family: var(--font-display); font-weight: 900; font-size: 4rem; line-height: 1; }
 
@@ -1674,9 +2637,27 @@ main:focus { outline: none; }
 .platform .substat .pscore { font-size: 1rem; }
 .platform .substat .pstat { font-size: .82rem; margin-top: .1rem; }
 
+/* Accessibility depth signals (EXP-05): the second, field-plausibility and
+   pathway-connectivity lens, nested inside the accessibility sub-score above.
+   Zero-deduction and framed as progress to make, so it reads as a distinct
+   invitation, not a warning -- no red/error color here. */
+.a11y-depth { margin-top: .55rem; padding-top: .55rem; border-top: 1px dashed var(--line); }
+.a11y-depth-label { margin: 0 0 .35rem; font-size: .78rem; font-weight: 600;
+  letter-spacing: .02em; color: var(--ink-soft); }
+.a11y-depth-list { list-style: none; margin: 0; padding: 0; }
+.a11y-depth-list li { padding: .35rem 0; border-top: 1px solid var(--line); }
+.a11y-depth-list li:first-child { border-top: 0; }
+.a11y-depth-what { margin: 0 0 .15rem; font-size: .82rem; }
+.a11y-depth-fix { margin: 0; font-size: .8rem; color: var(--ink-soft); }
+.a11y-depth-note { margin: .45rem 0 0; font-size: .74rem; font-style: italic; color: var(--ink-soft); }
+
 /* top fixes as service alerts */
 .alerts { margin: 0; }
-.alert { display: grid; grid-template-columns: auto 1fr; gap: .9rem; padding: 1.1rem 0; border-bottom: 1.5px dashed var(--line); }
+.alert { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .9rem; padding: 1.1rem 0; border-bottom: 1.5px dashed var(--line); }
+.alert > * { min-width: 0; }
+.alert .afix,
+.alert .awhy,
+.alert .aeta { overflow-wrap: anywhere; }
 .alert .badge { align-self: start; font-family: var(--font-mono); font-size: .68rem; font-weight: 600;
   letter-spacing: .06em; text-transform: uppercase; padding: .32rem .55rem; border-radius: 7px;
   background: var(--error); color: #fff; white-space: nowrap; }
@@ -1690,7 +2671,18 @@ main:focus { outline: none; }
   background: var(--paper-deep); border-radius: 999px; padding: .1rem .5rem; white-space: nowrap; }
 
 @media (max-width: 640px) {
+  .service-chart { padding-inline: 0.85rem; }
+  .service-bar-head { align-items: start; gap: 0.5rem; }
+  .service-bar-detail { white-space: normal; }
+  .bucket-chart, .movement-chart { padding-inline: 0.75rem; }
+  .bucket-bars { gap: 0.25rem; }
+  .bucket-bar { grid-template-rows: auto 5.5rem auto; }
+  .bucket-label { font-size: 0.62rem; }
   .platform { grid-template-columns: 1.8rem 1fr; gap: .7rem; }
+  .alert { grid-template-columns: 1fr; gap: .55rem; }
+  .alert .badge { justify-self: start; }
+  .feed-details dl { grid-template-columns: minmax(0, 1fr); gap: 0.1rem; }
+  .feed-details dd { margin-bottom: 0.55rem; }
 }
 
 /* ===================================================================
@@ -1807,12 +2799,14 @@ main p,
     --error: #f0938a;
     --warning: #e7bd6a;
     --info: #a9c4d6;
+    --success-text: #84d6aa;
+    --success-fill: #7fd3a6;
+    --success-on: #15181b;
+    --success-surface: #183c2c;
   }
 
   :root:not([data-theme]) body {
-    background:
-      radial-gradient(at 15% 0%, rgb(255 255 255 / 0.05), transparent 45%),
-      var(--paper);
+    background: var(--paper);
   }
 
   /* Keep the grade letter and pressed-facet count light on their coloured fills. */
@@ -1825,12 +2819,8 @@ main p,
   :root:not([data-theme]) .alert .badge.sev-info { background: #2f4452; }
 
   /* Curator/operating note and flags: brighten so they read on the dark card. */
-  :root:not([data-theme]) .operating-note { background: rgb(111 200 160 / 0.12); }
-  :root:not([data-theme]) .op-note { color: #7fd3a6; }
   :root:not([data-theme]) .meta-flag { color: #e3905c; }
-  :root:not([data-theme]) .cleared-mark { color: #7fd3a6; }
   :root:not([data-theme]) .pill-warn { background: rgb(156 69 17 / 0.28); color: #f0b48f; }
-  :root:not([data-theme]) .pill-ok { background: rgb(29 92 64 / 0.34); color: #84d6aa; }
 }
 
 /* ===================================================================
@@ -1859,23 +2849,21 @@ main p,
   --error: #f0938a;
   --warning: #e7bd6a;
   --info: #a9c4d6;
+  --success-text: #84d6aa;
+  --success-fill: #7fd3a6;
+  --success-on: #15181b;
+  --success-surface: #183c2c;
 }
 :root[data-theme="dark"] body {
-  background:
-    radial-gradient(at 15% 0%, rgb(255 255 255 / 0.05), transparent 45%),
-    var(--paper);
+  background: var(--paper);
 }
 :root[data-theme="dark"] .grade-chip { color: #f2f3ee; }
 :root[data-theme="dark"] .facet-chip[aria-pressed="true"] { color: #15181b; }
 :root[data-theme="dark"] .alert .badge { background: #7e2a23; }
 :root[data-theme="dark"] .alert .badge.sev-warning { background: #5c3d0a; }
 :root[data-theme="dark"] .alert .badge.sev-info { background: #2f4452; }
-:root[data-theme="dark"] .operating-note { background: rgb(111 200 160 / 0.12); }
-:root[data-theme="dark"] .op-note { color: #7fd3a6; }
 :root[data-theme="dark"] .meta-flag { color: #e3905c; }
-:root[data-theme="dark"] .cleared-mark { color: #7fd3a6; }
 :root[data-theme="dark"] .pill-warn { background: rgb(156 69 17 / 0.28); color: #f0b48f; }
-:root[data-theme="dark"] .pill-ok { background: rgb(29 92 64 / 0.34); color: #84d6aa; }
 
 :root[data-theme="contrast"] {
   color-scheme: light;
@@ -1899,6 +2887,10 @@ main p,
   --grade-d: #7a3a0a;
   --grade-f: #7a0000;
   --amber: #ffd34d;   /* signal yellow, readable on the black board */
+  --success-text: #0a4420;
+  --success-fill: #0a4420;
+  --success-on: #ffffff;
+  --success-surface: #f2f2f2;
 }
 :root[data-theme="contrast"] .grade-chip { color: #ffffff; }
 :root[data-theme="contrast"] .alert .badge { color: #ffffff; background: #7a0000; }
@@ -1911,7 +2903,7 @@ main p,
 :root[data-theme="contrast"] .chip { color: #ffffff; border-color: #ffffff; }
 
 /* ===================================================================
-   Autofix: the safe mechanical fixes, offered as a corrected feed.
+   Autofix: the safe mechanical fixes available through the local command.
    Shared by the app card and the static agency page.
    =================================================================== */
 .autofix-list { list-style: none; padding: 0; margin: 0 0 1.1rem; }
@@ -1924,25 +2916,271 @@ main p,
 .autofix-cli code { font-family: var(--font-mono); font-size: 0.86rem; background: var(--paper-deep); padding: 0.1rem 0.35rem; border-radius: 4px; }
 .autofix-action { margin: 0; }
 .download-btn {
-  display: inline-block; text-decoration: none; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; text-decoration: none; font-weight: 600;
   padding: 0.6rem 1.1rem; border-radius: var(--radius);
-  color: var(--paper); background: var(--grade-a);
-  border: 1.5px solid var(--grade-a);
+  color: var(--success-on); background: var(--success-fill);
+  border: 1.5px solid var(--success-fill);
 }
-.download-btn:hover { filter: brightness(1.08); color: var(--paper); }
+.download-btn:hover { filter: brightness(1.08); color: var(--success-on); }
 .download-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
-/* Closed-loop guided fix flow (EXP-11): a compact three-step loop per top fix,
-   shown under "Top things to fix". Structural only; reuses existing tokens so it
-   inherits the verified AAA palette. */
-.fixloop { margin: 1.1rem 0 0; }
+/* Closed-loop guided fix flow (EXP-11). The alert list already names each fix;
+   the repeated implementation steps stay available in one disclosure rather
+   than doubling the visible length of the report. */
+.fixloop {
+  max-width: var(--measure);
+  margin: 1.1rem 0 0;
+  padding: 0.15rem 0.85rem 0.85rem;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.fixloop > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--green);
+  font-weight: 700;
+  cursor: pointer;
+}
+.fixloop[open] > summary { margin-bottom: 0.45rem; }
 .fixloop-lede { margin: 0 0 0.7rem; max-width: var(--measure); }
-.fixloop-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; counter-reset: fixloop; }
-.fixloop-item { padding: 0.8rem 0 0; border-top: 1px solid var(--line); max-width: var(--measure); }
+.fixloop-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; min-width: 0; counter-reset: fixloop; }
+.fixloop-item { min-width: 0; padding: 0.8rem 0 0; border-top: 1px solid var(--line); max-width: var(--measure); overflow-wrap: anywhere; }
 .fixloop-name { margin: 0 0 0.35rem; font-family: var(--font-display); font-weight: 600; }
 .fixloop-step { margin: 0 0 0.3rem; font-size: 0.92rem; line-height: 1.5; color: var(--ink-soft); }
 .fixloop-step:last-child { margin-bottom: 0; }
 .fixloop-close { font-size: 0.9rem; line-height: 1.45; margin-top: 0.85rem; max-width: var(--measure); }
+
+/* Finding handoff: an operational transfer slip, not another dashboard card.
+   The same selected code follows the reader through scorecard, brief, board,
+   fix guide, alerts, and program worklists. */
+.finding-handoff,
+.fix-context {
+  max-width: 62rem;
+  margin: 1.35rem 0 0;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--green);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--paper-deep);
+  scroll-margin-top: 5rem;
+}
+.handoff-head {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.8fr) minmax(18rem, 1.2fr);
+  gap: 1rem 2rem;
+  align-items: end;
+}
+.handoff-head h2,
+.fix-context h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  line-height: 1.2;
+}
+.handoff-head > p,
+.fix-context > p {
+  max-width: var(--measure);
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+.handoff-kicker {
+  margin: 0 0 0.28rem;
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.finding-picker {
+  display: flex;
+  gap: 0;
+  margin: 1rem 0 0;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+}
+.finding-picker a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.45rem 0.75rem;
+  border-bottom: 3px solid transparent;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.finding-picker a span { color: var(--green-bright); }
+.finding-picker a:hover { color: var(--ink); border-bottom-color: var(--line-strong); }
+.finding-picker a[aria-current="true"] {
+  border-bottom-color: var(--green);
+  color: var(--ink);
+}
+.handoff-panel { padding-top: 1rem; }
+.handoff-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-block: 1px solid var(--line);
+}
+.handoff-grid > div {
+  min-width: 0;
+  padding: 0.85rem 1rem 0.9rem 0;
+}
+.handoff-grid > div + div {
+  padding-inline-start: 1rem;
+  border-inline-start: 1px solid var(--line);
+}
+.handoff-grid dt {
+  margin: 0 0 0.3rem;
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.handoff-grid dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.handoff-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+  margin: 0.9rem 0 0;
+}
+.handoff-links a,
+.program-next { font-weight: 700; }
+.handoff-copy { margin: 0.8rem 0 0; max-width: var(--measure); }
+.handoff-copy > summary {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  color: var(--green);
+  font-weight: 700;
+  cursor: pointer;
+}
+.handoff-copy textarea {
+  display: block;
+  width: 100%;
+  margin: 0.35rem 0 0.55rem;
+  padding: 0.75rem;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+.handoff-copy-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.copy-status {
+  color: var(--green-bright);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.finding-selected {
+  border-inline-start: 4px solid var(--green) !important;
+  padding-inline-start: 0.8rem !important;
+}
+.fix-context { margin-bottom: 1.3rem; }
+.fix-context .handoff-links { margin-top: 0.7rem; }
+.fix-context code { overflow-wrap: anywhere; }
+
+@media (max-width: 720px) {
+  .handoff-head,
+  .handoff-grid { grid-template-columns: 1fr; }
+  .handoff-grid > div { padding: 0.75rem 0; }
+  .handoff-grid > div + div {
+    padding-inline-start: 0;
+    border-top: 1px solid var(--line);
+    border-inline-start: 0;
+  }
+  .finding-picker a {
+    max-width: 15rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Detailed validator evidence is important but secondary to the top fixes.
+   Native details keeps it searchable, keyboard-operable, and printable. */
+.evidence-drawer {
+  max-width: 58rem;
+  border-top: 1px solid var(--line);
+}
+.evidence-drawer > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: fit-content;
+  color: var(--green);
+  font-weight: 700;
+  cursor: pointer;
+}
+.evidence-drawer .findings { margin-top: 0.7rem; }
+
+/* Optional rider read: closed by default so the grade-to-fixes workflow stays
+   primary. Native details/summary supplies keyboard and screen-reader behavior. */
+.rider-impact {
+  max-width: var(--measure); margin: 1.25rem 0 0; padding: 0.15rem 0.85rem 0.85rem;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-deep);
+}
+.rider-impact > summary { cursor: pointer; padding: 0.65rem 0; font-weight: 700; }
+.rider-impact > summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.rider-impact-intro { margin: 0 0 0.65rem; color: var(--ink-soft); }
+.rider-impact dl { margin: 0; }
+.rider-impact dt { margin-top: 0.55rem; font-weight: 700; }
+.rider-impact dd { margin: 0.1rem 0 0; }
+.rider-impact-boundary { margin: 0.9rem 0 0; padding-top: 0.7rem; border-top: 1px solid var(--line); }
+
+/* Ferry capability profile: a data sheet, visually separate from scored rows. */
+.ferry-profile { max-width: none; }
+.ferry-profile-kicker {
+  margin: 0 0 0.35rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ferry-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.75rem;
+  margin: 1.1rem 0;
+}
+.ferry-profile-grid > div {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-deep);
+}
+.ferry-profile-grid dt {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+.ferry-profile-grid dd { margin: 0; color: var(--ink-soft); }
 
 /* ===================================================================
    Call-prep brief: a calm one-pager a liaison can print or screen-share.
@@ -1977,16 +3215,90 @@ main p,
 .brief-ntd-summary { margin: 0 0 0.6rem; }
 .brief-ntd, .brief-facts { margin: 0 0 0.6rem; }
 .brief-ntd dt, .brief-facts dt { font-weight: 600; margin-top: 0.4rem; }
-.brief-ntd dd, .brief-facts dd { margin: 0 0 0.2rem; color: var(--ink-soft); }
+.brief-ntd dd, .brief-facts dd {
+  margin: 0 0 0.2rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.citation,
+.citation a,
+.citation textarea { overflow-wrap: anywhere; }
 .brief-align { margin: 0.6rem 0 0; }
 .brief-foot { font-size: 0.8rem; color: var(--ink-soft); margin: 1.4rem 0 0; border-top: 1px solid var(--line); padding-top: 0.8rem; }
 
 @media print {
   .no-print { display: none; }
-  .brief { max-width: none; color: #000; }
+  .report-route, .report-actions { display: none !important; }
+  .evidence-drawer:not([open]) > *:not(summary),
+  .fixloop:not([open]) > *:not(summary) { display: block; }
+  .evidence-drawer > summary, .fixloop > summary { display: none; }
+  main { padding-top: 0; }
+  .brief {
+    max-width: none;
+    color: #000;
+    column-count: 2;
+    column-gap: 0.3in;
+    font-size: 9pt;
+    line-height: 1.22;
+  }
   .brief * { color: #000 !important; background: transparent !important; }
+  .brief-head,
+  .brief-foot { column-span: all; }
+  .brief-head { margin-bottom: 0.45rem; }
+  .brief-kicker { font-size: 7pt; margin-bottom: 0.2rem; }
+  .brief-title { font-size: 21pt; margin-bottom: 0.18rem; }
+  .brief-grade { font-size: 10pt; margin-bottom: 0.15rem; }
+  .brief-trend { font-size: 8pt; margin-bottom: 0.35rem; }
+  .brief h2 { font-size: 10.5pt; margin: 0.6rem 0 0.25rem; }
+  .brief p { margin-top: 0; margin-bottom: 0.32rem; }
+  .brief-deltas li,
+  .brief-cleared li { padding-block: 0.08rem; }
+  .brief-fix { margin-bottom: 0.38rem; }
+  .brief-fix-eta,
+  .brief .effort-band { font-size: 7pt; }
+  .finding-handoff {
+    break-inside: avoid;
+    margin-top: 0.45rem;
+    padding: 0.45rem 0.55rem;
+    border-inline-start-width: 3px;
+  }
+  .finding-picker,
+  .handoff-copy,
+  .handoff-links { display: none !important; }
+  .handoff-head,
+  .handoff-grid { display: block; }
+  .handoff-head > p { display: none; }
+  .handoff-grid > div,
+  .handoff-grid > div + div {
+    padding: 0.24rem 0;
+    border: 0;
+  }
+  .handoff-grid dt,
+  .handoff-grid dd {
+    display: inline;
+    font-size: 7.5pt;
+  }
+  .handoff-grid dt::after { content: ": "; }
+  .brief-ntd dt,
+  .brief-facts dt { margin-top: 0.18rem; }
+  .brief-foot {
+    font-size: 7pt;
+    margin-top: 0.45rem;
+    padding-top: 0.35rem;
+  }
+  .brief-board {
+    column-gap: 0.4in;
+    font-size: 10.5pt;
+    line-height: 1.28;
+  }
+  .brief-board .brief-kicker { font-size: 7.5pt; letter-spacing: 0.12em; }
+  .brief-board .brief-title { font-size: 24pt; }
+  .brief-board .brief-grade { font-size: 11pt; }
+  .brief-board h2 { font-size: 12pt; margin-top: 0.75rem; }
+  .brief-board .brief-fix-eta,
+  .brief-board .effort-band { font-size: 7.5pt; }
+  .brief-board .brief-foot { font-size: 8pt; }
   .brief .ntd-status { border: 1px solid #000; padding: 0 0.3rem; }
-  .brief h2 { margin-top: 1rem; }
   .brief section { break-inside: avoid; }
 }
 
@@ -2007,7 +3319,15 @@ main p,
   border-radius: var(--radius);
   cursor: pointer;
 }
-.table-wrap { overflow-x: auto; }
+.table-wrap {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  contain: layout inline-size;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .compare-table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; }
 .compare-table th,
 .compare-table td {
@@ -2022,3 +3342,265 @@ main p,
 .cmp-num { font-size: 0.8rem; color: var(--ink-soft); }
 .cmp-na { color: var(--ink-soft); font-style: italic; }
 .cmp-fixes { margin: 0; padding-left: 1.1rem; font-size: 0.9rem; display: grid; gap: 0.3rem; }
+.compare-static-table { min-width: 38rem; }
+.compare-static-table th,
+.compare-static-table td { overflow-wrap: normal; word-break: normal; }
+.table-scroll-hint {
+  display: none;
+  margin: 0.5rem 0;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+@media (max-width: 700px) {
+  .table-scroll-hint { display: block; }
+}
+
+/* Offline note (EXP-20): shown by nav.js whenever the network is gone, so a
+   service-worker copy never masquerades as current. Standard ink-on-card
+   text pair, so it inherits the checked AAA contrast. */
+.offline-note { background: var(--card); color: var(--ink); border-bottom: 2px solid var(--line);
+  padding: 0.65rem 1rem; text-align: center; font-size: 0.95rem; font-weight: 600; }
+
+/* ===================================================================
+   Interface cohesion pass — July 2026
+
+   The scorecard has grown from two pilot reports into a large operational
+   service. These rules strengthen hierarchy across the static reports, app,
+   directories, and tools without replacing the roadway-signage identity.
+   The route line remains the signature; raised surfaces are reserved for
+   decisions and actions, while evidence sections stay quieter.
+   =================================================================== */
+
+:root {
+  --container-prose: 48rem;
+  --container-data: 82rem;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgb(32 36 31 / 0.07), 0 8px 24px rgb(32 36 31 / 0.07);
+  --shadow-raised: 0 2px 4px rgb(32 36 31 / 0.08), 0 18px 44px rgb(32 36 31 / 0.1);
+}
+
+body {
+  font-size: clamp(1rem, 0.97rem + 0.1vw, 1.06rem);
+  text-rendering: optimizeLegibility;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgb(5 22 16 / 0.18);
+}
+
+main {
+  padding-top: clamp(1.8rem, 4vw, 3rem);
+}
+
+.page-title {
+  margin: 0 0 0.65rem;
+  max-width: 18ch;
+  color: var(--ink);
+  font-size: clamp(2.2rem, 5vw, 3.45rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.page-lede,
+.sectlede {
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.16rem);
+  line-height: 1.62;
+}
+
+.breadcrumbs {
+  margin-bottom: 1.15rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.board-hero {
+  isolation: isolate;
+  border: 1px solid rgb(244 246 240 / 0.16);
+  border-top: 5px solid var(--amber);
+  box-shadow: var(--shadow-raised);
+  padding-bottom: clamp(2.1rem, 5vw, 3rem);
+}
+
+/* A single transit line crosses the status board. It is deliberately subtle:
+   the grade and score remain the decision signals. */
+.board-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: clamp(1.3rem, 4vw, 2.2rem);
+  right: clamp(1.3rem, 4vw, 2.2rem);
+  bottom: 1rem;
+  height: 1px;
+  opacity: 0.42;
+  background: var(--amber);
+}
+
+.board-title {
+  max-width: 22ch;
+  text-wrap: balance;
+}
+
+.report-route {
+  border-top: 4px solid var(--amber);
+}
+
+.report-route a {
+  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.report-route a:hover {
+  background: var(--paper-deep);
+  transform: translateX(2px);
+}
+
+.agency-report .report-content > section {
+  padding-block: clamp(1.2rem, 2vw, 2rem);
+}
+
+.agency-report .report-content > section + section {
+  border-top: 1px solid var(--line);
+}
+
+.agency-report .report-content > section:target {
+  margin-inline: -0.85rem;
+  padding-inline: 0.85rem;
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: 0 0 0 3px var(--amber);
+}
+
+.alerts {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.alert {
+  padding: 1rem 1.05rem;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.alert:last-child {
+  border-bottom: 1.5px solid var(--line);
+}
+
+.platforms {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.platform {
+  padding: 1rem;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.platform:last-child {
+  border-bottom: 1.5px solid var(--line);
+}
+
+@media (min-width: 52rem) {
+  .platforms {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .platform.neutral {
+    grid-column: 1 / -1;
+  }
+}
+
+.fix-card,
+.cat-card,
+.finding,
+.trend-chart,
+.expired-panel {
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.fix-card:hover,
+.cat-card:hover,
+.finding:hover,
+.trend-chart:hover {
+  border-color: color-mix(in srgb, var(--line) 35%, var(--green));
+  box-shadow: var(--shadow-raised);
+  transform: translateY(-1px);
+}
+
+details > summary {
+  border-radius: 8px;
+}
+
+details[open] > summary {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.leaderboard tbody tr,
+.compare-table tbody tr {
+  transition: background-color 120ms ease;
+}
+
+.leaderboard tbody tr:hover,
+.leaderboard tbody tr:focus-within,
+.compare-table tbody tr:hover,
+.compare-table tbody tr:focus-within {
+  background: var(--paper-deep);
+}
+
+input,
+select,
+textarea {
+  border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --radius: 10px;
+  }
+  .site-header > .wrap {
+    min-height: 58px;
+  }
+  main {
+    padding-top: 1.4rem;
+  }
+  .page-title {
+    font-size: clamp(2rem, 11vw, 2.8rem);
+  }
+  .board-hero {
+    margin-inline: -0.35rem;
+  }
+  .alert,
+  .platform {
+    padding: 0.9rem;
+  }
+  .agency-report .report-content > section:target {
+    margin-inline: 0;
+  }
+}
+
+@media print {
+  .site-header {
+    position: static;
+    box-shadow: none;
+  }
+  .board-hero::after {
+    display: none;
+  }
+  .fix-card,
+  .cat-card,
+  .finding,
+  .trend-chart,
+  .alert,
+  .platform {
+    box-shadow: none;
+    transform: none;
+  }
+}

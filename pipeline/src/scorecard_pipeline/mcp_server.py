@@ -17,7 +17,9 @@ Client config (Claude Desktop / any MCP client), see docs/mcp.md:
     {"mcpServers": {"gtfs-scorecard": {"command": "scorecard-mcp"}}}
 
 ``SCORECARD_BASE_URL`` overrides the data source, e.g. for a fork or a local
-preview server.
+preview server; a fork with its own ``instance.yaml`` (EXP-15,
+``docs/fork-quickstart.md``) already gets the right default with no env var
+needed.
 """
 
 from __future__ import annotations
@@ -31,16 +33,21 @@ import urllib.request
 from collections.abc import Callable
 from typing import Any
 
+from .instance import BASE_URL as DEFAULT_BASE_URL
+from .metrics import presented_freshness_summary, resolve_service_horizon_status
+from .ntd import presented_readiness as presented_ntd_readiness
+
 PROTOCOL_VERSION = "2025-06-18"
 SERVER_INFO = {"name": "gtfs-scorecard", "version": "1.0.0"}
-DEFAULT_BASE_URL = "https://gtfsscorecard.org"
 
 Fetch = Callable[[str], Any]
 
 
 def _http_fetch(url: str) -> Any:
-    req = urllib.request.Request(url, headers={"User-Agent": "gtfs-scorecard-mcp"})
-    with urllib.request.urlopen(req, timeout=20) as resp:  # noqa: S310 - our own site
+    req = urllib.request.Request(  # noqa: S310 - our own site (_base_url()/env override), not attacker-controlled
+        url, headers={"User-Agent": "gtfs-scorecard-mcp"}
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:  # noqa: S310 - our own site, not attacker-controlled
         return json.loads(resp.read().decode("utf-8"))
 
 
@@ -69,15 +76,62 @@ def _catalog(fetch: Fetch) -> list[dict[str, Any]]:
 
 
 def search_agencies(
-    fetch: Fetch, query: str = "", state: str = "", grade: str = "", limit: int = 20
+    fetch: Fetch,
+    query: str = "",
+    state: str = "",
+    grade: str = "",
+    limit: int = 20,
+    country: str = "",
+    subdivision: str = "",
 ) -> dict[str, Any]:
-    """Search the national catalog by name fragment, state/province, or grade."""
+    """Search the covered catalog by identity, portable location, or grade.
+
+    ``state`` remains as a compatibility input and also matches the portable
+    subdivision name. New clients should send an ISO country code plus either
+    an ISO subdivision code or its display name.
+    """
     q = query.strip().lower()
+    wanted_country = country.strip().upper()
+    wanted_subdivision = subdivision.strip().casefold()
+    wanted_state = state.strip().casefold()
+
+    def _country(row: dict[str, Any]) -> str:
+        # Catalog rows published before the portable contract are US records.
+        return str(row.get("country") or "US").strip().upper()
+
+    def _subdivision_matches(row: dict[str, Any], wanted: str) -> bool:
+        return wanted in {
+            str(row.get("subdivision_code") or "").strip().casefold(),
+            str(row.get("subdivision_name") or "").strip().casefold(),
+        }
+
+    def _query_text(row: dict[str, Any]) -> str:
+        return " ".join(
+            str(row.get(field) or "")
+            for field in (
+                "name",
+                "id",
+                "country",
+                "subdivision_code",
+                "subdivision_name",
+                "state",
+            )
+        ).lower()
+
     rows = [
         r
         for r in _catalog(fetch)
-        if (not q or q in str(r.get("name", "")).lower() or q == str(r.get("id", "")))
-        and (not state or str(r.get("state", "")).lower() == state.strip().lower())
+        if (not q or q in _query_text(r))
+        and (not wanted_country or _country(r) == wanted_country)
+        and (not wanted_subdivision or _subdivision_matches(r, wanted_subdivision))
+        and (
+            not wanted_state
+            or wanted_state
+            in {
+                str(r.get("state") or "").strip().casefold(),
+                str(r.get("subdivision_name") or "").strip().casefold(),
+            }
+        )
         and (not grade or str(r.get("grade", "")).upper() == grade.strip().upper())
     ]
     slim = [
@@ -87,10 +141,14 @@ def search_agencies(
             "grade": r.get("grade"),
             "score": r.get("score"),
             "state": r.get("state"),
+            "country": _country(r),
+            "subdivision_code": r.get("subdivision_code"),
+            "subdivision_name": r.get("subdivision_name"),
             "days_until_expiry": r.get("days_until_expiry"),
+            "service_horizon_status": resolve_service_horizon_status(r),
             "expiry_status": r.get("expiry_status"),
-            "national_percentile": r.get("national_percentile"),
-            "peer_percentile": r.get("peer_percentile"),
+            "national_percentile": None,
+            "peer_percentile": None,
             "ntd_ready": r.get("ntd_ready"),
             "google_gate": r.get("google_gate"),
             "scorecard_url": r.get("scorecard_url"),
@@ -107,11 +165,22 @@ def get_scorecard(fetch: Fetch, agency_id: str) -> dict[str, Any]:
     categories: dict[str, Any] = {}
     findings: list[dict[str, Any]] = []
     for key, cat in (art.get("categories") or {}).items():
-        categories[key] = {
+        category = {
             "status": cat.get("status"),
             "score": cat.get("score"),
-            "summary": cat.get("summary"),
+            "summary": (
+                presented_freshness_summary(cat, art.get("snapshot_date"))
+                if key == "freshness"
+                else cat.get("summary")
+            ),
         }
+        if key == "freshness":
+            details = cat.get("details") or {}
+            category["service_horizon_status"] = resolve_service_horizon_status(
+                details, art.get("snapshot_date")
+            )
+            category["effective_expiry_date"] = details.get("effective_expiry_date")
+        categories[key] = category
         if cat.get("status") != "measured":
             continue
         for f in cat.get("findings", []):
@@ -135,7 +204,7 @@ def get_scorecard(fetch: Fetch, agency_id: str) -> dict[str, Any]:
         "categories": categories,
         "top_fixes": art.get("top_fixes"),
         "findings": findings,
-        "ntd_readiness": art.get("ntd_readiness"),
+        "ntd_readiness": presented_ntd_readiness(art),
         "scorecard_url": f"{_base_url()}/agency/{agency_id}/",
         "note": (
             "A data-quality lens on the published GTFS, not an official compliance "
@@ -145,10 +214,36 @@ def get_scorecard(fetch: Fetch, agency_id: str) -> dict[str, Any]:
 
 
 def national_stats(fetch: Fetch) -> dict[str, Any]:
-    """National rollups: quality stats plus NTD certification readiness."""
+    """Legacy United States policy view, retained for MCP client compatibility.
+
+    The historical ``stats`` member describes the full covered corpus and stays
+    byte-compatible. NTD readiness is explicitly a United States-only policy
+    overlay. New geography-neutral callers should use ``coverage_stats``.
+    """
     return {
         "stats": fetch(f"{_base_url()}/api/v1/stats.json"),
         "ntd_readiness": fetch(f"{_base_url()}/ntd.json"),
+        "scope": {
+            "stats": "covered_corpus",
+            "ntd_readiness": {"country": "US", "country_name": "United States"},
+            "note": (
+                "NTD readiness is a United States-only policy measure. The legacy stats "
+                "member covers every feed tracked when it was generated; use coverage_stats "
+                "for portable country and subdivision totals."
+            ),
+        },
+    }
+
+
+def coverage_stats(fetch: Fetch) -> dict[str, Any]:
+    """Geography-neutral covered-set totals with country/subdivision rollups."""
+    return {
+        "stats": fetch(f"{_base_url()}/api/v1/stats.json"),
+        "by_location": fetch(f"{_base_url()}/api/v1/by-location.json"),
+        "note": (
+            "Counts describe the public feeds this scorecard tracks, not every transit "
+            "operator in a country. Absence means not covered, never failing."
+        ),
     }
 
 
@@ -156,15 +251,26 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "search_agencies",
         "description": (
-            "Search tracked transit agencies by name, id, US state / Canadian "
-            "province, or letter grade. Returns catalog records with grade, "
-            "score, expiry, and NTD readiness."
+            "Search tracked transit agencies by name, id, ISO country, ISO subdivision "
+            "or subdivision name, legacy state, or letter grade. Returns portable "
+            "location, grade, score, expiry, and applicable readiness fields."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "Name fragment or exact agency id"},
-                "state": {"type": "string", "description": "Full state/province name"},
+                "country": {
+                    "type": "string",
+                    "description": "ISO 3166-1 alpha-2 country code, e.g. CA",
+                },
+                "subdivision": {
+                    "type": "string",
+                    "description": "ISO 3166-2 code or subdivision name, e.g. CA-ON or Ontario",
+                },
+                "state": {
+                    "type": "string",
+                    "description": "Legacy state/province-name filter; prefer subdivision",
+                },
                 "grade": {"type": "string", "description": "Letter grade A-F"},
                 "limit": {"type": "integer", "description": "Max results (default 20)"},
             },
@@ -175,7 +281,7 @@ TOOLS: list[dict[str, Any]] = [
         "description": (
             "An agency's latest scorecard: overall grade, category scores and "
             "plain-language summaries, every finding with its fix and effort, "
-            "top fixes, and NTD certification readiness."
+            "top fixes, and NTD GTFS readiness."
         ),
         "inputSchema": {
             "type": "object",
@@ -188,8 +294,17 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "national_stats",
         "description": (
-            "National rollups: how many feeds are tracked, grade distribution, "
-            "and NTD certification readiness nationally and by state."
+            "Legacy United States policy view: NTD GTFS readiness nationally and by "
+            "state, plus the backwards-compatible covered-corpus stats member. Prefer "
+            "coverage_stats for geography-neutral totals."
+        ),
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "coverage_stats",
+        "description": (
+            "Coverage-wide quality totals and portable country/subdivision rollups over "
+            "the feeds this scorecard tracks."
         ),
         "inputSchema": {"type": "object", "properties": {}},
     },
@@ -204,6 +319,8 @@ def call_tool(name: str, arguments: dict[str, Any], fetch: Fetch = _http_fetch) 
             state=str(arguments.get("state", "")),
             grade=str(arguments.get("grade", "")),
             limit=int(arguments.get("limit", 20)),
+            country=str(arguments.get("country", "")),
+            subdivision=str(arguments.get("subdivision", "")),
         )
     if name == "get_scorecard":
         agency_id = str(arguments.get("agency_id", "")).strip()
@@ -212,6 +329,8 @@ def call_tool(name: str, arguments: dict[str, Any], fetch: Fetch = _http_fetch) 
         return get_scorecard(fetch, agency_id)
     if name == "national_stats":
         return national_stats(fetch)
+    if name == "coverage_stats":
+        return coverage_stats(fetch)
     raise ValueError(f"unknown tool: {name}")
 
 

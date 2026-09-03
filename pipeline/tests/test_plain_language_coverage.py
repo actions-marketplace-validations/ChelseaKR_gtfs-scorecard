@@ -1,6 +1,11 @@
 """Tests for plain-language coverage governance: the coverage metric over the
 national rollup (findings_national.plain_language_coverage) and the readability
-gate script (pipeline/scripts/check_readability.py)."""
+gate script (pipeline/scripts/check_readability.py).
+
+The gate's inventory moved to `scorecard_pipeline.reader_copy` on 2026-08-27
+(ADR 0048), so the tests that prove it can fail patch that seam. Patching the
+curated table alone would no longer reach the authored family, and a test that
+cannot reach the thing it asserts about is the failure this repo keeps finding."""
 
 from __future__ import annotations
 
@@ -16,7 +21,8 @@ from scorecard_pipeline.findings_national import (
     national_problems,
     plain_language_coverage,
 )
-from scorecard_pipeline.notices import TRANSLATIONS, Translation
+from scorecard_pipeline.notices import TRANSLATIONS
+from scorecard_pipeline.reader_copy import CopyString, DeferredSite
 
 
 def _load_readability() -> ModuleType:
@@ -172,17 +178,157 @@ def test_shipped_translations_clear_the_gate(capsys: pytest.CaptureFixture[str])
 def test_gate_exits_nonzero_with_diagnostics(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    bad = Translation(
-        what=(
+    """A string that misses a bar exits 1 and names itself, whichever family it
+    is in. The seam is the inventory the gate now reads, not the curated table
+    it used to read directly."""
+    bad = CopyString(
+        label="bad_code.what",
+        field="what",
+        text=(
             "Institutionalized organizational interoperability necessitates "
             "extraordinarily comprehensive documentation harmonization"
         ),
-        why="ok",
-        fix="ok",
-        effort="ok",
+        provenance="authored",
+        origin="sample.py:1",
     )
-    monkeypatch.setattr(readability, "TRANSLATIONS", {"bad_code": bad})
+    monkeypatch.setattr(readability, "reader_copy", lambda: ([bad], []))
     assert readability.main() == 1
     out = capsys.readouterr().out
     assert "bad_code.what" in out
     assert "FAILURES" in out
+
+
+def test_gate_prints_what_it_deliberately_did_not_measure(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A deferred field is reported with its reason, not silently dropped."""
+    site = DeferredSite(
+        label="sample_code",
+        field="what",
+        provenance="republished",
+        origin="sample.py:1",
+        reason="reads back copy from a published artifact, authored elsewhere",
+    )
+    monkeypatch.setattr(readability, "reader_copy", lambda: ([], [site]))
+    assert readability.main() == 0
+    out = capsys.readouterr().out
+    assert "Not measured here (1 fields)" in out
+    assert "sample.py:1 what=" in out
+    assert "authored elsewhere" in out
+
+
+# ---- weekly coverage-drop advisory (FIX-08) ---------------------------------
+
+
+def _coverage(instance_weighted: float) -> dict[str, Any]:
+    return {
+        "distinct_code_coverage": 50.0,
+        "instance_weighted_coverage": instance_weighted,
+        "curated_codes": 1,
+        "total_codes": 2,
+        "uncurated_queue": [],
+    }
+
+
+def test_regression_is_silent_with_no_baseline() -> None:
+    from scorecard_pipeline.findings_national import coverage_regression
+
+    assert coverage_regression(None, _coverage(33.3)) is None
+
+
+def test_regression_is_silent_when_coverage_holds_or_rises() -> None:
+    from scorecard_pipeline.findings_national import coverage_regression
+
+    baseline = {"instance_weighted_coverage": 33.3, "as_of": "2026-07-06"}
+    assert coverage_regression(baseline, _coverage(33.3)) is None
+    assert coverage_regression(baseline, _coverage(40.0)) is None
+
+
+def test_regression_names_both_numbers_and_the_baseline_date() -> None:
+    from scorecard_pipeline.findings_national import coverage_regression
+
+    message = coverage_regression(
+        {"instance_weighted_coverage": 40.0, "as_of": "2026-07-06"}, _coverage(33.3)
+    )
+    assert message is not None
+    assert message.startswith("COVERAGE DROP")
+    assert "33.3%" in message and "40.0%" in message and "2026-07-06" in message
+
+
+def _write_latest(agency_id: str, *findings: tuple[str, int]) -> None:
+    from scorecard_pipeline.config import artifacts_dir
+
+    agency_dir = artifacts_dir() / agency_id
+    agency_dir.mkdir(parents=True, exist_ok=True)
+    (agency_dir / "latest.json").write_text(
+        __import__("json").dumps(
+            {"agency": {"id": agency_id, "name": agency_id}, **_artifact(*findings)}
+        )
+    )
+
+
+def _write_registry(*agency_ids: str) -> None:
+    from scorecard_pipeline.config import repo_root
+
+    ids = agency_ids or ("a-one",)
+    repo_root().mkdir(parents=True, exist_ok=True)
+    (repo_root() / "agencies.yaml").write_text(
+        "agencies:\n"
+        + "".join(
+            f"  - id: {agency_id}\n"
+            f"    name: {agency_id}\n"
+            f"    static_gtfs_url: https://example.org/{agency_id}.zip\n"
+            for agency_id in ids
+        )
+    )
+
+
+def test_coverage_check_saves_a_baseline_and_warns_on_a_drop(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """End to end through the CLI: an all-curated corpus saves a 100% baseline,
+    then an uncurated flood in the next run trips the advisory (exit stays 0 —
+    the check warns, it never blocks)."""
+    import json
+
+    from scorecard_pipeline.cli import main
+    from scorecard_pipeline.config import artifacts_dir
+
+    _write_registry()
+    _write_latest("a-one", (CURATED, 5))
+    assert main(["coverage-check", "--save", "--date", "2026-07-06"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("OK")
+    baseline = json.loads((artifacts_dir() / "coverage-baseline.json").read_text())
+    assert baseline == {
+        "as_of": "2026-07-06",
+        "distinct_code_coverage": 100.0,
+        "instance_weighted_coverage": 100.0,
+    }
+
+    _write_latest("b-two", ("made_up_notice", 50))
+    _write_registry("a-one", "b-two")
+    assert main(["coverage-check", "--date", "2026-07-13"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("COVERAGE DROP")
+    assert "2026-07-06" in out
+    # Preview mode did not consume the baseline.
+    assert json.loads((artifacts_dir() / "coverage-baseline.json").read_text()) == baseline
+
+
+def test_coverage_check_skips_reserved_dirs_and_unreadable_artifacts(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from scorecard_pipeline.cli import main
+    from scorecard_pipeline.config import artifacts_dir
+
+    _write_registry()
+    _write_latest("a-one", (CURATED, 2))
+    (artifacts_dir() / "rollups").mkdir(parents=True, exist_ok=True)
+    (artifacts_dir() / "rollups" / "latest.json").write_text("{}")
+    broken = artifacts_dir() / "b-two"
+    broken.mkdir(parents=True, exist_ok=True)
+    (broken / "latest.json").write_text("{not json")
+    assert main(["coverage-check"]) == 0
+    out = capsys.readouterr().out
+    assert "1 scored agencies" in out

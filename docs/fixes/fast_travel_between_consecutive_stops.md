@@ -1,4 +1,9 @@
-# Fix: a bus appears to travel impossibly fast between two stops
+---
+date_published: "2026-07-03"
+date_modified: "2026-07-03"
+---
+
+# Fix: a bus appears to move impossibly fast between two stops
 
 Code: `fast_travel_between_consecutive_stops` (MobilityData validator)
 

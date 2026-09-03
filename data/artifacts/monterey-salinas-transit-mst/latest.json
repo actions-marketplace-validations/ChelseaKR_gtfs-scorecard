@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "monterey-salinas-transit-mst",
-    "name": "Monterey-Salinas Transit (MST)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/monterey-salinas-transit-mst/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 924,
-        "examples": [
-          "'stop_lat': '  36.584630' -> '36.584630'",
-          "'stop_lat': '  36.584722' -> '36.584722'",
-          "'stop_lat': '  36.584443' -> '36.584443'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 924
+    "name": "Monterey-Salinas Transit (MST)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -60,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 2572,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -71,7 +59,14 @@
           "pathway_count": 0
         },
         "stops": 975,
-        "trips": 3267,
+        "translations": {
+          "feed_lang": "EN",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 2572,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -91,13 +86,13 @@
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 3267,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "count": 2572,
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "3267 of 3267 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "2572 of 2572 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         }
       ],
@@ -109,43 +104,77 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 0,
+        "distinct_codes": 1,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 0,
-          "WARNING": 0
+          "WARNING": 1
         },
         "validator_version": "8.0.1"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "feed_expiration_date30_days",
+          "count": 1,
+          "effort": "Usually a re-export from your scheduling software.",
+          "fix": "Schedule a feed re-export now so the new calendar is live well before the current one ends.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "This feed's service calendar runs out within the next 30 days.",
+          "why": "If a new feed isn't published before it ends, trip planners will drop your agency and riders will see no service."
+        }
+      ],
       "name": "correctness",
-      "score": 100.0,
+      "score": 96.0,
       "status": "measured",
-      "summary": "The validator found no problems in this feed. That is rare and worth celebrating.",
+      "summary": "The MobilityData validator flagged 1 kind of issue across 1 instance (0 error, 1 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 53,
+        "days_until_expiry": 21,
+        "effective_expiry_date": "2026-08-28",
         "feed_end_date": "2026-08-28",
-        "feed_start_date": "2026-06-23",
-        "feed_version": "202602v33",
+        "feed_start_date": "2026-07-18",
+        "feed_version": "202602v36",
         "has_feed_info": true,
         "last_service_date": "2026-08-28",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 59.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 21 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
       "name": "freshness",
-      "score": 88.3,
+      "score": 35.0,
       "status": "measured",
-      "summary": "Service data covers the next 53 days.",
+      "summary": "Service data runs out in 21 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
         "coverage_pct": null,
+        "kinds_configured": 3,
         "kinds_reachable": 0,
+        "reachable_kinds": [],
         "rt_freshness": null,
         "samples": 9,
         "scheduled_trips_in_window": 0,
@@ -158,7 +187,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 33.3,
           "severity": "ERROR",
           "what": "The trip updates realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -169,7 +198,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 33.3,
           "severity": "ERROR",
           "what": "The vehicle positions realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -180,7 +209,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 33.3,
           "severity": "ERROR",
           "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -189,7 +218,7 @@
       "name": "realtime",
       "score": 0.0,
       "status": "measured",
-      "summary": "Sampled 9 times outside service hours: 0 of 3 feeds healthy.",
+      "summary": "Sampled 9 times outside service hours: 0 of 3 configured feeds healthy; vehicle position plausibility was not measurable.",
       "weight": 0.2
     }
   },
@@ -215,9 +244,9 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 53 days.",
+        "detail": "Service data runs out in 22 days; renew to qualify.",
         "key": "current",
-        "met": true
+        "met": false
       },
       {
         "detail": "States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each.",
@@ -226,22 +255,23 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data runs out in 22 days; renew to qualify. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: https://mst.org/about-mst/developer-resources/",
     "reachable": true,
-    "sha256": "125dce8cff1bc3611553383e4dc0cca7acf2dd41cb1766971c28c43a7c019d43",
-    "size_bytes": 734426,
+    "sha256": "9aa5be852eca9c164ccfdb328ee8bff366611bb76690d0832e206159b5a945e5",
+    "size_bytes": 644902,
     "static_url": "https://www.mst.org/google/google_transit.zip"
   },
   "fetch": {
     "final_url": "https://www.mst.org/google/google_transit.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-06T00:00:00+00:00",
+  "generated_at": "2026-08-06T00:00:00+00:00",
   "geo": {
     "bbox": [
       -121.93603,
@@ -253,12 +283,32 @@
     "lon": -121.78053,
     "stop_count": 975
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 39,
+        "trip_count": 2572,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 39,
+    "trip_count": 2572
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed's agency_id is Monterey-Salinas Transit; your National Transit Database ID is 90062. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
+    "detail": "Your feed's agency_id is Monterey-Salinas Transit; your National Transit Database ID is 90062. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "Monterey-Salinas Transit"
     ],
-    "fix": "Optionally set the agency_id for your service to 90062 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
+    "fix": "Confirm that P-50 crosswalks agency_id Monterey-Salinas Transit to NTD ID 90062, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90062",
     "status": "mismatch"
   },
@@ -275,22 +325,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 53 days.",
+        "detail": "Service data runs out in 22 days; renew before you certify.",
         "key": "current",
+        "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
-    "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "status": "at_risk",
+    "summary": "This feed is close to NTD-ready. Service data runs out in 22 days; renew before you certify."
   },
   "overall": {
-    "grade": "D",
-    "margin_to_lower_band": 7.7,
-    "margin_to_next_band": 2.3,
-    "score": 67.7
+    "grade": "F",
+    "margin_to_lower_band": 55.6,
+    "margin_to_next_band": 4.4,
+    "score": 55.6
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 946,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -302,12 +358,17 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
+  "recompute": {
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
+    "kind": "freshness"
+  },
   "routability": {
     "boardable_stops": 975,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 3267
+    "trips_total": 2572
   },
   "route_map": {
     "drawn_route_count": 39,
@@ -748,24 +809,41 @@
     "stop_count": 975,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.7",
-  "shapes_readiness": {
-    "detail": "All 3267 trips have a shape in shapes.txt.",
-    "status": "ready",
-    "total_trips": 3267,
-    "trips_with_shape": 3267
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
   },
-  "snapshot_date": "2026-07-06",
+  "shapes_readiness": {
+    "detail": "All 2572 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 2572,
+    "trips_with_shape": 2572
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 59.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 21 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "scorecard_rt_trip_updates_unreachable",
       "count": 1,
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
-      "rank": 1,
+      "points": 33.3,
+      "rank": 2,
       "severity": "ERROR",
       "what": "The trip updates realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -776,22 +854,10 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
-      "rank": 2,
-      "severity": "ERROR",
-      "what": "The vehicle positions realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
-    },
-    {
-      "code": "scorecard_rt_service_alerts_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
+      "points": 33.3,
       "rank": 3,
       "severity": "ERROR",
-      "what": "The service alerts realtime feed failed during sampling.",
+      "what": "The vehicle positions realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     }
   ],

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from scorecard_pipeline.net import UnsafeURLError, validate_public_url
@@ -33,6 +35,24 @@ def test_allows_public_ip_literal() -> None:
 def test_rejects_missing_host() -> None:
     with pytest.raises(UnsafeURLError):
         validate_public_url("http:///nohost")
+
+
+@pytest.mark.parametrize("url", ["https://example.org:abc/feed.zip", "https://example.org:99999/"])
+def test_rejects_invalid_ports_as_unsafe_urls(url: str) -> None:
+    with pytest.raises(UnsafeURLError, match="invalid port"):
+        validate_public_url(url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://[::1/feed.zip",
+        "https://example.org\uff0f@evil.example/feed.zip",
+    ],
+)
+def test_rejects_malformed_netlocs_as_unsafe_urls(url: str) -> None:
+    with pytest.raises(UnsafeURLError, match="malformed"):
+        validate_public_url(url)
 
 
 import socket  # noqa: E402
@@ -206,6 +226,31 @@ def test_fetch_once_returns_body_under_cap(monkeypatch: pytest.MonkeyPatch) -> N
     assert body == b"ZIPDAT"
 
 
+def test_fetch_once_records_the_actual_final_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    final = "https://93.184.216.34/releases/current.zip"
+    _use_session(
+        monkeypatch,
+        [
+            _FakeResp(redirect=True, location="/releases/current.zip"),
+            _FakeResp(chunks=(b"ZIPDATA",)),
+        ],
+    )
+    trace = net.FetchTrace()
+
+    body = net._fetch_once(
+        PUBLIC,
+        headers=None,
+        timeout=1,
+        max_bytes=1000,
+        max_redirects=5,
+        trace=trace,
+    )
+
+    assert body == b"ZIPDATA"
+    assert trace.final_url == final
+    assert trace.redirect_chain == (PUBLIC, final)
+
+
 def test_fetch_once_revalidates_a_redirect_to_an_internal_host(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -247,3 +292,69 @@ def test_fetch_once_caps_redirect_chain_length(monkeypatch: pytest.MonkeyPatch) 
     _use_session(monkeypatch, forever)
     with pytest.raises(net.UnsafeURLError):
         net._fetch_once(PUBLIC, headers=None, timeout=1, max_bytes=1000, max_redirects=3)
+
+
+# --- safe_download: streaming to disk with the same guards as safe_get ---
+
+
+def test_safe_download_streams_to_disk_and_reports_size(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _use_session(monkeypatch, [_FakeResp(chunks=(b"ZIP", b"DATA"))])
+    dest = tmp_path / "feed.zip"
+    size = net.safe_download(PUBLIC, dest, timeout=1, max_bytes=1000)
+    assert dest.read_bytes() == b"ZIPDATA"
+    assert size == 7
+    # The temp file is renamed away on success, leaving no partial sibling.
+    assert not dest.with_name(dest.name + ".netpart").exists()
+
+
+def test_safe_download_never_holds_the_whole_body_in_memory(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Each chunk is written straight through; the streamed size cap is enforced
+    # on the running total, so a large feed never has to fit in one bytes object.
+    chunks = tuple(b"z" * 4096 for _ in range(64))  # 256 KiB across 64 chunks
+    _use_session(monkeypatch, [_FakeResp(chunks=chunks)])
+    dest = tmp_path / "big.zip"
+    size = net.safe_download(PUBLIC, dest, timeout=1, max_bytes=1 << 20)
+    assert size == 64 * 4096
+    assert dest.stat().st_size == 64 * 4096
+
+
+def test_safe_download_rejects_oversized_content_length(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _use_session(monkeypatch, [_FakeResp(headers={"content-length": "2000"})])
+    dest = tmp_path / "feed.zip"
+    with pytest.raises(net.UnsafeURLError):
+        net.safe_download(PUBLIC, dest, timeout=1, max_bytes=1000)
+    # A rejected download leaves neither the dest nor a partial sibling behind.
+    assert not dest.exists()
+    assert not dest.with_name(dest.name + ".netpart").exists()
+
+
+def test_safe_download_rejects_a_stream_that_exceeds_the_cap(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _use_session(monkeypatch, [_FakeResp(chunks=(b"x" * 600, b"y" * 600))])
+    dest = tmp_path / "feed.zip"
+    with pytest.raises(net.UnsafeURLError):
+        net.safe_download(PUBLIC, dest, timeout=1, max_bytes=1000)
+    assert not dest.exists()
+    assert not dest.with_name(dest.name + ".netpart").exists()
+
+
+def test_safe_download_revalidates_a_redirect_to_an_internal_host(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # The same redirect-SSRF guard as safe_get: a public URL that 302s to cloud
+    # metadata is rejected on the next hop, and nothing is written.
+    session = _use_session(
+        monkeypatch, [_FakeResp(redirect=True, location="http://169.254.169.254/latest/")]
+    )
+    dest = tmp_path / "feed.zip"
+    with pytest.raises(net.UnsafeURLError):
+        net.safe_download(PUBLIC, dest, timeout=1, max_bytes=1000)
+    assert session.urls == [PUBLIC]
+    assert not dest.exists()

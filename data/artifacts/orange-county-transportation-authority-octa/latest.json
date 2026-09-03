@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "orange-county-transportation-authority-octa",
-    "name": "Orange County Transportation Authority (OCTA)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/orange-county-transportation-authority-octa/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/orange-county-transportation-authority-octa/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 5245,
-        "examples": [
-          "HASTER-ORANGEWOOD -> Haster-orangewood",
-          "HASTER-WAKEFIELD -> Haster-wakefield",
-          "HASTER-KATELLA -> Haster-katella"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 5245
+    "name": "Orange County Transportation Authority (OCTA)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": true,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 7936,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 99.5,
+        "headsign_scored_pct": 99.5,
         "mixed_case_stop_name_pct": 0.0,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 5247,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 7936,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 7936,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -101,7 +99,7 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 5245,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "INFO",
@@ -111,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 38,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 0.1,
           "severity": "WARNING",
-          "what": "38 of 7936 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "38 of 7936 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -128,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -167,8 +165,8 @@
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -211,7 +209,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
@@ -245,16 +243,30 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 33,
+        "days_until_expiry": 1,
+        "effective_expiry_date": "2026-08-08",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2026-08-08",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 79.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 1 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        },
         {
           "code": "scorecard_missing_feed_info_dates",
           "count": 1,
@@ -268,25 +280,34 @@
         }
       ],
       "name": "freshness",
-      "score": 40.0,
+      "score": 0.0,
       "status": "measured",
-      "summary": "Service data covers the next 33 days.",
+      "summary": "Service data runs out in 1 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 95.0,
-        "covered_trips": 115,
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": 93.1,
+        "covered_trips": 54,
         "drift": {
-          "median_seconds": 68,
-          "observations": 184,
-          "on_time_share_pct": 73.9,
-          "p90_abs_seconds": 406
+          "median_seconds": 142,
+          "observations": 95,
+          "on_time_share_pct": 60.0,
+          "p90_abs_seconds": 594
         },
+        "kinds_configured": 3,
         "kinds_reachable": 1,
+        "reachable_kinds": [
+          "trip_updates"
+        ],
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 121,
+        "scheduled_trips_in_window": 58,
         "worst_lag_seconds": 0
       },
       "findings": [
@@ -296,7 +317,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 9.8,
           "severity": "ERROR",
           "what": "The vehicle positions realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -307,29 +328,42 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 9.8,
           "severity": "ERROR",
           "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
         },
         {
           "code": "scorecard_rt_trip_coverage",
-          "count": 6,
+          "count": 4,
           "effort": "A vendor data-mapping question.",
           "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
           "owner": "",
-          "points": 1.7,
+          "points": 2.8,
           "severity": "WARNING",
-          "what": "6 of 121 trips scheduled during the sampling window had no live predictions.",
+          "what": "4 of 58 trips scheduled during the sampling window had no live predictions.",
           "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
-      "score": 78.4,
+      "score": 77.6,
       "status": "measured",
-      "summary": "Sampled 9 times: 1 of 3 feeds healthy; 95.0% of scheduled trips had live predictions; predictions ran a median of 68s behind schedule.",
+      "summary": "Sampled 9 times: 1 of 3 configured feeds healthy; 93.1% of scheduled trips had live predictions; vehicle position plausibility was not measurable; predictions ran a median of 142s behind schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -340,9 +374,9 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 42 days.",
+        "detail": "Service data runs out in 14 days; renew to qualify.",
         "key": "current",
-        "met": true
+        "met": false
       },
       {
         "detail": "States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each.",
@@ -351,7 +385,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data runs out in 14 days; renew to qualify. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: http://www.octa.net/News-and-Resources/Open-Data/Overview/",
@@ -360,7 +394,14 @@
     "size_bytes": 4249773,
     "static_url": "https://www.octa.net/current/google_transit.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.octa.net/current/google_transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -118.11916,
@@ -372,12 +413,32 @@
     "lon": -117.8942,
     "stop_count": 5247
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 62,
+        "trip_count": 7936,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 62,
+    "trip_count": 7936
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id 1; the NTD asks for your five-digit NTD ID (90036) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is 1; your National Transit Database ID is 90036. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "1"
     ],
-    "fix": "Change the agency_id to 90036 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Confirm that P-50 crosswalks agency_id 1 to NTD ID 90036, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90036",
     "status": "mismatch"
   },
@@ -394,22 +455,28 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 42 days.",
+        "detail": "Service data runs out in 14 days; renew before you certify.",
         "key": "current",
+        "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "at_risk",
-    "summary": "This feed is close to NTD-ready. 1 validator error to resolve."
+    "summary": "This feed is close to NTD-ready. 1 validator error to resolve. Service data runs out in 14 days; renew before you certify."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 47.7,
-    "margin_to_next_band": 12.3,
-    "score": 47.7
+    "margin_to_lower_band": 39.6,
+    "margin_to_next_band": 20.4,
+    "score": 39.6
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 4,
       "effort": "A per-route color setting in your scheduling software.",
@@ -421,6 +488,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 9,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -433,8 +501,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -456,10 +524,725 @@
     "single_stop_trips": 0,
     "trips_total": 7936
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 59,
+    "has_shapes": true,
+    "path": "data/artifacts/orange-county-transportation-authority-octa/geometry.geojson",
+    "route_count": 62,
+    "routes": [
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "Long Beach - San Clemente",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "123",
+        "label": "123",
+        "long": "Goldenwest Transportation Center - Anaheim Canyon",
+        "short": "123",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "129",
+        "label": "129",
+        "long": "La Habra - Anaheim",
+        "short": "129",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "143",
+        "label": "143",
+        "long": "La Habra - Brea Mall",
+        "short": "143",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "150",
+        "label": "150",
+        "long": "Santa Ana / Costa mesa",
+        "short": "150",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": false,
+        "id": "150A",
+        "label": "150A",
+        "long": "Santa Ana / Costa mesa",
+        "short": "150A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "151",
+        "label": "151",
+        "long": "Santa Ana / Costa mesa",
+        "short": "151",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "167",
+        "label": "167",
+        "long": "Orange - Irvine",
+        "short": "167",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "177",
+        "label": "177",
+        "long": "Foothill Ranch - Laguna Hills",
+        "short": "177",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "938177",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "178",
+        "label": "178",
+        "long": "Huntington Beach - Irvine",
+        "short": "178",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "25",
+        "label": "25",
+        "long": "Fullerton - Huntington Beach",
+        "short": "25",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "26",
+        "label": "26",
+        "long": "Fullerton - Yorba Linda",
+        "short": "26",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "29",
+        "label": "29",
+        "long": "La Habra - Huntington Beach",
+        "short": "29",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "29A",
+        "label": "29A",
+        "long": "Buena Park - Huntington Beach",
+        "short": "29A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "30",
+        "label": "30",
+        "long": "Cerritos - Anaheim Hills",
+        "short": "30",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "33",
+        "label": "33",
+        "long": "Fullerton - Huntington Beach",
+        "short": "33",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "35",
+        "label": "35",
+        "long": "Costa Mesa - Fullerton",
+        "short": "35",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "37",
+        "label": "37",
+        "long": "La Habra - Fountain Valley",
+        "short": "37",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "38",
+        "label": "38",
+        "long": "Lakewood - Anaheim Hills",
+        "short": "38",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "42",
+        "label": "42",
+        "long": "Long Beach - Orange",
+        "short": "42",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "42A",
+        "label": "42A",
+        "long": "Long Beach - Orange",
+        "short": "42A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "43",
+        "label": "43",
+        "long": "Fullerton - Costa Mesa",
+        "short": "43",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CF1429",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "453",
+        "label": "453",
+        "long": "Orange Transportation Center - St Joseph Hospital",
+        "short": "453",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "46",
+        "label": "46",
+        "long": "Seal Beach - Orange",
+        "short": "46",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "47",
+        "label": "47",
+        "long": "Fullerton - Newport Beach",
+        "short": "47",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CF1429",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "472",
+        "label": "472",
+        "long": "Tustin Station - Newport Beach",
+        "short": "472",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CF1429",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "473",
+        "label": "473",
+        "long": "Tustin Station - U. C. Irvine",
+        "short": "473",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": false,
+        "id": "47A",
+        "label": "47A",
+        "long": "Fullerton - Newport Beach",
+        "short": "47A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CF1429",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "480",
+        "label": "480",
+        "long": "Irvine Metrolink Station - Lake Forest",
+        "short": "480",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "50",
+        "label": "50",
+        "long": "Long Beach - Orange",
+        "short": "50",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "529",
+        "label": "529",
+        "long": "Rapid Fullerton - Huntington Beach",
+        "short": "529",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "53",
+        "label": "53",
+        "long": "Anaheim - Irvine",
+        "short": "53",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "54",
+        "label": "54",
+        "long": "Garden Grove - Orange",
+        "short": "54",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F48221",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "543",
+        "label": "543",
+        "long": "Rapid Fullerton - Santa Ana",
+        "short": "543",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "55",
+        "label": "55",
+        "long": "Santa Ana - Newport Beach",
+        "short": "55",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "553",
+        "label": "553",
+        "long": "Rapid Anaheim - Costa Mesa",
+        "short": "553",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "56",
+        "label": "56",
+        "long": "Garden Grove - Orange",
+        "short": "56",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F48221",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "560",
+        "label": "560",
+        "long": "Rapid Long Beach - Santa Ana",
+        "short": "560",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "57",
+        "label": "57",
+        "long": "Brea - Newport Beach",
+        "short": "57",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "59",
+        "label": "59",
+        "long": "Anaheim - Irvine",
+        "short": "59",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "60",
+        "label": "60",
+        "long": "Long Beach - Tustin",
+        "short": "60",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8080FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "633",
+        "label": "633",
+        "long": "Fullerton - O C Fairgrounds",
+        "short": "633",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "64",
+        "label": "64",
+        "long": "Huntington Beach - Tustin",
+        "short": "64",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8080FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "650",
+        "label": "650",
+        "long": "ARTIC- OC Fairgrounds",
+        "short": "650",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "66",
+        "label": "66",
+        "long": "Huntington Beach - Irvine",
+        "short": "66",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8080FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "662",
+        "label": "662",
+        "long": "Santa Ana - O C Fairgrounds",
+        "short": "662",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8080FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "670",
+        "label": "670",
+        "long": "Huntington Beach - O C Fairgrounds",
+        "short": "670",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8080FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "683",
+        "label": "683",
+        "long": "LHTC - OC Fair",
+        "short": "683",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8080FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "688",
+        "label": "688",
+        "long": "Irvine - OC Fair",
+        "short": "688",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "70",
+        "label": "70",
+        "long": "Sunset Beach - Tustin Station",
+        "short": "70",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "71",
+        "label": "71",
+        "long": "Yorba Linda - Newport Beach",
+        "short": "71",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "72",
+        "label": "72",
+        "long": "Sunset Beach - Tustin",
+        "short": "72",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "76",
+        "label": "76",
+        "long": "Huntington Beach - Irvine",
+        "short": "76",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "79",
+        "label": "79",
+        "long": "Tustin - Newport Beach",
+        "short": "79",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": false,
+        "id": "79A",
+        "label": "79A",
+        "long": "Tustin - Newport Beach",
+        "short": "79A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "83",
+        "label": "83",
+        "long": "Fullerton - Laguna Hills",
+        "short": "83",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "85",
+        "label": "85",
+        "long": "Mission Viejo - Laguna Niguel",
+        "short": "85",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "86",
+        "label": "86",
+        "long": "Costa Mesa - Mission Viejo",
+        "short": "86",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "46A056",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "862",
+        "label": "862",
+        "long": "Santa Ana Regional Transportation Intermodal Center - Civic Center",
+        "short": "862",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "89",
+        "label": "89",
+        "long": "Mission Viejo - Laguna Beach",
+        "short": "89",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "90",
+        "label": "90",
+        "long": "Tustin Station - Dana Point Harbor",
+        "short": "90",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AFF2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "91",
+        "label": "91",
+        "long": "Laguna Hills - San Clemente",
+        "short": "91",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 5247,
+    "stop_points_capped": true
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 7936 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 7936,
+    "trips_with_shape": 7936
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 79.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 1 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "decreasing_or_equal_stop_time_distance",
       "count": 222,
@@ -467,7 +1250,7 @@
       "fix": "Re-generate shape distances in your export; flag to your vendor if it persists.",
       "owner": "Likely your export tool",
       "points": 24.0,
-      "rank": 1,
+      "rank": 2,
       "severity": "ERROR",
       "what": "Some trips have stop times whose distances along the route go backwards.",
       "why": "Apps can show buses jumping backwards or mis-order stops."
@@ -478,22 +1261,10 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
-      "rank": 2,
-      "severity": "ERROR",
-      "what": "The vehicle positions realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
-    },
-    {
-      "code": "scorecard_rt_service_alerts_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
+      "points": 9.8,
       "rank": 3,
       "severity": "ERROR",
-      "what": "The service alerts realtime feed failed during sampling.",
+      "what": "The vehicle positions realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     }
   ],

@@ -1,35 +1,9 @@
 {
   "agency": {
     "id": "yakima-transit",
-    "name": "Yakima Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/yakima-transit/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/yakima-transit/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 9,
-        "examples": [
-          "'stop_name': 'West Valley Library ' -> 'West Valley Library'",
-          "'stop_name': '72nd Ave. and Tieton Dr. ' -> '72nd Ave. and Tieton Dr.'",
-          "'stop_name': 'Fair Ave. and Beech St. ' -> 'Fair Ave. and Beech St.'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      },
-      {
-        "code": "autofix_stop_name_case",
-        "count": 530,
-        "examples": [
-          "40TH AVE / RIVER R -> 40th Ave / River R",
-          "FAIRBANKS / 36TH -> Fairbanks / 36th",
-          "2820 RIVER RD -> 2820 River Rd"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 539
+    "name": "Yakima Transit",
+    "subdivision_code": "US-WA",
+    "subdivision_name": "Washington"
   },
   "categories": {
     "completeness": {
@@ -43,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -67,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 327,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 16.4,
         "pathways": {
           "has_entrances": false,
@@ -78,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 634,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 327,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -99,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 327,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -122,7 +110,7 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 530,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 12.5,
           "severity": "INFO",
@@ -132,13 +120,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 327,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "327 of 327 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "327 of 327 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -149,7 +137,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -221,7 +209,7 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -249,13 +237,13 @@
         {
           "code": "stops_match_shape_out_of_order",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+          "why": "Trip planners can draw the bus doubling back or skipping ahead, which confuses riders reading the map."
         },
         {
           "code": "unused_trip",
@@ -272,7 +260,7 @@
           "code": "unused_shape",
           "count": 4,
           "effort": "One setting.",
-          "fix": "Enable 'remove unused shapes' (or similar) in your export tool.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
@@ -287,7 +275,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
@@ -321,13 +309,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 3465,
+        "days_until_expiry": 3433,
+        "effective_expiry_date": "2035-12-31",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2035-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -346,7 +337,7 @@
       "name": "freshness",
       "score": 85.0,
       "status": "measured",
-      "summary": "Service data covers the next 3465 days.",
+      "summary": "Service data covers the next 3433 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -355,6 +346,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -365,7 +368,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 3474 days.",
+        "detail": "Service data covers the next 3446 days.",
         "key": "current",
         "met": true
       },
@@ -385,7 +388,14 @@
     "size_bytes": 100978,
     "static_url": "https://yakimatransit.org/gtfs/yakima_gtfs.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://yakimatransit.org/gtfs/yakima_gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -120.63595,
@@ -397,10 +407,31 @@
     "lon": -120.53033,
     "stop_count": 634
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 28,
+        "trip_count": 327,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 28,
+    "trip_count": 327
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "Your agency.txt sets no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked on the P-50 form.",
     "feed_agency_ids": [],
-    "status": "unknown"
+    "fix": "Add agency_id to agency.txt and use the same value wherever routes.txt identifies that agency. Keep it stable, and enter its crosswalk to the reporter's NTD ID on P-50. It does not need to equal the five-digit NTD ID.",
+    "status": "missing"
   },
   "ntd_readiness": {
     "pillars": [
@@ -415,13 +446,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 3474 days.",
+        "detail": "Service data covers the next 3446 days.",
         "key": "current",
         "status": "ready"
+      },
+      {
+        "detail": "agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form.",
+        "key": "agency_id",
+        "status": "not_ready"
       }
     ],
-    "status": "at_risk",
-    "summary": "This feed is close to NTD-ready. 1 validator error to resolve."
+    "status": "not_ready",
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. agency.txt has no nonblank agency_id. Every RY2026 NTD GTFS submission needs a stable value unique among the reporters represented in the feed, crosswalked to each reporter's NTD ID on the P-50 form."
   },
   "overall": {
     "grade": "F",
@@ -431,6 +467,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 11,
       "effort": "A per-route color setting in your scheduling software.",
@@ -442,6 +479,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 564,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -454,8 +492,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -488,9 +526,338 @@
     "single_stop_trips": 11,
     "trips_total": 327
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 23,
+    "has_shapes": true,
+    "path": "data/artifacts/yakima-transit/geometry.geojson",
+    "route_count": 28,
+    "routes": [
+      {
+        "color": "9933FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "100",
+        "label": "8",
+        "long": "Yakima Ave",
+        "short": "8",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "9933FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "101",
+        "label": "8",
+        "long": "Yakima Ave",
+        "short": "8",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "9933FF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "102",
+        "label": "8",
+        "long": "Yakima Ave",
+        "short": "8",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008000",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "104",
+        "label": "7",
+        "long": "40th Ave. / Washington",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "66CCFF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "105",
+        "label": "1",
+        "long": "Summitview / Lincoln",
+        "short": "1",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "66CCFF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "106",
+        "label": "1",
+        "long": "Summitview / Lincoln",
+        "short": "1",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "66CCFF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "107",
+        "label": "1",
+        "long": "Summitview / Lincoln",
+        "short": "1",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF9933",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "108",
+        "label": "2",
+        "long": "Tieton / Nob Hill",
+        "short": "2",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF9933",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "109",
+        "label": "2",
+        "long": "Tieton / Nob Hill",
+        "short": "2",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF9933",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "110",
+        "label": "2",
+        "long": "Tieton / Nob Hill",
+        "short": "2",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E60000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "111",
+        "label": "3",
+        "long": "Mead / Fruitvale",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E60000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "112",
+        "label": "3",
+        "long": "Mead / Fruitvale",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B30047",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "113",
+        "label": "5",
+        "long": "Nob Hill / Tieton",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B30047",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "114",
+        "label": "5",
+        "long": "Nob Hill / Tieton",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008000",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "115",
+        "label": "7",
+        "long": "40th Ave. / Washington",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC6600",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "82",
+        "label": "6x",
+        "long": "Fair Ave. / No. 4th St. (Northbound SUN)",
+        "short": "6x",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "530F61",
+        "color_name": "purple",
+        "has_shape": false,
+        "id": "85",
+        "label": "6x",
+        "long": "Fair Ave. / No. 4th St.",
+        "short": "6x",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC6600",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "86",
+        "label": "6x",
+        "long": "Fair Ave. / No. 4th St. (Northbound SAT)",
+        "short": "6x",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF8080",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "89",
+        "label": "4",
+        "long": "Fruitvale / Mead",
+        "short": "4",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF8080",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "90",
+        "label": "4",
+        "long": "Fruitvale / Mead",
+        "short": "4",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF8080",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "91",
+        "label": "4",
+        "long": "Fruitvale / Mead",
+        "short": "4",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC6600",
+        "color_name": "orange",
+        "has_shape": false,
+        "id": "92",
+        "label": "6",
+        "long": "Fair Ave. / No. 4th St.",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC6600",
+        "color_name": "orange",
+        "has_shape": false,
+        "id": "93",
+        "label": "6",
+        "long": "Fair Ave. / No. 4th St.",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC6600",
+        "color_name": "orange",
+        "has_shape": false,
+        "id": "94",
+        "label": "6",
+        "long": "Fair Ave. / No. 4th St.",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59B300",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "96",
+        "label": "9",
+        "long": "1st Street / Washington",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": false,
+        "id": "97",
+        "label": "G",
+        "long": "arage",
+        "short": "G",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59B300",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "98",
+        "label": "9",
+        "long": "1st Street / Washington",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "59B300",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "99",
+        "label": "9",
+        "long": "1st Street / Washington",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 634,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 327 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 327,
+    "trips_with_shape": 327
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "stop_time_with_arrival_before_previous_departure_time",
@@ -519,8 +886,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 327,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,

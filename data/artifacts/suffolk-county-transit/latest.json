@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "suffolk-county-transit",
-    "name": "Suffolk County Transit"
-  },
-  "autofix": {
-    "available": false
+    "name": "Suffolk County Transit",
+    "subdivision_code": "US-NY",
+    "subdivision_name": "New York"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 2495,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 2218,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 2495,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 2495,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -102,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -130,19 +143,19 @@
           "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 170,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "equal_shape_distance_diff_coordinates_distance_below_threshold",
@@ -174,7 +187,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
@@ -197,13 +210,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -187,
+        "days_until_expiry": -219,
+        "effective_expiry_date": "2025-12-31",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2025-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -215,7 +231,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 187 day(s) ago.",
+          "what": "Service data ended 219 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -233,13 +249,19 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 187 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 219 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions"
+        ],
         "coverage_pct": null,
+        "kinds_configured": 2,
         "kinds_reachable": 0,
+        "reachable_kinds": [],
         "rt_freshness": null,
         "samples": 6,
         "scheduled_trips_in_window": 0,
@@ -252,7 +274,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 50.0,
           "severity": "ERROR",
           "what": "The trip updates realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -263,29 +285,31 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 50.0,
           "severity": "ERROR",
           "what": "The vehicle positions realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_service_alerts_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
         }
       ],
       "name": "realtime",
       "score": 0.0,
       "status": "measured",
-      "summary": "Sampled 6 times outside service hours: 0 of 3 feeds healthy.",
+      "summary": "Sampled 6 times outside service hours: 0 of 2 configured feeds healthy; vehicle position plausibility was not measurable.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 6 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -296,7 +320,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 178 days ago.",
+        "detail": "Service data expired 206 days ago.",
         "key": "current",
         "met": false
       },
@@ -307,7 +331,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 178 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 206 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -316,7 +340,14 @@
     "size_bytes": 2231613,
     "static_url": "https://www.suffolkcountyny.gov/Portals/0/formsdocs/publicworks/Zip/google_transit.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.suffolkcountyny.gov/Portals/0/formsdocs/publicworks/Zip/google_transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -73.42902,
@@ -328,8 +359,28 @@
     "lon": -73.1418,
     "stop_count": 2218
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 26,
+        "trip_count": 2495,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 26,
+    "trip_count": 2495
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "SCT"
     ],
@@ -348,13 +399,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 178 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 206 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 178 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 206 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -364,6 +420,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 2003,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -376,8 +433,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -387,9 +444,316 @@
     "single_stop_trips": 0,
     "trips_total": 2495
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 25,
+    "has_shapes": true,
+    "path": "data/artifacts/suffolk-county-transit/geometry.geojson",
+    "route_count": 26,
+    "routes": [
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "Amityville Long Island Railroad Station to Halesite",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "Amityville Long Island Railroad Station to Babylon Long Island Railroad Station",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "11",
+        "label": "11",
+        "long": "Bay Shore to Hauppauge",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "6D6E71",
+        "color_name": "gray",
+        "has_shape": false,
+        "id": "110",
+        "label": "110",
+        "long": "Suffolk Clipper",
+        "short": "110",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "12",
+        "label": "12",
+        "long": "East Farmingdale to Wyandanch to Bay Shore",
+        "short": "12",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "15",
+        "label": "15",
+        "long": "Babylon Long ISland Railroad Station to Robert Moses State Park",
+        "short": "15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "17",
+        "label": "17",
+        "long": "East Islip to Hauppauge",
+        "short": "17",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "2",
+        "label": "2",
+        "long": "Amityville Long Island Railroad Station to Patchogue Long Island Railroad Station (via Montauk Highway)",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "3",
+        "label": "3",
+        "long": "Babylon Long Island Railroad Station to Walt Whitman Shops",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "4",
+        "label": "4",
+        "long": "Amityville Long Island Railroad Station to Central Islip Long Island Railroad Station to Smith Haven Mall",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "Babylon Long Island Railroad Station to Smith Haven Mall",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "51",
+        "label": "51",
+        "long": "Patchogue Long Island Railroad Station to Ronkonkoma Long Island Railroad Station to Stony Brook to Port Jefferson",
+        "short": "51",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "52A",
+        "label": "52A",
+        "long": "Central Islip Long Island Railroad Station to Gordon Heights via Coram Plaza",
+        "short": "52A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "52B",
+        "label": "52B",
+        "long": "Central Islip Long Island Railroad Station to Gordon Heights via Brookhaven Town Hall",
+        "short": "52B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "53",
+        "label": "53",
+        "long": "Patchogue Long Island Railroad Station to Port Jefferson",
+        "short": "53",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "55",
+        "label": "55",
+        "long": "Patchogue Long Island Railroad Station to Port Jefferson",
+        "short": "55",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "56",
+        "label": "56",
+        "long": "Kings Park Manor to Smithtown Railroad Station",
+        "short": "56",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "58",
+        "label": "58",
+        "long": "Brentwood Long Island Railroad Station to Riverhead via New York State Route 25",
+        "short": "58",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "6",
+        "label": "6",
+        "long": "Walt Whitman Shops to Patchogue Long Island Railroad Station",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "62",
+        "label": "62",
+        "long": "Smith Haven Mall to Riverhead Long Island Railroad Station",
+        "short": "62",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "66",
+        "label": "66",
+        "long": "Patchogue Long Island Railroad Station to Shirley to Mastic to Riverhead",
+        "short": "66",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C63F49",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "7",
+        "label": "7",
+        "long": "Bay Shore to Northport Veterans Affairs Medical Center",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "77",
+        "label": "77",
+        "long": "Patchogue Long Island Railroad Station to Bellport",
+        "short": "77",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "77Y",
+        "label": "77Y",
+        "long": "Patchogue Long Island Railroad Station to Yaphank Correctional Facility",
+        "short": "77Y",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "80",
+        "label": "80",
+        "long": "Riverhead Long Island Railroad Station to Riverhead Tanger Outlets Loop",
+        "short": "80",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0454A2",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "92",
+        "label": "92",
+        "long": "Orient Point to Riverhead to East Hampton Long Island Railroad Station",
+        "short": "92",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 2218,
+    "stop_points_capped": true
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 2495 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 2495,
+    "trips_with_shape": 2495
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -400,7 +764,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 187 day(s) ago.",
+      "what": "Service data ended 219 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -409,7 +773,7 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
+      "points": 50.0,
       "rank": 2,
       "severity": "ERROR",
       "what": "The trip updates realtime feed failed during sampling.",
@@ -421,7 +785,7 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
+      "points": 50.0,
       "rank": 3,
       "severity": "ERROR",
       "what": "The vehicle positions realtime feed failed during sampling.",

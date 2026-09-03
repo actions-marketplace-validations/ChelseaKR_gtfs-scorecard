@@ -14,6 +14,11 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded runs on the same ref (new push to a PR) to save minutes.
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -21,13 +26,29 @@ jobs:
       run:
         working-directory: pipeline
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
           python-version: "3.12"
       # The e2e dependency group brings pytest-playwright on top of dev.
       - run: uv sync --locked --group e2e
       - name: Install the Playwright chromium
         run: uv run playwright install --with-deps chromium
+      # Render before testing, the way a11y.yml and pages.yml do. web/agency/**
+      # is generated output that happens to be committed, and the daily scoring
+      # run refreshes data/artifacts without regenerating it, so the checked-in
+      # pages drift behind the data they were rendered from. Serving them
+      # unrendered meant these tests asserted against a month-old build: ABQ RIDE
+      # read D/61.5 in committed HTML while its artifact said F/48.1, and the
+      # test that compared the two was right to fail. Deploy regenerates, so this
+      # makes the suite exercise what production actually serves.
+      - name: Materialize validated current dated records
+        run: >-
+          uv run python scripts/materialize_current_artifacts.py
+          --artifacts-root ../data/artifacts
+      - name: Render the static site
+        run: uv run scorecard render-site
       # The explicit -m e2e overrides the default deselection in addopts.
       - run: uv run pytest tests/e2e -m e2e

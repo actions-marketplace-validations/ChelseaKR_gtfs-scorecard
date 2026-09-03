@@ -36,6 +36,13 @@ def ratio(fg: str, bg: str) -> float:
 # Each entry: (label, fg, bg, large?). Large text needs 4.5:1; normal needs 7:1.
 # Tokens resolved per theme below; literal hexes pass through.
 PAIRS: list[tuple[str, str, str, bool]] = [
+    # ---- board-ready report document (scorecard_pipeline/report.py) ----
+    # The report is a standalone print-first file with a fixed light palette
+    # (literal hexes, no theming), so these pairs hold in every theme pass.
+    # The brand accent colors only decorative bands and rules, never text.
+    ("report ink on white", "#20241f", "#ffffff", False),
+    ("report ink-soft on white", "#3d4339", "#ffffff", False),
+    ("report ink on table-header fill", "#20241f", "#e5e8df", False),
     # ---- default light palette / app shared styles.css ----
     ("app --ink body on --paper", "ink", "paper", False),
     ("app --ink-soft on --paper", "ink-soft", "paper", False),
@@ -47,6 +54,10 @@ PAIRS: list[tuple[str, str, str, bool]] = [
     ("app --error sev text on --card", "error", "card", False),
     ("app --warning sev text on --card", "warning", "card", False),
     ("app --info sev text on --card", "info", "card", False),
+    ("app success text on --card", "success-text", "card", False),
+    ("app success text on success surface", "success-text", "success-surface", False),
+    ("app body ink on success surface", "ink", "success-surface", False),
+    ("app success button text on fill", "success-on", "success-fill", False),
     # Fix NN badges use an explicit dark fill per theme (badge-error etc.),
     # not the brightened severity token, so white text clears AAA on them.
     ("app white on error badge fill", "#ffffff", "badge-error", False),
@@ -73,14 +84,11 @@ PAIRS: list[tuple[str, str, str, bool]] = [
     ("landing --ink-soft on --paper", "L_ink-soft", "L_paper", False),
     ("landing --ink-soft on --paper-2", "L_ink-soft", "L_paper-2", False),
     ("landing --green on --paper (sectlabel/stop.n)", "L_green", "L_paper", False),
-    ("landing --green on --paper-2 (who band)", "L_green", "L_paper-2", False),
+    ("landing --green on --paper-2 (scope ledger)", "L_green", "L_paper-2", False),
     ("landing --rust on --paper card", "L_rust", "L_paper", False),
     ("landing --ink on --paper", "L_ink", "L_paper", False),
-    ("landing .lede #dfe7dd on --pine", "#dfe7dd", "L_pine", False),
-    ("landing .reassure #b9c7ba on --pine", "#b9c7ba", "L_pine", False),
-    ("landing board .lab #b9c7ba on --pine-2", "#b9c7ba", "L_pine-2", False),
-    ("landing footer #b9c7ba on --pine", "#b9c7ba", "L_pine", False),
-    ("landing cta p #d3decf on --pine", "#d3decf", "L_pine", False),
+    ("landing movement copy #d3decf on --pine", "#d3decf", "L_pine", False),
+    ("landing footer copy #cfdcd2 on --pine", "#cfdcd2", "L_pine", False),
     # Primary nav: cream stops on the pine wayfinding bar (theme-independent).
     ("nav active stop on pine", "#f4f6f0", "#102a20", False),
     ("nav inactive stop on pine", "#cfdcd2", "#102a20", False),
@@ -90,6 +98,9 @@ PAIRS: list[tuple[str, str, str, bool]] = [
     ("landing --on-pine on --pine (hero/board/cta/footer/nav)", "L_on-pine", "L_pine", False),
     ("landing --on-pine on --pine-2 (board)", "L_on-pine", "L_pine-2", False),
     ("landing btn-primary #2a1c00 on --amber", "#2a1c00", "L_amber", False),
+    ("landing page focus ring on --paper", "L_focus-page", "L_paper", False),
+    ("landing dark-chrome focus ring on --pine", "L_focus-dark", "L_pine", False),
+    ("landing amber-surface focus ring on --amber", "L_focus-on-amber", "L_amber", False),
 ]
 
 THEMES: dict[str, dict[str, str]] = {
@@ -111,17 +122,24 @@ THEMES: dict[str, dict[str, str]] = {
         "badge-error": "#8e2a23",
         "badge-warning": "#6b490e",
         "badge-info": "#3a4753",
+        "success-text": "#1d5c40",
+        "success-fill": "#1d5c40",
+        "success-on": "#f4f6f0",
+        "success-surface": "#edf4ee",
         # landing tokens (light)
-        "L_ink": "#15231c",
-        "L_ink-soft": "#3c4840",
+        "L_ink": "#20241f",
+        "L_ink-soft": "#3d4339",
         "L_paper": "#f2f3ee",
         "L_paper-2": "#e5e8df",
-        "L_green": "#11522a",
-        "L_rust": "#822c12",
+        "L_green": "#163a2c",
+        "L_rust": "#8e2a23",
         "L_pine": "#102a20",
         "L_pine-2": "#163a2c",
         "L_on-pine": "#f4f6f0",
         "L_amber": "#fdc70a",
+        "L_focus-page": "#1a3aa8",
+        "L_focus-dark": "#fdc70a",
+        "L_focus-on-amber": "#2a1c00",
     },
     "dark": {
         "ink": "#e9e4d7",
@@ -140,6 +158,10 @@ THEMES: dict[str, dict[str, str]] = {
         "badge-error": "#7e2a23",
         "badge-warning": "#5c3d0a",
         "badge-info": "#2f4452",
+        "success-text": "#84d6aa",
+        "success-fill": "#7fd3a6",
+        "success-on": "#15181b",
+        "success-surface": "#183c2c",
         # landing dark
         "L_ink": "#e9e4d7",
         "L_ink-soft": "#c2c8bc",
@@ -151,6 +173,9 @@ THEMES: dict[str, dict[str, str]] = {
         "L_pine-2": "#14201a",
         "L_on-pine": "#e9e4d7",
         "L_amber": "#ffd34d",
+        "L_focus-page": "#ffd34d",
+        "L_focus-dark": "#ffd34d",
+        "L_focus-on-amber": "#2a1c00",
     },
     "contrast": {
         "ink": "#000000",
@@ -169,6 +194,10 @@ THEMES: dict[str, dict[str, str]] = {
         "badge-error": "#7a0000",
         "badge-warning": "#5a4900",
         "badge-info": "#003a5a",
+        "success-text": "#0a4420",
+        "success-fill": "#0a4420",
+        "success-on": "#ffffff",
+        "success-surface": "#f2f2f2",
         "L_ink": "#000000",
         "L_ink-soft": "#1a1a1a",
         "L_paper": "#ffffff",
@@ -179,6 +208,9 @@ THEMES: dict[str, dict[str, str]] = {
         "L_pine-2": "#111111",
         "L_on-pine": "#ffffff",
         "L_amber": "#ffce6a",
+        "L_focus-page": "#0033cc",
+        "L_focus-dark": "#ffce6a",
+        "L_focus-on-amber": "#2a1c00",
     },
 }
 

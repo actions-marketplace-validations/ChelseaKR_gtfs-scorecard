@@ -1,23 +1,9 @@
 {
   "agency": {
     "id": "81-connection-citygo-kanconnect",
-    "name": "81 Connection, CityGo, KanConnect"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/81-connection-citygo-kanconnect/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/81-connection-citygo-kanconnect/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 1,
-        "examples": [
-          "'stop_name': 'Faith Drive ' -> 'Faith Drive'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 1
+    "name": "81 Connection, CityGo, KanConnect",
+    "subdivision_code": "US-KS",
+    "subdivision_name": "Kansas"
   },
   "categories": {
     "completeness": {
@@ -31,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -55,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 28,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -66,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 192,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 28,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 97.9,
@@ -104,7 +104,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -127,24 +127,24 @@
         {
           "code": "leading_or_trailing_whitespaces",
           "count": 7670,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'leading_or_trailing_whitespaces' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Leading or trailing whitespaces (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some values have extra spaces at the start or end.",
+          "why": "A stray space can break a match, so a stop or route may fail to link across files."
         },
         {
           "code": "route_long_name_contains_short_name",
           "count": 5,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "route_short_name_too_long",
@@ -176,7 +176,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -204,13 +204,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "trip_coverage_not_active_for_next7_days",
@@ -243,13 +243,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -918,
+        "days_until_expiry": -950,
+        "effective_expiry_date": "2023-12-31",
         "feed_end_date": "2023-12-31",
         "feed_start_date": "2018-12-26",
         "feed_version": "2.0",
         "has_feed_info": true,
         "last_service_date": "2023-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -261,14 +264,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 918 day(s) ago.",
+          "what": "Service data ended 950 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 918 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 950 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -277,6 +280,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -287,7 +302,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 909 days ago.",
+        "detail": "Service data expired 945 days ago.",
         "key": "current",
         "met": false
       },
@@ -298,7 +313,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 909 days ago."
+    "summary": "This feed is close to the conformance mark. Service data expired 945 days ago."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -307,7 +322,15 @@
     "size_bytes": 113835,
     "static_url": "https://salinacitygo.com/wp-content/uploads/2022/11/export-2022-11-30T10-18-07.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://files.mobilitydatabase.org/mdb-1867/latest.zip",
+    "max_attempts": 1,
+    "origin_error": "ConnectTimeout",
+    "reader_archive_profile": "raw-v1",
+    "source": "mirror",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-02T00:00:00+00:00",
   "geo": {
     "bbox": [
       -97.70615,
@@ -319,8 +342,28 @@
     "lon": -97.60991,
     "stop_count": 192
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 19,
+        "trip_count": 28,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 19,
+    "trip_count": 28
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1",
       "2",
@@ -341,13 +384,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 909 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 945 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 909 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 945 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -357,6 +405,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 106,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -369,8 +418,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -380,9 +429,239 @@
     "single_stop_trips": 0,
     "trips_total": 28
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 19,
+    "has_shapes": true,
+    "path": "data/artifacts/81-connection-citygo-kanconnect/geometry.geojson",
+    "route_count": 19,
+    "routes": [
+      {
+        "color": "64E51F",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "113312",
+        "label": "KCEL1",
+        "long": "KanConnect East Link 1",
+        "short": "KCEL1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "64E51F",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "113313",
+        "label": "KCEL2",
+        "long": "KanConnect East Link 2",
+        "short": "KCEL2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "31871",
+        "label": "Blue Regular",
+        "long": "Blue Regular",
+        "short": "Blue Regular",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFF00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "32145",
+        "label": "Yellow Regular",
+        "long": "Yellow Regular",
+        "short": "Yellow Regular",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF0000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "32146",
+        "label": "Red Regular",
+        "long": "Red Regular",
+        "short": "Red Regular",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008000",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "32147",
+        "label": "Green Regular",
+        "long": "Green Regular",
+        "short": "Green Regular",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "800080",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "32148",
+        "label": "Purple Regular",
+        "long": "Purple Regular",
+        "short": "Purple Regular",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "32149",
+        "label": "Blue Peak",
+        "long": "Blue AM Peak",
+        "short": "Blue Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "32150",
+        "label": "Blue Peak",
+        "long": "Blue PM Peak",
+        "short": "Blue Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008000",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "32151",
+        "label": "Green Peak",
+        "long": "Green AM Peak",
+        "short": "Green Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008000",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "32152",
+        "label": "Green Peak",
+        "long": "Green PM Peak",
+        "short": "Green Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "800080",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "32153",
+        "label": "Purple Peak",
+        "long": "Purple AM Peak",
+        "short": "Purple Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF0000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "32154",
+        "label": "Red Peak",
+        "long": "Red AM Peak",
+        "short": "Red Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFF00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "32155",
+        "label": "Yellow Peak",
+        "long": "Yellow AM Peak",
+        "short": "Yellow Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "800080",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "32156",
+        "label": "Purple Peak",
+        "long": "Purple PM Peak",
+        "short": "Purple Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF0000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "32157",
+        "label": "Red Peak",
+        "long": "Red PM Peak",
+        "short": "Red Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFF00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "32158",
+        "label": "Yellow Peak",
+        "long": "Yellow PM Peak",
+        "short": "Yellow Peak",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "808080",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "64789",
+        "label": "81 C SB",
+        "long": "81 Connection Southbound",
+        "short": "81 C SB",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "808080",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "64790",
+        "label": "81 C NB",
+        "long": "81 Connection Northbound",
+        "short": "81 C NB",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 192,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 28 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 28,
+    "trips_with_shape": 28
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -393,7 +672,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 918 day(s) ago.",
+      "what": "Service data ended 950 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -411,14 +690,14 @@
     {
       "code": "leading_or_trailing_whitespaces",
       "count": 7670,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'leading_or_trailing_whitespaces' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Usually one export setting.",
+      "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
+      "owner": "Likely your export tool",
       "points": 8.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Leading or trailing whitespaces (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "Some values have extra spaces at the start or end.",
+      "why": "A stray space can break a match, so a stop or route may fail to link across files."
     }
   ],
   "validator_version": "8.0.1"

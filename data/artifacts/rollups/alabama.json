@@ -1,26 +1,16 @@
 {
-  "agency_count": 10,
-  "average_score": 56.8,
+  "agency_count": 9,
+  "average_score": 74.1,
   "common_fixes": [
     {
-      "agencies": 9,
+      "agencies": 3,
       "code": "scorecard_wheelchair_boarding_unknown",
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
     },
     {
-      "agencies": 7,
-      "code": "scorecard_wheelchair_accessible_unknown",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default)."
-    },
-    {
-      "agencies": 6,
-      "code": "scorecard_feed_expired",
-      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-    },
-    {
       "agencies": 2,
       "code": "scorecard_missing_headsigns",
-      "fix": "Populate trip_headsign to match what the bus displays."
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign."
     },
     {
       "agencies": 2,
@@ -29,161 +19,178 @@
     },
     {
       "agencies": 2,
-      "code": "stop_without_stop_time",
-      "fix": "Remove retired stops from the export, or add them back to the trips that should serve them."
+      "code": "scorecard_wheelchair_accessible_unknown",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip."
     }
   ],
+  "comparison": {
+    "absolute_rankings_published": false,
+    "eligible_count": 4,
+    "excluded_count": 5,
+    "exclusion_counts": {
+      "service_data_long_expired": 5
+    },
+    "individual_percentiles_published": false,
+    "measured_category_cohorts": {
+      "correctness+freshness+completeness": 4
+    },
+    "note": "Score aggregates and named changes use one current producer contract, raw reader archive profile, and measured-category set across canonical feed records, with unresolved duplicate identities removed. Absolute rankings and individual percentiles are not published.",
+    "required_measured_categories": [
+      "correctness",
+      "freshness",
+      "completeness"
+    ],
+    "required_reader_archive_profile": "raw-v1",
+    "required_rubric_version": "1.3",
+    "required_scoring_profile_id": "gtfs-scorecard-1.3",
+    "required_validator_version": "8.0.1"
+  },
   "expired": {
     "lapsed": 1,
     "stale": 5,
     "total": 6
   },
-  "generated_at": "2026-07-06T09:32:39+00:00",
+  "generated_at": "2026-08-07T02:19:46+00:00",
   "grade_distribution": {
     "B": 1,
-    "C": 3,
-    "F": 6
+    "C": 2,
+    "F": 1
   },
   "members": [
     {
       "annual_trips": null,
       "attention_reason": "Service data has expired",
-      "days_until_expiry": -1310,
-      "expiry_status": "stale",
-      "grade": "F",
-      "id": "birmingham-jefferson-county-transit-authority",
-      "name": "Birmingham Jefferson County Transit Authority",
-      "needs_attention": true,
-      "score": 19.1,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-    },
-    {
-      "annual_trips": null,
-      "attention_reason": "Service data has expired",
-      "days_until_expiry": -401,
-      "expiry_status": "stale",
-      "grade": "F",
-      "id": "birmingham-jefferson-county-transit-authority-max-2263",
-      "name": "Birmingham Jefferson County Transit Authority (MAX)",
-      "needs_attention": true,
-      "score": 34.8,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-    },
-    {
-      "annual_trips": null,
-      "attention_reason": "Service data has expired",
-      "days_until_expiry": -2744,
-      "expiry_status": "stale",
-      "grade": "F",
-      "id": "birmingham-jefferson-county-transit-authority-max",
-      "name": "Birmingham Jefferson County Transit Authority (MAX)",
-      "needs_attention": true,
-      "score": 46.0,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-    },
-    {
-      "annual_trips": null,
-      "attention_reason": "Service data has expired",
-      "days_until_expiry": -680,
-      "expiry_status": "stale",
-      "grade": "F",
-      "id": "capital-trailways",
-      "name": "Capital Trailways",
-      "needs_attention": true,
-      "score": 46.7,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-    },
-    {
-      "annual_trips": null,
-      "attention_reason": "Service data has expired",
-      "days_until_expiry": -1283,
-      "expiry_status": "stale",
-      "grade": "F",
-      "id": "huntsville-shuttle",
-      "name": "Huntsville Shuttle",
-      "needs_attention": true,
-      "score": 46.7,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
-    },
-    {
-      "annual_trips": null,
-      "attention_reason": "Service data has expired",
-      "days_until_expiry": -279,
+      "days_until_expiry": -311,
       "expiry_status": "lapsed",
       "grade": "F",
       "id": "areawide-community-transportation-system",
       "name": "Areawide Community Transportation System",
       "needs_attention": true,
       "score": 57.2,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change."
+      "shapes_status": "not_ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
+      "top_fix_code": "scorecard_feed_expired"
     },
     {
       "annual_trips": null,
-      "attention_reason": null,
-      "days_until_expiry": 178,
-      "expiry_status": "current",
-      "grade": "C",
-      "id": "huntsville-shuttle-2081",
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1342,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "birmingham-jefferson-county-transit-authority",
+      "name": "Birmingham Jefferson County Transit Authority",
+      "needs_attention": true,
+      "score": 19.1,
+      "shapes_status": "ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
+      "top_fix_code": "scorecard_feed_expired"
+    },
+    {
+      "annual_trips": null,
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -2776,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "birmingham-jefferson-county-transit-authority-max",
+      "name": "Birmingham Jefferson County Transit Authority (MAX)",
+      "needs_attention": true,
+      "score": 46.0,
+      "shapes_status": "ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
+      "top_fix_code": "scorecard_feed_expired"
+    },
+    {
+      "annual_trips": null,
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -433,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "birmingham-jefferson-county-transit-authority-max-2263",
+      "name": "Birmingham Jefferson County Transit Authority (MAX)",
+      "needs_attention": true,
+      "score": 34.8,
+      "shapes_status": "ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
+      "top_fix_code": "scorecard_feed_expired"
+    },
+    {
+      "annual_trips": null,
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -712,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "capital-trailways",
+      "name": "Capital Trailways",
+      "needs_attention": true,
+      "score": 46.7,
+      "shapes_status": "not_ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
+      "top_fix_code": "scorecard_feed_expired"
+    },
+    {
+      "annual_trips": null,
+      "attention_reason": "Service data has expired",
+      "days_until_expiry": -1315,
+      "expiry_status": "stale",
+      "grade": "F",
+      "id": "huntsville-shuttle",
       "name": "Huntsville Shuttle",
-      "needs_attention": false,
-      "score": 72.3,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
+      "needs_attention": true,
+      "score": 46.7,
+      "shapes_status": "ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
+      "top_fix_code": "scorecard_feed_expired"
     },
     {
       "annual_trips": null,
       "attention_reason": null,
-      "days_until_expiry": 178,
-      "expiry_status": "current",
-      "grade": "C",
-      "id": "montgomery-transit",
-      "name": "Montgomery Transit",
-      "needs_attention": false,
-      "score": 78.5,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
-    },
-    {
-      "annual_trips": null,
-      "attention_reason": null,
-      "days_until_expiry": 178,
-      "expiry_status": "current",
-      "grade": "C",
-      "id": "montgomery-transit-338",
-      "name": "Montgomery Transit",
-      "needs_attention": false,
-      "score": 78.5,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops."
-    },
-    {
-      "annual_trips": null,
-      "attention_reason": null,
-      "days_until_expiry": 953,
+      "days_until_expiry": 921,
       "expiry_status": "current",
       "grade": "B",
       "id": "city-of-gadsen",
       "name": "COG Trolley Routes",
       "needs_attention": false,
       "score": 88.4,
-      "shapes_status": null,
-      "snapshot_date": "2026-07-06",
-      "top_fix": "Populate trip_headsign to match what the bus displays."
+      "shapes_status": "not_ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "top_fix_code": "scorecard_missing_headsigns"
+    },
+    {
+      "annual_trips": null,
+      "attention_reason": null,
+      "days_until_expiry": 146,
+      "expiry_status": "current",
+      "grade": "C",
+      "id": "huntsville-shuttle-2081",
+      "name": "Huntsville Shuttle",
+      "needs_attention": false,
+      "score": 72.3,
+      "shapes_status": "ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "top_fix_code": "scorecard_wheelchair_boarding_unknown"
+    },
+    {
+      "annual_trips": null,
+      "attention_reason": null,
+      "days_until_expiry": 146,
+      "expiry_status": "current",
+      "grade": "C",
+      "id": "montgomery-transit",
+      "name": "Montgomery Transit",
+      "needs_attention": false,
+      "score": 78.5,
+      "shapes_status": "ready",
+      "snapshot_date": "2026-08-07",
+      "top_fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "top_fix_code": "scorecard_wheelchair_boarding_unknown"
     }
   ],
   "needs_attention": 6,
@@ -191,13 +198,13 @@
     "id": "alabama",
     "name": "Alabama agencies"
   },
-  "schema_version": "1.7",
+  "schema_version": "1.17",
   "shapes_readiness": {
     "at_risk": 0,
-    "not_measured": 10,
-    "not_ready": 0,
-    "ready": 0,
-    "total": 10
+    "not_measured": 0,
+    "not_ready": 3,
+    "ready": 6,
+    "total": 9
   },
-  "state_percentile": 52
+  "state_percentile": null
 }

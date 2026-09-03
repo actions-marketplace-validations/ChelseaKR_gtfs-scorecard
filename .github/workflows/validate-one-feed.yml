@@ -1,0 +1,120 @@
+name: Validate one feed (diagnostic)
+
+# Manual, ad hoc single-feed validator run for reliability diagnostics (issue
+# #297): reproduce, or verify a fix for, a runner-killing validation without
+# waiting for the next scheduled Daily/Intraday cycle to happen to include
+# the feed in question. Read-only against the registry and the feed's own
+# host; never touches S3, never deploys, never writes to main.
+
+on:
+  workflow_dispatch:
+    inputs:
+      agency:
+        description: "registry agency id to validate (e.g. ovapi-netherlands)"
+        required: true
+        type: string
+      # READ BEFORE SETTING EITHER NUMBER BELOW. These two inputs interact, and
+      # the interaction is an easy and expensive trap.
+      #
+      # SCORECARD_VALIDATOR_MEMORY_MB becomes `prlimit --as`, which sets
+      # RLIMIT_AS: a ceiling on the process's VIRTUAL ADDRESS SPACE, not on its
+      # resident memory. A JVM reserves far more address space than the heap it
+      # is asked for, so a ceiling chosen as if it were an RSS budget does not
+      # bound a runaway — it stops the VM initializing at all, before any feed
+      # is read. Keep the ceiling well clear of the heap.
+      #
+      # Observed live on 2026-08-29, run 33264844507: memory_limit_mb=6144 with
+      # large_feed_heap=4g died 1.3 seconds in at 271 MB peak RSS, which is the
+      # JVM failing to start, not the feed failing to validate. Production runs
+      # 10240 against the default 6g heap, so leaving large_feed_heap empty is
+      # what reproduces production. That pairing validated this feed in 3m30 at
+      # 6.4 GB peak RSS on 2026-08-21 (run 32508141222) and died 2m24 in on
+      # 2026-08-29 (run 33265338459), so a failure at these settings is about
+      # the feed or the runner, not about the numbers.
+      memory_limit_mb:
+        description: "SCORECARD_VALIDATOR_MEMORY_MB: prlimit --as ceiling, in MiB. Bounds VIRTUAL ADDRESS SPACE, not RSS, so keep it well above the heap or the JVM will not start (6144 with a 4g heap does not). Production uses 10240. Empty = unbounded (pre-#297 behavior)."
+        required: false
+        default: ""
+        type: string
+      large_feed_heap:
+        description: "SCORECARD_LARGE_FEED_HEAP override, e.g. 6g. Empty = validate.DEFAULT_LARGE_FEED_HEAP (6g), which is what production uses; leave it empty to reproduce production. Any value set here must stay well below the ceiling above."
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    # Same ceiling as the Daily scorecard score job (issue #297): this is the
+    # diagnostic for that job's failure mode, so it needs the same bound to
+    # mean anything.
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Runner resources (ground truth for sizing SCORECARD_VALIDATOR_MEMORY_MB)
+        run: |
+          {
+            echo "## Runner resources"
+            echo '```'
+            free -h
+            nproc
+            df -h /
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate the requested feed
+        working-directory: pipeline
+        env:
+          # Passed as env vars rather than interpolated into the script below:
+          # workflow_dispatch inputs are attacker-influenceable text as far as
+          # a shell script is concerned, and the shell only ever sees them as
+          # inert variable values this way, never as script text (zizmor:
+          # template-injection).
+          AGENCY: ${{ inputs.agency }}
+          SCORECARD_VALIDATOR_MEMORY_MB: ${{ inputs.memory_limit_mb }}
+          SCORECARD_LARGE_FEED_HEAP: ${{ inputs.large_feed_heap }}
+        run: |
+          set -uo pipefail
+          echo "agency=$AGENCY"
+          echo "SCORECARD_VALIDATOR_MEMORY_MB=${SCORECARD_VALIDATOR_MEMORY_MB:-<unbounded>}"
+          echo "SCORECARD_LARGE_FEED_HEAP=${SCORECARD_LARGE_FEED_HEAP:-<default>}"
+          if command -v /usr/bin/time >/dev/null; then
+            /usr/bin/time -v uv run scorecard run --agency "$AGENCY" --force-fetch --skip-rt \
+              2> >(tee "$RUNNER_TEMP/time.log" >&2)
+          else
+            uv run scorecard run --agency "$AGENCY" --force-fetch --skip-rt \
+              2>&1 | tee "$RUNNER_TEMP/time.log"
+          fi
+          status=$?
+          {
+            echo "## Result"
+            echo "exit status: $status"
+            echo '```'
+            grep -E "Maximum resident set size|Elapsed \(wall clock\)|Exit status" "$RUNNER_TEMP/time.log" || true
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+
+      - name: Retain the validator report for inspection
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: validate-one-feed-${{ inputs.agency }}-${{ github.run_id }}
+          path: |
+            data/artifacts/${{ inputs.agency }}/
+            data/raw/${{ inputs.agency }}/
+          if-no-files-found: warn
+          retention-days: 14

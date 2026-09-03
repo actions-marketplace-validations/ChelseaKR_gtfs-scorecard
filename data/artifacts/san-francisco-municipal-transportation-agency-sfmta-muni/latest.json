@@ -1,35 +1,9 @@
 {
   "agency": {
     "id": "san-francisco-municipal-transportation-agency-sfmta-muni",
-    "name": "San Francisco Municipal Transportation Agency (SFMTA - Muni)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/san-francisco-municipal-transportation-agency-sfmta-muni/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/san-francisco-municipal-transportation-agency-sfmta-muni/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 3341,
-        "examples": [
-          "'platform_code': ' ' -> ''",
-          "'platform_code': ' ' -> ''",
-          "'platform_code': ' ' -> ''"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      },
-      {
-        "code": "autofix_route_name_case",
-        "count": 69,
-        "examples": [
-          "CALIFORNIA -> California",
-          "FOLSOM-PACIFIC -> Folsom-pacific",
-          "MISSION -> Mission"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 3410
+    "name": "San Francisco Municipal Transportation Agency (SFMTA - Muni)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -71,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 70436,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -82,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 3271,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 70436,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -103,13 +87,13 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 70436,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
           "what": "70436 of 70436 trips don't say whether the vehicle is wheelchair accessible.",
-          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+          "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -120,7 +104,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -143,13 +127,13 @@
         {
           "code": "missing_required_column",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_required_column' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Often an export setting; ask your vendor if it recurs.",
+          "fix": "Add the required column named in the finding to the flagged file.",
+          "owner": "Likely your export tool",
           "points": 12.0,
           "severity": "ERROR",
-          "what": "Missing required column (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "A file is missing a column that GTFS requires.",
+          "why": "Apps may reject the whole file, so riders could lose the affected routes or stops."
         },
         {
           "code": "invalid_phone_number",
@@ -170,8 +154,8 @@
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips move faster between stops than a bus can.",
-          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
+          "what": "Some scheduled trips move faster between stops than a transit vehicle can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no transit vehicle can meet."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -187,13 +171,13 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 5,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong path or point riders to the wrong boarding location."
         },
         {
           "code": "stop_too_far_from_shape",
@@ -204,7 +188,7 @@
           "points": 4.0,
           "severity": "WARNING",
           "what": "Some stops sit far from the route line they belong to.",
-          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+          "why": "Trip planners may draw the transit vehicle route through the wrong path or point riders to the wrong boarding location."
         },
         {
           "code": "missing_recommended_file",
@@ -220,24 +204,24 @@
         {
           "code": "route_long_name_contains_short_name",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "stops_match_shape_out_of_order",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+          "why": "Trip planners can draw the transit vehicle doubling back or skipping ahead, which confuses riders reading the map."
         },
         {
           "code": "trip_coverage_not_active_for_next7_days",
@@ -253,13 +237,13 @@
         {
           "code": "unknown_file",
           "count": 7,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "unknown_column",
@@ -281,13 +265,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -689,
+        "days_until_expiry": -721,
+        "effective_expiry_date": "2024-08-16",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2024-08-16",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -299,7 +286,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 689 day(s) ago.",
+          "what": "Service data ended 721 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -317,7 +304,7 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 689 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 721 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -326,6 +313,18 @@
       "summary": "This agency publishes realtime, but the feed needs an access key we don't have yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -336,7 +335,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 687 days ago.",
+        "detail": "Service data expired 719 days ago.",
         "key": "current",
         "met": false
       },
@@ -347,7 +346,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 2 validator errors to resolve. Service data expired 687 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 2 validator errors to resolve. Service data expired 719 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: http://www.sfmta.com/about-sfmta/reports/gtfs-transit-data",
@@ -357,13 +356,14 @@
     "static_url": "https://gtfs.sfmta.com/transitdata/google_transit.zip"
   },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-california-san-francisco-municipal-transportation-agency-sfmta-gtfs-50.zip?alt=media",
+    "final_url": "https://files.mobilitydatabase.org/mdb-50/latest.zip",
     "max_attempts": 1,
     "origin_error": "ConnectTimeout",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.51079,
@@ -375,12 +375,46 @@
     "lon": -122.43191,
     "stop_count": 3271
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": true,
+    "measured": true,
+    "modes": [
+      {
+        "key": "tram",
+        "label": "Tram / light rail",
+        "route_count": 7,
+        "trip_count": 8784,
+        "trip_share_pct": 12.5
+      },
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 59,
+        "trip_count": 57196,
+        "trip_share_pct": 81.2
+      },
+      {
+        "key": "cable_tram",
+        "label": "Cable tram",
+        "route_count": 3,
+        "trip_count": 4456,
+        "trip_share_pct": 6.3
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 69,
+    "trip_count": 70436
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed's agency_id is SFMTA; your National Transit Database ID is 90015. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
+    "detail": "Your feed's agency_id is SFMTA; your National Transit Database ID is 90015. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "SFMTA"
     ],
-    "fix": "Optionally set the agency_id for your service to 90015 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
+    "fix": "Confirm that P-50 crosswalks agency_id SFMTA to NTD ID 90015, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90015",
     "status": "mismatch"
   },
@@ -397,13 +431,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 687 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 719 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 2 validator errors to resolve. Service data expired 687 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 2 validator errors to resolve. Service data expired 719 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -413,6 +452,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 3226,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -425,8 +465,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -1205,9 +1245,20 @@
     "stop_count": 3271,
     "stop_points_capped": true
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 70436 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 70436,
+    "trips_with_shape": 70436
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -1218,20 +1269,20 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 689 day(s) ago.",
+      "what": "Service data ended 721 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
       "code": "missing_required_column",
       "count": 2,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'missing_required_column' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Often an export setting; ask your vendor if it recurs.",
+      "fix": "Add the required column named in the finding to the flagged file.",
+      "owner": "Likely your export tool",
       "points": 12.0,
       "rank": 2,
       "severity": "ERROR",
-      "what": "Missing required column (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "A file is missing a column that GTFS requires.",
+      "why": "Apps may reject the whole file, so riders could lose the affected routes or stops."
     },
     {
       "code": "invalid_phone_number",

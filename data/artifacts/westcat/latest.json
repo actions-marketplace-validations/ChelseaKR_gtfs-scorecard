@@ -1,31 +1,9 @@
 {
   "agency": {
     "id": "westcat",
-    "name": "WestCAT"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/westcat/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/westcat/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 1,
-        "examples": [
-          "'route_url': 'https://westcat.org/home/ScheduleCombined?routeId=72 ' -> 'https://westcat.org/home/ScheduleCombined?routeId=72'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      },
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1,
-        "examples": [
-          "DELN -> Deln"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 2
+    "name": "WestCAT",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -39,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -63,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 454,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 99.5,
         "pathways": {
           "has_entrances": false,
@@ -74,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 221,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 454,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -95,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 454,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -157,13 +149,13 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "stop_without_stop_time",
@@ -190,24 +182,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 6,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "platform_without_parent_station",
@@ -240,20 +232,35 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 56,
+        "days_until_expiry": 24,
+        "effective_expiry_date": "2026-08-31",
         "feed_end_date": "2026-08-31",
         "feed_start_date": "2026-06-25",
         "feed_version": "UTC: 25-Jun-2026 20:50",
         "has_feed_info": true,
         "last_service_date": "2026-08-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 56.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 24 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
       "name": "freshness",
-      "score": 93.3,
+      "score": 40.0,
       "status": "measured",
-      "summary": "Service data covers the next 56 days.",
+      "summary": "Service data runs out in 24 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
@@ -262,6 +269,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -272,7 +291,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 65 days.",
+        "detail": "Service data covers the next 37 days.",
         "key": "current",
         "met": true
       },
@@ -292,7 +311,14 @@
     "size_bytes": 308692,
     "static_url": "https://data.trilliumtransit.com/gtfs/westcat-ca-us/westcat-ca-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/westcat-ca-us/westcat-ca-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.39723,
@@ -304,12 +330,32 @@
     "lon": -122.2698,
     "stop_count": 221
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 12,
+        "trip_count": 454,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 12,
+    "trip_count": 454
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id 392; the NTD asks for your five-digit NTD ID (90159) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is 392; your National Transit Database ID is 90159. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "392"
     ],
-    "fix": "Change the agency_id to 90159 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Confirm that P-50 crosswalks agency_id 392 to NTD ID 90159, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90159",
     "status": "mismatch"
   },
@@ -326,22 +372,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 65 days.",
+        "detail": "Service data covers the next 37 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "C",
-    "margin_to_lower_band": 7.4,
-    "margin_to_next_band": 2.6,
-    "score": 77.4
+    "grade": "D",
+    "margin_to_lower_band": 4.1,
+    "margin_to_next_band": 5.9,
+    "score": 64.1
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -353,6 +405,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 9,
       "effort": "A per-route color setting in your scheduling software.",
@@ -364,6 +417,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 177,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -375,6 +429,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -387,8 +442,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -410,10 +465,175 @@
     "single_stop_trips": 0,
     "trips_total": 454
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 12,
+    "has_shapes": true,
+    "path": "data/artifacts/westcat/geometry.geojson",
+    "route_count": 12,
+    "routes": [
+      {
+        "color": "88C96F",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "2655",
+        "label": "10",
+        "long": "Gems and Birds",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1B8DC3",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "2659",
+        "label": "11",
+        "long": "Crockett - Rodeo - Hercules",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED008C",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "2661",
+        "label": "12",
+        "long": "Trees and Flowers",
+        "short": "12",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C0B831",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "2664",
+        "label": "15",
+        "long": "Rodeo - Hercules (Viewpointe/North Shore Business Park)",
+        "short": "15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "017F3F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "2666",
+        "label": "16",
+        "long": "Pinole Valley - Old Town Pinole - Richmond Parkway Transit Center",
+        "short": "16",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "652D90",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "2672",
+        "label": "19",
+        "long": "Hercules - Pinole - Richmond Parkway Transit Center - Hilltop Mall",
+        "short": "19",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "005BAA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "2674",
+        "label": "C3",
+        "long": "Hercules Transit Center - Pinole - Contra Costa College",
+        "short": "C3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8B0305",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "2676",
+        "label": "Lynx",
+        "long": "Rodeo/Hercules/San Francisco Transbay Terminal",
+        "short": "Lynx",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5AAA47",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "2689",
+        "label": "J",
+        "long": "Hercules Transit Center - Pinole - Richmond - BART",
+        "short": "J",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F68121",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "2700",
+        "label": "JX",
+        "long": "Hercules Transit Center - El Cerrito del Norte BART",
+        "short": "JX",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F68121",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "2702",
+        "label": "JPX",
+        "long": "Hercules Transit Center - El Cerrito del Norte BART",
+        "short": "JPX",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A650",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "2706",
+        "label": "30Z",
+        "long": "Hercules Transit Center - Martinez",
+        "short": "30Z",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 221,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 454 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 454,
+    "trips_with_shape": 454
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 56.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 24 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 221,
@@ -421,7 +641,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 1,
+      "rank": 2,
       "severity": "WARNING",
       "what": "221 of 221 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -429,26 +649,14 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 454,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 2,
+      "rank": 3,
       "severity": "WARNING",
       "what": "454 of 454 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
-    },
-    {
-      "code": "mixed_case_recommended_field",
-      "count": 481,
-      "effort": "Often a bulk fix in your scheduling software.",
-      "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
-      "owner": "Likely your export tool",
-      "points": 8.0,
-      "rank": 3,
-      "severity": "WARNING",
-      "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
-      "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
     }
   ],
   "validator_version": "8.0.1"

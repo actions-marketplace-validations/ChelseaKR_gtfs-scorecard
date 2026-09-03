@@ -1,0 +1,71 @@
+# South Carolina (US) agencies — one manifest-listed shard of the GTFS Scorecard registry.
+#
+# The field reference and contribution workflow live in registry/README.md.
+# Every id must be unique across every shard listed by registry/index.yaml.
+agencies:
+  - id: charleston-area-regional-transportation-authority-carta
+    name: Charleston Area Regional Transportation Authority (CARTA)
+    subdivision_code: US-SC
+    subdivision_name: South Carolina
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/carta-sc-us/carta-sc-us.zip
+    mdb_id: 352
+    rt_urls:
+      service_alerts: http://gtfs-realtime.trilliumtransit.com/gtfs-realtime/feed/carta-sc-us/service_alerts.proto
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  - id: clemson-area-transit-cat
+    name: Clemson Area Transit (CAT)
+    subdivision_code: US-SC
+    subdivision_name: South Carolina
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/clemson-sc-us/clemson-sc-us.zip
+    mdb_id: 798
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  # Mobility Database mdb-1197 is deprecated and redirects to mdb-2209.
+  - id: the-comet
+    name: The Comet
+    alias_of: the-comet-2209
+    feed_status: deprecated
+    subdivision_code: US-SC
+    subdivision_name: South Carolina
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/thecomet-sc-us/thecomet-sc-us.zip
+    mdb_id: 1197
+    license_note: "License: http://data.trilliumtransit.com/gtfs/thecomet-sc-us/thecomet-sc-us.zip"
+
+  - id: greenville-transit-authority-greenlink
+    name: Greenville Transit Authority (Greenlink)
+    subdivision_code: US-SC
+    subdivision_name: South Carolina
+    static_gtfs_url: https://gtfs.greenlink.cadavl.com/GTA/GTFS/GTFS_GTA.zip
+    mdb_id: tld-490
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  - id: the-comet-2209
+    name: The Comet
+    subdivision_code: US-SC
+    subdivision_name: South Carolina
+    static_gtfs_url: https://comet.mapstrat.com/current/google_transit.zip
+    mdb_id: 2209
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  # United States small and rural depth wave (2026-07-18). National Park
+  # Service park transit published as a US Government work (public domain).
+  # The source zip was preflighted for a current service calendar; see
+  # docs/feeds.md.
+  - id: fort-sumter-ferry
+    name: Fort Sumter Ferry (National Park Service)
+    subdivision_code: US-SC
+    subdivision_name: South Carolina
+    is_official: true
+    static_gtfs_url: https://www.nps.gov/external-resources/gtfs/fosu/fosu-ferry-service.zip
+    license_note: Public domain as a United States Government work; published by the National Park Service GTFS program.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://www.nps.gov/subjects/developer/gtfs.htm
+      terms_url: https://www.nps.gov/aboutus/disclaimer.htm
+      scope: [gtfs_schedule]
+      attribution: National Park Service.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true

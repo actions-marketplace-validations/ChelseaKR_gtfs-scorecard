@@ -1,23 +1,9 @@
 {
   "agency": {
     "id": "asheville-rides-transit",
-    "name": "Asheville Rides Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/asheville-rides-transit/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/asheville-rides-transit/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 1,
-        "examples": [
-          "'tts_stop_name': '35.599209401248984, ' -> '35.599209401248984,'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 1
+    "name": "Asheville Rides Transit",
+    "subdivision_code": "US-NC",
+    "subdivision_name": "North Carolina"
   },
   "categories": {
     "completeness": {
@@ -31,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -55,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 1831,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -66,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 677,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1831,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 1.3,
@@ -115,11 +115,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 7,
+        "distinct_codes": 6,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 45,
-          "WARNING": 33
+          "WARNING": 32
         },
         "validator_version": "8.0.1"
       },
@@ -136,26 +136,15 @@
           "why": "Riders may walk to a stop where no bus is scheduled to arrive."
         },
         {
-          "code": "feed_expiration_date30_days",
+          "code": "leading_or_trailing_whitespaces",
           "count": 1,
-          "effort": "Usually a re-export from your scheduling software.",
-          "fix": "Schedule a feed re-export now so the new calendar is live well before the current one ends.",
+          "effort": "Usually one export setting.",
+          "fix": "Trim leading and trailing spaces on export. The scorecard's auto-fixed copy already does this.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "This feed's service calendar runs out within the next 30 days.",
-          "why": "If a new feed isn't published before it ends, trip planners will drop your agency and riders will see no service."
-        },
-        {
-          "code": "leading_or_trailing_whitespaces",
-          "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'leading_or_trailing_whitespaces' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Leading or trailing whitespaces (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some values have extra spaces at the start or end.",
+          "why": "A stray space can break a match, so a stop or route may fail to link across files."
         },
         {
           "code": "same_stop_and_agency_url",
@@ -182,124 +171,98 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
-      "score": 80.0,
+      "score": 84.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 7 kinds of issue across 78 instances (0 error, 33 warning, 45 informational).",
+      "summary": "The MobilityData validator flagged 6 kinds of issue across 77 instances (0 error, 32 warning, 45 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -6,
-        "feed_end_date": "2026-06-30",
-        "feed_start_date": "2026-06-16",
-        "feed_version": "UTC: 16-Jun-2026 19:44",
+        "days_until_expiry": 146,
+        "effective_expiry_date": "2026-12-31",
+        "feed_end_date": "2026-12-31",
+        "feed_start_date": "2026-07-10",
+        "feed_version": "UTC: 10-Jul-2026 16:58",
         "has_feed_info": true,
         "last_service_date": "2026-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expired",
-          "count": 1,
-          "effort": "Usually one export setting; export on a schedule so it never lapses again.",
-          "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
-          "owner": "Likely your export tool",
-          "points": 100.0,
-          "severity": "ERROR",
-          "what": "Service data ended 6 day(s) ago.",
-          "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 0.0,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Service data ended 6 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data covers the next 146 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 0.0,
-        "covered_trips": 0,
+        "configured_kinds": [
+          "service_alerts"
+        ],
+        "coverage_pct": null,
+        "kinds_configured": 1,
         "kinds_reachable": 0,
+        "reachable_kinds": [],
         "rt_freshness": null,
         "samples": 3,
-        "scheduled_trips_in_window": 17,
         "worst_lag_seconds": null
       },
       "findings": [
-        {
-          "code": "scorecard_rt_trip_updates_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The trip updates realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_vehicle_positions_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The vehicle positions realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
         {
           "code": "scorecard_rt_service_alerts_unreachable",
           "count": 1,
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 100.0,
           "severity": "ERROR",
           "what": "The service alerts realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 17,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 35.0,
-          "severity": "WARNING",
-          "what": "17 of 17 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
       "score": 0.0,
       "status": "measured",
-      "summary": "Sampled 3 times: 0 of 3 feeds healthy; 0.0% of scheduled trips had live predictions.",
+      "summary": "Sampled 3 times: 0 of 1 configured feed healthy.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 3 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -310,9 +273,9 @@
         "met": true
       },
       {
-        "detail": "Service data runs out in 3 days; renew to qualify.",
+        "detail": "Service data covers the next 154 days.",
         "key": "current",
-        "met": false
+        "met": true
       },
       {
         "detail": "States wheelchair access on 1% of stops and 100% of trips; the mark needs 90% of each.",
@@ -321,16 +284,23 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data runs out in 3 days; renew to qualify. States wheelchair access on 1% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. States wheelchair access on 1% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "00c7a4c026ae1009f83c06168d15647d6ee3aa6ecd5747755d3385a0cb047e86",
-    "size_bytes": 634089,
+    "sha256": "cee1eebb572375b432e7130f19340b187be51ea5b5c331f07749434f73019b94",
+    "size_bytes": 633892,
     "static_url": "https://data.trilliumtransit.com/gtfs/asheville-nc-us/asheville-nc-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/asheville-nc-us/asheville-nc-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-30T00:00:00+00:00",
   "geo": {
     "bbox": [
       -82.63259,
@@ -342,8 +312,28 @@
     "lon": -82.54698,
     "stop_count": 677
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 18,
+        "trip_count": 1831,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 18,
+    "trip_count": 1831
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "190"
     ],
@@ -362,22 +352,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data runs out in 3 days; renew before you certify.",
+        "detail": "Service data covers the next 154 days.",
         "key": "current",
-        "status": "at_risk"
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
-    "status": "at_risk",
-    "summary": "This feed is close to NTD-ready. Service data runs out in 3 days; renew before you certify."
+    "status": "ready",
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "F",
-    "margin_to_lower_band": 46.8,
-    "margin_to_next_band": 13.2,
-    "score": 46.8
+    "grade": "D",
+    "margin_to_lower_band": 8.2,
+    "margin_to_next_band": 1.8,
+    "score": 68.2
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -389,6 +385,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 653,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -400,6 +397,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -412,8 +410,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -435,45 +433,264 @@
     "single_stop_trips": 0,
     "trips_total": 1831
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 18,
+    "has_shapes": true,
+    "path": "data/artifacts/asheville-rides-transit/geometry.geojson",
+    "route_count": 18,
+    "routes": [
+      {
+        "color": "00639A",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "1131",
+        "label": "N1",
+        "long": "North 1",
+        "short": "N1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D71920",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1132",
+        "label": "N2",
+        "long": "North 2",
+        "short": "N2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00723F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "1133",
+        "label": "N3",
+        "long": "North 3",
+        "short": "N3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A1490C",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "1134",
+        "label": "170",
+        "long": "",
+        "short": "170",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D71920",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1135",
+        "label": "S1",
+        "long": "South 1",
+        "short": "S1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F99D1C",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "1136",
+        "label": "S2",
+        "long": "South 2",
+        "short": "S2",
+        "text_color": "1C2634",
+        "type_label": "Bus"
+      },
+      {
+        "color": "80C342",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "1137",
+        "label": "S3",
+        "long": "South 3",
+        "short": "S3",
+        "text_color": "1C2634",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EC008C",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1138",
+        "label": "S4",
+        "long": "South 4",
+        "short": "S4",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F99D1C",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "1139",
+        "label": "W1",
+        "long": "West 1",
+        "short": "W1",
+        "text_color": "1C2634",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00723F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "1140",
+        "label": "W2",
+        "long": "West 2",
+        "short": "W2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "92278F",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "1507",
+        "label": "S5",
+        "long": "South 5",
+        "short": "S5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F99D1C",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "1508",
+        "label": "W5",
+        "long": "West 5",
+        "short": "W5",
+        "text_color": "1C2634",
+        "type_label": "Bus"
+      },
+      {
+        "color": "92278F",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "15110",
+        "label": "N4",
+        "long": "North 4",
+        "short": "N4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00723F",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15111",
+        "label": "N5",
+        "long": "North 5",
+        "short": "N5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AEEF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "15144",
+        "label": "WE1",
+        "long": "West East 1",
+        "short": "WE1",
+        "text_color": "1C2634",
+        "type_label": "Bus"
+      },
+      {
+        "color": "80C342",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "15145",
+        "label": "WE2",
+        "long": "West East 2",
+        "short": "WE2",
+        "text_color": "1C2634",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D71920",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "15146",
+        "label": "W6",
+        "long": "West 6",
+        "short": "W6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00639A",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "5338",
+        "label": "S6",
+        "long": "South 6",
+        "short": "S6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 677,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1831 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1831,
+    "trips_with_shape": 1831
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
-      "code": "scorecard_feed_expired",
+      "code": "scorecard_rt_service_alerts_unreachable",
       "count": 1,
-      "effort": "Usually one export setting; export on a schedule so it never lapses again.",
-      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
-      "owner": "Likely your export tool",
+      "effort": "Usually a vendor support ticket.",
+      "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
+      "owner": "",
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 6 day(s) ago.",
-      "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
+      "what": "The service alerts realtime feed failed during sampling.",
+      "why": "When this feed is down, riders see scheduled times presented as if they were live."
     },
     {
-      "code": "scorecard_rt_trip_updates_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
+      "code": "scorecard_wheelchair_boarding_unknown",
+      "count": 668,
+      "effort": "A column in stops.txt; your scheduling software likely has it.",
+      "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
+      "owner": "Likely your team",
+      "points": 24.7,
       "rank": 2,
-      "severity": "ERROR",
-      "what": "The trip updates realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
+      "severity": "WARNING",
+      "what": "668 of 677 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     },
     {
-      "code": "scorecard_rt_vehicle_positions_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
+      "code": "stop_without_stop_time",
+      "count": 30,
+      "effort": "A review pass in your scheduling software.",
+      "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
+      "owner": "Likely your export tool",
+      "points": 6.0,
       "rank": 3,
-      "severity": "ERROR",
-      "what": "The vehicle positions realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
+      "severity": "WARNING",
+      "what": "Some stops exist in the feed but no trip ever stops at them.",
+      "why": "Riders may walk to a stop where no bus is scheduled to arrive."
     }
   ],
   "validator_version": "8.0.1"

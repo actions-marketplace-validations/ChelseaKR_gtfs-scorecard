@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "dutchess-county",
-    "name": "Dutchess County"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/dutchess-county/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/dutchess-county/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_route_name_case",
-        "count": 19,
-        "examples": [
-          "POUGHKEEPSIE - AMAZON EXPRESS -> Poughkeepsie - Amazon Express",
-          "A (POUGHKEEPSIE - FISHKILL) MON - SAT -> A (poughkeepsie - Fishkill) Mon - Sat",
-          "A (POUGHKEEPSIE - FISHKILL) SUN -> A (poughkeepsie - Fishkill) Sun"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 19
+    "name": "Dutchess County",
+    "subdivision_code": "US-NY",
+    "subdivision_name": "New York"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 765,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 330,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 765,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 765,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -117,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -145,8 +143,8 @@
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -184,35 +182,35 @@
         {
           "code": "route_long_name_contains_short_name",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "service_extends_far_in_the_future",
@@ -245,20 +243,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 9217,
+        "days_until_expiry": 9185,
+        "effective_expiry_date": "2051-09-30",
         "feed_end_date": "2051-09-30",
         "feed_start_date": "2018-08-30",
         "feed_version": "124",
         "has_feed_info": true,
         "last_service_date": "2051-09-30",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "unusually_distant",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 9217 days.",
+      "summary": "Service is published through 2051-09-30, an unusually distant end date. It may be intentional, but confirm it before treating the feed as maintained.",
       "weight": 0.2
     },
     "realtime": {
@@ -267,6 +268,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -277,7 +290,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 9226 days.",
+        "detail": "The published window is current, but its service end date is unusually distant; confirm that date is intentional.",
         "key": "current",
         "met": true
       },
@@ -297,7 +310,14 @@
     "size_bytes": 362320,
     "static_url": "https://s3.amazonaws.com/datatools-511ny/public/Dutchess_County_Transit.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://s3.amazonaws.com/datatools-511ny/public/Dutchess_County_Transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -73.98462,
@@ -309,8 +329,28 @@
     "lon": -73.91833,
     "stop_count": 330
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 19,
+        "trip_count": 765,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 19,
+    "trip_count": 765
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -329,13 +369,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 9226 days.",
+        "detail": "The published window is current, but its service end date is unusually distant; confirm that date is intentional.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "D",
@@ -345,6 +390,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 6,
       "effort": "A per-route color setting in your scheduling software.",
@@ -356,6 +402,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 269,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -368,8 +415,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -391,9 +438,239 @@
     "single_stop_trips": 0,
     "trips_total": 765
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 19,
+    "has_shapes": true,
+    "path": "data/artifacts/dutchess-county/geometry.geojson",
+    "route_count": 19,
+    "routes": [
+      {
+        "color": "C4257A",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1",
+        "label": "G MS",
+        "long": "G (BEACON FREE LOOP) MON - SAT",
+        "short": "G MS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BD940D",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "135_53",
+        "label": "L AMS",
+        "long": "L (POUGHKEEPSIE MAIN STREET - ADAMS) MON - SAT",
+        "short": "L AMS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C4257A",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "138_45",
+        "label": "G MS1",
+        "long": "G (BEACON FREE LOOP) SUN",
+        "short": "G MS1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E8431A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "139_35",
+        "label": "E SUN",
+        "long": "E (POUGHKEEPSIE - PAWLING) SUN",
+        "short": "E SUN",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0051A0",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "142",
+        "label": "A EXP",
+        "long": "POUGHKEEPSIE - AMAZON EXPRESS",
+        "short": "A EXP",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "18D657",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15",
+        "label": "A  MS",
+        "long": "A (POUGHKEEPSIE - FISHKILL) MON - SAT",
+        "short": "A  MS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "18D657",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "22",
+        "label": "A SUN",
+        "long": "A (POUGHKEEPSIE - FISHKILL) SUN",
+        "short": "A SUN",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2084A8",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "26",
+        "label": "B MS",
+        "long": "B (POUGHKEEPSIE - BEACON) MON - SAT",
+        "short": "B MS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2084A8",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "28",
+        "label": "B SUN",
+        "long": "B (POUGHKEEPSIE - BEACON) SUN",
+        "short": "B SUN",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FA0730",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "31",
+        "label": "C",
+        "long": "C (POUGHKEEPSIE - TIVOLI) MON -SAT",
+        "short": "C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C795C5",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "33",
+        "label": "D",
+        "long": "D (POUGHKEEPSIE - MILLBROOK) MON - SAT",
+        "short": "D",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E8431A",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "35",
+        "label": "E MS",
+        "long": "E (POUGHKEEPSIE - PAWLING) MON - SAT",
+        "short": "E MS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "52298F",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "43",
+        "label": "F",
+        "long": "F (BEACON - HOPEWELL JUNCTION) MON - SAT",
+        "short": "F",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "672699",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "48",
+        "label": "J MS",
+        "long": "J (POUGHKEEPSIE NORTHSIDE) MON - SAT",
+        "short": "J MS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F5A720",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "50",
+        "label": "K MS",
+        "long": "K (POUGHKEEPSIE SOUTHSIDE) MON - SAT",
+        "short": "K MS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BD940D",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "52",
+        "label": "L SN",
+        "long": "L (POUGHKEEPSIE MAIN ST - STOP & SHOP/ADAMS) SUN",
+        "short": "L SN",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "BD940D",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "53",
+        "label": "L SMS",
+        "long": "L (POUGHKEEPSIE MAIN ST - STOP & SHOP) MON - SAT",
+        "short": "L SMS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3387A1",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "56",
+        "label": "M MF",
+        "long": "M (POUGHKEEPSIE EASTSIDE) MON - FRI",
+        "short": "M MF",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "266302",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "60",
+        "label": "P MF",
+        "long": "P (POUGHKEEPSIE WESTSIDE) MON - FRI",
+        "short": "P MF",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 330,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 765 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 765,
+    "trips_with_shape": 765
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -410,8 +687,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 765,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

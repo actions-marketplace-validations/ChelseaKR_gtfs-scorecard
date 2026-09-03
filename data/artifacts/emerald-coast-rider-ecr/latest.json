@@ -1,23 +1,9 @@
 {
   "agency": {
     "id": "emerald-coast-rider-ecr",
-    "name": "Emerald Coast Rider (ECR)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/emerald-coast-rider-ecr/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/emerald-coast-rider-ecr/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1,
-        "examples": [
-          "FWBMC -> Fwbmc"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 1
+    "name": "Emerald Coast Rider (ECR)",
+    "subdivision_code": "US-FL",
+    "subdivision_name": "Florida"
   },
   "categories": {
     "completeness": {
@@ -31,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
-          "headsigns": 0.0,
+          "headsigns": 6.4,
           "stop_names": 14.9,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 0.0
@@ -55,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 91,
+        "headsign_loop_exempt_trips": 67,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 42.4,
         "mixed_case_stop_name_pct": 99.5,
         "pathways": {
           "has_entrances": false,
@@ -66,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 216,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 158,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -87,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 158,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -97,18 +97,18 @@
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 158,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 15.0,
+          "count": 91,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
+          "points": 8.6,
           "severity": "WARNING",
-          "what": "158 of 158 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "91 of 158 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         }
       ],
       "name": "completeness",
-      "score": 44.9,
+      "score": 51.3,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
@@ -132,7 +132,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -171,24 +171,24 @@
         {
           "code": "service_window_outside_feed_period",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "unknown_file",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
@@ -199,13 +199,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -3657,
+        "days_until_expiry": -3689,
+        "effective_expiry_date": "2016-07-01",
         "feed_end_date": "2016-07-01",
         "feed_start_date": "2015-12-11",
         "feed_version": "USA-Pacific: 11-Dec-2015 14:55",
         "has_feed_info": true,
         "last_service_date": "2016-07-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -217,14 +220,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 3657 day(s) ago.",
+          "what": "Service data ended 3689 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 3657 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 3689 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -233,6 +236,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -243,7 +258,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 3648 days ago.",
+        "detail": "Service data expired 3676 days ago.",
         "key": "current",
         "met": false
       },
@@ -254,7 +269,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 3648 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 3676 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -263,7 +278,14 @@
     "size_bytes": 80577,
     "static_url": "https://data.trilliumtransit.com/gtfs/okaloosacountytransit-fl-us/okaloosacountytransit-fl-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/okaloosacountytransit-fl-us/okaloosacountytransit-fl-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -86.66665,
@@ -275,8 +297,28 @@
     "lon": -86.61488,
     "stop_count": 216
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 10,
+        "trip_count": 158,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 10,
+    "trip_count": 158
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "412"
     ],
@@ -295,22 +337,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 3648 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 3676 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 3648 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 3676 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 51.9,
-    "margin_to_next_band": 8.1,
-    "score": 51.9
+    "margin_to_lower_band": 53.9,
+    "margin_to_next_band": 6.1,
+    "score": 53.9
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 2,
       "effort": "A per-route color setting in your scheduling software.",
@@ -322,6 +370,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 125,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -334,8 +383,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -345,9 +394,140 @@
     "single_stop_trips": 0,
     "trips_total": 158
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 10,
+    "has_shapes": true,
+    "path": "data/artifacts/emerald-coast-rider-ecr/geometry.geojson",
+    "route_count": 10,
+    "routes": [
+      {
+        "color": "FC0009",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "2923",
+        "label": "1",
+        "long": "",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FC9A0A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "2924",
+        "label": "2",
+        "long": "",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "9600DC",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "2925",
+        "label": "3",
+        "long": "",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "117B11",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "2926",
+        "label": "4",
+        "long": "",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "061A5F",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "2927",
+        "label": "5",
+        "long": "",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0C56FC",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "2928",
+        "label": "14",
+        "long": "Wave Express",
+        "short": "14",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "46FF0A",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "2929",
+        "label": "20",
+        "long": "Okaloosa Island",
+        "short": "20",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FC990A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "2930",
+        "label": "30",
+        "long": "Destin Connector",
+        "short": "30",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "17B3FF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "2931",
+        "label": "32",
+        "long": "Destin East",
+        "short": "32",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "6F0097",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "2932",
+        "label": "33",
+        "long": "Crystal Beach",
+        "short": "33",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 216,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 158 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 158,
+    "trips_with_shape": 158
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -358,7 +538,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 3657 day(s) ago.",
+      "what": "Service data ended 3689 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
@@ -376,8 +556,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 158,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,

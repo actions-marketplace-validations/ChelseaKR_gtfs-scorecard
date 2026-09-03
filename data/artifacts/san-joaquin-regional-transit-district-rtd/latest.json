@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "san-joaquin-regional-transit-district-rtd",
-    "name": "San Joaquin Regional Transit District (RTD)"
-  },
-  "autofix": {
-    "available": false
+    "name": "San Joaquin Regional Transit District (RTD)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -25,7 +24,7 @@
         "components": {
           "contact": 15.0,
           "fares": 15.0,
-          "headsigns": 15.0,
+          "headsigns": 14.8,
           "stop_names": 15.0,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 15.0
@@ -46,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
-        "headsign_pct": 100.0,
+        "headsign_applicable_trips": 2339,
+        "headsign_loop_exempt_trips": 0,
+        "headsign_pct": 98.8,
+        "headsign_scored_pct": 98.8,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -56,8 +58,15 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 870,
-        "trips": 2351,
+        "stops": 898,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 2339,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -66,58 +75,58 @@
       "findings": [
         {
           "code": "scorecard_wheelchair_boarding_unknown",
-          "count": 870,
+          "count": 898,
           "effort": "A column in stops.txt; your scheduling software likely has it.",
           "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
           "owner": "Likely your team",
           "points": 25.0,
           "severity": "WARNING",
-          "what": "870 of 870 stops don't say whether a wheelchair user can board there.",
+          "what": "898 of 898 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 1,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 0.0,
+          "count": 28,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
+          "points": 0.2,
           "severity": "WARNING",
-          "what": "1 of 2351 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "28 of 2339 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         }
       ],
       "name": "completeness",
-      "score": 75.0,
+      "score": 74.8,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
     },
     "correctness": {
       "details": {
-        "distinct_codes": 5,
+        "distinct_codes": 6,
         "instances_by_severity": {
           "ERROR": 0,
-          "INFO": 0,
-          "WARNING": 398
+          "INFO": 2,
+          "WARNING": 505
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "stop_too_far_from_shape_using_user_distance",
-          "count": 352,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "count": 427,
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "fast_travel_between_consecutive_stops",
-          "count": 30,
+          "count": 44,
           "effort": "A few minutes per flagged trip.",
           "fix": "Check the flagged stop times for transposed minutes.",
           "owner": "",
@@ -127,26 +136,26 @@
           "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
+          "code": "fast_travel_between_far_stops",
+          "count": 30,
+          "effort": "Varies.",
+          "fix": "Review the rule documentation for 'fast_travel_between_far_stops' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "owner": "",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Fast travel between far stops (flagged by the MobilityData validator).",
+          "why": "See the linked rule for what this affects."
+        },
+        {
           "code": "stop_too_far_from_shape",
-          "count": 13,
+          "count": 3,
           "effort": "A few minutes per flagged stop.",
           "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
           "owner": "Likely your export tool",
-          "points": 6.0,
+          "points": 4.0,
           "severity": "WARNING",
           "what": "Some stops sit far from the route line they belong to.",
           "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
-        },
-        {
-          "code": "stops_match_shape_out_of_order",
-          "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
         },
         {
           "code": "service_has_no_active_day_of_the_week",
@@ -158,42 +167,44 @@
           "severity": "WARNING",
           "what": "Some service calendars have no days of the week switched on.",
           "why": "Trips tied to these calendars never run; they are dead data that can mask real schedule problems."
+        },
+        {
+          "code": "big_gap_in_service",
+          "count": 2,
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
+          "owner": "",
+          "points": 0.5,
+          "severity": "INFO",
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         }
       ],
       "name": "correctness",
-      "score": 72.0,
+      "score": 71.5,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 5 kinds of issue across 398 instances (0 error, 398 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 6 kinds of issue across 507 instances (0 error, 505 warning, 2 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 19,
-        "feed_end_date": "2026-07-25",
-        "feed_start_date": "2026-05-31",
-        "feed_version": "20260531-20260725",
+        "days_until_expiry": 169,
+        "effective_expiry_date": "2027-01-23",
+        "feed_end_date": "2027-01-23",
+        "feed_start_date": "2026-07-26",
+        "feed_version": "20260726-20270123",
         "has_feed_info": true,
-        "last_service_date": "2026-07-25",
+        "last_service_date": "2027-01-23",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expiring_soon",
-          "count": 1,
-          "effort": "One export setting.",
-          "fix": "Re-export with a validity window that reaches at least 60 days out.",
-          "owner": "Likely your export tool",
-          "points": 61.0,
-          "severity": "WARNING",
-          "what": "Service data runs out in 19 day(s).",
-          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 31.7,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Service data runs out in 19 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data covers the next 169 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -224,9 +235,9 @@
         "met": true
       },
       {
-        "detail": "Service data runs out in 20 days; renew to qualify.",
+        "detail": "Service data covers the next 169 days.",
         "key": "current",
-        "met": false
+        "met": true
       },
       {
         "detail": "States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each.",
@@ -235,22 +246,23 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data runs out in 20 days; renew to qualify. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: http://sanjoaquinrtd.com/preview/terms-of-use/",
     "reachable": true,
-    "sha256": "8bc55825b6356b9d6eae4d92268dc7015e775b612aacd4bdd445d27660b0cd3c",
-    "size_bytes": 1414857,
+    "sha256": "f6b2a9ec8d0a80e2c9581e529dab6be9a4406c4ea09a939dd1d22139f8f3f613",
+    "size_bytes": 929621,
     "static_url": "http://sjrtd.com/RTD-GTFS/RTD-GTFS.zip"
   },
   "fetch": {
     "final_url": "http://sjrtd.com/RTD-GTFS/RTD-GTFS.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-05T00:00:00+00:00",
+  "generated_at": "2026-08-07T00:00:00+00:00",
   "geo": {
     "bbox": [
       -121.89784,
@@ -259,11 +271,31 @@
       38.58006
     ],
     "lat": 37.96921,
-    "lon": -121.2958,
-    "stop_count": 870
+    "lon": -121.29531,
+    "stop_count": 898
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 42,
+        "trip_count": 2339,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 42,
+    "trip_count": 2339
   },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "90012"
     ],
@@ -282,50 +314,51 @@
         "status": "ready"
       },
       {
-        "detail": "Service data runs out in 20 days; renew before you certify.",
+        "detail": "Service data covers the next 169 days.",
         "key": "current",
-        "status": "at_risk"
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
-    "status": "at_risk",
-    "summary": "This feed is close to NTD-ready. Service data runs out in 20 days; renew before you certify."
+    "status": "ready",
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "D",
-    "margin_to_lower_band": 2.9,
-    "margin_to_next_band": 7.1,
-    "score": 62.9
+    "grade": "C",
+    "margin_to_lower_band": 9.7,
+    "margin_to_next_band": 0.3,
+    "score": 79.7
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
-      "count": 3,
+      "count": 7,
       "effort": "A per-route color setting in your scheduling software.",
       "fix": "Adjust route_color or route_text_color so each pair clears 4.5:1. Often switching the text between black and white is enough.",
       "owner": "Likely your export tool",
       "points": 0.0,
       "severity": "WARNING",
-      "what": "3 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (510, 520, 555).",
+      "what": "7 route badge(s) pair a color and text color below the WCAG 4.5:1 contrast bar (340, 360, 378, 380, 510, and more).",
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
-    "boardable_stops": 870,
+    "boardable_stops": 898,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
-    "trips_total": 2351
+    "trips_total": 2339
   },
   "route_map": {
-    "drawn_route_count": 37,
+    "drawn_route_count": 42,
     "has_shapes": true,
     "path": "data/artifacts/san-joaquin-regional-transit-district-rtd/geometry.geojson",
-    "route_count": 37,
+    "route_count": 42,
     "routes": [
       {
         "color": "00BCE4",
@@ -394,6 +427,17 @@
         "type_label": "Bus"
       },
       {
+        "color": "F78E1E",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "340",
+        "label": "340",
+        "long": "Myrtle-Alpine-Holman-Morada",
+        "short": "340",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
         "color": "FFB913",
         "color_name": "yellow",
         "has_shape": true,
@@ -402,6 +446,17 @@
         "long": "MTS-Kermit-Hammer-Kaiser",
         "short": "345",
         "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B38808",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "360",
+        "label": "360",
+        "long": "Dtc-Harding-Alpine-Holman",
+        "short": "360",
+        "text_color": "FFFFFF",
         "type_label": "Bus"
       },
       {
@@ -416,6 +471,28 @@
         "type_label": "Bus"
       },
       {
+        "color": "FF8000",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "378",
+        "label": "378",
+        "long": "Section-Dtc-MTS",
+        "short": "378",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8A8D09",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "380",
+        "label": "380",
+        "long": "10Th-Farmington-Oro-Myrtle",
+        "short": "380",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
         "color": "D60D8C",
         "color_name": "pink",
         "has_shape": true,
@@ -424,6 +501,17 @@
         "long": "Boeing-B-Oro-Myrtle-Dtc",
         "short": "385",
         "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFD478",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "390",
+        "label": "390",
+        "long": "Pock-Oro-Myrtle-Dtc",
+        "short": "390",
+        "text_color": "000000",
         "type_label": "Bus"
       },
       {
@@ -735,54 +823,59 @@
         "type_label": "Bus"
       }
     ],
-    "stop_count": 870,
+    "stop_count": 898,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.7",
-  "shapes_readiness": {
-    "detail": "All 2351 trips have a shape in shapes.txt.",
-    "status": "ready",
-    "total_trips": 2351,
-    "trips_with_shape": 2351
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
   },
-  "snapshot_date": "2026-07-06",
+  "shapes_readiness": {
+    "detail": "All 2339 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 2339,
+    "trips_with_shape": 2339
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
-      "code": "scorecard_feed_expiring_soon",
-      "count": 1,
-      "effort": "One export setting.",
-      "fix": "Re-export with a validity window that reaches at least 60 days out.",
-      "owner": "Likely your export tool",
-      "points": 61.0,
-      "rank": 1,
-      "severity": "WARNING",
-      "what": "Service data runs out in 19 day(s).",
-      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
-    },
-    {
       "code": "scorecard_wheelchair_boarding_unknown",
-      "count": 870,
+      "count": 898,
       "effort": "A column in stops.txt; your scheduling software likely has it.",
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "WARNING",
-      "what": "870 of 870 stops don't say whether a wheelchair user can board there.",
+      "what": "898 of 898 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     },
     {
       "code": "stop_too_far_from_shape_using_user_distance",
-      "count": 352,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "count": 427,
+      "effort": "Usually an export-tool fix, not hand editing.",
+      "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+      "owner": "Likely your export tool",
       "points": 8.0,
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+      "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
+    },
+    {
+      "code": "fast_travel_between_consecutive_stops",
+      "count": 44,
+      "effort": "A few minutes per flagged trip.",
+      "fix": "Check the flagged stop times for transposed minutes.",
+      "owner": "",
+      "points": 6.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "Some scheduled trips move faster between stops than a bus can.",
+      "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
     }
   ],
   "validator_version": "8.0.1"

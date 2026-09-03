@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "san-benito-county-express-sbce",
-    "name": "San Benito County Express (SBCE)"
-  },
-  "autofix": {
-    "available": false
+    "name": "San Benito County Express (SBCE)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -18,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
-          "headsigns": 4.3,
+          "headsigns": 2.0,
           "stop_names": 15.0,
           "wheelchair_stops": 0.0,
           "wheelchair_trips": 0.0
@@ -42,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
-        "headsign_pct": 28.9,
+        "headsign_applicable_trips": 15,
+        "headsign_loop_exempt_trips": 0,
+        "headsign_pct": 13.3,
+        "headsign_scored_pct": 13.3,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,7 +59,14 @@
           "pathway_count": 0
         },
         "stops": 116,
-        "trips": 45,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 15,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
         "wheelchair_marked_accessible_pct": 0.0,
@@ -73,25 +86,25 @@
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 45,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "count": 15,
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "45 of 45 trips don't say whether the vehicle is wheelchair accessible.",
+          "what": "15 of 15 trips don't say whether the vehicle is wheelchair accessible.",
           "why": "Even with accessible stops, riders need to know the bus itself can take them."
         },
         {
           "code": "scorecard_missing_headsigns",
-          "count": 32,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 10.7,
+          "count": 13,
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
+          "points": 13.0,
           "severity": "WARNING",
-          "what": "32 of 45 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "13 of 15 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -106,25 +119,25 @@
         }
       ],
       "name": "completeness",
-      "score": 49.3,
+      "score": 47.0,
       "status": "measured",
       "summary": "0% of stops state wheelchair accessibility (0% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is published.",
       "weight": 0.25
     },
     "correctness": {
       "details": {
-        "distinct_codes": 6,
+        "distinct_codes": 5,
         "instances_by_severity": {
           "ERROR": 0,
-          "INFO": 46,
-          "WARNING": 97
+          "INFO": 45,
+          "WARNING": 92
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "stop_without_stop_time",
-          "count": 85,
+          "count": 91,
           "effort": "A review pass in your scheduling software.",
           "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
           "owner": "Likely your export tool",
@@ -135,25 +148,14 @@
         },
         {
           "code": "expired_calendar",
-          "count": 11,
+          "count": 1,
           "effort": "One setting in most export tools.",
           "fix": "Remove past service periods the next time you export the feed.",
           "owner": "Likely your export tool",
-          "points": 6.0,
-          "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
-          "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
-        },
-        {
-          "code": "feed_expiration_date7_days",
-          "count": 1,
-          "effort": "Usually a re-export from your scheduling software.",
-          "fix": "Export and publish an updated GTFS feed that covers at least the next 30 days of service.",
-          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "This feed's service calendar runs out within the next 7 days.",
-          "why": "When the calendar ends, Google Maps and other trip planners drop your agency entirely. Riders see no service at all."
+          "what": "Some service calendars in the feed have already ended.",
+          "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
           "code": "unknown_column",
@@ -169,60 +171,51 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
-          "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "count": 3,
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
-      "score": 80.0,
+      "score": 86.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 6 kinds of issue across 143 instances (0 error, 97 warning, 46 informational).",
+      "summary": "The MobilityData validator flagged 5 kinds of issue across 137 instances (0 error, 92 warning, 45 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -31,
-        "feed_end_date": "2026-06-05",
-        "feed_start_date": "2026-02-06",
-        "feed_version": "UTC: 06-Feb-2026 22:31",
+        "days_until_expiry": 299,
+        "effective_expiry_date": "2027-06-02",
+        "feed_end_date": "2027-06-02",
+        "feed_start_date": "2026-08-03",
+        "feed_version": "UTC: 03-Aug-2026 22:41",
         "has_feed_info": true,
-        "last_service_date": "2026-08-01",
+        "last_service_date": "2027-06-02",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [
-        {
-          "code": "scorecard_feed_expired",
-          "count": 1,
-          "effort": "Usually one export setting; export on a schedule so it never lapses again.",
-          "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
-          "owner": "Likely your export tool",
-          "points": 100.0,
-          "severity": "ERROR",
-          "what": "Service data ended 31 day(s) ago.",
-          "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
-        }
-      ],
+      "findings": [],
       "name": "freshness",
-      "score": 0.0,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Service data ended 31 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data covers the next 299 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -231,6 +224,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -241,9 +246,9 @@
         "met": true
       },
       {
-        "detail": "Service data expired 22 days ago.",
+        "detail": "Service data covers the next 301 days.",
         "key": "current",
-        "met": false
+        "met": true
       },
       {
         "detail": "States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each.",
@@ -252,16 +257,23 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 22 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "637e2ca09339ba29525d9a2ea8b268fb2ff0f3dc20eb520ac1db49ff69de6fa8",
-    "size_bytes": 64162,
+    "sha256": "6378fa535307c9ef3cb4a8043c6e8ab5adcee1a0c3295d0d22f3d1f3d83525bf",
+    "size_bytes": 29091,
     "static_url": "https://data.trilliumtransit.com/gtfs/sanbenitocounty-ca-us/sanbenitocounty-ca-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/sanbenitocounty-ca-us/sanbenitocounty-ca-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -121.57069,
@@ -273,8 +285,28 @@
     "lon": -121.40002,
     "stop_count": 116
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 5,
+        "trip_count": 15,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 5,
+    "trip_count": 15
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "123"
     ],
@@ -293,22 +325,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 22 days ago, so FTA would find the link out of date.",
+        "detail": "Service data covers the next 301 days.",
         "key": "current",
-        "status": "not_ready"
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
-    "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 22 days ago, so FTA would find the link out of date."
+    "status": "ready",
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "F",
-    "margin_to_lower_band": 50.4,
-    "margin_to_next_band": 9.6,
-    "score": 50.4
+    "grade": "C",
+    "margin_to_lower_band": 7.3,
+    "margin_to_next_band": 2.7,
+    "score": 77.3
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -320,6 +358,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -331,6 +370,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 83,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -343,8 +383,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -352,36 +392,100 @@
     "findings": [
       {
         "code": "scorecard_orphan_stops",
-        "count": 85,
+        "count": 91,
         "effort": "A cleanup pass in your scheduling software.",
         "fix": "Remove stops no route serves, or add the trips that should call at them.",
         "owner": "Likely your export tool",
         "points": 0.0,
         "severity": "INFO",
-        "what": "85 of 116 boardable stops are never served by any trip.",
+        "what": "91 of 116 boardable stops are never served by any trip.",
         "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
       }
     ],
-    "orphan_stops": 85,
+    "orphan_stops": 91,
     "single_stop_trips": 0,
-    "trips_total": 45
+    "trips_total": 15
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 1,
+    "has_shapes": true,
+    "path": "data/artifacts/san-benito-county-express-sbce/geometry.geojson",
+    "route_count": 5,
+    "routes": [
+      {
+        "color": "09A081",
+        "color_name": "teal",
+        "has_shape": false,
+        "id": "606",
+        "label": "Green",
+        "long": "SBHS - Marguerite Maze",
+        "short": "Green",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1570A8",
+        "color_name": "teal",
+        "has_shape": false,
+        "id": "607",
+        "label": "Blue",
+        "long": "SBHS - Rancho San Justo",
+        "short": "Blue",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "663300",
+        "color_name": "brown",
+        "has_shape": false,
+        "id": "610",
+        "label": "Intercounty",
+        "long": "Gilroy Caltrain and Gavilan College",
+        "short": "Intercounty",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "663300",
+        "color_name": "brown",
+        "has_shape": false,
+        "id": "611",
+        "label": "Intercounty",
+        "long": "Gilroy Greyhound",
+        "short": "Intercounty",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2D3093",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "74406",
+        "label": "Tripper",
+        "long": "Tripper",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 116,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 15 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 15,
+    "trips_with_shape": 15
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
-    {
-      "code": "scorecard_feed_expired",
-      "count": 1,
-      "effort": "Usually one export setting; export on a schedule so it never lapses again.",
-      "fix": "Re-export the feed with a calendar that reaches further out, and set feed_info feed_end_date past your next service change.",
-      "owner": "Likely your export tool",
-      "points": 100.0,
-      "rank": 1,
-      "severity": "ERROR",
-      "what": "Service data ended 31 day(s) ago.",
-      "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
-    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 116,
@@ -389,22 +493,34 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "WARNING",
       "what": "116 of 116 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 45,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "count": 15,
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "15 of 15 trips don't say whether the vehicle is wheelchair accessible.",
+      "why": "Even with accessible stops, riders need to know the bus itself can take them."
+    },
+    {
+      "code": "scorecard_missing_headsigns",
+      "count": 13,
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
+      "points": 13.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "45 of 45 trips don't say whether the vehicle is wheelchair accessible.",
-      "why": "Even with accessible stops, riders need to know the bus itself can take them."
+      "what": "13 of 15 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     }
   ],
   "validator_version": "8.0.1"

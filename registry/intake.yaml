@@ -1,0 +1,178 @@
+# Intake and honestly unlocated agencies.
+#
+# New self-serve submissions land here. A curator may move an entry to its
+# country/subdivision shard once its location has been verified.
+agencies:
+  - id: amtrak
+    name: Amtrak
+    static_gtfs_url: https://content.amtrak.com/content/gtfs/GTFS.zip
+    mdb_id: 11
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: groome-transportation
+    name: Groome Transportation
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/groometransportation-us/groometransportation-us.zip
+    mdb_id: 319
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: express-arrow
+    name: Express Arrow
+    static_gtfs_url: https://mjcaction.com/MJC_GTFS_Public/expressarrow_google_transit.zip
+    mdb_id: 460
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: flixbus
+    name: Flixbus
+    static_gtfs_url: http://data.ndovloket.nl/flixbus/flixbus-us.zip
+    mdb_id: 593
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: amtrak-vermonter
+    name: Amtrak Vermonter
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/amtrakvermonter-vt-us/amtrakvermonter-vt-us.zip
+    mdb_id: 2297
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: megabus
+    name: Megabus
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/megabus-us/megabus-us.zip
+    mdb_id: 2321
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: hiawathaland-transit
+    name: Hiawathaland Transit
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/threerivers-mn-us/threerivers-mn-us--flex-v2.zip
+    mdb_id: 2859
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: galveston-island-transit
+    name: Galveston Island Transit
+    static_gtfs_url: https://gtfs.remix.com/island_transit_us.zip
+    mdb_id: 2861
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  # Mobility Database mdb-2862 is deprecated and redirects to mdb-2885.
+  - id: cue-bus
+    name: CUE Bus
+    alias_of: fairfax-cue-bus-cue-2885
+    feed_status: deprecated
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/cuebus-va-us/cuebus-va-us.zip
+    mdb_id: 2862
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: trinity-metro
+    name: Trinity Metro
+    static_gtfs_url: https://gtfsdata.ridetm.org/gtfs/fwtatransitdata.zip
+    mdb_id: 2890
+    license_note: "License: https://ridetrinitymetro.org/gtfs-data/"
+
+
+
+  - id: alexandria-dot
+    name: City of Alexandria
+    static_gtfs_url: https://data.trilliumtransit.com/gtfs/cityofalexandria-va-us/cityofalexandria-va-us--flex-v2.zip
+    mdb_id: 2936
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: boston-express
+    name: Boston Express
+    static_gtfs_url: https://rapid.nationalrtap.org/GTFSFileManagement/UserUploadFiles/11782/GTFS.zip
+    mdb_id: 3033
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: upper-merion-rambler
+    name: Upper Merion Rambler
+    static_gtfs_url: https://rapid.nationalrtap.org/GTFSFileManagement/UserUploadFiles/13641/UPPER_MERION_RAMBLER.zip
+    mdb_id: 3036
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: columbia-county-rider
+    name: Columbia County Rider
+    static_gtfs_url: https://oregon-gtfs.trilliumtransit.com/gtfs_data/columbiacounty-or-us/columbiacounty-or-us--flex-v2.zip
+    mdb_id: 3037
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: hope-college-evening-shuttle
+    name: Hope College Evening Shuttle
+    static_gtfs_url: https://hope-college-cit.github.io/shuttle/hope-shuttle-gtfs.zip
+    mdb_id: 3039
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: transportation-management-association-of-chester-county-tmacc
+    name: Transportation Management Association of Chester County (TMACC)
+    static_gtfs_url: https://www.modeshift.app/api/v1/0045359e-7cae-4a10-b680-cafe365c6554/transport/gtfs/gtfs.zip
+    mdb_id: 3130
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  # Mobility Database mdb-3136 is deprecated and redirects to mdb-507.
+  - id: long-island-rail-road
+    ntd_id: "20100"
+    name: Long Island Rail Road
+    alias_of: metropolitan-transit-authority-mta
+    feed_status: deprecated
+    static_gtfs_url: https://rrgtfsfeeds.s3.amazonaws.com/gtfslirr.zip
+    mdb_id: 3136
+    license_note: "License: https://www.mta.info/developers"
+
+
+
+  - id: grt-ion-light-rail
+    name: GRT ION Light Rail
+    static_gtfs_url: https://webapps.regionofwaterloo.ca/api/grt-routes/api/staticfeeds/2
+    mdb_id: 3151
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: cecil-transit-3178
+    name: Cecil Transit
+    static_gtfs_url: https://www.cecilcountymd.gov/DocumentCenter/View/5246/Cecil-County-MD---GTFS
+    mdb_id: 3178
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: gotriangle-3183
+    ntd_id: "40108"
+    name: GoTriangle
+    static_gtfs_url: http://gotriangle.org/gtfs
+    mdb_id: 3183
+    license_note: No stated data license in the Mobility Database; verify before publishing.
+
+
+
+  - id: springfield-mass-transit-district-smtd-3187
+    name: Springfield Mass Transit District (SMTD)
+    static_gtfs_url: https://ride.smtd.org/gtfs/smtd_gtfs_feed.zip
+    mdb_id: 3187
+    license_note: No stated data license in the Mobility Database; verify before publishing.

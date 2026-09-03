@@ -3,9 +3,6 @@
     "id": "vine-transit",
     "name": "VINE Transit"
   },
-  "autofix": {
-    "available": false
-  },
   "categories": {
     "completeness": {
       "details": {
@@ -18,6 +15,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +43,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 511,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,7 +57,14 @@
           "pathway_count": 0
         },
         "stops": 361,
-        "trips": 510,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 511,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 4.2,
         "wheelchair_marked_accessible_pct": 4.2,
@@ -125,13 +136,13 @@
         {
           "code": "unknown_file",
           "count": 9,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "platform_without_parent_station",
@@ -147,13 +158,13 @@
         {
           "code": "service_window_outside_feed_period",
           "count": 3,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -164,20 +175,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 117,
+        "days_until_expiry": 85,
+        "effective_expiry_date": "2026-10-31",
         "feed_end_date": "2026-10-31",
-        "feed_start_date": "2026-06-26",
-        "feed_version": "UTC: 26-Jun-2026 20:52",
+        "feed_start_date": "2026-08-05",
+        "feed_version": "UTC: 05-Aug-2026 20:29",
         "has_feed_info": true,
         "last_service_date": "2026-10-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 117 days.",
+      "summary": "Service data covers the next 85 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -186,6 +200,18 @@
       "summary": "This agency publishes realtime, but the feed needs an access key we don't have yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -196,7 +222,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 126 days.",
+        "detail": "Service data covers the next 85 days.",
         "key": "current",
         "met": true
       },
@@ -212,11 +238,18 @@
   "feed": {
     "license_note": "License: https://vinetransit.com/open-data-portal/",
     "reachable": true,
-    "sha256": "1ed40a58cf653cdc3ac67231801b1f3f65ac675db8d7496f15623e8d3379d6f9",
-    "size_bytes": 593854,
+    "sha256": "c29f41d5766046d12635cdb59833b07571859b11e4049ad371d43f188546eedf",
+    "size_bytes": 604395,
     "static_url": "https://data.trilliumtransit.com/gtfs/vinetransit-ca-us/vinetransit-ca-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/vinetransit-ca-us/vinetransit-ca-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-07T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.57968,
@@ -228,12 +261,32 @@
     "lon": -122.29598,
     "stop_count": 361
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 12,
+        "trip_count": 511,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 12,
+    "trip_count": 511
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id 1480; the NTD asks for your five-digit NTD ID (90088) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is 1480; your National Transit Database ID is 90088. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "1480"
     ],
-    "fix": "Change the agency_id to 90088 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Confirm that P-50 crosswalks agency_id 1480 to NTD ID 90088, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "90088",
     "status": "mismatch"
   },
@@ -250,13 +303,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 126 days.",
+        "detail": "Service data covers the next 85 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
@@ -266,6 +324,7 @@
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -277,6 +336,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 8,
       "effort": "A per-route color setting in your scheduling software.",
@@ -288,6 +348,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 295,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -299,11 +360,6 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
     "boardable_stops": 361,
     "findings": [
@@ -321,11 +377,164 @@
     ],
     "orphan_stops": 86,
     "single_stop_trips": 0,
-    "trips_total": 510
+    "trips_total": 511
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 12,
+    "has_shapes": true,
+    "path": "data/artifacts/vine-transit/geometry.geojson",
+    "route_count": 12,
+    "routes": [
+      {
+        "color": "3195C9",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "Up Valley Connector",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8D64AA",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "11",
+        "label": "11",
+        "long": "Napa-Vallejo Connector",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EB563B",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "11X",
+        "label": "11X",
+        "long": "Napa-Vallejo Express",
+        "short": "11X",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "65AD47",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "21",
+        "label": "21",
+        "long": "Napa-Solano Express",
+        "short": "21",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DE386E",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "29",
+        "label": "29",
+        "long": "Napa-BART Express",
+        "short": "29",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "984A2B",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "A",
+        "label": "A",
+        "long": "Browns Valley",
+        "short": "A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "231F20",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "B",
+        "label": "B",
+        "long": "Westwood | South Napa",
+        "short": "B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D05BA2",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "C",
+        "label": "C",
+        "long": "Jefferson | Central Napa",
+        "short": "C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FBD603",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "D",
+        "label": "D",
+        "long": "Shetler | Shurtleff",
+        "short": "D",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E67425",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "F",
+        "label": "F",
+        "long": "Southwest Napa",
+        "short": "F",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A49A",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "G",
+        "label": "G",
+        "long": "Coombs | South Napa",
+        "short": "G",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E63127",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "XE",
+        "label": "E",
+        "long": "Vintage",
+        "short": "E",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 361,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 511 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 511,
+    "trips_with_shape": 511
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",

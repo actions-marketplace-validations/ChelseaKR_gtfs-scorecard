@@ -1,193 +1,191 @@
 # Feature roadmap
 
-A near-term, feature-level plan: the concrete things to build next and the order
-to build them in. This sits between the two longer-horizon documents and should
-be read with them:
+Last updated: 2026-07-25
 
-- [`product-roadmap.md`](product-roadmap.md) is the multiyear view of user value.
-- [`roadmap.md`](roadmap.md) is the multiyear infrastructure and scaling plan.
-- This file is what to ship over the next few iterations, with a first step and a
-  definition of done for each item, so the next session can pick one up cold.
+The multiyear arc across all of these is [`multiyear-plan.md`](multiyear-plan.md).
 
-It is a planning document, not a commitment. Revise it as the pilot teaches us
-what agencies and their liaisons actually use. Every item is checked against the
-principles in `product-roadmap.md`: findings framed as fixes, no leaderboard, we
-score on top of the canonical validator, accessibility gets prominent placement.
+This is the ordered delivery list for the next 90 days. It implements the
+proof-first direction in [`product-roadmap.md`](product-roadmap.md) and uses the
+operating gates in [`roadmap.md`](roadmap.md). Earlier FIX, EXP, and RR lists are
+research history, not parallel queues.
 
-## Where this picks up
+## Status
 
-The directory now separates expired feeds from the rest and splits them into
-recently lapsed (likely still running, a re-export fixes it) and long expired
-(the source stopped refreshing). A `scorecard discover` command checks every
-tracked feed URL against the Mobility Database and reports whether a newer
-canonical feed exists. Run against the 63 expired feeds, it found that none have
-moved: every dead URL is still the one the agency or its vendor lists, so the
-staleness is at the source. See [`feed-discovery.md`](feed-discovery.md).
+The previous feature list shipped across more than 2,100 published scorecard pages.
+Daily scorecards, program rollups, alerts, finding-clearance records,
+provenance, data contracts, the read API, MCP server, badges, and the reusable
+Action and its Marketplace listing are available. They now support the work
+below.
 
-That result sets the agenda. The biggest quality gap in the corpus is not wrong
-URLs on our side; it is feeds that quietly stopped updating. The first theme below
-turns the scorecard from something that observes that problem into something that
-helps a liaison act on it.
+The active constraint is not missing dashboard surface. It is the lack of real
+evidence that an accepted request can be linked to a comparable change in the
+intended published feed.
 
-## Competitive sequence
+## Active sequence
 
-[ADR 0005](decisions/0005-competitive-positioning.md) sets the posture:
-independent, national, agency-first. No existing tool combines daily monitoring,
-a plain-language grade, prioritized fixes, trends and alerts, and national
-coverage. Cal-ITP's reports are monthly PDFs and California-only; MobilityData's
-validator is on-demand HTML. The wedges below ride on that gap, in order, each
-earning the next:
+Work through this list in order. Do not start later product expansion to fill a
+participant or release dependency.
 
-1. **Robust fetching, then national coverage.** Breadth is the moat a state
-   program cannot match, and it depends on a fetcher that survives the WAF and
-   User-Agent blocks that currently fail government-hosted feeds (capitol-corridor,
-   yolobus, ridgecrest). Fix the fetch, then drain the Mobility Database.
-2. **Cross-standard view.** Promote the crosswalk from a credibility footnote to a
-   per-agency feature mapping one grade to every program at once.
-3. **Vendor accountability.** Build out the operator vendor view into the public,
-   attention-getting angle no government program will take.
+### 1. Publish and verify `v1.4.0`
 
-These reorder the themes below: the "Later" coverage and registry items move up,
-and a new robust-fetch item leads. The expired-feed loop still ships first because
-it is nearly done and proves the agency-first thesis.
+Status: completed 2026-07-25. The signed release and the project's first public
+[Marketplace listing](https://github.com/marketplace/actions/gtfs-scorecard-gate)
+are live, and both supported refs passed the
+[downstream consumer check](https://github.com/ChelseaKR/gtfs-scorecard-action-smoke/actions/runs/30167946534).
 
-## Now: close the expired-feed loop
+Done means:
 
-The data says 63 of 134 measured feeds are expired and 43 of those have been dead
-over a year. The tool already names the problem. These features help someone fix
-it.
+- immutable `v1.4.0` and signed floating `v1` tags point to the intended commit;
+- the release carries the manifest signature, certificate, SBOM, VEX, and
+  provenance assets;
+- the Marketplace listing is publicly visible in Code quality and Testing;
+- clean downstream runs succeed against both tags and produce JSON and HTML.
 
-### Resilient feed fetching (coverage prerequisite)
+### 2. Recruit and contract the pilot
 
-- **Why.** National coverage is the competitive foundation (ADR 0005), and it is
-  blocked today by feeds that return 403 to an automated fetch: capitol-corridor,
-  yolobus, and ridgecrest fail every run while the agencies still operate. A
-  scorecard that cannot fetch a third of real feeds cannot go national.
-- **First step.** Send a browser-realistic User-Agent and `Accept` headers from
-  `net.py`, retry with backoff on 403/429, and fall back to the agency's
-  Mobility Database `direct_download` when the registry URL is blocked. Record
-  the fetch failure as a neutral "feed unreachable" state, distinct from a low
-  grade, so a blocked feed never reads as the agency's fault.
-- **Done when.** The three known-blocked pilot-region feeds score again, and a
-  fetch failure is visible as its own state rather than a stale snapshot.
+Status: active.
 
-### Recurring stale-feed report, per program
+Recruit one support-program liaison and two feed maintainers or vendors. Agree
+on feed identity, owner role, existing handoff channel, privacy boundary, and
+what a valid recheck means. Select recurring findings with a concrete export or
+data change.
 
-- **Why.** A Caltrans-district or Cal-ITP-style liaison wants a worklist: which of
-  my agencies have a lapsed feed, how long ago, and is it the recoverable kind.
-- **First step.** Add an `expired` section to each program rollup artifact
-  (`rollups.py`), counting lapsed vs stale members and listing them worst-first,
-  the same split the directory uses.
-- **Done when.** Every program page (`/program/<id>/`) shows its expired feeds in
-  the two buckets, and the cohort view in the app can filter a saved cohort down
-  to its lapsed feeds.
+Wasco Dial-a-Ride is one evidence-backed recruitment lead because its official
+Caltrans DDS archive is still the January 2022 upload and scores as expired.
+Participation and feed identity still require explicit confirmation.
 
-### `discover` on a schedule, replacements as pull requests
+Done means at least two participants accept a named request and the project has
+six suitable requests available for the 90-day window.
 
-- **Why.** A canonical URL will eventually move for some agency. We should catch
-  it automatically rather than scoring a dead link for months.
-- **First step.** Add a weekly CI job that runs `scorecard discover --expired` and
-  uploads the report as an artifact; when it finds a `replaced` agency, open a pull
-  request that updates that `static_gtfs_url` in `agencies.yaml` for human review.
-- **Done when.** A moved feed surfaces as a reviewable pull request within a week,
-  and `docs/feed-discovery.md` is regenerated by the job rather than by hand.
+### 3. Produce the first closure receipt manually
 
-### "Still operating?" signal for the long-expired bucket
+Status: depends on a participant request.
 
-- **Why.** A feed dead over a year splits into two very different cases: the agency
-  still runs and the export lapsed, or the service itself ended. The grade should
-  not read the same for both, and a liaison needs to know which call to make.
-- **First step.** Add an optional `operating_note` field to `agencies.yaml` a
-  curator can set after a manual check, rendered on the scorecard and the directory
-  so a confirmed-still-running feed reads as recoverable.
-- **Done when.** The long-expired group can carry a human-verified status, and the
-  listing-and-removal policy covers retiring a feed whose agency has genuinely
-  stopped.
+Use shipped provenance and private evidence paths. Preserve before and after
+bytes, tool versions, feed identity, and the finding fingerprint. Link the
+accepted action privately. Count a closure only after the intended feed is
+rechecked under a comparable measurement contract.
 
-### Liaison-ready outreach copy
+Done means an independent reviewer can reproduce the receipt. A finding that
+merely disappears is still a finding clearance.
 
-- **Why.** The fastest path to a fixed feed is a liaison forwarding the agency one
-  clear paragraph. We already write the fix; we can write the message.
-- **First step.** For an expired feed, generate a short, copy-pasteable note that
-  names the agency, what lapsed, the rider impact, and the one export setting to
-  change, reusing the freshness finding text.
-- **Done when.** Each expired scorecard has a "copy a note to the agency" block,
-  and the email digest links to it.
+### 4. Remove the smallest repeated friction
 
-## Next: make freshness predictive, not just observed
+Status: evidence-gated.
 
-Today freshness is measured the day a feed expires or after. These features warn
-earlier and carry the signal into the places people already look.
+After the first manual cycle, automate only a step that repeatedly consumes
+time or creates evidence risk. Candidate work includes a private request
+manifest, a receipt schema, or one handoff adapter. Do not build a generic
+workflow UI before the pilot identifies the actual channel.
 
-### Expiry forecasting and lead-time alerts
+Done means the change reduces hands-on support time without weakening the
+identity or comparability checks.
 
-- **Why.** The valuable alert arrives weeks before expiry, while there is calm time
-  to re-export, not after riders lose trip planning.
-- **First step.** In the alert digest (`alerts.py`), tier upcoming expirations by
-  lead time (60, 30, 14, 7 days) using `days_until_expiry`, so a subscriber sees a
-  ramp rather than a single cliff-edge warning.
-- **Done when.** A subscriber gets a first heads-up at the 60-day mark and the
-  digest groups feeds by how soon they expire.
+### 5. Complete six requests and audit the outcome
 
-### Expiry status in the public API and badges
+Status: depends on steps 2 through 4.
 
-- **Why.** Consumers of the public artifacts should be able to act on freshness
-  without recomputing it, and a badge that flips to "feed expired" is a strong,
-  passive nudge on an agency's own site.
-- **First step.** Document `expiry_status` and `days_until_expiry` in
-  [`api.md`](api.md), bump the catalog and index `schema_version` for the additive
-  fields, and add an expiry state to the badge (`badge.py`).
-- **Done when.** `api.md` describes the freshness fields with stable values, and a
-  badge shows feed status, not only the letter grade.
+Run three cycles, audit every claimed closure, interview participants, and
+measure time to owner and hands-on support. Apply the pass and stop conditions in
+[`roadmap.md`](roadmap.md#5-decide-at-day-90).
 
-### Show which findings cleared between runs
+Done means the project has a documented decision to automate, narrow, change,
+or stop the workflow. Marketplace installs and scorecard traffic do not decide
+this gate.
 
-- **Why.** A manager who changed one export setting wants to see that specific fix
-  land, not just a category score tick up. This is the strongest retention signal.
-- **First step.** Diff the findings codes between an agency's two most recent
-  artifacts and render a "fixed since last check" list on the scorecard.
-- **Done when.** Clearing a finding shows up by name on the next day's scorecard
-  and in the "what changed" summary.
+## Queue after a passing pilot
 
-## Later: registry quality and reach
+This queue is ordered but not active:
 
-Groundwork that pays off as coverage grows past one region. These build on the
-discovery work but are not blocking the loop above.
+1. Publish the open receipt schema and verifier.
+2. Build the agency-owned quality passport.
+3. Rank pilot notice playbooks by observed evidence.
+4. Productize one existing handoff integration.
+5. Add the procurement acceptance record.
+6. Extend program views with privacy-safe aggregate outcomes.
 
-### Pin Mobility Database ids in the registry
+Each item must remain independently shippable and must preserve the fail-closed
+receipt contract.
 
-- **Why.** Name-token matching in `discover` is a heuristic. Storing each feed's
-  `mdb_id` makes re-discovery exact and lets us follow the catalog's own record of
-  a feed when its URL changes.
-- **First step.** Add an optional `mdb_id` to `agencies.yaml` and have the sync and
-  discover commands prefer an exact id match over name matching when it is present.
-- **Done when.** Tracked feeds carry their catalog id and `discover` reports by id,
-  not by fuzzy name.
+## Maintenance lane
 
-### Realtime freshness alongside schedule freshness
+Keep daily scoring, security, accessibility, source curation, and release health
+green. Complete renderer decomposition, registry sharding, queue-backed compute,
+or hosted scoring only when the measurable triggers in
+[`roadmap.md`](roadmap.md#maintenance-with-explicit-triggers) fire.
 
-- **Why.** The freshness category is schedule-only today. An RT feed can go stale
-  the same silent way, and the rubric already reserves realtime as a category.
-- **First step.** Extend the realtime metric to flag a header timestamp that lags
-  well past the sampling interval, and surface it with the same lapsed framing.
-- **Done when.** A stale RT feed reads as a freshness problem, not a missing-feed
-  zero.
+One direct consumer-feedback slice is also in this lane because it repairs an
+existing surface without changing a grade or adding a service:
 
-### Vendor view of stale feeds
+- **Shipped 2026-07-16:** primary navigation to the feature finder,
+  `translations.txt` detection and language filtering, aligned API and CSV
+  fields, a visible coverage limitation, mode-aware language, the ungraded
+  ferry profile, and the auditable European beta gate.
+- **Shipped 2026-07-17:** the reviewed European depth wave (27 records from
+  the Spain, France, United Kingdom, Germany, and Italy queues; the cohort is
+  now 42 records in 13 countries, with rejections documented), and the
+  interface-localization readiness layer (app string catalog, `en-XA`
+  pseudolocale preview, right-to-left browser check, hardcoded-string and
+  directional-CSS ratchets; ADR 0038).
+- **Shipped 2026-07-25:** Mobility Database proposal receipts now account for
+  every recognized Schedule source row with a versioned mechanical disposition
+  ledger. Schema 1.2 validates receipts before either output is written and
+  binds each external identity to the public registry record that currently
+  carries it. Proposals remain separate from human identity, rights,
+  attribution, and admission decisions (ADR 0043).
+- **Shipped 2026-08-27:** the alert stack reads a planned service boundary
+  from the published scorecard, closing EXP-04's open RR:R3 half. A campus or
+  seasonal feed at the end of a service period is no longer told by email that
+  trip planners have dropped it, on the same morning its page calls the same
+  event a planned transition. Wording only, on the opt-in alert channel and the
+  weekly cohort digest: no tier, ordering, grade, or public page moved
+  (ADR 0047).
+- **Shipped 2026-08-27:** the plain-language readability gate now reads every
+  finding the scorecard publishes, not only the curated validator translations.
+  The findings the pipeline authors itself (accessibility, completeness, fares,
+  flexible service, pathways, routability, realtime, freshness) were half the
+  finding copy on an agency page and had never been measured by the gate that
+  exists to measure it; 23 strings missed the existing bars and were rewritten.
+  The inventory refuses a `Finding(...)` site whose copy it cannot read, so the
+  gate's coverage cannot narrow again silently. No threshold, score, grade or
+  schema moved (ADR 0048).
+- **Shipped 2026-08-27:** the complexity register is checked against ruff
+  instead of by hand (#309), and the published weight-sensitivity study grades
+  the published score rather than the raw weighted average (#310). Both were
+  controls that read as enforcement and could not fail over the thing they
+  covered (ADR 0050).
+- **Shipped 2026-08-27:** a render failure names the feed it happened to
+  (#308). Re-raised with the slug, never swallowed; whether one bad artifact
+  should abort the whole site render is left as a separate product call.
+- **Shipped 2026-08-27:** `/pulse/` and `comparison-policy.md` disclose that
+  the corpus aggregates exclude feeds with measured realtime, with the count
+  derived from the published comparison block (#248, option 1). The two
+  re-basing options stay an owner decision on the shadow-scoring path
+  (ADR 0051).
+- **Shipped 2026-08-27:** `/ntd/` and `ntd.json` publish the NTD reporter
+  denominator alongside the tracked-feed one, from the committed RY2024
+  snapshot that nothing had read (#278). Reporter counts are labelled as such
+  and never added to feed-record counts, the no-discoverable-feed range is
+  published at both ends, and the section renders nothing if the snapshot does
+  not reconcile (ADR 0052).
+- **Next only through curation:** work the European candidate queue toward the
+  beta gate in [`global-expansion.md`](global-expansion.md). Feed count alone
+  does not pass source, license, identity, freshness, or country-spread review.
+  Sweden needs Trafiklab API credentials before any record can be reviewed.
+- **Still steward-gated:** full interface localization (a production language
+  needs a named steward; the engineering prerequisites are in place) and any
+  NeTEx ingestion.
 
-- **Why.** 53 of the 63 expired feeds share one hosting vendor. A pattern that
-  large is a finding a statewide program can act on once, upstream, instead of
-  agency by agency.
-- **First step.** Aggregate expiry status by feed host or detected export tool and
-  show the counts on an internal program view, kept private and framed as where to
-  spend support time, never as a public ranking.
-- **Done when.** A program staffer can see that one vendor accounts for most stale
-  feeds in their cohort.
+## Not on the ship list
 
-## How to use this list
+- More general score, map, viewer, catalogue, or validation surfaces.
+- Public agency or vendor rankings.
+- A public raw-feed or continuous cross-agency realtime archive.
+- Broad international expansion without the source, license, identity, and
+  local-steward gates.
+- Consumer-app scraping, multimodal health scoring, or a replacement ticket
+  system.
+- AI-generated repair or automatic closure in the trusted path.
 
-Pick the top unstarted item under "Now" unless a pilot agency or liaison asks for
-something specific. Keep each feature shippable on its own: a finished pull request
-that renders, passes ruff, mypy, and pytest, and updates the relevant doc. When an
-item ships, move it out of this file and into the "where the product is today"
-paragraph in `product-roadmap.md`.
+Revisit this file when a pilot cycle finishes or a maintenance trigger fires.
+Otherwise the order does not change.

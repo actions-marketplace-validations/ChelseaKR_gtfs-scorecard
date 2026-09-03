@@ -15,8 +15,11 @@ Effort tiers: S ≈ days, M ≈ 1–2 weeks, L ≈ a month, XL ≈ a quarter.
 `origin_error`), recorded by `fetch.py` in a `provenance.json` sidecar next to
 each snapshot and threaded through `publish.py:build_artifact`; documented in
 `docs/api.md`. Kept within schema 1.4 (additive fields per the versioning
-rule). Still open from the pitch: the quiet agency-page/catalog render line,
-the `/fetcher/` identity page, and the honest-UA-first experiment.
+rule). The agency-page render line shipped with the confidence read (EXP-01),
+and the `/fetcher/` identity page shipped 2026-07-12 (UA policy, cadence,
+retry and mirror behavior, contact route, linked from the about page and the
+API docs). Still open from the pitch: the honest-UA-first experiment, which
+must be measured against fetch success, never assumed.
 
 **Pitch.** Every artifact should say which bytes were graded and how they were
 obtained: origin or MobilityData mirror, which User-Agent, after how many
@@ -52,6 +55,21 @@ public.
 ---
 
 ## FIX-02 — Content-addressed raw feed archive: make any grade reproducible
+
+**Status: code shipped (2026-07-08), S3 tier still gated.** `archive.py`
+stores each fetched feed locally, deduplicated by `feed_sha256`, and writes
+through to S3 when `RAW_ARCHIVE_BUCKET` (or `ARTIFACTS_BUCKET`) is set,
+following the same optional-tier pattern `vcache.py` uses for the validator
+cache: the local copy is the always-on first tier, S3 is the durable second
+tier, and every S3 call is best-effort so a storage hiccup never fails a
+score. `scorecard reproduce <agency> <date>` (`reproduce.py`) pulls the
+archived bytes for a published snapshot, re-runs the validator version that
+artifact recorded, rescores, and diffs against the published grade, score,
+and category scores. Still open from the pitch: the actual AWS account/bucket
+(the same cost gate as `follow-ups.md`'s S3 cutover — without it the archive
+is local-only and does not survive a CI runner), and the ADR on public
+redistribution of a re-served copy (the archive as shipped is
+private-to-pipeline, which needs no license decision).
 
 **Pitch.** Keep the actual GTFS zips (deduplicated by `feed_sha256`) so any
 published grade can be re-derived, byte for byte, at any later date.
@@ -241,8 +259,10 @@ reader can attribute every historical grade discontinuity.
 **Status: Done (2026-07-02).** `overall.margin_to_next_band` and
 `overall.margin_to_lower_band` ride on every artifact
 (`score.py:grade_margins`); `scorecard sensitivity` publishes
-`data/artifacts/sensitivity.json` (first study: 1,449 agencies, at most 8.1%
-of letters change under any single ±20% renormalized weight perturbation); the
+`data/artifacts/sensitivity.json`. The original rubric 1.1 study covered 1,449
+feed records and found at most 8.1% letter churn under a single ±20%
+renormalized weight perturbation. It is historical, not a current-contract
+claim; rubric 1.2 publishes no headline until its guarded cohort is rescored. The
 `/how-to-read/` page explains both with the encouragement framing.
 
 **Pitch.** Publish how close each grade sits to its band boundary, and how
@@ -283,9 +303,49 @@ and the top of the queue, noting uncurated codes fall back to generic text.
 `scripts/check_readability.py` gates every curated `what`/`why`/`fix` string
 (avg sentence length <= 22 words, Flesch-style floor >= 50) in `make verify`
 and CI, after the contrast check; seven existing strings were rewritten to
-clear the bar. Still open from the pitch: the mass curation itself (the
-queue's entries becoming `notices.py` entries and fix pages) and the weekly
-advisory check on coverage drops.
+clear the bar. The weekly advisory check shipped 2026-07-12:
+`scorecard coverage-check` compares instance-weighted coverage against a
+saved baseline (advanced Mondays in the daily workflow, persisted through
+S3) and raises a workflow warning on any drop, never a failure. First
+measured value: 33.3% instance-weighted, 44 of 118 codes. Still open from
+the pitch: the mass curation itself (the queue's entries becoming
+`notices.py` entries and fix pages), which is sustained editorial work.
+
+**Read the instance-weighted number with its caveat (2026-08-05).** It is
+pathologically concentrated, so it moves in jumps that look like sweeping
+progress and are not. Curating three codes on 2026-08-05 —
+`missing_timepoint_value`, `fast_travel_between_far_stops`,
+`invalid_currency_amount` — took it from 36.2% to **94.6%** while the
+distinct-code count moved only 57 → 60 of 118. `missing_timepoint_value`
+alone is 58.4% of all national finding instances. Curating the top handful
+of remaining uncurated codes would reach ~99.9% with roughly half the
+taxonomy still untranslated.
+
+So the two numbers answer different questions and neither substitutes for
+the other: instance-weighted says *how often a reader meets curated text*,
+distinct-code says *how much of the taxonomy is covered*. Any report that
+the instance-weighted figure improved must name which codes moved it.
+Stated alone it reads as progress it isn't, and `/problems/` publishes both
+numbers for exactly this reason.
+
+Those three codes are also a caution about how the gap appeared: all three
+had published fix pages in `docs/fixes/` and no `notices.py` entry, so the
+plain language existed and shipped while every scorecard showed the generic
+fallback. Adding a fix page and adding a translation were separate acts with
+nothing checking they agreed. `test_every_published_fix_page_has_a_curated_translation`
+is now that check.
+
+**The readability gate read half the copy it appeared to gate (2026-08-27).**
+The sentence above, "gates every curated `what`/`why`/`fix` string", was
+accurate and was narrower than it read. `notices.TRANSLATIONS` is one of two
+families of finding copy. The other is written inline at each `Finding(...)`
+site in `accessibility.py`, `completeness.py`, `fares.py`, `flex.py`,
+`metrics.py`, `pathways.py`, `routability.py` and `rt.py`, and reaches the same
+paragraph of the same agency page. That family, 118 strings, had never been
+measured; 23 of them missed the bars the gate already enforced. The gate now
+reads an inventory of both families and refuses a construction site whose copy
+it cannot account for, so its coverage cannot narrow again without failing.
+ADR 0048; the thresholds did not move and the breaching strings were rewritten.
 
 **Pitch.** Turn "grow the translation table" from an intention into a managed
 metric: instance-weighted coverage, a frequency-ranked curation queue, and a
@@ -366,8 +426,11 @@ daily collect run cannot publish a shape change without a schema update.
 against the published schemas and checks each schema itself. The first
 validation run surfaced the predicted payoff: `ntd_ready` is null for non-US
 agencies (ADR 0026) but the catalog/directory schemas said non-nullable string;
-both schemas were corrected. Follow-up (not done here): `rollup.schema.json`,
-and wiring schema-version bumps to a required schema diff in PRs.
+both schemas were corrected. Follow-up closed 2026-07-12: `rollup.schema.json`
+and `rollup-index.schema.json` now cover the program rollups and their index,
+validated in `tests/test_schemas.py` against a direct `build_rollup()` call,
+every published rollup, and the golden-site fixtures. Still open: wiring
+schema-version bumps to a required schema diff in PRs.
 
 **Pitch.** A JSON Schema for the per-agency artifact — the primary public
 contract — validated in CI against everything the pipeline publishes.
@@ -399,6 +462,11 @@ published document type.
 ---
 
 ## FIX-11 — Operational transparency: a public pipeline-health surface
+
+**Status: Done (verified 2026-07-12).** `run_summary.py` builds a per-shard
+outcome record inside `run_agency`, the collect job merges shards into
+`data/artifacts/run/latest.json`, and `/status/` renders the commitment,
+the historical refresh record, and today's shard outcomes publicly.
 
 **Pitch.** Publish what the pipeline itself did each day — shard outcomes,
 fetch failures, mirror fallbacks, validator cache hits — as a status page and
@@ -432,16 +500,28 @@ like:** any consumer can answer "how fresh is this dataset right now?" from
 
 ## FIX-12 — Registry at scale: shard and schema-gate `agencies.yaml`
 
+**Status: Done (2026-07-12).** The schema gate landed first: malformed entries,
+cross-shard duplicate ids and aliases, unsafe manifest paths, partial
+migrations, and unlisted shards all fail before the process registry changes.
+The dedicated mechanical migration then preserved all 1,149 agency identities,
+moved 1,082 located entries into 59 country/subdivision shards, and kept 67
+honestly unlocated entries in `registry/intake.yaml`. Entry blocks were moved
+textually so comments and formatting survived; comparison with the pre-split
+registry found no non-location field drift. `registry/index.yaml` is the one
+explicit production manifest. The submission handler appends only to intake
+and checks published ids for duplicates already in curated shards, while
+`discover`, `backfill-state`, and `ntd-crosswalk` edit only manifest-listed
+shards. The weekly discovery workflow, secret scanner, SAST boundary,
+contributor guide, and field reference all follow the new layout.
+
 **Pitch.** Split the 447 KB single-file registry into per-state files with a
 validated schema, so curation scales past one careful maintainer.
 
-**Why it matters.** `agencies.yaml` is ~1,166 entries edited by hand, by
-`discover.yml`'s auto-PRs, and by the submission flow — three writers to one
-giant file. PR review of a 447 KB YAML diff is where a bad URL or a duplicated
-id slips through; merge conflicts grow with contributor count; and the
-add-your-agency PR path (`docs/add-your-agency.md`) asks a newcomer to edit a
-file most editors struggle to open usefully. RR:R12 (mdb pinning) improves the
-entries; nothing addresses the container.
+**Why it matters.** The former `agencies.yaml` held more than a thousand entries
+and had three writers: curators, `discover.yml`, and the submission flow. PR
+review of a 447 KB YAML diff was where a bad URL or duplicate id could slip
+through, and unrelated contributions collided in one file. RR:R12 (mdb
+pinning) improved the entries; this work fixed the container.
 
 **Shape of the work.** `registry/<country>/<state>.yaml` loaded and merged by
 `agencies.py` (keep reading the legacy single file during transition); a
@@ -460,6 +540,38 @@ never conflicts with an unrelated agency's edit.
 ---
 
 ## FIX-13 — Repository data-plane remediation beyond the planned S3 cutover
+
+**Status: ADR written (2026-07-08) — decision made, execution still gated on
+the S3 cutover.** `docs/decisions/0030-data-plane-history-remediation.md`
+decides: (a) no orphan `data` branch or separate repo — the S3 cutover already
+in flight (`follow-ups.md`) is the one mechanism needed to stop future data
+commits; (b) prerendered `web/agency/**` pages move to a CI render step in
+`pages.yml` instead of staying committed, once the cutover lands; (c) no
+history rewrite — existing SHAs, PR links, and the not-yet-started
+`dataset-YYYY-MM` tag scheme must keep resolving. Re-measured at write time:
+`.git` is now 884 MB (up from the 521 MB noted below a week earlier),
+`data/artifacts` is 534 MB, `web/agency/` still carries 1,449 committed
+directories. Execution (the actual `pages.yml` change and dropping
+`web/agency/**` from the collect job's `git add`) is deferred until
+`follow-ups.md` steps 1–3 (the S3 cutover itself) ship, per the sequencing
+this item always called for — that part remains a maintainer-scheduled
+migration, not done here.
+
+**Update (2026-07-12):** the gate cleared and most of the execution landed
+with the cutover. `follow-ups.md` records the S3 source of truth complete as
+of 2026-07-10, automation no longer writes to `main` (#63), and `pages.yml`
+renders and assembles the site in CI from S3-hydrated artifacts. The
+committed `data/artifacts/**` snapshot now serves as the fork fallback when
+no bucket is configured, and the committed `web/agency/**` copies are frozen
+at the cutover date. Whether to prune those committed copies (and reclaim the
+git history size named below) stays a maintainer decision per ADR 0030's
+no-rewrite rule.
+
+**Update (2026-07-14):** the release tree is now bounded to the curated registry.
+The 322 orphan artifact directories and their generated pages were removed from
+the current tree; 1,128 scored feed records remain. The deploy also copies raw
+artifact directories only when `index.json` names them. Git history and the S3
+archive were not rewritten.
 
 **Pitch.** Decide, once and deliberately, what to do about the data already in
 git — 521 MB of `.git`, 382 MB of committed artifacts, 1,449 prerendered pages,

@@ -11,6 +11,7 @@ import csv
 import datetime as dt
 import io
 import zipfile
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 
@@ -24,9 +25,22 @@ def _parse_gtfs_date(value: str) -> dt.date | None:
         return None
 
 
-# Cap a single uncompressed table to guard against zip bombs in untrusted feeds.
-# Real GTFS tables (even a large stop_times.txt) are comfortably under this.
+# Cap a single uncompressed table to guard against zip bombs in untrusted feeds
+# and to bound the memory a table costs when read whole into Python. Most GTFS
+# tables are comfortably under this, but a national aggregate's stop_times.txt
+# can exceed it (the Swiss national timetable's is 2.4 GiB). Readers that hit
+# the cap raise TableTooLargeError so a caller can skip that one table rather
+# than fail the whole score.
 MAX_MEMBER_BYTES = 1024 * 1024 * 1024
+
+
+class TableTooLargeError(ValueError):
+    """A single GTFS table exceeds the reader's per-table memory cap.
+
+    Subclasses ValueError so existing ``except ValueError`` callers keep
+    catching it; a caller that specifically wants to skip an oversized table
+    (rather than fail) can catch this narrower type.
+    """
 
 
 def _read_table(zf: zipfile.ZipFile, name: str) -> list[dict[str, str]]:
@@ -35,7 +49,9 @@ def _read_table(zf: zipfile.ZipFile, name: str) -> list[dict[str, str]]:
     except KeyError:
         return []
     if info.file_size > MAX_MEMBER_BYTES:
-        raise ValueError(f"{name} is {info.file_size} bytes uncompressed, over the safety cap")
+        raise TableTooLargeError(
+            f"{name} is {info.file_size} bytes uncompressed, over the safety cap"
+        )
     text = zf.read(name).decode("utf-8-sig", errors="replace")
     return list(csv.DictReader(io.StringIO(text)))
 
@@ -46,13 +62,70 @@ def read_tables(gtfs_zip_path: str, names: list[str]) -> dict[str, list[dict[str
         return {name: _read_table(zf, name) for name in names}
 
 
+def _has_data_row(zf: zipfile.ZipFile, name: str) -> bool:
+    """Whether ``name`` is in the archive and carries at least one data row.
+
+    Header-only is not a row. A stops.txt holding nothing but its column names
+    describes no stops, exactly as an absent stops.txt does, and the two must
+    answer this question the same way.
+
+    Streamed, not parsed: the question is "is there a first row", not "how
+    many", so this reads a line or two and stops. That keeps it affordable to
+    ask of a national feed's trips.txt, and is why it does not apply the
+    whole-table memory cap -- it never holds the table.
+    """
+    if name not in zf.namelist():
+        return False
+    with zf.open(name) as handle:
+        if not handle.readline():  # no header means no table
+            return False
+        return any(line.strip() for line in handle)
+
+
+def iter_table_rows(
+    gtfs_zip_path: str,
+    name: str,
+    *,
+    max_member_bytes: int = MAX_MEMBER_BYTES,
+) -> Iterator[dict[str, str]]:
+    """Yield one GTFS table without materializing its decoded CSV.
+
+    ``max_member_bytes`` lets a caller set a lower, task-specific analysis
+    budget than the general whole-table reader. The size check happens before
+    decompression, and a missing table yields no rows.
+    """
+    with zipfile.ZipFile(gtfs_zip_path) as zf:
+        try:
+            info = zf.getinfo(name)
+        except KeyError:
+            return
+        if info.file_size > max_member_bytes:
+            raise TableTooLargeError(
+                f"{name} is {info.file_size} bytes uncompressed, over the "
+                f"{max_member_bytes}-byte analysis cap"
+            )
+        with (
+            zf.open(info) as raw,
+            io.TextIOWrapper(
+                raw,
+                encoding="utf-8-sig",
+                errors="replace",
+                newline="",
+            ) as text,
+        ):
+            yield from csv.DictReader(text)
+
+
 def read_agency_ids(gtfs_zip_path: str) -> list[str]:
     """The distinct, non-blank agency_id values declared in agency.txt.
 
-    Used by the NTD ID alignment check (ntd.assess_id_alignment). agency_id is
-    optional in GTFS when a feed has a single agency, so an empty list is normal
-    and means "no agency_id set", not an error. Order is preserved and
-    duplicates are dropped so the values can be shown back to the agency."""
+    Used by the RY2026 NTD presence and optional NTD-ID equality checks. The
+    base GTFS Schedule specification permits agency_id to be omitted from a
+    single-agency feed, but an NTD GTFS submission must provide a stable value
+    for every represented reporter and crosswalk it on P-50. An empty list
+    therefore means "no agency_id set"; the parser returns it normally and the
+    NTD assessment supplies the finding. Order is preserved and duplicates are
+    dropped so the values can be shown back to the agency."""
     with zipfile.ZipFile(gtfs_zip_path) as zf:
         rows = _read_table(zf, "agency.txt")
     seen: set[str] = set()
@@ -107,6 +180,20 @@ class FeedDates:
     # an undeclared seasonal feed's lapse as a planned transition. Detection
     # is conservative: a single continuous span never sets it.
     seasonal_boundary: bool = False
+    # Whether the archive contained any table that can carry a service date at
+    # all (feed_info.txt, calendar.txt, calendar_dates.txt). False means there
+    # was nothing to read, which is different from having read the calendars and
+    # found no end date -- that is a real finding about a real feed, and it still
+    # scores. Defaults True so a hand-built FeedDates keeps scoring as before;
+    # only read_feed_dates, which knows what the archive held, can set it False.
+    has_date_tables: bool = True
+    # Whether the archive describes any service at all: at least one stop or at
+    # least one trip. A feed_info.txt end date is a claim about the data in the
+    # archive, so with no stops and no trips there is no service for that date
+    # to be the end of, and "service data covers the next 365 days" is a
+    # sentence about nothing. Same default and same reason as has_date_tables:
+    # only read_feed_dates, which opened the archive, can set it False.
+    has_service_content: bool = True
 
     def effective_expiry(self) -> dt.date | None:
         """The date riders lose trip planning: the earlier of feed_info's
@@ -153,7 +240,16 @@ def _detect_seasonal_boundary(
 
 def read_feed_dates(gtfs_zip_path: str) -> FeedDates:
     """Extract freshness-relevant dates from a static GTFS zip."""
+    date_tables = ("feed_info.txt", "calendar.txt", "calendar_dates.txt")
     with zipfile.ZipFile(gtfs_zip_path) as zf:
+        # Presence of the file, not of any row in it: an empty calendar.txt is a
+        # feed that says it has no service, which is a measurable claim. An
+        # archive carrying none of these tables said nothing at all.
+        present = set(zf.namelist())
+        has_date_tables = any(name in present for name in date_tables)
+        # Rows, not presence, for the service tables: a header-only stops.txt
+        # describes no stops, and the dates would be about nothing either way.
+        has_service_content = _has_data_row(zf, "stops.txt") or _has_data_row(zf, "trips.txt")
         feed_info_rows = _read_table(zf, "feed_info.txt")
         calendar_rows = _read_table(zf, "calendar.txt")
         calendar_date_rows = _read_table(zf, "calendar_dates.txt")
@@ -204,4 +300,6 @@ def read_feed_dates(gtfs_zip_path: str) -> FeedDates:
         seasonal_boundary=(
             spans_reliable and _detect_seasonal_boundary(_merge_spans(spans), effective_expiry)
         ),
+        has_date_tables=has_date_tables,
+        has_service_content=has_service_content,
     )

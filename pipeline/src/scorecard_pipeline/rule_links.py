@@ -102,6 +102,8 @@ def _v(notice: str, *, canonical: str | None = None) -> RuleLink:
 # there is no hand-kept mirror to sync.
 RULE_LINKS: dict[str, RuleLink] = {
     # --- Canonical gtfs-validator notices (code == notice) --------------------
+    "big_gap_in_service": _v("big_gap_in_service"),
+    "equal_shape_distance_same_coordinates": _v("equal_shape_distance_same_coordinates"),
     "expired_calendar": _v("expired_calendar"),
     "fast_travel_between_consecutive_stops": _v("fast_travel_between_consecutive_stops"),
     "fast_travel_between_far_stops": _v("fast_travel_between_far_stops"),
@@ -153,7 +155,7 @@ RULE_LINKS: dict[str, RuleLink] = {
     "scorecard_wheelchair_accessible_unknown": RuleLink(
         kind=REFERENCE, url=f"{SCHEDULE_REFERENCE_PAGE}#tripstxt"
     ),
-    # Freshness: the scorecard's own effective-expiry date (the later of
+    # Freshness: the scorecard's own effective-expiry date (the earlier of
     # feed_info.feed_end_date and the last calendar/calendar_dates service day),
     # which is not the same computation as any single validator notice, so it is
     # not aliased to expired_calendar or feed_expiration_date7/30_days. Best
@@ -181,11 +183,11 @@ RULE_LINKS: dict[str, RuleLink] = {
     "scorecard_flex_no_booking_rules": RuleLink(
         kind=REFERENCE, url=f"{SCHEDULE_REFERENCE_PAGE}#booking_rulestxt"
     ),
-    # Realtime quality (rt.py): reachability of each of the three GTFS-Realtime
-    # feed types, and how much of the schedule TripUpdates actually covers. The
-    # canonical validator scores GTFS Schedule only, so these have no validator
-    # notice or Best Practice to alias; the message spec itself is the honest
-    # authority for each feed type.
+    # Realtime quality (rt.py): reachability of each configured GTFS-Realtime
+    # feed type, and, when configured, how much of the schedule TripUpdates
+    # actually covers. The canonical validator scores GTFS Schedule only, so
+    # these have no validator notice or Best Practice to alias; the message spec
+    # is the honest reference for the realtime data each finding assesses.
     "scorecard_rt_trip_updates_unreachable": RuleLink(
         kind=REALTIME_REFERENCE, url=f"{REALTIME_REFERENCE_PAGE}#message-tripupdate"
     ),

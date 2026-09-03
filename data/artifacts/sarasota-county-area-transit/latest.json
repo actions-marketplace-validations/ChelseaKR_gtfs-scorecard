@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "sarasota-county-area-transit",
-    "name": "Sarasota County Area Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/sarasota-county-area-transit/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/sarasota-county-area-transit/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 1152,
-        "examples": [
-          "RINGLING BLVD @ S TUTTLE AVE -> Ringling Blvd @ S Tuttle Ave",
-          "RINGLING BLVD @ PINE PL -> Ringling Blvd @ Pine Pl",
-          "RINGLING BLVD @ S OSPREY AVE -> Ringling Blvd @ S Osprey Ave"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 1152
+    "name": "Sarasota County Area Transit",
+    "subdivision_code": "US-FL",
+    "subdivision_name": "Florida"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 1359,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 99.8,
+        "headsign_scored_pct": 99.8,
         "mixed_case_stop_name_pct": 5.7,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 1221,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1359,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1359,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -112,7 +110,7 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 1152,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 14.2,
           "severity": "INFO",
@@ -122,13 +120,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 3,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 0.0,
           "severity": "WARNING",
-          "what": "3 of 1359 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "3 of 1359 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -139,7 +137,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -195,13 +193,13 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 5,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "expired_calendar",
@@ -211,7 +209,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -222,7 +220,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
@@ -261,24 +259,24 @@
         {
           "code": "big_gap_in_service",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Big gap in service (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         },
         {
           "code": "unknown_file",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         }
       ],
       "name": "correctness",
@@ -289,13 +287,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -1676,
+        "days_until_expiry": -1708,
+        "effective_expiry_date": "2021-12-03",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2021-12-03",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -307,7 +308,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 1676 day(s) ago.",
+          "what": "Service data ended 1708 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -325,7 +326,7 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 1676 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 1708 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -334,6 +335,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -344,7 +357,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 1667 days ago.",
+        "detail": "Service data expired 1700 days ago.",
         "key": "current",
         "met": false
       },
@@ -355,7 +368,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 1667 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 1700 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -364,7 +377,14 @@
     "size_bytes": 674881,
     "static_url": "https://ftis.org/PostFileDownload.aspx?id=457A0"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://ftis.org/PostFileDownload.aspx?id=457A0",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-30T00:00:00+00:00",
   "geo": {
     "bbox": [
       -82.58786,
@@ -376,8 +396,28 @@
     "lon": -82.50582,
     "stop_count": 1221
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 15,
+        "trip_count": 1359,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 15,
+    "trip_count": 1359
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "SCAT"
     ],
@@ -396,13 +436,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 1667 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 1700 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 1667 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 1700 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -412,6 +457,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 2,
       "effort": "A per-route color setting in your scheduling software.",
@@ -423,6 +469,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 1214,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -435,8 +482,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -446,9 +493,195 @@
     "single_stop_trips": 0,
     "trips_total": 1359
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 13,
+    "has_shapes": true,
+    "path": "data/artifacts/sarasota-county-area-transit/geometry.geojson",
+    "route_count": 15,
+    "routes": [
+      {
+        "color": "2173B6",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "01",
+        "label": "01",
+        "long": "Downtown/Fruitville/Cattlemen",
+        "short": "01",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F0DF0F",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "02",
+        "label": "02",
+        "long": "Downtown/SRQ/UTC Mall",
+        "short": "02",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "804040",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "03",
+        "label": "03",
+        "long": "Downtown/Bahia Vista/Cattlemen",
+        "short": "03",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "800080",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "06",
+        "label": "06",
+        "long": "Beneva/Sarasota Square Mall",
+        "short": "06",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFAA55",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "07",
+        "label": "07",
+        "long": "Downtown/N Orange/Newtown/NE Plaza",
+        "short": "07",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "84CD32",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "08",
+        "label": "08",
+        "long": "Downtown/N Orange/US 301/SRQ",
+        "short": "08",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3715F7",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "09",
+        "label": "09",
+        "long": "Venice/North Port",
+        "short": "09",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "56CAD3",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "12",
+        "label": "12",
+        "long": "Downtown/N Lockwood/University",
+        "short": "12",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "97F13D",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "14",
+        "label": "14",
+        "long": "Downtown/Southgate/Bee Ridge",
+        "short": "14",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0000FF",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "17",
+        "label": "17",
+        "long": "Sarasota/US-41/Venice",
+        "short": "17",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF0000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "19",
+        "label": "19",
+        "long": "Gulf Gate/Cattlemen",
+        "short": "19",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DBE61A",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "25",
+        "label": "25",
+        "long": "Southgate/Swift/Gulf Gate",
+        "short": "25",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": false,
+        "id": "33",
+        "label": "33",
+        "long": "Siesta Key/Pinecraft/Cattlemen",
+        "short": "33",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "808000",
+        "color_name": "brown",
+        "has_shape": false,
+        "id": "77/SKB",
+        "label": "77/SKB",
+        "long": "Siesta Key Breeze",
+        "short": "77/SKB",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008000",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "99",
+        "label": "99",
+        "long": "Sarasota/SRQ/Bradenton",
+        "short": "99",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 1221,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1359 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1359,
+    "trips_with_shape": 1359
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -459,7 +692,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 1676 day(s) ago.",
+      "what": "Service data ended 1708 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

@@ -21,7 +21,13 @@ REPORT = ValidationReport(
 
 
 def _point_cache_at(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(vcache, "artifacts_dir", lambda: tmp_path)
+    monkeypatch.setattr(vcache, "cache_dir", lambda: tmp_path)
+
+
+def test_cache_path_is_outside_the_public_artifact_shape(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    _point_cache_at(tmp_path, monkeypatch)
+
+    assert vcache.cache_path("demo") == tmp_path / "validator" / "demo.json"
 
 
 def test_store_then_load_round_trips_the_report(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
@@ -51,6 +57,30 @@ def test_miss_when_validator_version_changed(tmp_path, monkeypatch) -> None:  # 
     assert vcache.load_cached("demo", "abc123", "9.0.0") is None
 
 
+def test_miss_when_validator_country_changed(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    _point_cache_at(tmp_path, monkeypatch)
+    vcache.store_cached("demo", "abc123", "8.0.1", REPORT, country_code="CA")
+
+    assert vcache.load_cached("demo", "abc123", "8.0.1", country_code="CA") is not None
+    assert vcache.load_cached("demo", "abc123", "8.0.1", country_code="US") is None
+
+
+def test_historical_countryless_cache_is_us_only(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    _point_cache_at(tmp_path, monkeypatch)
+    path = vcache.cache_path("demo")
+    vcache._write_local(
+        path,
+        {
+            "sha256": "abc123",
+            "validator_version": "8.0.1",
+            "report": vcache._report_to_json(REPORT),
+        },
+    )
+
+    assert vcache.load_cached("demo", "abc123", "8.0.1", country_code="US") is not None
+    assert vcache.load_cached("demo", "abc123", "8.0.1", country_code="GB") is None
+
+
 def test_miss_when_no_cache_file(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     _point_cache_at(tmp_path, monkeypatch)
     assert vcache.load_cached("never-scored", "abc123", "8.0.1") is None
@@ -72,14 +102,14 @@ class _FakeS3:
         self.get_calls = 0
         self.put_calls = 0
 
-    def get_object(self, Bucket: str, Key: str):  # type: ignore[no-untyped-def]  # noqa: N803
+    def get_object(self, Bucket: str, Key: str):  # type: ignore[no-untyped-def]
         self.get_calls += 1
         try:
             return {"Body": _FakeBody(self.store[(Bucket, Key)])}
         except KeyError as exc:
             raise RuntimeError("NoSuchKey") from exc
 
-    def put_object(self, Bucket: str, Key: str, Body: bytes, **_: object):  # type: ignore[no-untyped-def]  # noqa: N803
+    def put_object(self, Bucket: str, Key: str, Body: bytes, **_: object):  # type: ignore[no-untyped-def]
         self.put_calls += 1
         self.store[(Bucket, Key)] = Body
 
@@ -132,10 +162,10 @@ def test_s3_errors_never_fail_a_score(tmp_path, monkeypatch) -> None:  # type: i
     _point_cache_at(tmp_path, monkeypatch)
 
     class _Broken(_FakeS3):
-        def get_object(self, Bucket, Key):  # type: ignore[no-untyped-def]  # noqa: N803
+        def get_object(self, Bucket, Key):  # type: ignore[no-untyped-def]
             raise RuntimeError("S3 down")
 
-        def put_object(self, Bucket, Key, Body, **_):  # type: ignore[no-untyped-def]  # noqa: N803
+        def put_object(self, Bucket, Key, Body, **_):  # type: ignore[no-untyped-def]
             raise RuntimeError("S3 down")
 
     _use_s3(monkeypatch, _Broken())

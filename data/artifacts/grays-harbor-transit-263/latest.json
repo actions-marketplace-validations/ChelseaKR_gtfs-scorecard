@@ -154,7 +154,7 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 116,
+        "days_until_expiry": 112,
         "feed_end_date": "2026-10-30",
         "feed_start_date": "2025-09-02",
         "feed_version": "2025-09-04T14:06:21Z",
@@ -167,7 +167,7 @@
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 116 days.",
+      "summary": "Service data covers the next 112 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -277,8 +277,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-07-10",
+    "feed_fetched_date": "2026-07-09",
     "kind": "freshness"
   },
   "routability": {
@@ -290,7 +290,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-07-10",
   "top_fixes": [
     {
       "code": "equal_shape_distance_same_coordinates",

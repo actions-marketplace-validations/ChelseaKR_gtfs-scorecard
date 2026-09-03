@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "city-of-tracy-tracer-3099",
-    "name": "City of Tracy (TRACER)"
-  },
-  "autofix": {
-    "available": false
+    "name": "City of Tracy (TRACER)",
+    "subdivision_code": "US-CA",
+    "subdivision_name": "California"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -42,17 +45,27 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 158,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
           "has_levels": false,
           "has_pathways": false,
-          "has_stations": false,
+          "has_stations": true,
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 272,
+        "stops": 276,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 158,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -62,20 +75,20 @@
       "findings": [
         {
           "code": "scorecard_wheelchair_boarding_unknown",
-          "count": 272,
+          "count": 276,
           "effort": "A column in stops.txt; your scheduling software likely has it.",
           "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
           "owner": "Likely your team",
           "points": 25.0,
           "severity": "WARNING",
-          "what": "272 of 272 stops don't say whether a wheelchair user can board there.",
+          "what": "276 of 276 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 158,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -102,7 +115,18 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
+        },
+        {
+          "code": "scorecard_station_no_pathways",
+          "count": 1,
+          "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
+          "fix": "Add pathways.txt connecting entrances, platforms, and any elevators, with a level for each.",
+          "owner": "",
+          "points": 0.0,
+          "severity": "WARNING",
+          "what": "This feed models stations or entrances but has no pathways.txt.",
+          "why": "Trip planners can't guide riders through the station, and there is no step-free route information for wheelchair users."
         }
       ],
       "name": "completeness",
@@ -141,19 +165,19 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 2,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "expired_calendar",
@@ -163,19 +187,19 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "unknown_column",
@@ -197,20 +221,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 331,
-        "feed_end_date": "2027-06-02",
+        "days_until_expiry": 363,
+        "effective_expiry_date": "2027-08-05",
+        "feed_end_date": "2027-08-05",
         "feed_start_date": "2025-06-30",
-        "feed_version": "54",
+        "feed_version": "56",
         "has_feed_info": true,
-        "last_service_date": "2027-06-02",
+        "last_service_date": "2027-08-05",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 331 days.",
+      "summary": "Service data covers the next 363 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -219,6 +246,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -229,7 +268,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 340 days.",
+        "detail": "Service data covers the next 363 days.",
         "key": "current",
         "met": true
       },
@@ -242,27 +281,62 @@
     "status": "not_yet",
     "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
+  "export_diff": {
+    "changes": [
+      "1 new stop appeared.",
+      "Service now runs through 2027-08-05 (was 2027-07-30)."
+    ],
+    "from_sha256": "58cd4f0317af58889ac9a0cdd679d03f6c42e8bde15dc16984d4842c09ecdc2f",
+    "to_sha256": "e6f9a4f2bfa88bcf3ddc7592c4ef3053ead382dbc3b0551156703e6c430e4a6b"
+  },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "d3dae10d27d04fbbe3bdf656d69e0228afbcef94328b2a60309c7b47cb3002a2",
-    "size_bytes": 149599,
+    "sha256": "e6f9a4f2bfa88bcf3ddc7592c4ef3053ead382dbc3b0551156703e6c430e4a6b",
+    "size_bytes": 150538,
     "static_url": "https://s3.amazonaws.com/etatransit.gtfs/tracer.etaspot.net/gtfs.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://s3.amazonaws.com/etatransit.gtfs/tracer.etaspot.net/gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-07T00:00:00+00:00",
   "geo": {
     "bbox": [
       -121.48298,
-      37.67616,
+      37.6693,
       -121.40929,
       37.76215
     ],
-    "lat": 37.7376,
-    "lon": -121.43906,
-    "stop_count": 272
+    "lat": 37.73743,
+    "lon": -121.43932,
+    "stop_count": 276
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 13,
+        "trip_count": 158,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 13,
+    "trip_count": 158
   },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -281,13 +355,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 340 days.",
+        "detail": "Service data covers the next 363 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "D",
@@ -297,6 +376,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 5,
       "effort": "A per-route color setting in your scheduling software.",
@@ -308,24 +388,32 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
-      "count": 264,
+      "count": 267,
       "effort": "A short text field per affected stop; start with the busiest.",
       "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
       "owner": "",
       "points": 0.0,
       "severity": "INFO",
-      "what": "264 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"11th St/Lammers Rd OB\", \"11th St/Lammers Rd IB\", \"9th St/School St/Senior Center\", and more).",
+      "what": "267 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"11th St/Lammers Rd OB\", \"11th St/Lammers Rd IB\", \"9th St/School St/Senior Center\", and more).",
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
+    },
+    {
+      "category": "accessibility",
+      "code": "scorecard_station_missing_step_free_data",
+      "count": 2,
+      "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
+      "fix": "Add pathways.txt connecting entrances, platforms, and elevators, and levels.txt for each floor, so the step-free route is described.",
+      "owner": "",
+      "points": 0.0,
+      "severity": "WARNING",
+      "what": "This feed models stations or entrances but has no pathways.txt and levels.txt.",
+      "why": "Without pathways and levels, a wheelchair user can't tell whether a step-free route exists inside the station, and trip planners can't route anyone through it."
     }
   ],
-  "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
-    "kind": "freshness"
-  },
   "routability": {
-    "boardable_stops": 272,
+    "boardable_stops": 275,
     "findings": [
       {
         "code": "scorecard_orphan_stops",
@@ -335,7 +423,7 @@
         "owner": "Likely your export tool",
         "points": 0.0,
         "severity": "INFO",
-        "what": "10 of 272 boardable stops are never served by any trip.",
+        "what": "10 of 275 boardable stops are never served by any trip.",
         "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
       }
     ],
@@ -343,27 +431,191 @@
     "single_stop_trips": 0,
     "trips_total": 158
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 13,
+    "has_shapes": true,
+    "path": "data/artifacts/city-of-tracy-tracer-3099/geometry.geojson",
+    "route_count": 13,
+    "routes": [
+      {
+        "color": "A70DCE",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "5599",
+        "label": "I",
+        "long": "Route I",
+        "short": "I",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8E1B2B",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "5600",
+        "label": "J",
+        "long": "Route J",
+        "short": "J",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "10ACE4",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "5602",
+        "label": "G AM",
+        "long": "Commuter Route G AM",
+        "short": "G AM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1864AC",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "A",
+        "label": "A",
+        "long": "Route A",
+        "short": "A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "40AC54",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "B",
+        "label": "B",
+        "long": "Route B",
+        "short": "B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E8144C",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "C",
+        "label": "C",
+        "long": "Route C",
+        "short": "C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E87C9C",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "E-AM",
+        "label": "E AM",
+        "long": "Commuter Route E AM",
+        "short": "E AM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E87C9C",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "E-PM",
+        "label": "E PM",
+        "long": "Commuter Route E PM",
+        "short": "E PM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F8941C",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "F-AM",
+        "label": "F AM",
+        "long": "Commuter Route F AM",
+        "short": "F AM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F8941C",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "F-PM",
+        "label": "F PM",
+        "long": "Commuter Route F PM",
+        "short": "F PM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "10ACE4",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "G",
+        "label": "G PM",
+        "long": "Commuter Route G PM",
+        "short": "G PM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "585C24",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "H-AM",
+        "label": "H AM",
+        "long": "Commuter Route H AM",
+        "short": "H AM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "585C24",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "H-PM",
+        "label": "H PM",
+        "long": "Commuter Route H PM",
+        "short": "H PM",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 276,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 158 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 158,
+    "trips_with_shape": 158
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
-      "count": 272,
+      "count": 276,
       "effort": "A column in stops.txt; your scheduling software likely has it.",
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
       "rank": 1,
       "severity": "WARNING",
-      "what": "272 of 272 stops don't say whether a wheelchair user can board there.",
+      "what": "276 of 276 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 158,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

@@ -1,0 +1,327 @@
+# Bourgogne-Franche-Comté (FR) agencies — one manifest-listed shard of the GTFS Scorecard registry.
+#
+# The field reference and contribution workflow live in registry/README.md.
+# Every id must be unique across every shard listed by registry/index.yaml.
+agencies:
+  - id: leo-auxerrois
+    name: Réseau Léo (Communauté d'Agglomération de l'Auxerrois)
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    mdb_id: "642"
+    static_gtfs_url: https://www.data.gouv.fr/fr/datasets/r/ade0bfc2-0e7a-4087-96dd-a76aeb61d196
+    license_note: >-
+      Licence Ouverte 2.0; published by the Communauté d'Agglomération de
+      l'Auxerrois through France's National Access Point. Derived measurements
+      by GTFS Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-de-transports-en-commun-de-la-communaute-dagglomeration-de-lauxerrois
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Communauté d'Agglomération de l'Auxerrois.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-17"
+      identity_reviewed: true
+  - id: mobigo-cote-dor
+    name: Mobigo interurbain (Côte-d'Or)
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    mdb_id: "659"
+    static_gtfs_url: https://www.viamobigo.fr/ftp/zipopendata/ut.gtfs.zip
+    license_note: >-
+      Licence Ouverte 2.0; published by the Région Bourgogne-Franche-Comté
+      through France's National Access Point. Derived measurements by GTFS
+      Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-de-transport-interurbain-mobigo-en-bourgogne-franche-comte
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Région Bourgogne-Franche-Comté.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-17"
+      identity_reviewed: true
+  - id: ginko-besancon
+    name: Ginko (Besançon)
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    mdb_id: "1116"
+    static_gtfs_url: https://api.ginko.voyage/gtfs-ginko.zip
+    license_note: >-
+      Licence Ouverte 2.0; published by Grand Besançon Métropole through
+      France's National Access Point. Derived measurements by GTFS Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/gtfs-et-siri-du-reseau-ginko-besancon-lignes-urbaines-et-periurbaines
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Grand Besançon Métropole.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-17"
+      identity_reviewed: true
+  - id: zoom-grand-chalon
+    name: Zoom (Le Grand Chalon)
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    mdb_id: "658"
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/f11a3766-1fe3-40ff-8d5a-27eacda3d9a7
+    license_note: >-
+      Licence Ouverte 2.0; published by Le Grand Chalon (réseau Zoom) through
+      France's National Access Point. Derived measurements by GTFS Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/horaires-theoriques-du-reseau-zoom-le-grand-chalon-gtfs
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Le Grand Chalon.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: divia-dijon
+    name: DiviaMobilités (Dijon)
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    mdb_id: "2153"
+    static_gtfs_url: https://transport.data.gouv.fr/resources/80742/download
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab) as recorded on the French national access
+      point transport.data.gouv.fr; reuse including commercial reuse is
+      permitted with attribution to Dijon Métropole (réseau DiviaMobilités)
+      and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/gtfs-diviamobilites
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Dijon Métropole (réseau DiviaMobilités).
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: moova-vesoul
+    name: moova (Vesoul)
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/81222/download
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab) as recorded on the French national access
+      point transport.data.gouv.fr; reuse including commercial reuse is
+      permitted with attribution to Communauté d'agglomération de Vesoul
+      (réseau moova) and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/horaires-theoriques-du-reseau-moova-communaute-dagglomeration-de-vesoul-gtfs
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Communauté d'agglomération de Vesoul (réseau moova).
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: taneo-nevers
+    name: Tanéo (Nevers)
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/81227/download
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab) as recorded on the French national access
+      point transport.data.gouv.fr; reuse including commercial reuse is
+      permitted with attribution to Communauté d'agglomération de Nevers
+      (réseau Tanéo) and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/versions-des-horaires-theoriques-des-lignes-du-reseau-de-bus-au-format-gtfs
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Communauté d'agglomération de Nevers (réseau Tanéo).
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: fr-cote-bus
+    name: "Réseau urbain Côte&Bus"
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: "Bourgogne-Franche-Comté"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/c00d487c-4766-4ca1-b736-e7de110331d9"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CA Beaune, Côte et Sud - Communauté Beaune-Chagny-Nolay and the update date.
+    rt_urls:
+      trip_updates: "https://proxy.transport.data.gouv.fr/resource/beaune-cote-et-bus-gtfs-rt-trip-update"
+      vehicle_positions: "https://proxy.transport.data.gouv.fr/resource/beaune-cote-et-bus-gtfs-rt-vehicle-position"
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/offre-de-transport-de-la-c-a-beaune-cote-sud-gtfs"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CA Beaune, Côte et Sud - Communauté Beaune-Chagny-Nolay"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-ecla-mobilite
+    name: "Réseau urbain ECLA Mobilité"
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: "Bourgogne-Franche-Comté"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/ec61df69-830c-4ca7-9d78-9a81c515e9de"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CA ECLA  (Espace Communautaire Lons Agglomération) and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/ecla-lons-agglo-mobilites"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CA ECLA  (Espace Communautaire Lons Agglomération)"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-grandole-mobilites
+    name: "Réseau urbain Grandole Mobilités"
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: "Bourgogne-Franche-Comté"
+    is_official: true
+    static_gtfs_url: "https://transport.data.gouv.fr/resources/81254/download"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CA du Grand Dole and the update date.
+    rt_urls:
+      trip_updates: "https://proxy.transport.data.gouv.fr/resource/tgd-dole-gtfs-rt-trip-update"
+      vehicle_positions: "https://proxy.transport.data.gouv.fr/resource/tgd-dole-gtfs-rt-vehicle-position"
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/reseau-de-transport-du-grand-dole"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CA du Grand Dole"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-monrezo
+    name: "Réseau urbain MonRéZO"
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: "Bourgogne-Franche-Comté"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/128b06bc-f263-4530-8e03-395402f87256"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CU Le Creusot Montceau-les-Mines and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/arrets-horaires-et-parcours-theoriques-du-reseau-monrezo-cucm-gtfs-1"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CU Le Creusot Montceau-les-Mines"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-pan-79374
+    name: Réseau urbain Optymo
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/797c424e-7d28-4e65-84f6-6677e47d8a6e
+    license_note: Open Database License (ODbL), recorded by France's National Access Point; credit Optymo
+      - Belfort, identify the ODbL, and preserve share-alike terms where they apply.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/arrets-circuits-et-horaires-du-reseau-optymo-de-belfort
+      terms_url: https://transport.data.gouv.fr/datasets/arrets-circuits-et-horaires-du-reseau-optymo-de-belfort
+      scope:
+      - gtfs_schedule
+      attribution: Optymo - Belfort
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-81944
+    name: Réseau urbain évolitY
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/b45aa8d8-4bd4-4528-99c7-acfc980fdb09
+    license_note: Open Database License (ODbL), recorded by France's National Access Point; credit évolitY,
+      identify the ODbL, and preserve share-alike terms where they apply.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/evolity-horaires-theoriques-de-transport-public
+      terms_url: https://transport.data.gouv.fr/datasets/evolity-horaires-theoriques-de-transport-public
+      scope:
+      - gtfs_schedule
+      attribution: évolitY
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83859
+    name: Réseau urbain Papillon
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/83859/download
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Communauté de Communes Cœur de Loire and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/donnees-du-reseau-de-bus-papillon-a-cosne-cours-sur-loire
+      terms_url: https://transport.data.gouv.fr/datasets/donnees-du-reseau-de-bus-papillon-a-cosne-cours-sur-loire
+      scope:
+      - gtfs_schedule
+      attribution: Communauté de Communes Cœur de Loire
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83383
+    name: Réseau urbain ça roule
+    country: FR
+    subdivision_code: FR-BFC
+    subdivision_name: Bourgogne-Franche-Comté
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/b587f007-9b23-4b2a-a609-9368a4c2c490
+    license_note: Open Database License (ODbL), recorded by France's National Access Point; credit CC du
+      Grand Autunois Morvan, identify the ODbL, and preserve share-alike terms where they apply.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/arrets-lignes-regulieres-reseau-de-transport-urbain-a-autun
+      terms_url: https://transport.data.gouv.fr/datasets/arrets-lignes-regulieres-reseau-de-transport-urbain-a-autun
+      scope:
+      - gtfs_schedule
+      attribution: CC du Grand Autunois Morvan
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true

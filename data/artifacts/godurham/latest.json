@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "godurham",
-    "name": "GoDurham"
-  },
-  "autofix": {
-    "available": false
+    "name": "GoDurham",
+    "subdivision_code": "US-NC",
+    "subdivision_name": "North Carolina"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 3612,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 1003,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 3612,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.8,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 3612,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -141,7 +154,7 @@
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -163,8 +176,8 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "feed_expiration_date7_days",
@@ -202,24 +215,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 6,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -230,13 +243,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -187,
+        "days_until_expiry": -219,
+        "effective_expiry_date": "2025-12-31",
         "feed_end_date": "2025-12-31",
         "feed_start_date": "2025-06-25",
         "feed_version": "UTC: 25-Jun-2025 15:53",
         "has_feed_info": true,
         "last_service_date": "2025-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -248,14 +264,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 187 day(s) ago.",
+          "what": "Service data ended 219 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 187 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 219 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -264,6 +280,18 @@
       "summary": "This agency publishes realtime, but the feed needs an access key we don't have yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -274,7 +302,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 178 days ago.",
+        "detail": "Service data expired 211 days ago.",
         "key": "current",
         "met": false
       },
@@ -285,7 +313,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 178 days ago. States wheelchair access on 1% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 211 days ago. States wheelchair access on 1% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -294,7 +322,14 @@
     "size_bytes": 1385902,
     "static_url": "https://data.trilliumtransit.com/gtfs/durham-area-transit-authority-nc-us/durham-area-transit-authority-nc-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/durham-area-transit-authority-nc-us/durham-area-transit-authority-nc-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-30T00:00:00+00:00",
   "geo": {
     "bbox": [
       -78.99662,
@@ -306,8 +341,28 @@
     "lon": -78.90307,
     "stop_count": 1003
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 19,
+        "trip_count": 3612,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 19,
+    "trip_count": 3612
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "241"
     ],
@@ -326,13 +381,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 178 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 211 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 178 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 211 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -342,6 +402,7 @@
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -353,6 +414,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 9,
       "effort": "A per-route color setting in your scheduling software.",
@@ -364,6 +426,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 976,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -376,8 +439,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -399,9 +462,239 @@
     "single_stop_trips": 0,
     "trips_total": 3612
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 17,
+    "has_shapes": true,
+    "path": "data/artifacts/godurham/geometry.geojson",
+    "route_count": 19,
+    "routes": [
+      {
+        "color": "008ECC",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "14490",
+        "label": "11B",
+        "long": "W. Main St \u2013 Duke/VA \u2013 Constitution Dr",
+        "short": "11B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED5328",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "1762",
+        "label": "1",
+        "long": "Northgate \u2013 North Pointe \u2013 Horton Rd/Guess Rd",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F08BC5",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1763",
+        "label": "10",
+        "long": "Chapel Hill Rd \u2013 South Square \u2013 New Hope Commons",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CC6698",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1765",
+        "label": "10B",
+        "long": "Chapel Hill Rd \u2013 South Square \u2013 Shannon Rd",
+        "short": "10B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "272A67",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "1767",
+        "label": "11",
+        "long": "W. Main St \u2013 Hillsborough Rd",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A2E8",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "1768",
+        "label": "12",
+        "long": "E. Main St \u2013 NCCU \u2013 Southpoint",
+        "short": "12",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0047BA",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "1777",
+        "label": "2",
+        "long": "E. Main St \u2013 Angier Ave \u2013 Brier Creek",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4AA237",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "1780",
+        "label": "3",
+        "long": "Holloway St \u2013 The Village \u2013 Glenview Station",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8743BF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "1781",
+        "label": "4",
+        "long": "N. Roxboro Rd \u2013 Duke Regional \u2013 North Duke Crossing",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "862633",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "1782",
+        "label": "5",
+        "long": "Fayetteville St \u2013 NCCU \u2013 Southpoint",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7428ED",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "1784",
+        "label": "6",
+        "long": "Duke/VA - Duke Regional Hospital - Danube Lane",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DB60D5",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "1786",
+        "label": "8",
+        "long": "Lawson St \u2013 NCCU \u2013 Durham Tech",
+        "short": "8",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8743BF",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "1791",
+        "label": "7",
+        "long": "Forest Hills \u2013 Weaver St/S. Roxboro St \u2013 MLK Pkwy",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F5D03D",
+        "color_name": "yellow",
+        "has_shape": false,
+        "id": "4506",
+        "label": "20",
+        "long": "Woodcroft \u2013 South Square \u2013 Duke/VA Limited",
+        "short": "20",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "077730",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "4508",
+        "label": "3B",
+        "long": "Holloway St \u2013 The Village \u2013 Southern HS",
+        "short": "3B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "7CD820",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "4509",
+        "label": "3C",
+        "long": "Holloway St \u2013 The Village \u2013 Alston Ave",
+        "short": "3C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFC34A",
+        "color_name": "yellow",
+        "has_shape": false,
+        "id": "4723",
+        "label": "NHS",
+        "long": "Northern High School",
+        "short": "NHS",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "332A73",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "4731",
+        "label": "12B",
+        "long": "E. Main St \u2013 NCCU \u2013 Durham Station",
+        "short": "12B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EB821A",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "77112",
+        "label": "9",
+        "long": "Dearborn Dr - Duke Regional Hospital",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 1003,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 3612 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 3612,
+    "trips_with_shape": 3612
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -412,7 +705,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 187 day(s) ago.",
+      "what": "Service data ended 219 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

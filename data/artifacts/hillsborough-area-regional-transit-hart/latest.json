@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "hillsborough-area-regional-transit-hart",
-    "name": "Hillsborough Area Regional Transit (HART)"
-  },
-  "autofix": {
-    "available": false
+    "name": "Hillsborough Area Regional Transit (HART)",
+    "subdivision_code": "US-FL",
+    "subdivision_name": "Florida"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 10884,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 2315,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 10884,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -74,13 +87,13 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 10884,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
           "what": "10884 of 10884 trips don't say whether the vehicle is wheelchair accessible.",
-          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+          "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
         }
       ],
       "name": "completeness",
@@ -91,11 +104,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 3,
+        "distinct_codes": 4,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 0,
-          "WARNING": 89
+          "WARNING": 90
         },
         "validator_version": "8.0.1"
       },
@@ -103,13 +116,13 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 80,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong path or point riders to the wrong boarding location."
         },
         {
           "code": "expired_calendar",
@@ -119,8 +132,19 @@
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
+        },
+        {
+          "code": "feed_expiration_date30_days",
+          "count": 1,
+          "effort": "Usually a re-export from your scheduling software.",
+          "fix": "Schedule a feed re-export now so the new calendar is live well before the current one ends.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "This feed's service calendar runs out within the next 30 days.",
+          "why": "If a new feed isn't published before it ends, trip planners will drop your agency and riders will see no service."
         },
         {
           "code": "stop_too_far_from_shape",
@@ -131,41 +155,61 @@
           "points": 4.0,
           "severity": "WARNING",
           "what": "Some stops sit far from the route line they belong to.",
-          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+          "why": "Trip planners may draw the transit vehicle route through the wrong path or point riders to the wrong boarding location."
         }
       ],
       "name": "correctness",
-      "score": 82.0,
+      "score": 78.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 3 kinds of issue across 89 instances (0 error, 89 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 4 kinds of issue across 90 instances (0 error, 90 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 40,
+        "days_until_expiry": 8,
+        "effective_expiry_date": "2026-08-15",
         "feed_end_date": "2026-08-15",
         "feed_start_date": "2026-01-04",
         "feed_version": "2606.2",
         "has_feed_info": true,
         "last_service_date": "2026-08-15",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 72.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 8 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
       "name": "freshness",
-      "score": 66.7,
+      "score": 13.3,
       "status": "measured",
-      "summary": "Service data covers the next 40 days.",
+      "summary": "Service data runs out in 8 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 0.0,
-        "covered_trips": 0,
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions"
+        ],
+        "coverage_pct": null,
+        "kinds_configured": 2,
         "kinds_reachable": 0,
+        "reachable_kinds": [],
         "rt_freshness": null,
         "samples": 6,
-        "scheduled_trips_in_window": 39,
+        "scheduled_trips_in_window": 29,
         "worst_lag_seconds": null
       },
       "findings": [
@@ -175,7 +219,7 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 50.0,
           "severity": "ERROR",
           "what": "The trip updates realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -186,40 +230,31 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 50.0,
           "severity": "ERROR",
           "what": "The vehicle positions realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_service_alerts_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-          "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The service alerts realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
-        },
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 39,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 35.0,
-          "severity": "WARNING",
-          "what": "39 of 39 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
       "score": 0.0,
       "status": "measured",
-      "summary": "Sampled 6 times: 0 of 3 feeds healthy; 0.0% of scheduled trips had live predictions.",
+      "summary": "Sampled 6 times: 0 of 2 configured feeds healthy; vehicle position plausibility was not measurable.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 6 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -230,9 +265,9 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 46 days.",
+        "detail": "Service data runs out in 14 days; renew to qualify.",
         "key": "current",
-        "met": true
+        "met": false
       },
       {
         "detail": "States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each.",
@@ -241,7 +276,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data runs out in 14 days; renew to qualify. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -250,7 +285,14 @@
     "size_bytes": 3662794,
     "static_url": "http://www.gohart.org/google/google_transit.zip"
   },
-  "generated_at": "2026-06-30T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.gohart.org/google/google_transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-01T00:00:00+00:00",
   "geo": {
     "bbox": [
       -82.58478,
@@ -262,8 +304,35 @@
     "lon": -82.44971,
     "stop_count": 2315
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": true,
+    "measured": true,
+    "modes": [
+      {
+        "key": "tram",
+        "label": "Tram / light rail",
+        "route_count": 2,
+        "trip_count": 2828,
+        "trip_share_pct": 26.0
+      },
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 33,
+        "trip_count": 8056,
+        "trip_share_pct": 74.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 35,
+    "trip_count": 10884
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1",
       "2"
@@ -283,22 +352,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 46 days.",
+        "detail": "Service data runs out in 14 days; renew before you certify.",
         "key": "current",
+        "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
-    "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "status": "at_risk",
+    "summary": "This feed is close to NTD-ready. Service data runs out in 14 days; renew before you certify."
   },
   "overall": {
     "grade": "F",
-    "margin_to_lower_band": 57.0,
-    "margin_to_next_band": 3.0,
-    "score": 57.0
+    "margin_to_lower_band": 45.0,
+    "margin_to_next_band": 15.0,
+    "score": 45.0
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 2266,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -311,8 +386,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -322,18 +397,436 @@
     "single_stop_trips": 0,
     "trips_total": 10884
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 35,
+    "has_shapes": true,
+    "path": "data/artifacts/hillsborough-area-regional-transit-hart/geometry.geojson",
+    "route_count": 35,
+    "routes": [
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "Florida Avenue",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "Cypress Street",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "12",
+        "label": "12",
+        "long": "22nd Street",
+        "short": "12",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "14",
+        "label": "14",
+        "long": "Armenia/Howard Avenue",
+        "short": "14",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "15",
+        "label": "15",
+        "long": "Columbus Drive",
+        "short": "15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "16",
+        "label": "16",
+        "long": "Waters Avenue",
+        "short": "16",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "19",
+        "label": "19",
+        "long": "South Tampa",
+        "short": "19",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A81534",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "24",
+        "label": "24",
+        "long": "Fishhawk/South Tampa Limited Express",
+        "short": "24",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A81534",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "25",
+        "label": "25",
+        "long": "Bloomingdale/South Tampa Limited Express",
+        "short": "25",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A81534",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "275",
+        "label": "275",
+        "long": "New Tampa Limited Express",
+        "short": "275",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "30",
+        "label": "30",
+        "long": "Kennedy Boulevard/Town N Country",
+        "short": "30",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "31",
+        "label": "31",
+        "long": "South Hillsborough County",
+        "short": "31",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "32",
+        "label": "32",
+        "long": "Dr. Martin Luther King Jr. Boulevard",
+        "short": "32",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "33",
+        "label": "33",
+        "long": "Fletcher Avenue/Northdale",
+        "short": "33",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "34",
+        "label": "34",
+        "long": "Hillsborough Avenue",
+        "short": "34",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "36",
+        "label": "36",
+        "long": "Dale Mabry Highway/Himes Avenue",
+        "short": "36",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A81534",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "360",
+        "label": "360",
+        "long": "Brandon/South Tampa Limited Express",
+        "short": "360",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "37",
+        "label": "37",
+        "long": "Brandon/Netpark",
+        "short": "37",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "38",
+        "label": "38",
+        "long": "Mango/Brandon",
+        "short": "38",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "39",
+        "label": "39",
+        "long": "Busch Boulevard",
+        "short": "39",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "400",
+        "label": "400",
+        "long": "Nebraska Avenue",
+        "short": "400",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "42",
+        "label": "42",
+        "long": "University Area Connector",
+        "short": "42",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "44",
+        "label": "44",
+        "long": "Sinclair Hills Connector",
+        "short": "44",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "45",
+        "label": "45",
+        "long": "University Area/Westshore",
+        "short": "45",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "46",
+        "label": "46",
+        "long": "Brandon Boulevard",
+        "short": "46",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "48",
+        "label": "48",
+        "long": "Temple Terrace",
+        "short": "48",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "40th Street",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFA500",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "571",
+        "label": "571",
+        "long": "HARTFlex South County",
+        "short": "571",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFA500",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "576",
+        "label": "576",
+        "long": "HARTFlex East Fletcher",
+        "short": "576",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6",
+        "label": "6",
+        "long": "56th Street",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "7",
+        "label": "7",
+        "long": "West Tampa",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "8",
+        "label": "8",
+        "long": "Progress Village/Brandon",
+        "short": "8",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFF00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "800",
+        "label": "800",
+        "long": "Tampa Historic Streetcar",
+        "short": "800",
+        "text_color": "000000",
+        "type_label": "Tram / light rail"
+      },
+      {
+        "color": "09346D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "9",
+        "label": "9",
+        "long": "15th/30th Street",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A020F0",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "Sky",
+        "label": "Sky",
+        "long": "SkyConnect operated by Tampa International Airport",
+        "short": "Sky",
+        "text_color": "FFFFFF",
+        "type_label": "Tram / light rail"
+      }
+    ],
+    "stop_count": 2315,
+    "stop_points_capped": true
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 10884 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 10884,
+    "trips_with_shape": 10884
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 72.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 8 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "scorecard_rt_trip_updates_unreachable",
       "count": 1,
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the trip updates endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
-      "rank": 1,
+      "points": 50.0,
+      "rank": 2,
       "severity": "ERROR",
       "what": "The trip updates realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
@@ -344,22 +837,10 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
-      "rank": 2,
-      "severity": "ERROR",
-      "what": "The vehicle positions realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
-    },
-    {
-      "code": "scorecard_rt_service_alerts_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
+      "points": 50.0,
       "rank": 3,
       "severity": "ERROR",
-      "what": "The service alerts realtime feed failed during sampling.",
+      "what": "The vehicle positions realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     }
   ],

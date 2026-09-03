@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "site_origin": "https://gtfsscorecard.org",
+  "sitemap_path": "sitemap.xml",
+  "robots_path": "robots.txt",
+  "retained_redirects_path": "_meta/retained-agency-redirects.json",
+  "fragment_exempt_prefixes": [
+    "/app/"
+  ],
+  "noindex_path_patterns": [
+    "/agency/*/board/",
+    "/agency/*/brief/",
+    "/bundle/",
+    "/bundle/setup/"
+  ],
+  "canonical_aliases": {
+    "/app/": "/agencies/"
+  },
+  "hreflang_groups": [
+    {
+      "en": "/",
+      "es": "/es/"
+    }
+  ],
+  "required_json_ld_types": {
+    "/agency/*/": [
+      "Dataset"
+    ]
+  },
+  "title_length": [
+    15,
+    60
+  ],
+  "description_length": [
+    50,
+    155
+  ],
+  "redirect_aliases": {
+    "/access/": "/adoption/#access",
+    "/changes/": "/pulse/#changes",
+    "/concept/": "/how-to-read/",
+    "/leaderboard/": "/pulse/#changes",
+    "/trends/": "/pulse/#trend"
+  }
+}

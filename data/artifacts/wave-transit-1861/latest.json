@@ -212,7 +212,7 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -1224,
+        "days_until_expiry": -1228,
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
@@ -230,7 +230,7 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 1224 day(s) ago.",
+          "what": "Service data ended 1228 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         },
         {
@@ -248,7 +248,7 @@
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 1224 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 1228 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -358,8 +358,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-07-10",
+    "feed_fetched_date": "2026-07-09",
     "kind": "freshness"
   },
   "routability": {
@@ -371,7 +371,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-07-10",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -382,7 +382,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 1224 day(s) ago.",
+      "what": "Service data ended 1228 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

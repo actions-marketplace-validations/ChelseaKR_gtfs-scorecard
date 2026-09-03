@@ -1,44 +1,9 @@
 {
   "agency": {
     "id": "central-ohio-transit-authority-cota",
-    "name": "Central Ohio Transit Authority (COTA)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/central-ohio-transit-authority-cota/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 7,
-        "examples": [
-          "'stop_desc': ' Unit CANNON DR & E 7TH AVE' -> 'Unit CANNON DR & E 7TH AVE'",
-          "'stop_desc': ' Unit CANNON DR & BRYDEN RD' -> 'Unit CANNON DR & BRYDEN RD'",
-          "'stop_desc': ' Unit CANNON DR & N FOURTH ST' -> 'Unit CANNON DR & N FOURTH ST'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      },
-      {
-        "code": "autofix_stop_name_case",
-        "count": 2920,
-        "examples": [
-          "HANSON ST & E MAIN ST -> Hanson St & E Main St",
-          "W MOUND ST & S WAYNE AVE -> W Mound St & S Wayne Ave",
-          "MORSE CROSSING & EASTON WAY -> Morse Crossing & Easton Way"
-        ],
-        "label": "Recased shouting stop names"
-      },
-      {
-        "code": "autofix_route_name_case",
-        "count": 41,
-        "examples": [
-          "KENNY/LIVINGSTON -> Kenny/livingston",
-          "E MAIN/N HIGH -> E Main/n High",
-          "NORTHWEST/HARRISBURG -> Northwest/harrisburg"
-        ],
-        "label": "Recased shouting route names"
-      }
-    ],
-    "total": 2968
+    "name": "Central Ohio Transit Authority (COTA)",
+    "subdivision_code": "US-OH",
+    "subdivision_name": "Ohio"
   },
   "categories": {
     "completeness": {
@@ -80,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 5435,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 1.0,
         "pathways": {
           "has_entrances": false,
@@ -91,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 2949,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 5435,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -112,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 5435,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -124,7 +99,7 @@
           "code": "scorecard_stop_names_all_caps",
           "count": 2920,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 14.9,
           "severity": "INFO",
@@ -140,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -174,24 +149,24 @@
         {
           "code": "stop_too_far_from_shape_using_user_distance",
           "count": 102,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stop_too_far_from_shape_using_user_distance' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Check the flagged stops' shape_dist_traveled against the route shape, and re-generate it on export if they disagree.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Stop too far from shape using user distance (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some stops sit far from the route line, going by the feed's own distance values.",
+          "why": "Trip planners may draw the route down the wrong streets or point riders to the wrong corner."
         },
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "missing_recommended_field",
@@ -201,19 +176,19 @@
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
           "code": "route_long_name_contains_short_name",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         }
       ],
       "name": "correctness",
@@ -224,51 +199,73 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 62,
+        "days_until_expiry": 30,
+        "effective_expiry_date": "2026-09-06",
         "feed_end_date": "2026-09-06",
         "feed_start_date": "2026-05-04",
         "feed_version": "2026-MAY-04-BB_20260630",
         "has_feed_info": true,
         "last_service_date": "2026-09-06",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 50.0,
       "status": "measured",
-      "summary": "Service data covers the next 62 days.",
+      "summary": "Service data covers the next 30 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 0.0,
-        "covered_trips": 0,
+        "alerts_content": {
+          "alerts": 6,
+          "ended_over_30_days_ago": 0,
+          "with_cause_and_effect": 0,
+          "with_description": 6,
+          "with_header_text": 6,
+          "with_informed_entity": 0
+        },
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": null,
+        "kinds_configured": 3,
         "kinds_reachable": 3,
+        "reachable_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 152,
-        "worst_lag_seconds": 8
+        "scheduled_trips_in_window": 0,
+        "worst_lag_seconds": 22
       },
-      "findings": [
-        {
-          "code": "scorecard_rt_trip_coverage",
-          "count": 152,
-          "effort": "A vendor data-mapping question.",
-          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-          "owner": "",
-          "points": 35.0,
-          "severity": "WARNING",
-          "what": "152 of 152 trips scheduled during the sampling window had no live predictions.",
-          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
-        }
-      ],
+      "findings": [],
       "name": "realtime",
-      "score": 58.8,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 0.0% of scheduled trips had live predictions.",
+      "summary": "Sampled 9 times outside service hours: 3 of 3 configured feeds healthy; vehicle position plausibility was not measurable.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -279,7 +276,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 66 days.",
+        "detail": "Service data covers the next 43 days.",
         "key": "current",
         "met": true
       },
@@ -299,7 +296,14 @@
     "size_bytes": 3854370,
     "static_url": "http://www.cota.com/data/cota.gtfs.zip"
   },
-  "generated_at": "2026-07-02T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.cota.com/data/cota.gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -83.16265,
@@ -311,12 +315,32 @@
     "lon": -82.98717,
     "stop_count": 2949
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 42,
+        "trip_count": 5435,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 42,
+    "trip_count": 5435
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed's agency_id is COTA; your National Transit Database ID is 50016. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
+    "detail": "Your feed's agency_id is COTA; your National Transit Database ID is 50016. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "COTA"
     ],
-    "fix": "Optionally set the agency_id for your service to 50016 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
+    "fix": "Confirm that P-50 crosswalks agency_id COTA to NTD ID 50016, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "50016",
     "status": "mismatch"
   },
@@ -333,22 +357,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 66 days.",
+        "detail": "Service data covers the next 43 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "D",
-    "margin_to_lower_band": 6.4,
-    "margin_to_next_band": 3.6,
-    "score": 66.4
+    "margin_to_lower_band": 4.6,
+    "margin_to_next_band": 5.4,
+    "score": 64.6
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 2887,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -361,8 +391,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -844,22 +874,21 @@
     "stop_count": 2949,
     "stop_points_capped": true
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 5435 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 5435,
+    "trips_with_shape": 5435
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
-    {
-      "code": "scorecard_rt_trip_coverage",
-      "count": 152,
-      "effort": "A vendor data-mapping question.",
-      "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
-      "owner": "",
-      "points": 35.0,
-      "rank": 1,
-      "severity": "WARNING",
-      "what": "152 of 152 trips scheduled during the sampling window had no live predictions.",
-      "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
-    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 2949,
@@ -867,7 +896,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 2,
+      "rank": 1,
       "severity": "WARNING",
       "what": "2949 of 2949 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -875,14 +904,26 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 5435,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 3,
+      "rank": 2,
       "severity": "WARNING",
       "what": "5435 of 5435 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
+    },
+    {
+      "code": "mixed_case_recommended_field",
+      "count": 8411,
+      "effort": "Often a bulk fix in your scheduling software.",
+      "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
+      "owner": "Likely your export tool",
+      "points": 8.0,
+      "rank": 3,
+      "severity": "WARNING",
+      "what": "Some rider-facing names are in ALL CAPS or all lowercase.",
+      "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
     }
   ],
   "validator_version": "8.0.1"

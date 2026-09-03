@@ -1,0 +1,12 @@
+# Funding links for the repository's Sponsor button and the /support/ page.
+#
+# What sponsorship pays for, and what it never buys, is on
+# https://gtfsscorecard.org/support/, in SUPPORT.md, and in docs/support.md.
+#
+# Add a channel here only once that account actually exists, and update the
+# buttons in web/support/index.html at the same time. A key pointing at a
+# checkout that is not live is worse than no key at all.
+#
+# The custom entry is the project's own support page, not a checkout.
+github: ChelseaKR
+custom: ["https://gtfsscorecard.org/support/"]

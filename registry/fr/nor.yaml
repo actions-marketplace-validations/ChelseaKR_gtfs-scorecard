@@ -1,0 +1,579 @@
+# Normandie (FR) agencies — one manifest-listed shard of the GTFS Scorecard registry.
+#
+# The field reference and contribution workflow live in registry/README.md.
+# Every id must be unique across every shard listed by registry/index.yaml.
+agencies:
+  # Four-region worldwide cohort: official, openly licensed feeds selected to
+  # exercise local-language names, additional ISO subdivisions, combined and
+  # single-kind realtime, and a multi-operator schedule. Sources and reuse
+  # terms were verified 2026-07-12 and are recorded in docs/feeds.md.
+  - id: lbus-bernay
+    name: Réseau urbain l'Bus (Bernay)
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/9ffc26b2-d293-4ec5-9cf6-4690d542f019
+    license_note: >-
+      Licence Ouverte 2.0; published by Intercom Bernay Terres de Normandie
+      through France's National Access Point.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-transport-urbain-de-bernay
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Intercom Bernay Terres de Normandie.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-16"
+      identity_reviewed: true
+    # The publisher exposes one combined GTFS-Realtime stream for all kinds.
+    rt_urls:
+      trip_updates: https://www.data.gouv.fr/api/1/datasets/r/622b4abe-e029-4a6b-bd59-ef849e9b005f
+      vehicle_positions: https://www.data.gouv.fr/api/1/datasets/r/622b4abe-e029-4a6b-bd59-ef849e9b005f
+      service_alerts: https://www.data.gouv.fr/api/1/datasets/r/622b4abe-e029-4a6b-bd59-ef849e9b005f
+  - id: cap-cotentin
+    name: Réseau urbain Cap Cotentin
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    mdb_id: "1840"
+    static_gtfs_url: https://www.data.gouv.fr/fr/datasets/r/2e97c9b3-a59f-42dd-9b9e-a232fa771f21
+    license_note: >-
+      Licence Ouverte 2.0; published by the Communauté d'Agglomération du
+      Cotentin through France's National Access Point. Derived measurements by
+      GTFS Scorecard.
+    # The publisher exposes one combined GTFS-Realtime stream for all kinds.
+    rt_urls:
+      trip_updates: https://pysae.com/api/v2/groups/transdev-cotentin/gtfs-rt
+      vehicle_positions: https://pysae.com/api/v2/groups/transdev-cotentin/gtfs-rt
+      service_alerts: https://pysae.com/api/v2/groups/transdev-cotentin/gtfs-rt
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/horaires-theoriques-et-en-temps-reel-des-bus-et-autocars-circulant-sur-le-reseau-cap-cotentin
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Communauté d'Agglomération du Cotentin.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-17"
+      identity_reviewed: true
+  - id: transmanche-ferries
+    name: Transmanche Ferries
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/83981/download
+    license_note: >-
+      Licence Ouverte 2.0; source Syndicat mixte Atoumod and Transmanche
+      Ferries through France's National Access Point. Derived measurements by
+      GTFS Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/transmanche-ferries
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Syndicat mixte Atoumod and Transmanche Ferries.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-16"
+      identity_reviewed: true
+  - id: semo-seine-eure
+    name: SEMO (Seine-Eure)
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    mdb_id: "1838"
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/81338/download
+    license_note: >-
+      Licence Ouverte 2.0; published by the Communauté d'agglomération
+      Seine-Eure through France's National Access Point. Derived measurements by
+      GTFS Scorecard.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/semo-val-de-reuil-louviers-seine-eure-agglo
+      terms_url: https://www.data.gouv.fr/pages/legal/licences/etalab-2.0
+      scope: [gtfs_schedule]
+      attribution: Communauté d'agglomération Seine-Eure.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: transurbain-evreux
+    name: Transurbain (Évreux)
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/80613/download
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab) as recorded on the French national access
+      point transport.data.gouv.fr; reuse including commercial reuse is
+      permitted with attribution to Évreux Portes de Normandie (réseau
+      Transurbain) and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/transurbain-evreux-portes-de-normandie
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Évreux Portes de Normandie (réseau Transurbain).
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: deepmob-dieppe
+    name: DeepMob (Dieppe)
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/80680/download
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab) as recorded on the French national access
+      point transport.data.gouv.fr; reuse including commercial reuse is
+      permitted with attribution to Communauté d'agglomération de la Région
+      Dieppoise (réseau DeepMob) and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/deepmob-dieppe-maritime
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Communauté d'agglomération de la Région Dieppoise (réseau DeepMob).
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: astrobus-lisieux
+    name: Astrobus (Lisieux)
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/82140/download
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab) as recorded on the French national access
+      point transport.data.gouv.fr; reuse including commercial reuse is
+      permitted with attribution to Communauté d'agglomération Lisieux
+      Normandie (réseau Astrobus) and the update date.
+    operating_note: >-
+      One French urban network published on the national access point
+      transport.data.gouv.fr.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/astrobus-lisieux-normandie
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Communauté d'agglomération Lisieux Normandie (réseau Astrobus).
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: fr-argentan-bus
+    name: "Réseau urbain Argentan Bus"
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: "Normandie"
+    is_official: true
+    static_gtfs_url: "https://transport.data.gouv.fr/resources/82315/download"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CC Argentan Intercom and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/argentanbus-argentan-intercom"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CC Argentan Intercom"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-hobus
+    name: Réseau urbain Hobus
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/82711/download
+    rt_urls:
+      trip_updates: https://proxy.transport.data.gouv.fr/resource/hobus-honfleur-gtfs-rt-trip-update
+      vehicle_positions: https://proxy.transport.data.gouv.fr/resource/hobus-honfleur-gtfs-rt-vehicle-position
+      service_alerts: https://proxy.transport.data.gouv.fr/resource/hobus-honfleur-gtfs-rt-alerts
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access
+      Point; reuse is permitted with attribution to the Communauté de communes
+      du Pays de Honfleur-Beuzeville and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/hobus-honfleur
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: Communauté de communes du Pays de Honfleur-Beuzeville.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-bacs-de-seine
+    name: "Réseau maritime Bacs de Seine"
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: "Normandie"
+    is_official: true
+    static_gtfs_url: "https://transport.data.gouv.fr/resources/82308/download"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      Normandie and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/bacs-de-seine-departement-seine-maritime"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "Normandie"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-moca
+    name: "Réseau urbain MOCA"
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: "Normandie"
+    is_official: true
+    static_gtfs_url: "https://transport.data.gouv.fr/resources/82309/download"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CC Caux - Austreberthe and the update date.
+    rt_urls:
+      service_alerts: "https://proxy.transport.data.gouv.fr/resource/moca-caux-austreberthe-gtfs-rt-alert"
+      trip_updates: "https://proxy.transport.data.gouv.fr/resource/moca-caux-austreberthe-gtfs-rt-trip-update"
+      vehicle_positions: "https://proxy.transport.data.gouv.fr/resource/moca-caux-austreberthe-gtfs-rt"
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/moca-communaute-de-communes-caux-austreberthe"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CC Caux - Austreberthe"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-navette-pontorson-le-mont-saint-michel
+    name: "Navette Pontorson – Le Mont-Saint-Michel"
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: "Normandie"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/7e0312ef-a6e0-41ab-a75a-2b782a4b1d6b"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      Syndicat mixte Atoumod and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/navette-pontorson-le-mont-saint-michel"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "Syndicat mixte Atoumod"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-nemus
+    name: "Réseau urbain Nemus"
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: "Normandie"
+    is_official: true
+    static_gtfs_url: "https://www.data.gouv.fr/api/1/datasets/r/7d399812-e018-4e35-b3ae-a5ba44c8ad91"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CA Flers Agglo and the update date.
+    rt_urls:
+      trip_updates: "https://www.data.gouv.fr/api/1/datasets/r/f8d5faf0-7662-41c1-97e2-dca45f77a3d6"
+      vehicle_positions: "https://www.data.gouv.fr/api/1/datasets/r/eff8bfff-3d8d-4264-b443-f8aab1d94909"
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/donnees-theoriques-du-reseau-urbain-de-flers-agglo-au-format-gtfs"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CA Flers Agglo"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-tiva
+    name: "Réseau urbain TIVA"
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: "Normandie"
+    is_official: true
+    static_gtfs_url: "https://transport.data.gouv.fr/resources/83846/download"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CC Intercom de la Vire au Noireau and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/tiva-urbain-reseau-urbain-a-vire-intercom-de-la-vire-au-noireau-2025-2026"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CC Intercom de la Vire au Noireau"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-vikibus
+    name: "Réseau urbain Vikibus"
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: "Normandie"
+    is_official: true
+    static_gtfs_url: "https://transport.data.gouv.fr/resources/81975/download"
+    license_note: >-
+      Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point;
+      reuse including commercial reuse is permitted with attribution to
+      CC Yvetot Normandie and the update date.
+    rt_urls:
+      trip_updates: "https://proxy.transport.data.gouv.fr/resource/vikibus-yvetot-gtfs-rt-trip-update"
+      vehicle_positions: "https://proxy.transport.data.gouv.fr/resource/vikibus-yvetot-gtfs-rt-vehicle-position"
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: "https://transport.data.gouv.fr/datasets/vikibus-yvetot-normandie"
+      terms_url: https://www.etalab.gouv.fr/licence-ouverte-open-licence/
+      scope: [gtfs_schedule]
+      attribution: "CC Yvetot Normandie"
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true
+  - id: fr-pan-81177
+    name: Navette estivale SNGO! Giverny Vernon - Gare SNCF
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    service_type: seasonal
+    static_gtfs_url: https://transport.data.gouv.fr/resources/81177/download
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Syndicat mixte Atoumod and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/giverny-vernon-gare-sncf
+      terms_url: https://transport.data.gouv.fr/datasets/giverny-vernon-gare-sncf
+      scope:
+      - gtfs_schedule
+      attribution: Syndicat mixte Atoumod
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-82094
+    name: Réseau scolaire de Flers
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/e833d9ed-201b-4154-aa16-45bc00939571
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to NEMUS (Réseau de transports de Flers Agglo) and
+      the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-nemus
+      terms_url: https://transport.data.gouv.fr/datasets/reseau-nemus
+      scope:
+      - gtfs_schedule
+      attribution: NEMUS (Réseau de transports de Flers Agglo)
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-82317
+    name: Réseau interurbain Nomad Car
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://transport.data.gouv.fr/resources/82317/download
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Syndicat mixte Atoumod and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/nomad-car-region-normandie
+      terms_url: https://transport.data.gouv.fr/datasets/nomad-car-region-normandie
+      scope:
+      - gtfs_schedule
+      attribution: Syndicat mixte Atoumod
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83769
+    name: Réseau scolaire Tiva
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/4d6b5107-fec7-41bb-9115-bbaafb7e71f1
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Intercom de la Vire au Noireau and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/tiva-scolaire-secondaires-intravire-intercom-de-la-vire-au-noireau-2025-2026
+      terms_url: https://transport.data.gouv.fr/datasets/tiva-scolaire-secondaires-intravire-intercom-de-la-vire-au-noireau-2025-2026
+      scope:
+      - gtfs_schedule
+      attribution: Intercom de la Vire au Noireau
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-83770
+    name: TAD réseau Tiva
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    service_type: demand_response
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/f3b71a3c-85fd-48c3-a3f0-30b988a4e64b
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to Intercom de la Vire au Noireau and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/tiva-a-la-demande-service-de-transport-a-la-demande-intercom-de-la-vire-au-noireau-2025-2026
+      terms_url: https://transport.data.gouv.fr/datasets/tiva-a-la-demande-service-de-transport-a-la-demande-intercom-de-la-vire-au-noireau-2025-2026
+      scope:
+      - gtfs_schedule
+      attribution: Intercom de la Vire au Noireau
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-07-23'
+      identity_reviewed: true
+  - id: fr-pan-82721
+    name: Réseau urbain Néva
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    organization_id: fr-pan-5cc844dd634f41078d8e2c8e
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/bd78a5f5-69f2-46bd-af02-80731213660e
+    rt_urls:
+      trip_updates: https://www.data.gouv.fr/api/1/datasets/r/61c6ee56-5916-4fb1-88ee-fc41e89e389a
+      vehicle_positions: https://www.data.gouv.fr/api/1/datasets/r/b77b1155-675d-4a7f-99ba-f5070b761f46
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to CC de Granville, Terre et Mer and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/neva-granville-terre-et-mer
+      terms_url: https://transport.data.gouv.fr/datasets/neva-granville-terre-et-mer
+      scope:
+      - gtfs_schedule
+      attribution: CC de Granville, Terre et Mer
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true
+  - id: fr-pan-84037
+    name: Réseau urbain LiA
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/2178bfa8-9fe0-4633-8223-8c151728ef28
+    rt_urls:
+      trip_updates: https://www.data.gouv.fr/api/1/datasets/r/ef4eb4af-71ed-4878-8c2b-d77604037799
+      vehicle_positions: https://www.data.gouv.fr/api/1/datasets/r/d499d5a2-8bba-4862-847a-0423f7d8cf23
+      service_alerts: https://www.data.gouv.fr/api/1/datasets/r/06f3c928-b460-4bb9-bfb8-bd298279a5a1
+    license_note: Open Database License (ODbL), recorded by France's National Access Point; credit Le Havre
+      Seine Métropole, identify the ODbL, and preserve share-alike terms where they apply.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/reseau-de-transport-en-commun-lia-gtfs-siri
+      terms_url: https://transport.data.gouv.fr/datasets/reseau-de-transport-en-commun-lia-gtfs-siri
+      scope:
+      - gtfs_schedule
+      attribution: Le Havre Seine Métropole
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true
+  - id: fr-pan-82312
+    name: Réseau urbain Cosibus
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    organization_id: fr-pan-5cc844dd634f41078d8e2c8e
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/ff3d0940-f19a-4981-b4b1-6ddbc9c6018f
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to CC Coutances Mer et Bocage and the update date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/cosibus-coutances-mer-et-bocage
+      terms_url: https://transport.data.gouv.fr/datasets/cosibus-coutances-mer-et-bocage
+      scope:
+      - gtfs_schedule
+      attribution: CC Coutances Mer et Bocage
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true
+  - id: fr-pan-82311
+    name: Réseau urbain Ficibus
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    organization_id: fr-pan-5cc844dd634f41078d8e2c8e
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/1eba4abd-f27c-495f-9fb0-cfda590cb669
+    rt_urls:
+      trip_updates: https://www.data.gouv.fr/api/1/datasets/r/df1fda0a-dd48-44fd-adf5-30687394cd07
+      vehicle_positions: https://www.data.gouv.fr/api/1/datasets/r/fd40ae51-b748-4065-a341-24e888919b11
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to CA Fécamp Caux Littoral Agglomération and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/ficibus-fecamp-caux-littoral
+      terms_url: https://transport.data.gouv.fr/datasets/ficibus-fecamp-caux-littoral
+      scope:
+      - gtfs_schedule
+      attribution: CA Fécamp Caux Littoral Agglomération
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true
+  - id: fr-pan-80655
+    name: Réseau urbain SNgo!
+    country: FR
+    subdivision_code: FR-NOR
+    subdivision_name: Normandie
+    is_official: true
+    organization_id: fr-pan-5cc844dd634f41078d8e2c8e
+    static_gtfs_url: https://www.data.gouv.fr/api/1/datasets/r/71bf48f1-178e-4ce3-ba9d-361cc5be76a7
+    rt_urls:
+      trip_updates: https://www.data.gouv.fr/api/1/datasets/r/081d6216-48bc-41ef-887b-5fa94dba5a4c
+      vehicle_positions: https://www.data.gouv.fr/api/1/datasets/r/59181d06-f4a9-4474-b7b8-2b6d47913245
+    license_note: Licence Ouverte 2.0 (Etalab), recorded by France's National Access Point; reuse including
+      commercial reuse is permitted with attribution to CA Seine Normandie Agglomération and the update
+      date.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://transport.data.gouv.fr/datasets/sngo-vernon-les-andelys-seine-normandie-agglo
+      terms_url: https://transport.data.gouv.fr/datasets/sngo-vernon-les-andelys-seine-normandie-agglo
+      scope:
+      - gtfs_schedule
+      attribution: CA Seine Normandie Agglomération
+      reviewed_by: ChelseaKR
+      reviewed_on: '2026-08-30'
+      identity_reviewed: true

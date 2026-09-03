@@ -1,9 +1,13 @@
 [project]
 name = "scorecard-pipeline"
-version = "0.1.0"
+# Single source of truth for the repo's version (REL-02/REL-03/REL-05). Mirrored
+# in CITATION.cff and server.json; a `make verify` check (scripts/check_versions.py)
+# fails CI if they drift. A protected release tag is cut only after these
+# declarations and CI agree; this file never treats an uncut tag as published.
+version = "1.5.0"
 description = "Ingestion and scoring pipeline for the small-agency GTFS quality scorecard"
 license = "Apache-2.0"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "requests>=2.32",
     "gtfs-realtime-bindings>=1.0",
@@ -11,6 +15,9 @@ dependencies = [
     # Machine-enforces the per-agency data contract: publish() validates every
     # artifact against web/schemas/artifact.schema.json before writing it.
     "jsonschema>=4.21",
+    # Render authored fix guides with CommonMark semantics. The previous
+    # line-by-line renderer split wrapped paragraphs and list continuations.
+    "markdown-it-py>=4.0",
 ]
 
 [project.optional-dependencies]
@@ -25,9 +32,16 @@ scorecard-mcp = "scorecard_pipeline.mcp_server:main"
 
 [dependency-groups]
 dev = [
+    # The structural SEO gate parses rendered sitemap XML. Keep entity
+    # expansion and external references disabled even for local build output.
+    "defusedxml>=0.7.1",
     "pytest>=8.0",
-    "ruff>=0.4",
+    "ruff>=0.15",
     "mypy>=1.10",
+    # Generation-only sources for the committed global ISO location vocabulary.
+    # Runtime and installed-wheel consumers read the generated JSON package data.
+    "pycountry==26.2.16",
+    "babel==2.18.0",
     "types-requests",
     "types-PyYAML",
     "duckdb>=1.0",
@@ -54,16 +68,44 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/scorecard_pipeline"]
 
+# Receipt generation validates against the exact public 1.2 contract. Map that
+# versioned schema into the wheel so an installed CLI does not depend on a
+# repository checkout having web/schemas beside it.
+[tool.hatch.build.targets.wheel.force-include]
+"../web/schemas/sync-source-metadata-1.2.schema.json" = "scorecard_pipeline/data/schemas/sync-source-metadata-1.2.schema.json"
+
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "S", "C90", "RUF"]
+# Typographic characters used deliberately in plain-language civic prose
+# (en dash, right single quote/apostrophe, multiplication sign in a comment).
+# Reviewed allowlist, not a blanket suppression of RUF001-003.
+allowed-confusables = ["–", "’", "×"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+# Bandit rules that are structurally false-positive in tests: S101 (assert is
+# the test framework), S108 (hardcoded /tmp paths are inert FetchResult
+# fixture placeholders, never written to), S314 (parsing this repo's own
+# freshly-rendered XML fixtures, not untrusted input), S105/S106 (test
+# fixtures name an "unsub_token" variable, not a real secret), S608 (the one
+# instance reads back the test's own just-written tmp Parquet file path, not
+# externally supplied input).
+"tests/**" = ["S101", "S108", "S314", "S105", "S106", "S608"]
 
 [tool.mypy]
 strict = true
-files = ["src", "tests"]
+# CQ-38: `scripts` was outside this list, so every gate `make verify` runs from
+# there (check_contrast, check_readability, check_versions, check_doc_stats,
+# check_site_seo, check_site_budgets) was unchecked. check_site_seo.py was the
+# case that mattered: it carried a strict-mode type error inside its own
+# privacy gate, where a Reference was rebound to a str.
+files = ["src", "tests", "scripts"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"
@@ -71,6 +113,12 @@ disallow_untyped_decorators = false
 
 [[tool.mypy.overrides]]
 module = ["google.transit.*", "google.protobuf.*"]
+ignore_missing_imports = true
+
+# defusedxml ships no stubs and types-defusedxml is not a runtime dependency of
+# this project. Only scripts/check_site_seo.py imports it.
+[[tool.mypy.overrides]]
+module = ["defusedxml.*"]
 ignore_missing_imports = true
 
 # The e2e dependency group is not part of the default environment, so mypy in
@@ -85,7 +133,7 @@ testpaths = ["tests"]
 # Browser tests are opt-in: the default run (and the 92%-branch coverage gate in
 # ci.yml / `make verify`) deselects them; .github/workflows/e2e.yml runs
 # `pytest tests/e2e -m e2e`, where the explicit -m overrides this one.
-addopts = "-m 'not e2e'"
+addopts = "-m 'not e2e' --strict-markers --strict-config --import-mode=importlib"
 markers = [
     "e2e: behavioral browser test over the statically served site (needs the e2e dependency group and a Playwright chromium)",
 ]
@@ -98,10 +146,13 @@ omit = [
     # that are unit-tested directly, exercised end-to-end by the daily build. Not
     # worth mocking the world to unit-test for a coverage number.
     "*/scorecard_pipeline/cli.py",
-    # Static-site HTML/JS string assembly: its logic-bearing helpers are covered
-    # behaviorally by tests/test_render_site.py; a % over the templating glue would
-    # measure markup, not correctness.
-    "*/scorecard_pipeline/render_site.py",
+    # render_site.py was omitted here on the same argument, that a percentage
+    # over templating glue measures markup. Measured, it is at 90% branch
+    # coverage from tests/test_render_site.py, and it is 3,132 statements, the
+    # largest module in the package by a wide margin. Omitted, its only
+    # independent gate was the golden suite, whose baseline render_site()
+    # itself regenerates. It is in the floor now, and the floor still clears
+    # 92% without being moved.
 ]
 
 [tool.coverage.report]

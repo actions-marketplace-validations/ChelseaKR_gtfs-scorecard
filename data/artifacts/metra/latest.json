@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "metra",
-    "name": "Metra"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/metra/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/metra/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 1768,
-        "examples": [
-          "' stop_name': ' Geneva' -> 'Geneva'",
-          "' stop_desc': ' ' -> ''",
-          "' stop_lat': ' 41.8816667' -> '41.8816667'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 1768
+    "name": "Metra",
+    "subdivision_code": "US-IL",
+    "subdivision_name": "Illinois"
   },
   "categories": {
     "completeness": {
@@ -61,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 4928,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 0.0,
         "pathways": {
           "has_entrances": false,
@@ -72,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 240,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 4928,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -93,19 +87,19 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 4928,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
           "what": "4928 of 4928 trips don't say whether the vehicle is wheelchair accessible.",
-          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+          "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
         },
         {
           "code": "scorecard_stop_names_all_caps",
           "count": 240,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "INFO",
@@ -115,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 4928,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "4928 of 4928 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "4928 of 4928 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -132,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         },
         {
           "code": "scorecard_bad_agency_url",
@@ -194,7 +188,7 @@
           "points": 4.0,
           "severity": "WARNING",
           "what": "Some stops exist in the feed but no trip ever stops at them.",
-          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+          "why": "Riders may walk to a stop where no transit vehicle is scheduled to arrive."
         },
         {
           "code": "missing_recommended_file",
@@ -261,12 +255,15 @@
     "freshness": {
       "details": {
         "days_until_expiry": null,
+        "effective_expiry_date": null,
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": null,
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "unknown",
         "service_type": "fixed"
       },
       "findings": [
@@ -294,6 +291,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "mirror",
+    "level": "provisional",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The agency's own feed URL was unreachable, so the Mobility Database's hosted mirror copy was scored instead."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -325,19 +334,40 @@
     "static_url": "https://transitfeeds.com/p/metra/169/latest/download"
   },
   "fetch": {
-    "final_url": "https://storage.googleapis.com/storage/v1/b/mdb-latest/o/us-illinois-metra-gtfs-1187.zip?alt=media",
+    "final_url": "https://files.mobilitydatabase.org/mdb-1187/latest.zip",
     "max_attempts": 1,
     "origin_error": "HTTPError",
+    "reader_archive_profile": "raw-v1",
     "source": "mirror",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "other",
+        "label": "Other / unclassified",
+        "route_count": 11,
+        "trip_count": 4928,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "other",
+    "primary_mode_label": "Other / unclassified",
+    "route_count": 11,
+    "trip_count": 4928
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed's agency_id is METRA; your National Transit Database ID is 50118. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
+    "detail": "Your feed's agency_id is METRA; your National Transit Database ID is 50118. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "METRA"
     ],
-    "fix": "Optionally set the agency_id for your service to 50118 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
+    "fix": "Confirm that P-50 crosswalks agency_id METRA to NTD ID 50118, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "50118",
     "status": "mismatch"
   },
@@ -357,6 +387,11 @@
         "detail": "No service end date could be read, so currency is unknown.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
@@ -518,9 +553,21 @@
     "stop_count": 0,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-04",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "No trips in this feed have a shape_id linked to a row in shapes.txt.",
+    "fix": "Add shapes.txt with a shape_id for each trip's path, and set trips.shape_id to match. Reduced, Rural, and Tribal NTD reporters need this in their published GTFS starting Report Year 2026; Full Reporters needed it in Report Year 2025.",
+    "status": "not_ready",
+    "total_trips": 4928,
+    "trips_with_shape": 0
+  },
+  "snapshot_date": "2026-08-05",
   "top_fixes": [
     {
       "code": "scorecard_no_expiry_date",
@@ -549,14 +596,14 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 4928,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,
       "severity": "WARNING",
       "what": "4928 of 4928 trips don't say whether the vehicle is wheelchair accessible.",
-      "why": "Even with accessible stops, riders need to know the bus itself can take them."
+      "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
     }
   ],
   "validator_version": "8.0.1"

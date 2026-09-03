@@ -15,23 +15,92 @@ from typing import Any
 
 from .site_shell import BASE_URL, CATEGORY_LABELS, CATEGORY_ORDER, _breadcrumb, _page, esc
 
+# Where the compare page reads the rest of its picker list from, and how many
+# agencies its two <select>s carry in the document itself.
+#
+# Both pickers used to inline the whole catalog, so the document carried every
+# agency twice and grew by about 190 bytes with each one added: at 2,100
+# records that is a ~430 KB HTML document whose parse cost showed up directly
+# in the page's largest contentful paint. The list is data, not chrome, so it
+# is published once as JSON and fetched the first time someone reaches for a
+# picker, which is the same shape /map/ uses for its complete list. The
+# document now weighs the same at 2,000 agencies as at 20.
+_COMPARE_PICKER_URL = "/compare/agencies.json"
+_COMPARE_PICKER_INITIAL_OPTIONS = 50
+
+
+def _compare_picker_order(catalog: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The catalog in the order both compare pickers list it: by name."""
+    return sorted(catalog, key=lambda r: str(r["name"]).lower())
+
+
+def _render_compare_picker_data(catalog: list[dict[str, Any]]) -> str:
+    """The compare page's picker list, published as its own small JSON.
+
+    One row per feed record, already in the order the pickers show it, holding
+    only what an option needs: the id it submits, the name it reads, and the
+    state that disambiguates the many agencies sharing a name. Positional rows
+    keyed by ``fields`` rather than repeated object keys, because this file is
+    fetched by a picker rather than read by a person; the public dataset with
+    every column stays at /api/v1/agencies.json and /catalog.json."""
+    rows = [
+        [str(r["id"]), str(r["name"]), str(r.get("state") or "")]
+        for r in _compare_picker_order(catalog)
+    ]
+    return (
+        json.dumps(
+            {"schema_version": 1, "fields": ["id", "name", "state"], "agencies": rows},
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+        + "\n"
+    )
+
 
 def _render_compare_page(catalog: list[dict[str, Any]]) -> str:
     """The side-by-side compare page (/compare/?a=<id>&b=<id>).
 
     Two agencies' latest artifacts, loaded client-side and rendered as one
-    accessible table: overall grade, each rubric category, days of service
-    left, and the adoption flags (fares, flex, pathways). The pickers are
-    plain selects submitted as a GET form, so choosing agencies works with
-    JavaScript off and every comparison has a shareable URL; only the result
-    table itself needs JS, and the noscript path says so. An unmeasured
+    accessible table only when rubric, scoring profile, validator, and measured
+    category set match and the feed hashes are distinct. Otherwise the page explains why the grades are kept separate
+    and links to both scorecards. The pickers are
+    plain selects submitted as a GET form, so every comparison has a shareable
+    URL; only the result table itself needs JS, and the noscript path says so.
+    The pickers start with the first
+    ``_COMPARE_PICKER_INITIAL_OPTIONS`` agencies and take the rest from
+    _render_compare_picker_data on first contact with the form or on request,
+    announced in a status region and recoverable with a retry button, so the
+    document stops growing with the registry. An unmeasured
     realtime category renders as "Not yet published", never as a zero
     (docs/SIDE_BY_SIDE_COMPARE_DESIGN.md)."""
+    ordered = _compare_picker_order(catalog)
+    total = len(ordered)
+    initial = ordered[:_COMPARE_PICKER_INITIAL_OPTIONS]
+    shown = len(initial)
+    needs_load = total > shown
     options = "".join(
         f'<option value="{esc(r["id"])}">{esc(r["name"])}'
         + (f" &mdash; {esc(r['state'])}" if r.get("state") else "")
         + "</option>"
-        for r in sorted(catalog, key=lambda r: str(r["name"]).lower())
+        for r in initial
+    )
+    picker_status = (
+        f"Both lists start with {shown} of {total} agencies. The rest arrive when you "
+        "reach for a picker, or load them now."
+        if needs_load
+        else f"Both lists hold all {total} agencies."
+    )
+    load_button_hidden = "" if needs_load else " hidden"
+    loaded_initial = str(not needs_load).lower()
+    noscript = (
+        f"""Building the comparison table needs JavaScript, and so does the rest of the
+    agency list: without it the pickers hold the first {shown} of {total} agencies. Every
+    scorecard is listed in the <a href="/agencies/">agency directory</a>, and each
+    scorecard has a Compare link that fills in the first agency for you."""
+        if needs_load
+        else """Building the comparison table needs JavaScript. The pickers above still
+    work: choose two agencies to get a shareable link, or open each scorecard from the
+    <a href="/agencies/">agency directory</a>."""
     )
     labels = json.dumps(
         [[key, CATEGORY_LABELS[key]] for key in CATEGORY_ORDER], separators=(",", ":")
@@ -39,21 +108,28 @@ def _render_compare_page(catalog: list[dict[str, Any]]) -> str:
     body = f"""    {_breadcrumb([("Home", "/"), ("Compare agencies", None)])}
     <a class="backlink" href="/">&larr; Home</a>
     <h1 class="page-title">Compare two agencies.</h1>
-    <p class="page-lede">Put two scorecards side by side: overall grade, each category,
-    days of service left, and which optional
-    <abbr title="General Transit Feed Specification">GTFS</abbr> features each feed has
-    adopted. Pick two agencies and the page builds one table from their latest
-    scorecards.</p>
-    <form class="map-filters" action="/compare/" method="get" aria-label="Choose two agencies to compare">
+    <p class="page-lede">Choose two scorecards to check whether they use the same rubric,
+    scoring profile, validator, and measured category set, and come from distinct feed bytes.
+    Like-for-like results can appear in one table; otherwise the page keeps the grades
+    separate and links to both full scorecards.</p>
+    <form id="compare-form" class="map-filters" action="/compare/" method="get" aria-label="Choose two agencies to compare">
       <div class="map-filter-row">
-        <label for="compare-a">First agency</label>
-        <select id="compare-a" name="a" required>
+        <label for="compare-a-filter">First agency</label>
+        <input id="compare-a-filter" class="agency-search compare-filter" type="search"
+          autocomplete="off" aria-controls="compare-a" aria-describedby="compare-picker-status"
+          placeholder="Type a name to filter">
+        <label class="visually-hidden" for="compare-a">Choose the first agency from the matches</label>
+        <select id="compare-a" name="a" aria-describedby="compare-picker-status" required>
           <option value="">Choose an agency</option>{options}
         </select>
       </div>
       <div class="map-filter-row">
-        <label for="compare-b">Second agency</label>
-        <select id="compare-b" name="b" required>
+        <label for="compare-b-filter">Second agency</label>
+        <input id="compare-b-filter" class="agency-search compare-filter" type="search"
+          autocomplete="off" aria-controls="compare-b" aria-describedby="compare-picker-status"
+          placeholder="Type a name to filter">
+        <label class="visually-hidden" for="compare-b">Choose the second agency from the matches</label>
+        <select id="compare-b" name="b" aria-describedby="compare-picker-status" required>
           <option value="">Choose an agency</option>{options}
         </select>
       </div>
@@ -61,30 +137,145 @@ def _render_compare_page(catalog: list[dict[str, Any]]) -> str:
         <button type="submit" class="copy-btn">Compare</button>
       </div>
     </form>
+    <div class="map-load-panel">
+      <button type="button" class="button button-secondary" id="compare-load"{load_button_hidden}>
+        Load every agency
+      </button>
+      <p id="compare-picker-status" class="fineprint" role="status">{esc(picker_status)}
+        <a href="/agencies/">Browse the paginated agency directory.</a></p>
+    </div>
     <p id="compare-status" role="status"></p>
     <div id="compare-result"></div>
-    <noscript><p>Building the comparison table needs JavaScript. The pickers above still
-    work: choose two agencies to get a shareable link, or open each scorecard from the
-    <a href="/agencies/">agency directory</a>.</p></noscript>
+    <noscript><p>{noscript}</p></noscript>
     <p class="fineprint">Category scores measure published data quality, not service
     quality, and a missing realtime feed is shown as not yet published, never as a
     failure. <a href="/how-to-read/">How to read a scorecard.</a></p>
     <script>
       (function () {{
         var CATS = {labels};
+        var PICKER_URL = "{_COMPARE_PICKER_URL}";
+        var SHOWN = {shown};
         var selA = document.getElementById("compare-a");
         var selB = document.getElementById("compare-b");
+        var formEl = document.getElementById("compare-form");
+        var loadEl = document.getElementById("compare-load");
+        var pickerStatusEl = document.getElementById("compare-picker-status");
         var statusEl = document.getElementById("compare-status");
         var result = document.getElementById("compare-result");
+        var pickers = [];
+        // Fill one picker from its current choices and its filter box, keeping
+        // the chosen agency selected when it survives the filter.
+        function refresh(picker) {{
+          var query = picker.input.value.trim().toLocaleLowerCase();
+          var selected = picker.select.value;
+          var matches = query
+            ? picker.choices.filter(function (choice) {{
+                return (choice.text + " " + choice.value).toLocaleLowerCase().includes(query);
+              }}).slice(0, 100)
+            : picker.choices;
+          var batch = document.createDocumentFragment();
+          batch.appendChild(new Option(
+            query && !matches.length ? "No matching agencies" : "Choose an agency", ""
+          ));
+          matches.forEach(function (choice) {{
+            batch.appendChild(new Option(choice.text, choice.value));
+          }});
+          picker.select.textContent = "";
+          picker.select.appendChild(batch);
+          if (matches.some(function (choice) {{ return choice.value === selected; }}))
+            picker.select.value = selected;
+        }}
+        function installFilter(inputId, select) {{
+          var picker = {{
+            input: document.getElementById(inputId),
+            select: select,
+            choices: Array.from(select.options).slice(1).map(function (option) {{
+              return {{ value: option.value, text: option.textContent || option.value }};
+            }})
+          }};
+          picker.input.addEventListener("input", function () {{ refresh(picker); }});
+          pickers.push(picker);
+        }}
+        installFilter("compare-a-filter", selA);
+        installFilter("compare-b-filter", selB);
+
+        // The rest of the agency list is one published JSON, fetched the first
+        // time someone reaches for a picker (or asks for it outright) rather
+        // than shipped inside this document. Both states are announced, and a
+        // failed fetch leaves the opening options and a retry in place.
+        var listLoaded = {loaded_initial};
+        var listLoading = false;
+        var listPromise = null;
+        function hydratePickers(requested) {{
+          if (listLoaded || listLoading) return;
+          listLoading = true;
+          if (loadEl) {{
+            loadEl.setAttribute("aria-disabled", "true");
+            loadEl.textContent = "Loading every agency\\u2026";
+          }}
+          pickerStatusEl.textContent = "Loading the complete agency list.";
+          if (!listPromise) {{
+            listPromise = fetch(PICKER_URL).then(function (r) {{
+              if (!r.ok) throw new Error("agency list");
+              return r.json();
+            }});
+          }}
+          listPromise.then(function (data) {{
+            var rows = (data && data.agencies) || [];
+            var choices = rows.map(function (row) {{
+              return {{
+                value: row[0],
+                text: row[1] + (row[2] ? " \\u2014 " + row[2] : "")
+              }};
+            }});
+            pickers.forEach(function (picker) {{
+              picker.choices = choices;
+              refresh(picker);
+            }});
+            listLoaded = true;
+            listLoading = false;
+            // The load control has done its job and goes away. Focus follows it
+            // to the first picker whenever it was the thing being used, whether
+            // that is the click that asked or a keyboard already resting on it
+            // while a load started from the form. Focus is never moved out from
+            // under someone working elsewhere on the page.
+            var held = loadEl && (requested || document.activeElement === loadEl);
+            if (loadEl) loadEl.hidden = true;
+            pickerStatusEl.textContent =
+              "Both lists now hold all " + rows.length + " agencies.";
+            if (held && pickers.length) pickers[0].input.focus();
+          }}).catch(function () {{
+            listLoading = false;
+            listPromise = null;
+            if (loadEl) {{
+              loadEl.hidden = false;
+              loadEl.removeAttribute("aria-disabled");
+              loadEl.textContent = "Try loading every agency again";
+            }}
+            pickerStatusEl.textContent = "The complete agency list could not load. Both " +
+              "pickers still hold the first " + SHOWN + " agencies, and the agency " +
+              "directory links every scorecard.";
+          }});
+        }}
+        if (loadEl) loadEl.addEventListener("click", function () {{
+          if (loadEl.getAttribute("aria-disabled") !== "true") hydratePickers(true);
+        }});
+        ["focusin", "pointerenter"].forEach(function (name) {{
+          formEl.addEventListener(name, function () {{ hydratePickers(false); }});
+        }});
+
+        // Show the agency a shared link asked for even before the full list is
+        // in, so the pickers always read back what the page is comparing.
+        function showChoice(select, id, name) {{
+          var known = Array.prototype.some.call(select.options, function (option) {{
+            return option.value === id;
+          }});
+          if (!known) select.add(new Option(name, id), select.options[1] || null);
+          select.value = id;
+        }}
         var params = new URLSearchParams(window.location.search);
         var a = params.get("a"), b = params.get("b");
         if (!a || !b) return;
-        selA.value = a; selB.value = b;
-        if (selA.value !== a || selB.value !== b) {{
-          statusEl.textContent = "We don't track a scorecard for \\"" +
-            (selA.value !== a ? a : b) + "\\". Pick two agencies from the lists above.";
-          return;
-        }}
         if (a === b) {{
           statusEl.textContent = "Pick two different agencies to compare.";
           return;
@@ -134,13 +325,92 @@ def _render_compare_page(catalog: list[dict[str, Any]]) -> str:
             pathways: !!(comp.pathways && comp.pathways.has_pathways)
           }};
         }}
+        function readerArchiveProfile(art) {{
+          var fetchBlock = art.fetch && typeof art.fetch === "object" ? art.fetch : {{}};
+          var direct = Object.prototype.hasOwnProperty.call(art, "reader_archive_profile");
+          var embedded = Object.prototype.hasOwnProperty.call(
+            fetchBlock, "reader_archive_profile");
+          var owner = direct ? art : fetchBlock;
+          var profile = Object.prototype.hasOwnProperty.call(owner, "reader_archive_profile")
+            ? owner.reader_archive_profile : null;
+          function valid(value) {{
+            return value === "raw-v1" || value === "flat-single-root-v1";
+          }}
+          if ((direct && !valid(art.reader_archive_profile)) ||
+              (embedded && !valid(fetchBlock.reader_archive_profile))) return "";
+          if (direct && embedded &&
+              art.reader_archive_profile !== fetchBlock.reader_archive_profile) return "";
+          var normalizedPresent = Object.prototype.hasOwnProperty.call(
+            fetchBlock, "reader_archive_normalized");
+          var normalized = fetchBlock.reader_archive_normalized;
+          if (normalizedPresent && typeof normalized !== "boolean") return "";
+          var implied = normalized === true ? "flat-single-root-v1" : "raw-v1";
+          if (direct || embedded) {{
+            return normalizedPresent && profile !== implied ? "" : profile;
+          }}
+          return implied;
+        }}
+        function comparisonContract(art) {{
+          var profile = art.scoring_profile || {{}};
+          return {{
+            rubric: String(art.rubric_version || ""),
+            profile: String(profile.id || ""),
+            profileRubric: String(profile.rubric_version || ""),
+            validator: String(art.validator_version || ""),
+            readerArchive: readerArchiveProfile(art),
+            feedHash: String(((art.feed || {{}}).sha256) || ""),
+            measured: CATS.filter(function (c) {{
+              return ((art.categories || {{}})[c[0]] || {{}}).status === "measured";
+            }}).map(function (c) {{ return c[0]; }})
+          }};
+        }}
         Promise.all([fetchArtifact(a), fetchArtifact(b)]).then(function (arts) {{
           var artA = arts[0], artB = arts[1];
           var nameA = artA.agency.name, nameB = artB.agency.name;
+          showChoice(selA, a, nameA);
+          showChoice(selB, b, nameB);
+          var contractA = comparisonContract(artA), contractB = comparisonContract(artB);
+          var likeForLike = contractA.rubric && contractA.profile && contractA.validator &&
+            contractA.readerArchive && contractB.readerArchive &&
+            contractA.feedHash && contractB.feedHash &&
+            contractA.feedHash !== contractB.feedHash &&
+            contractA.profileRubric === contractA.rubric &&
+            contractB.profileRubric === contractB.rubric &&
+            contractA.rubric === contractB.rubric &&
+            contractA.profile === contractB.profile &&
+            contractA.validator === contractB.validator &&
+            contractA.readerArchive === contractB.readerArchive &&
+            JSON.stringify(contractA.measured) === JSON.stringify(contractB.measured);
+          if (!likeForLike) {{
+            result.textContent = "";
+            var warning = el("div");
+            warning.className = "error-box";
+            warning.setAttribute("role", "status");
+            warning.appendChild(el("h2", "These scorecards are not like-for-like."));
+            warning.appendChild(el("p", nameA + " and " + nameB +
+              " do not have distinct feed bytes under the same verified scoring profile, " +
+              "rubric, validator, reader archive profile, and measured category set. " +
+              "Their grades stay separate so " +
+              "a duplicate record, methodology, or realtime-coverage difference is not " +
+              "presented as a feed-quality difference."));
+            var links = el("p");
+            [[nameA, a], [nameB, b]].forEach(function (pair, index) {{
+              if (index) links.appendChild(document.createTextNode(" \u00b7 "));
+              var link = el("a", "Open " + pair[0]);
+              link.href = "/agency/" + encodeURIComponent(pair[1]) + "/";
+              links.appendChild(link);
+            }});
+            warning.appendChild(links);
+            result.appendChild(warning);
+            statusEl.textContent = "Scorecards kept separate: " + nameA + " and " + nameB +
+              " are not like-for-like.";
+            return;
+          }}
           var table = el("table");
-          table.className = "leaderboard";
+          table.className = "leaderboard compare-static-table";
           var caption = el("caption", "Side-by-side scorecard comparison of " +
             nameA + " and " + nameB + ".");
+          caption.className = "visually-hidden";
           table.appendChild(caption);
           var thead = el("thead"), hr = el("tr");
           hr.appendChild(el("th", "Measure")).setAttribute("scope", "col");
@@ -180,19 +450,25 @@ def _render_compare_page(catalog: list[dict[str, Any]]) -> str:
           row("Pathways (station wayfinding)", el("td", flag(dA.pathways)), el("td", flag(dB.pathways)));
           table.appendChild(tbody);
           result.textContent = "";
-          result.appendChild(table);
+          var scrollHint = el("p", "Swipe the table sideways to see both agencies.");
+          scrollHint.className = "table-scroll-hint";
+          result.appendChild(scrollHint);
+          var tableWrap = el("div");
+          tableWrap.className = "table-wrap";
+          tableWrap.appendChild(table);
+          result.appendChild(tableWrap);
           statusEl.textContent = "Comparing " + nameA + " and " + nameB + ".";
         }}).catch(function (err) {{
           statusEl.textContent = "We couldn't load a scorecard for \\"" + err.message +
             "\\". It may not be tracked yet; pick from the lists above.";
         }});
       }})();
-    </script>"""
+    </script>"""  # noqa: S608 - static HTML template text ("Compare agencies" page), never executed as SQL
     return _page(
         title="Compare two agencies side by side — GTFS Scorecard",
         description=(
-            "Put two transit agencies' GTFS scorecards side by side: overall grade, "
-            "category scores, days of service left, and adopted features."
+            "Check whether two transit agencies' GTFS scorecards are like-for-like "
+            "before showing their grades and category scores side by side."
         ),
         canonical=f"{BASE_URL}/compare/",
         body=body,
@@ -203,27 +479,33 @@ _DUCKDB_WASM_VERSION = "1.29.0"
 
 _QUERY_EXAMPLES = [
     (
-        "Grade distribution",
-        "SELECT grade, count(*) AS agencies\nFROM agencies\nGROUP BY grade\nORDER BY grade",
+        "Expiry support worklist",
+        "SELECT id, name, date, days_until_expiry\nFROM agencies\n"
+        "WHERE days_until_expiry BETWEEN -365 AND 60\n"
+        "ORDER BY days_until_expiry, name\nLIMIT 50",
     ),
     (
-        "Feeds closest to expiry",
-        "SELECT name, days_until_expiry\nFROM agencies\n"
-        "WHERE days_until_expiry BETWEEN 0 AND 60\n"
-        "ORDER BY days_until_expiry\nLIMIT 15",
+        "Rows outside the comparison cohort",
+        "SELECT id, name, date, rubric_version, scoring_profile_id, validator_version,\n"
+        "       reader_archive_profile\n"
+        "FROM agencies\nWHERE comparison_eligible = false\nORDER BY name\nLIMIT 50",
     ),
     (
-        "National category averages",
-        "SELECT round(avg(correctness), 1) AS correctness,\n"
-        "       round(avg(freshness), 1) AS freshness,\n"
-        "       round(avg(completeness), 1) AS completeness\nFROM agencies",
+        "Producer provenance",
+        "SELECT rubric_version, scoring_profile_id, validator_version,\n"
+        "       reader_archive_profile,\n"
+        "       count(*) AS feed_records\nFROM agencies\n"
+        "GROUP BY rubric_version, scoring_profile_id, validator_version,\n"
+        "         reader_archive_profile\n"
+        "ORDER BY rubric_version, scoring_profile_id, validator_version,\n"
+        "         reader_archive_profile",
     ),
 ]
 
 
 def _render_query_page() -> str:
     """The in-browser SQL page (/query/): DuckDB-WASM over the published
-    parquet, so an analyst or journalist can run SQL against the national
+    parquet, so an analyst or journalist can run SQL against the covered
     dataset with no backend added and nothing installed
     (docs/expansion-ideation-2026-07.md, section C).
 
@@ -241,10 +523,11 @@ def _render_query_page() -> str:
     body = f"""    {_breadcrumb([("Home", "/"), ("Query the dataset", None)])}
     <a class="backlink" href="/">&larr; Home</a>
     <h1 class="page-title">Query the dataset.</h1>
-    <p class="page-lede">Run SQL against the national scorecard dataset, right here in your
-    browser. One table, <code>agencies</code>, holds every tracked agency's latest snapshot:
+    <p class="page-lede">Run SQL against the covered scorecard dataset, right here in your
+    browser. One table, <code>agencies</code>, holds every published feed record's latest snapshot:
     <code>id</code>, <code>name</code>, <code>date</code>, <code>grade</code>,
-    <code>score</code>, <code>days_until_expiry</code>, and the
+    <code>score</code>, <code>days_until_expiry</code>, producer-version fields,
+    <code>comparison_eligible</code>, and the
     <code>correctness</code>, <code>freshness</code>, <code>completeness</code>, and
     <code>realtime</code> category scores. Nothing is sent to a server: the engine
     (DuckDB) and the data load into the page and the query runs on your machine.</p>
@@ -253,6 +536,12 @@ def _render_query_page() -> str:
     <a href="/catalog.csv">catalog.csv</a>, and the JSON described in the
     <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/api.md">data
     dictionary</a>.</p>
+    <p><strong>Comparison warning:</strong> the table includes old-methodology,
+    duplicate-identity, and otherwise non-comparable rows so the public record stays complete.
+    Do not compare or average scores unless you filter
+    <code>comparison_eligible = true</code> and inspect the current contract in
+    <a href="/api/v1/agencies.json">agencies.json</a>. The examples below are support
+    worklists and provenance checks, not rankings.</p>
     <form aria-label="SQL query" class="query-form">
       <label for="query-sql">SQL to run against the <code>agencies</code> table</label>
       <textarea id="query-sql" class="outreach-text" rows="6"
@@ -348,12 +637,12 @@ def _render_query_page() -> str:
           }});
         }});
       }})();
-    </script>"""
+    </script>"""  # noqa: S608 - static HTML template text (the client-side SQL query page), never executed server-side as SQL
     return _page(
         title="Query the dataset in your browser — GTFS Scorecard",
         description=(
-            "Run SQL against the national GTFS quality dataset in your browser with "
-            "DuckDB: grades, category scores, and freshness for every tracked agency."
+            "Run SQL against the covered GTFS quality dataset in your browser with "
+            "DuckDB: grades, category scores, and freshness for every tracked feed record."
         ),
         canonical=f"{BASE_URL}/query/",
         body=body,
@@ -660,19 +949,18 @@ def _render_check_page() -> str:
     <p id="check-status" role="status"></p>
     <div id="check-result"></div>
     <noscript><p>Reading a zip in the page needs JavaScript. You can run the full check
-    instead: <a href="/try.html">score a feed now</a>.</p></noscript>
+    instead: <a href="/try.html">request a full score</a>.</p></noscript>
     <p class="fineprint">A preview, not the full validation. The canonical
     <a href="https://github.com/MobilityData/gtfs-validator">MobilityData validator</a>
-    stays the authority; <a href="/try.html">score a feed now</a> runs it over the whole
+    stays the authority; <a href="/try.html">request a full score</a> to run it over the whole
     feed, and <a href="/subscribe.html">subscribe</a> to hear before a published feed
     expires.</p>
 {_CHECK_PAGE_SCRIPT.replace("__FFLATE__", _FFLATE_VERSION)}"""
     return _page(
         title="Check a GTFS feed before you publish — GTFS Scorecard",
         description=(
-            "Drop a GTFS zip in and get the five pre-publish questions answered in "
-            "your browser: required files, expiry, wheelchair fields, fares, and "
-            "stop names. Nothing is uploaded."
+            "Drop a GTFS zip in and answer the five pre-publish questions: required "
+            "files, expiry, wheelchair fields, fares, and stop names. Nothing is uploaded."
         ),
         canonical=f"{BASE_URL}/check/",
         body=body,
@@ -689,7 +977,7 @@ _TOOLS = [
     (
         "/compare/",
         "Compare two agencies",
-        "Two scorecards side by side: grades, categories, and adopted features.",
+        "Check whether two scorecards are like-for-like before showing them side by side.",
     ),
     (
         "/check/",
@@ -698,10 +986,10 @@ _TOOLS = [
     ),
     (
         "/try.html",
-        "Score any feed now",
-        "Paste a published feed URL and get the full graded scorecard back.",
+        "Request a one-off score",
+        "Submit a published feed URL through the GitHub-backed request path, or run the scorer locally; hosted instant scoring is not enabled.",
     ),
-    ("/query/", "Query the dataset", "Run SQL over the national dataset, right in the page."),
+    ("/query/", "Query the dataset", "Run SQL over the covered dataset, right in the page."),
     (
         "/subscribe.html",
         "Feed-health alerts",
@@ -714,6 +1002,11 @@ _TOOLS = [
         "Every agency has a printable one-page brief for a check-in call (this links an example; find yours from its scorecard).",
     ),
     (
+        "/agency/unitrans/board/",
+        "Board-ready one-pagers",
+        "Open a printable board summary for each agency (this links the Unitrans example).",
+    ),
+    (
         "/procurement/",
         "For agencies: procurement",
         "Contract and acceptance-test language for holding a GTFS vendor to the same bar.",
@@ -721,7 +1014,7 @@ _TOOLS = [
     (
         "/data/",
         "Open data",
-        "Download the national dataset, CC BY 4.0, with a versioned public API.",
+        "Download the covered dataset, CC BY 4.0, with a versioned public API.",
     ),
 ]
 
@@ -731,7 +1024,8 @@ def _render_tools_page() -> str:
     each, so nothing depends on a visitor discovering the footer. Linked from
     the primary nav."""
     items = "".join(
-        f'<li class="finding"><p class="what"><a href="{esc(href)}">{esc(name)}</a></p>'
+        f'<li class="finding"><p class="what"><a href="{esc(href)}">{esc(name)}</a> '
+        f'<span class="availability">{"GitHub account" if href == "/try.html" else "No account"}</span></p>'
         f'<p class="why">{esc(what)}</p></li>'
         for href, name, what in _TOOLS
     )
@@ -739,8 +1033,8 @@ def _render_tools_page() -> str:
     <a class="backlink" href="/">&larr; Home</a>
     <h1 class="page-title">Tools.</h1>
     <p class="page-lede">Everything on this site you can act with, not just read: check a
-    feed, score a feed, compare agencies, query the data, and get alerts. Each tool works
-    without an account and most work without a backend at all.</p>
+    feed, request a full score, compare agencies, query the data, and get alerts. Most work
+    without an account; the one-off request is clearly marked because it uses GitHub.</p>
     <ul class="findings">{items}</ul>
     <p class="fineprint">All of it is open source; the
     <a href="https://github.com/ChelseaKR/gtfs-scorecard">repository</a> has the CLI and

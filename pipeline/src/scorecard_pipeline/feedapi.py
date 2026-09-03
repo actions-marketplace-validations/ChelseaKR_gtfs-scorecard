@@ -26,6 +26,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from .identity import normalized_mdb_id
 from .net import safe_get
 from .validate import ValidationReport, parse_report_data
 
@@ -64,7 +65,8 @@ class ApiFeed:
 
     feed_id: str
     provider: str
-    producer_url: str  # the agency's own GTFS download URL
+    # Upstream calls this producer_url; that name alone is not ownership evidence.
+    producer_url: str
     data_type: str
     status: str = ""
     country: str = ""
@@ -74,10 +76,7 @@ class ApiFeed:
 def feed_id_for(mdb_id: str) -> str:
     """The Feed API id for a catalog mdb id. The API ids are ``mdb-<n>``; a value
     already prefixed (or a non-numeric id) is passed through unchanged."""
-    mdb_id = mdb_id.strip()
-    if not mdb_id or mdb_id.startswith("mdb-"):
-        return mdb_id
-    return f"mdb-{mdb_id}" if mdb_id.isdigit() else mdb_id
+    return normalized_mdb_id(mdb_id.strip())
 
 
 def _int(value: Any) -> int:
@@ -205,10 +204,11 @@ def report_from_api(
     if reason is not None:
         log.info("feedapi: not reusing MobilityData report (%s)", reason)
         return None
-    assert dataset.validation is not None  # reuse_reason guarantees this
+    if dataset.validation is None:  # reuse_reason guarantees this; explicit so -O never skips it
+        raise AssertionError("dataset.validation is None despite reuse_reason() passing")
     try:
         data = fetch_report(dataset.validation.url_json)
-    except Exception as exc:  # noqa: BLE001 - a fetch hiccup must not break a score
+    except Exception as exc:
         log.warning("feedapi: report fetch failed, validating locally (%s)", exc)
         return None
     return parse_report_data(data)
@@ -228,7 +228,7 @@ def try_cached_report(
         return None
     try:
         dataset = fetch_latest_dataset(feed_id, token)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.warning("feedapi: dataset lookup failed for %s (%s)", feed_id, exc)
         return None
     return report_from_api(

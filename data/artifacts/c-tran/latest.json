@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "c-tran",
-    "name": "Clark County Public Transportation Benefit Area"
-  },
-  "autofix": {
-    "available": false
+    "name": "Clark County Public Transportation Benefit Area",
+    "subdivision_code": "US-WA",
+    "subdivision_name": "Washington"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 10066,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -52,7 +58,14 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 915,
+        "stops": 914,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 10066,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.4,
@@ -62,13 +75,13 @@
       "findings": [
         {
           "code": "scorecard_wheelchair_boarding_unknown",
-          "count": 911,
+          "count": 910,
           "effort": "A column in stops.txt; your scheduling software likely has it.",
           "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
           "owner": "Likely your team",
           "points": 24.9,
           "severity": "WARNING",
-          "what": "911 of 915 stops don't say whether a wheelchair user can board there.",
+          "what": "910 of 914 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
@@ -91,26 +104,15 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 4,
+        "distinct_codes": 5,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 4,
-          "WARNING": 30
+          "WARNING": 24
         },
         "validator_version": "8.0.1"
       },
       "findings": [
-        {
-          "code": "stop_too_far_from_shape",
-          "count": 16,
-          "effort": "A few minutes per flagged stop.",
-          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
-          "owner": "Likely your export tool",
-          "points": 6.0,
-          "severity": "WARNING",
-          "what": "Some stops sit far from the route line they belong to.",
-          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
-        },
         {
           "code": "service_has_no_active_day_of_the_week",
           "count": 9,
@@ -123,67 +125,100 @@
           "why": "Trips tied to these calendars never run; they are dead data that can mask real schedule problems."
         },
         {
+          "code": "stop_too_far_from_shape",
+          "count": 8,
+          "effort": "A few minutes per flagged stop.",
+          "fix": "Check the flagged stops' coordinates and the route shape in your scheduling software; re-snap whichever is misplaced.",
+          "owner": "Likely your export tool",
+          "points": 6.0,
+          "severity": "WARNING",
+          "what": "Some stops sit far from the route line they belong to.",
+          "why": "Trip planners may draw the bus route through the wrong streets or point riders to the wrong corner."
+        },
+        {
           "code": "route_long_name_contains_short_name",
           "count": 5,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
+        },
+        {
+          "code": "fast_travel_between_consecutive_stops",
+          "count": 2,
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the flagged stop times for transposed minutes.",
+          "owner": "",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "big_gap_in_service",
           "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'big_gap_in_service' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A review of your calendar dates.",
+          "fix": "Check whether the gap is real, like a seasonal break; if not, add the missing dates to the calendar.",
           "owner": "",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Big gap in service (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed has a stretch of two weeks or more with no service running.",
+          "why": "A long gap can mean dates were left out of the calendar. Apps then show no trips on those days."
         }
       ],
       "name": "correctness",
-      "score": 83.5,
+      "score": 79.5,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 4 kinds of issue across 34 instances (0 error, 30 warning, 4 informational).",
+      "summary": "The MobilityData validator flagged 5 kinds of issue across 28 instances (0 error, 24 warning, 4 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 68,
+        "days_until_expiry": 36,
+        "effective_expiry_date": "2026-09-12",
         "feed_end_date": "2026-09-12",
         "feed_start_date": "2026-05-10",
         "feed_version": "20260510-20260912",
         "has_feed_info": true,
         "last_service_date": "2026-09-12",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 60.0,
       "status": "measured",
-      "summary": "Service data covers the next 68 days.",
+      "summary": "Service data covers the next 36 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 100.0,
-        "covered_trips": 53,
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions"
+        ],
+        "coverage_pct": 96.0,
+        "covered_trips": 48,
         "drift": {
           "median_seconds": 0,
-          "observations": 2866,
-          "on_time_share_pct": 92.3,
-          "p90_abs_seconds": 208
+          "observations": 2830,
+          "on_time_share_pct": 99.5,
+          "p90_abs_seconds": 0
         },
+        "kinds_configured": 2,
         "kinds_reachable": 1,
+        "reachable_kinds": [
+          "trip_updates"
+        ],
         "rt_freshness": "fresh",
         "samples": 6,
-        "scheduled_trips_in_window": 53,
-        "worst_lag_seconds": 0
+        "scheduled_trips_in_window": 50,
+        "worst_lag_seconds": 2
       },
       "findings": [
         {
@@ -192,29 +227,42 @@
           "effort": "Usually a vendor support ticket.",
           "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
           "owner": "",
-          "points": 8.3,
+          "points": 14.7,
           "severity": "ERROR",
           "what": "The vehicle positions realtime feed failed during sampling.",
           "why": "When this feed is down, riders see scheduled times presented as if they were live."
         },
         {
-          "code": "scorecard_rt_service_alerts_unreachable",
-          "count": 1,
-          "effort": "Usually a vendor support ticket.",
-          "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
+          "code": "scorecard_rt_trip_coverage",
+          "count": 2,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
           "owner": "",
-          "points": 8.3,
-          "severity": "ERROR",
-          "what": "The service alerts realtime feed failed during sampling.",
-          "why": "When this feed is down, riders see scheduled times presented as if they were live."
+          "points": 1.6,
+          "severity": "WARNING",
+          "what": "2 of 50 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
-      "score": 80.4,
+      "score": 83.6,
       "status": "measured",
-      "summary": "Sampled 6 times: 1 of 3 feeds healthy; 100.0% of scheduled trips had live predictions; predictions ran a median of 0s behind schedule.",
+      "summary": "Sampled 6 times: 1 of 2 configured feeds healthy; 96.0% of scheduled trips had live predictions; vehicle position plausibility was not measurable; predictions ran a median of 0s behind schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 6 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -225,7 +273,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 72 days.",
+        "detail": "Service data covers the next 38 days.",
         "key": "current",
         "met": true
       },
@@ -241,11 +289,18 @@
   "feed": {
     "license_note": "License: https://c-tran.com/about-c-tran/business/c-tran-gtfs-data",
     "reachable": true,
-    "sha256": "6156674ea6facd0e90a789760578acfc118a71705cceca66b314c9128e9030d0",
-    "size_bytes": 2055674,
+    "sha256": "e5f5ae01fb6a551dfc74c59eae9264ba5fb21811992dd9348e726437f19904e5",
+    "size_bytes": 3556766,
     "static_url": "https://www.c-tran.com/images/Google/GoogleTransitUpload.zip"
   },
-  "generated_at": "2026-07-02T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.c-tran.com/images/Google/GoogleTransitUpload.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.70826,
@@ -253,12 +308,32 @@
       -122.32156,
       45.86686
     ],
-    "lat": 45.64332,
-    "lon": -122.62126,
-    "stop_count": 915
+    "lat": 45.64333,
+    "lon": -122.62115,
+    "stop_count": 914
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 35,
+        "trip_count": 10066,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 35,
+    "trip_count": 10066
   },
   "ntd_id_alignment": {
-    "detail": "Setting your GTFS agency_id to your five-digit NTD ID is an optional way to line a feed up with its National Transit Database record. FTA links the two on your P-50 form, so it is not a required feed change. We don't have your NTD ID on file, so this is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "C-TRAN"
     ],
@@ -277,22 +352,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 72 days.",
+        "detail": "Service data covers the next 38 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
-    "grade": "B",
-    "margin_to_lower_band": 4.1,
-    "margin_to_next_band": 5.9,
-    "score": 84.1
+    "grade": "C",
+    "margin_to_lower_band": 5.3,
+    "margin_to_next_band": 4.7,
+    "score": 75.3
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 775,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -304,6 +385,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -316,12 +398,12 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
-    "boardable_stops": 911,
+    "boardable_stops": 910,
     "findings": [],
     "orphan_stops": 0,
     "single_stop_trips": 0,
@@ -719,12 +801,23 @@
         "type_label": "Bus"
       }
     ],
-    "stop_count": 915,
+    "stop_count": 914,
     "stop_points_capped": false
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 10066 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 10066,
+    "trips_with_shape": 10066
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_rt_vehicle_positions_unreachable",
@@ -732,35 +825,35 @@
       "effort": "Usually a vendor support ticket.",
       "fix": "Check the vehicle positions endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
       "owner": "",
-      "points": 8.3,
+      "points": 14.7,
       "rank": 1,
       "severity": "ERROR",
       "what": "The vehicle positions realtime feed failed during sampling.",
       "why": "When this feed is down, riders see scheduled times presented as if they were live."
     },
     {
-      "code": "scorecard_rt_service_alerts_unreachable",
-      "count": 1,
-      "effort": "Usually a vendor support ticket.",
-      "fix": "Check the service alerts endpoint with your AVL vendor; it should return a fresh GTFS-Realtime protobuf on every request.",
-      "owner": "",
-      "points": 8.3,
-      "rank": 2,
-      "severity": "ERROR",
-      "what": "The service alerts realtime feed failed during sampling.",
-      "why": "When this feed is down, riders see scheduled times presented as if they were live."
-    },
-    {
       "code": "scorecard_wheelchair_boarding_unknown",
-      "count": 911,
+      "count": 910,
       "effort": "A column in stops.txt; your scheduling software likely has it.",
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 24.9,
+      "rank": 2,
+      "severity": "WARNING",
+      "what": "910 of 914 stops don't say whether a wheelchair user can board there.",
+      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+    },
+    {
+      "code": "service_has_no_active_day_of_the_week",
+      "count": 9,
+      "effort": "A few minutes in your scheduling software.",
+      "fix": "Delete the empty calendars or set their service days.",
+      "owner": "Likely your export tool",
+      "points": 6.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "911 of 915 stops don't say whether a wheelchair user can board there.",
-      "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
+      "what": "Some service calendars have no days of the week switched on.",
+      "why": "Trips tied to these calendars never run; they are dead data that can mask real schedule problems."
     }
   ],
   "validator_version": "8.0.1"

@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "everett-transit-3038",
-    "name": "Everett Transit"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/everett-transit-3038/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/everett-transit-3038/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 410,
-        "examples": [
-          "7TH AVE SE & BRUSKRUD RD - NB -> 7th Ave Se & Bruskrud Rd - Nb",
-          "MALL STATION - BAY 2 -> Mall Station - Bay 2",
-          "112TH ST SE & MERIDIAN PL W - WB -> 112th St Se & Meridian Pl W - Wb"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 410
+    "name": "Everett Transit",
+    "subdivision_code": "US-WA",
+    "subdivision_name": "Washington"
   },
   "categories": {
     "completeness": {
@@ -33,11 +17,15 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
           "headsigns": 0.0,
-          "stop_names": 2.7,
+          "stop_names": 2.6,
           "wheelchair_stops": 25.0,
           "wheelchair_trips": 0.0
         },
@@ -57,8 +45,11 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 1098,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
-        "mixed_case_stop_name_pct": 17.7,
+        "headsign_scored_pct": 0.0,
+        "mixed_case_stop_name_pct": 17.6,
         "pathways": {
           "has_entrances": false,
           "has_levels": false,
@@ -67,7 +58,14 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 498,
+        "stops": 500,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1098,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 100.0,
@@ -78,8 +76,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1098,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -99,25 +97,25 @@
         },
         {
           "code": "scorecard_stop_names_all_caps",
-          "count": 410,
+          "count": 412,
           "effort": "Often a bulk fix in your scheduling software.",
-          "fix": "Rename stops to mixed case (e.g. 'Main St & 2nd Ave').",
+          "fix": "Rename stops to mixed case where the language has letter case (for example, 'Central Station').",
           "owner": "Likely your export tool",
-          "points": 12.3,
+          "points": 12.4,
           "severity": "INFO",
-          "what": "About 410 stop names are written in ALL CAPS.",
+          "what": "About 412 stop names are written in ALL CAPS.",
           "why": "Mixed-case names are easier to read in apps and are read more naturally by screen readers."
         },
         {
           "code": "scorecard_missing_headsigns",
           "count": 1098,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "1098 of 1098 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "1098 of 1098 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -128,11 +126,11 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
-      "score": 35.2,
+      "score": 35.1,
       "status": "measured",
       "summary": "100% of stops state wheelchair accessibility (0% marked accessible, 100% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is not published.",
       "weight": 0.25
@@ -143,14 +141,14 @@
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 0,
-          "WARNING": 498
+          "WARNING": 502
         },
         "validator_version": "8.0.1"
       },
       "findings": [
         {
           "code": "mixed_case_recommended_field",
-          "count": 495,
+          "count": 497,
           "effort": "Often a bulk fix in your scheduling software.",
           "fix": "Use mixed case for stop names and headsigns (e.g. 'Main St & 2nd Ave', not 'MAIN ST & 2ND AVE').",
           "owner": "Likely your export tool",
@@ -161,7 +159,7 @@
         },
         {
           "code": "stop_without_stop_time",
-          "count": 2,
+          "count": 4,
           "effort": "A review pass in your scheduling software.",
           "fix": "Remove retired stops from the export, or add them back to the trips that should serve them.",
           "owner": "Likely your export tool",
@@ -173,64 +171,111 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         }
       ],
       "name": "correctness",
       "score": 84.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 3 kinds of issue across 498 instances (0 error, 498 warning, 0 informational).",
+      "summary": "The MobilityData validator flagged 3 kinds of issue across 502 instances (0 error, 502 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 61,
-        "feed_end_date": "2026-09-05",
-        "feed_start_date": "2026-05-31",
-        "feed_version": "8b25c6b2-eedf-4451-9b38-eb05785c88df",
+        "days_until_expiry": 84,
+        "effective_expiry_date": "2026-10-30",
+        "feed_end_date": "2026-10-30",
+        "feed_start_date": "2026-07-31",
+        "feed_version": "302e9446-31f1-4e4d-a90b-81207b23ea32",
         "has_feed_info": true,
-        "last_service_date": "2026-09-05",
+        "last_service_date": "2026-10-30",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 61 days.",
+      "summary": "Service data covers the next 84 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 100.0,
-        "covered_trips": 2,
+        "alerts_content": {
+          "alerts": 0,
+          "ended_over_30_days_ago": 0,
+          "with_cause_and_effect": 0,
+          "with_description": 0,
+          "with_header_text": 0,
+          "with_informed_entity": 0
+        },
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": 95.0,
+        "covered_trips": 19,
         "drift": {
           "median_seconds": 0,
-          "observations": 2334,
-          "on_time_share_pct": 100.0,
-          "p90_abs_seconds": 0
+          "observations": 3425,
+          "on_time_share_pct": 98.7,
+          "p90_abs_seconds": 8
         },
+        "kinds_configured": 3,
         "kinds_reachable": 3,
+        "reachable_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
         "rt_freshness": "fresh",
         "samples": 9,
-        "scheduled_trips_in_window": 2,
-        "vehicles_checked": 6,
+        "scheduled_trips_in_window": 20,
+        "vehicles_checked": 58,
         "vehicles_on_route_pct": 100.0,
-        "worst_lag_seconds": 13
+        "worst_lag_seconds": 14
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_rt_trip_coverage",
+          "count": 1,
+          "effort": "A vendor data-mapping question.",
+          "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
+          "owner": "",
+          "points": 1.8,
+          "severity": "WARNING",
+          "what": "1 of 20 trips scheduled during the sampling window had no live predictions.",
+          "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
+        }
+      ],
       "name": "realtime",
-      "score": 100.0,
+      "score": 98.2,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 100.0% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 0s behind schedule.",
+      "summary": "Sampled 9 times: 3 of 3 configured feeds healthy; 95.0% of scheduled trips had live predictions; 100.0% of vehicles on their route; predictions ran a median of 0s behind schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -241,7 +286,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 70 days.",
+        "detail": "Service data covers the next 86 days.",
         "key": "current",
         "met": true
       },
@@ -257,11 +302,18 @@
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
     "reachable": true,
-    "sha256": "5c712adf1eddaf55e56cbd927dd77a1c51a3b924bc7455755cd7ce6114add4b4",
-    "size_bytes": 355838,
+    "sha256": "1d37ba6e275bf38941636e1a7ffb676bba71207e0e8e5a7242a4f6c22c8acb1b",
+    "size_bytes": 355274,
     "static_url": "https://everett.prod.mapstrat.com/current/google_transit.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://everett.prod.mapstrat.com/current/google_transit.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -122.30638,
@@ -269,12 +321,32 @@
       -122.1845,
       48.00984
     ],
-    "lat": 47.94116,
-    "lon": -122.21396,
-    "stop_count": 498
+    "lat": 47.94128,
+    "lon": -122.21391,
+    "stop_count": 500
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 10,
+        "trip_count": 1098,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 10,
+    "trip_count": 1098
   },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -293,22 +365,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 70 days.",
+        "detail": "Service data covers the next 86 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 8.2,
-    "margin_to_next_band": 1.8,
-    "score": 78.2
+    "margin_to_lower_band": 7.8,
+    "margin_to_next_band": 2.2,
+    "score": 77.8
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 478,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -321,38 +399,169 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
-    "boardable_stops": 498,
+    "boardable_stops": 500,
     "findings": [
       {
         "code": "scorecard_orphan_stops",
-        "count": 2,
+        "count": 4,
         "effort": "A cleanup pass in your scheduling software.",
         "fix": "Remove stops no route serves, or add the trips that should call at them.",
         "owner": "Likely your export tool",
         "points": 0.0,
         "severity": "INFO",
-        "what": "2 of 498 boardable stops are never served by any trip.",
+        "what": "4 of 500 boardable stops are never served by any trip.",
         "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
       }
     ],
-    "orphan_stops": 2,
+    "orphan_stops": 4,
     "single_stop_trips": 0,
     "trips_total": 1098
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 10,
+    "has_shapes": true,
+    "path": "data/artifacts/everett-transit-3038/geometry.geojson",
+    "route_count": 10,
+    "routes": [
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "15",
+        "label": "2",
+        "long": "S to Mariner P&R - N to Mall Station",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "16",
+        "label": "3",
+        "long": "S to Seaway TC - N to Everett Station",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "18",
+        "label": "6",
+        "long": "N to Waterfront  - S to Everett Station",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "19",
+        "label": "7",
+        "long": "S to Mall Station - N to College Station",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "20",
+        "label": "8",
+        "long": "S to S Evt Frwy Station - N to Everett Station",
+        "short": "8",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "21",
+        "label": "12",
+        "long": "W to Seaway TC - E to Mall Station",
+        "short": "12",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "23",
+        "label": "18",
+        "long": "W to Mukilteo - E to Everett Station",
+        "short": "18",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "24",
+        "label": "29",
+        "long": "N to College Station - S to Mall Station",
+        "short": "29",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "30",
+        "label": "4",
+        "long": "S to Everett Station - N to College Station",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "857",
+        "label": "19",
+        "long": "S to Everett Station - N to College Station",
+        "short": "19",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 500,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1098 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1098,
+    "trips_with_shape": 1098
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 1098,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 1,
@@ -363,14 +572,14 @@
     {
       "code": "scorecard_missing_headsigns",
       "count": 1098,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
-      "owner": "Likely your export tool",
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
       "points": 15.0,
       "rank": 2,
       "severity": "WARNING",
-      "what": "1098 of 1098 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "1098 of 1098 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     },
     {
       "code": "scorecard_no_fare_data",

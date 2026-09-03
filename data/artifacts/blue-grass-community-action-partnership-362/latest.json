@@ -142,7 +142,7 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 25,
+        "days_until_expiry": 21,
         "feed_end_date": "2026-07-31",
         "feed_start_date": "2026-01-05",
         "feed_version": "UTC: 23-Jan-2026 13:30",
@@ -158,16 +158,16 @@
           "effort": "One export setting.",
           "fix": "Re-export with a validity window that reaches at least 60 days out.",
           "owner": "Likely your export tool",
-          "points": 55.0,
+          "points": 59.0,
           "severity": "WARNING",
-          "what": "Service data runs out in 25 day(s).",
+          "what": "Service data runs out in 21 day(s).",
           "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
         }
       ],
       "name": "freshness",
-      "score": 41.7,
+      "score": 35.0,
       "status": "measured",
-      "summary": "Service data runs out in 25 day(s). Publish an updated feed soon or riders will lose trip planning.",
+      "summary": "Service data runs out in 21 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
@@ -248,9 +248,9 @@
   },
   "overall": {
     "grade": "D",
-    "margin_to_lower_band": 4.7,
-    "margin_to_next_band": 5.3,
-    "score": 64.7
+    "margin_to_lower_band": 3.1,
+    "margin_to_next_band": 6.9,
+    "score": 63.1
   },
   "recommendations": [
     {
@@ -277,8 +277,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-07-10",
+    "feed_fetched_date": "2026-07-09",
     "kind": "freshness"
   },
   "routability": {
@@ -399,7 +399,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-07-10",
   "top_fixes": [
     {
       "code": "scorecard_feed_expiring_soon",
@@ -407,10 +407,10 @@
       "effort": "One export setting.",
       "fix": "Re-export with a validity window that reaches at least 60 days out.",
       "owner": "Likely your export tool",
-      "points": 55.0,
+      "points": 59.0,
       "rank": 1,
       "severity": "WARNING",
-      "what": "Service data runs out in 25 day(s).",
+      "what": "Service data runs out in 21 day(s).",
       "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
     },
     {

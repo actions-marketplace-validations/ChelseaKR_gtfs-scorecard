@@ -11,7 +11,10 @@ are exercised with a fake table.
 from __future__ import annotations
 
 import importlib.util
+import json
+import sys
 import time
+import types
 from pathlib import Path
 from typing import Any
 
@@ -38,17 +41,37 @@ class FakeTable:
 
     def __init__(self, item: dict[str, Any] | None = None) -> None:
         self._item = item
+        self.put_item_value: dict[str, Any] | None = None
         self.updated = False
         self.deleted = False
 
-    def get_item(self, Key: dict[str, Any]) -> dict[str, Any]:  # noqa: N803 - boto3 kwarg name
+    def get_item(self, Key: dict[str, Any]) -> dict[str, Any]:
         return {"Item": self._item} if self._item else {}
 
     def update_item(self, **_: Any) -> None:
         self.updated = True
 
-    def delete_item(self, Key: dict[str, Any]) -> None:  # noqa: N803 - boto3 kwarg name
+    def put_item(self, Item: dict[str, Any]) -> None:
+        self.put_item_value = Item
+
+    def delete_item(self, Key: dict[str, Any]) -> None:
         self.deleted = True
+
+
+class FakeUrlResponse:
+    """Context-managed byte response for urllib-backed handler tests."""
+
+    def __init__(self, payload: object) -> None:
+        self.body = json.dumps(payload).encode()
+
+    def __enter__(self) -> FakeUrlResponse:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self.body
 
 
 # --- alerts: validate_subscribe ---
@@ -58,7 +81,33 @@ def test_validate_subscribe_normalizes_email_and_defaults_kinds() -> None:
     out = alerts.validate_subscribe({"email": "  Agency@Example.ORG ", "all": True})
     assert out["email"] == "agency@example.org"
     assert out["all"] is True
-    assert out["kinds"] == ["expiry", "regression"]
+    # Previously pinned ["expiry", "regression"], which pinned the bug: a subscriber who chose
+    # nothing was stored an explicit closed list that permanently opted them out of the other
+    # three kinds, contradicting the "omit for every kind" contract in subscriptions.yaml.
+    assert out["kinds"] == ["expiry", "lapse_risk", "regression", "export_change", "anomaly"]
+
+
+def test_handler_alert_kinds_match_the_digest_builder() -> None:
+    """The subscribe form must not accept a narrower set than the digest can send.
+
+    These two lists live in separate deployables -- the Lambda cannot import the pipeline package
+    -- so nothing but this test stops them drifting. They did drift, and the failure was silent in
+    the worst direction: the form kept accepting subscriptions while quietly recording consent to
+    only two of five alert kinds, so the subscriber saw a success page and then never received
+    three of the things they had asked about.
+    """
+    from scorecard_pipeline.notify import ALERT_KINDS as DIGEST_KINDS
+
+    assert set(alerts.ALERT_KINDS) == set(DIGEST_KINDS)
+
+
+def test_validate_subscribe_accepts_every_kind_the_digest_can_send() -> None:
+    from scorecard_pipeline.notify import ALERT_KINDS as DIGEST_KINDS
+
+    out = alerts.validate_subscribe(
+        {"email": "a@example.org", "all": True, "kinds": sorted(DIGEST_KINDS)}
+    )
+    assert set(out["kinds"]) == set(DIGEST_KINDS)
 
 
 def test_validate_subscribe_rejects_url_significant_email() -> None:
@@ -162,6 +211,83 @@ def test_submit_accepts_correct_secret_and_routes_to_pr(monkeypatch: pytest.Monk
     assert "pull/1" in resp["body"]
 
 
+def test_submit_tracked_ids_reads_only_valid_published_ids(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = {
+        "agencies": [
+            {"id": "unitrans"},
+            {"id": ""},
+            {"id": 7},
+            "not-an-entry",
+            {"id": "yolobus"},
+        ]
+    }
+    monkeypatch.setattr(
+        submit.urllib.request, "urlopen", lambda *_args, **_kwargs: FakeUrlResponse(payload)
+    )
+
+    assert submit._tracked_ids() == {"unitrans", "yolobus"}
+
+
+def test_submit_tracked_ids_fails_closed_to_intake_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unavailable(*_args: object, **_kwargs: object) -> None:
+        raise OSError("offline")
+
+    monkeypatch.setattr(submit.urllib.request, "urlopen", unavailable)
+
+    assert submit._tracked_ids() == set()
+
+
+def test_submit_pull_request_updates_only_the_intake_shard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
+    monkeypatch.setenv("GITHUB_REPO", "owner/repo")
+    intake = (
+        "agencies:\n"
+        "  - id: existing\n"
+        "    name: Existing\n"
+        "    static_gtfs_url: https://example.org/existing.zip\n"
+    )
+    calls: list[tuple[str, str, dict[str, Any] | None]] = []
+
+    def fake_gh(
+        method: str,
+        path: str,
+        token: str,
+        payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        assert token == "test-token"
+        calls.append((method, path, payload))
+        if method == "GET" and "/contents/" in path:
+            return {
+                "content": submit.base64.b64encode(intake.encode()).decode(),
+                "sha": "intake-sha",
+            }
+        if method == "GET":
+            return {"object": {"sha": "head-sha"}}
+        if path.endswith("/pulls"):
+            return {"html_url": "https://github.com/owner/repo/pull/1"}
+        return {}
+
+    monkeypatch.setattr(submit, "_gh", fake_gh)
+    monkeypatch.setattr(submit, "_tracked_ids", lambda: {"curated-elsewhere"})
+
+    url = submit._open_pull_request(
+        {"name": "New Transit", "static_gtfs_url": "https://example.org/new.zip"}
+    )
+
+    assert url.endswith("/pull/1")
+    content_calls = [call for call in calls if "/contents/" in call[1]]
+    assert [call[:2] for call in content_calls] == [
+        ("GET", "/repos/owner/repo/contents/registry/intake.yaml?ref=main"),
+        ("PUT", "/repos/owner/repo/contents/registry/intake.yaml"),
+    ]
+
+
 # --- instant-score: validate_score_request ---
 
 
@@ -169,7 +295,31 @@ def test_validate_score_request_normalizes_url_and_name() -> None:
     out = instant_score.validate_score_request(
         {"url": "  https://example.org/gtfs.zip  ", "name": "  Demo  "}
     )
-    assert out == {"url": "https://example.org/gtfs.zip", "name": "Demo"}
+    assert out == {
+        "url": "https://example.org/gtfs.zip",
+        "name": "Demo",
+        "country": "US",
+    }
+
+
+def test_validate_score_request_normalizes_an_assigned_country() -> None:
+    out = instant_score.validate_score_request(
+        {"url": "https://example.org/gtfs.zip", "country": " ca "}
+    )
+    assert out["country"] == "CA"
+
+
+def test_validate_score_request_rejects_unassigned_country_codes() -> None:
+    for country in ("ZZ", "UK", "USA", 7):
+        with pytest.raises(instant_score.BadRequest, match="country"):
+            instant_score.validate_score_request(
+                {"url": "https://example.org/gtfs.zip", "country": country}
+            )
+
+
+def test_instant_score_country_codes_match_the_packaged_iso_vocabulary() -> None:
+    source = json.loads((REPO / "pipeline/src/scorecard_pipeline/data/iso3166.json").read_text())
+    assert frozenset(source["countries"]) == instant_score._ASSIGNED_COUNTRY_CODES
 
 
 def test_validate_score_request_rejects_missing_or_bad_url() -> None:
@@ -213,13 +363,32 @@ def test_instant_score_async_self_invoke_runs_the_job(monkeypatch: pytest.Monkey
     monkeypatch.setattr(
         instant_score,
         "_run_scoring_job",
-        lambda job_id, url, name: calls.append((job_id, url, name)),
+        lambda job_id, url, name, country: calls.append((job_id, url, name, country)),
     )
     result = instant_score.handler(
-        {"job_id": "abc123", "url": "https://x.test/g.zip", "name": "X"}, None
+        {
+            "job_id": "abc123",
+            "url": "https://x.test/g.zip",
+            "name": "X",
+            "country": "CA",
+        },
+        None,
     )
     assert result is None
-    assert calls == [("abc123", "https://x.test/g.zip", "X")]
+    assert calls == [("abc123", "https://x.test/g.zip", "X", "CA")]
+
+
+def test_instant_score_async_legacy_event_defaults_to_us(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = []
+    monkeypatch.setattr(
+        instant_score,
+        "_run_scoring_job",
+        lambda job_id, url, name, country: calls.append(country),
+    )
+    instant_score.handler({"job_id": "abc123", "url": "https://x.test/g.zip", "name": "X"}, None)
+    assert calls == ["US"]
 
 
 # --- instant-score: POST /score ---
@@ -247,19 +416,43 @@ def test_instant_score_post_starts_a_job(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setattr(
         instant_score,
         "_start_scoring",
-        lambda job_id, url, name: started.append((job_id, url, name)),
+        lambda job_id, url, name, country: started.append((job_id, url, name, country)),
     )
-    body = '{"url": "https://x.test/g.zip", "name": "X Transit"}'
+    body = '{"url": "https://x.test/g.zip", "name": "X Transit", "country": "nz"}'
     resp = instant_score.handler(
         {"requestContext": {"http": {"method": "POST"}}, "body": body}, None
     )
     assert resp["statusCode"] == 202
     assert len(started) == 1
-    job_id, url, name = started[0]
+    job_id, url, name, country = started[0]
     assert instant_score._JOB_ID_RE.match(job_id)
     assert url == "https://x.test/g.zip"
     assert name == "X Transit"
+    assert country == "NZ"
     assert job_id in resp["body"]
+
+
+def test_start_scoring_carries_country_into_the_async_event(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    table = FakeTable()
+    invoked: dict[str, Any] = {}
+
+    class FakeLambdaClient:
+        def invoke(self, **kwargs: Any) -> None:
+            invoked.update(kwargs)
+
+    fake_boto3 = types.ModuleType("boto3")
+    fake_boto3.__dict__["client"] = lambda *args, **kwargs: FakeLambdaClient()
+    monkeypatch.setitem(sys.modules, "boto3", fake_boto3)
+    monkeypatch.setattr(instant_score, "_jobs_table", lambda: table)
+    monkeypatch.setenv("FUNCTION_NAME", "instant-score")
+
+    instant_score._start_scoring("abc12345", "https://x.test/g.zip", "X Transit", "CA")
+
+    assert table.put_item_value is not None
+    assert table.put_item_value["country"] == "CA"
+    assert json.loads(invoked["Payload"])["country"] == "CA"
 
 
 def test_instant_score_post_actually_rate_limited_returns_429(
@@ -345,12 +538,19 @@ def test_run_scoring_job_records_done_on_success(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr(instant_score, "_prepare_runtime", lambda: None)
     table = FakeTable()
     artifact = {"overall": {"grade": "A"}}
-    monkeypatch.setattr("scorecard_pipeline.cli.run_adhoc", lambda *a, **k: artifact)
+    calls = []
+
+    def score(url: str, name: str, date: object, *, country: str) -> dict[str, Any]:
+        calls.append((url, name, date, country))
+        return artifact
+
+    monkeypatch.setattr("scorecard_pipeline.cli.run_adhoc", score)
     monkeypatch.setattr(instant_score, "_jobs_table", lambda: table)
     monkeypatch.setattr(
         instant_score,
         "_publish_result",
         lambda job_id, art: "https://gtfsscorecard.org/scratch/abc12345/latest.json",
     )
-    instant_score._run_scoring_job("abc12345", "https://x.test/g.zip", "X")
+    instant_score._run_scoring_job("abc12345", "https://x.test/g.zip", "X", "NZ")
     assert table.updated is True
+    assert calls[0][3] == "NZ"

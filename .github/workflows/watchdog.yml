@@ -1,23 +1,25 @@
 name: Watchdog
 
-# Independent uptime + freshness check. It runs on GitHub's own infrastructure
-# and does NOT touch AWS, so it still fires when Route 53, the domain, or the AWS
-# account is the thing that broke. On a problem it exits non-zero; GitHub then
-# emails the repo owner about the failed scheduled run (keep Actions failure
-# notifications on in your GitHub settings).
+# The six-hour job checks uptime and freshness from GitHub's infrastructure
+# without touching AWS, so it still fires when Route 53, the domain, or the AWS
+# account is the thing that broke. The weekly job audits representative
+# production routes with Lighthouse. A failed scheduled run uses the repository's
+# normal Actions failure notifications.
 
 on:
   schedule:
     - cron: "23 */6 * * *" # every 6 hours
+    - cron: "41 7 * * 0" # weekly production Lighthouse audit
   workflow_dispatch:
 
-permissions:
-  contents: read
-  actions: read # read the Daily scorecard run history
+permissions: {}
 
 jobs:
   watch:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '23 */6 * * *' }}
     runs-on: ubuntu-latest
+    permissions:
+      actions: read # read the Daily scorecard run history
     steps:
       - name: The site answers over HTTPS
         run: |
@@ -26,7 +28,7 @@ jobs:
           for url in "https://gtfsscorecard.org/" "https://gtfsscorecard.org/data/artifacts/index.json"; do
             code=000
             # Retry so a single transient blip does not page you.
-            for attempt in 1 2 3; do
+            for _attempt in 1 2 3; do
               code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 25 "$url" 2>/dev/null || echo 000)
               [ "$code" = "200" ] && break
               sleep 12
@@ -37,43 +39,101 @@ jobs:
               fail=1
             fi
           done
-          exit $fail
+          exit "$fail"
 
-      - name: The daily refresh has a recent success
+      # RELIABILITY (issue #297): this used to ask "did scorecard.yml (Daily)
+      # last succeed within 26h?" and, on a Daily-only outage, alert with
+      # "The published data is going stale" — false during exactly that
+      # outage, since Intraday refresh (refresh.yml) kept deploying every
+      # three hours the whole time and the live site's data was current. Ask
+      # the question this check actually claims to answer instead: how old is
+      # what's deployed right now, regardless of which workflow produced it.
+      # `deployment.json` carries no raw timestamp of its own, but its
+      # `source_run_id` names the exact run that produced the live content, so
+      # that run's completion time is the deployed content's true age.
+      - name: The deployed data is not stale
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow scorecard.yml \
-            --branch main --status success --limit 1 --json updatedAt 2>/dev/null || echo '[]')
-          updated=$(echo "$run" | jq -r '.[0].updatedAt // empty')
+          deployment=$(curl -sS --max-time 25 "https://gtfsscorecard.org/deployment.json")
+          run_id=$(echo "$deployment" | jq -r '.source_run_id // empty')
+          if [ -z "$run_id" ]; then
+            echo "::error::deployment.json is missing or has no source_run_id: $deployment"
+            exit 1
+          fi
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" 2>/dev/null || echo '{}')
+          updated=$(echo "$run" | jq -r '.updated_at // empty')
+          name=$(echo "$run" | jq -r '.name // "unknown workflow"')
           if [ -z "$updated" ]; then
-            echo "::error::No successful Daily scorecard run found. The pipeline may never have published."
+            echo "::error::Could not resolve deployment.json's source_run_id ($run_id) to a completed run."
             exit 1
           fi
           age=$(( ( $(date -u +%s) - $(date -u -d "$updated" +%s) ) / 3600 ))
-          echo "last successful Daily scorecard run was ${age}h ago ($updated)"
-          # 26h flags a slipped 13:23 UTC run within the same clock day,
-          # instead of letting stale data sit through a day of agency calls.
-          if [ "$age" -gt 26 ]; then
-            echo "::error::No successful Daily scorecard run in ${age}h (>26h). The published data is going stale."
+          echo "live deployment was produced by '$name' run $run_id, ${age}h ago ($updated)"
+          # Healthy steady-state redeploys roughly every 3h (Intraday's own
+          # cadence, refresh.yml). 9h tolerates three missed cycles in a row
+          # — enough margin that one slow run sharing the artifacts-publish
+          # concurrency lock with a Daily run doesn't page on its own — while
+          # still catching a real stall inside a working day, not after one.
+          if [ "$age" -gt 9 ]; then
+            echo "::error::The live site's deployed data is ${age}h old (>9h). Neither Daily nor Intraday has published successfully in that window."
             exit 1
           fi
 
+      # The freshness check above tolerates one bad Daily run as long as
+      # Intraday keeps deploying; this pages on the first Daily failure
+      # specifically, so a red daily is known within six hours rather than
+      # only once nothing has published in 9h. `if: always()` so it still
+      # runs (and can still fail the job) even when the step above already
+      # failed — previously this had no `if:`, and because the step above's
+      # threshold had always already tripped by the time Watchdog got a
+      # chance to run, this check never executed in practice.
       - name: The most recent daily run did not fail
+        if: ${{ always() }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # The staleness check above tolerates one bad run inside its window;
-          # this pages on the first failure, so a red daily is known within six
-          # hours rather than after the data ages past the threshold.
+          # Include workflow_dispatch runs so a successful manual recovery
+          # clears the alert without waiting for the next scheduled refresh.
           latest=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow scorecard.yml \
-            --branch main --event schedule --limit 1 --json conclusion,status 2>/dev/null || echo '[]')
+            --branch main --status completed --limit 1 \
+            --json conclusion,status,event 2>/dev/null || echo '[]')
           conclusion=$(echo "$latest" | jq -r '.[0].conclusion // empty')
           status=$(echo "$latest" | jq -r '.[0].status // empty')
-          echo "most recent scheduled Daily scorecard run: status=$status conclusion=$conclusion"
+          event=$(echo "$latest" | jq -r '.[0].event // empty')
+          echo "most recent completed Daily scorecard run: event=$event status=$status conclusion=$conclusion"
           if [ "$conclusion" = "failure" ] || [ "$conclusion" = "timed_out" ]; then
-            echo "::error::The most recent scheduled Daily scorecard run ended '$conclusion'. Investigate before the published data goes stale."
+            echo "::error::The most recent completed Daily scorecard run ended '$conclusion'. Investigate before the published data goes stale."
             exit 1
           fi
+
+  production-lighthouse:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '41 7 * * 0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - name: Audit representative production routes
+        timeout-minutes: 20
+        run: |
+          set -o pipefail
+          npx --yes @lhci/cli@0.14 autorun \
+            --config=lighthouserc.production.json \
+            --failOnUploadFailure 2>&1 | tee lhci-production.log
+          test -s lhci-reports/production/manifest.json
+      - name: Retain production Lighthouse reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: production-lighthouse-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            lhci-reports/production/
+            lhci-production.log
+          if-no-files-found: error
+          retention-days: 90

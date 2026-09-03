@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "ketchikan-gateway-borough",
-    "name": "The Bus"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/ketchikan-gateway-borough/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/ketchikan-gateway-borough/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 7,
-        "examples": [
-          "'route_short_name': 'Green Line ' -> 'Green Line'",
-          "'route_short_name': 'Silver Line ' -> 'Silver Line'",
-          "'tts_route_long_name': 'Silver Line ' -> 'Silver Line'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 7
+    "name": "The Bus",
+    "subdivision_code": "US-AK",
+    "subdivision_name": "Alaska"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -57,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 280,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 32.9,
+        "headsign_scored_pct": 32.9,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 164,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 280,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 97.6,
@@ -89,13 +87,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 188,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 10.1,
           "severity": "WARNING",
-          "what": "188 of 280 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "188 of 280 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_flex_no_booking_rules",
@@ -120,7 +118,7 @@
         "distinct_codes": 9,
         "instances_by_severity": {
           "ERROR": 1,
-          "INFO": 49,
+          "INFO": 48,
           "WARNING": 45
         },
         "validator_version": "8.0.1"
@@ -157,18 +155,18 @@
           "points": 6.0,
           "severity": "WARNING",
           "what": "Some stops exist in the feed but no trip ever stops at them.",
-          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+          "why": "Riders may walk to a stop where no transit vehicle is scheduled to arrive."
         },
         {
           "code": "route_long_name_contains_short_name",
           "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "route_short_name_too_long",
@@ -195,28 +193,28 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 4,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "service_extends_far_in_the_future",
-          "count": 3,
+          "count": 2,
           "effort": "Varies.",
           "fix": "Review the rule documentation for 'service_extends_far_in_the_future' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
           "owner": "",
@@ -229,25 +227,28 @@
       "name": "correctness",
       "score": 65.5,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 9 kinds of issue across 95 instances (1 error, 45 warning, 49 informational).",
+      "summary": "The MobilityData validator flagged 9 kinds of issue across 94 instances (1 error, 45 warning, 48 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 359,
+        "days_until_expiry": 327,
+        "effective_expiry_date": "2027-06-30",
         "feed_end_date": "2027-06-30",
         "feed_start_date": "2026-05-12",
         "feed_version": "UTC: 12-May-2026 15:41",
         "has_feed_info": true,
         "last_service_date": "2029-06-30",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 359 days.",
+      "summary": "Service data covers the next 327 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -256,6 +257,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -266,7 +279,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 368 days.",
+        "detail": "Service data covers the next 335 days.",
         "key": "current",
         "met": true
       },
@@ -286,7 +299,84 @@
     "size_bytes": 140398,
     "static_url": "https://data.trilliumtransit.com/gtfs/kgb-ak-us/kgb-ak-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "ferry_profile": {
+    "accessibility": {
+      "measures": "published_values_not_physical_usability",
+      "terminals": {
+        "allowed_count": 2,
+        "allowed_pct": 100.0,
+        "not_allowed_count": 0,
+        "not_allowed_pct": 0.0,
+        "stated_count": 2,
+        "stated_pct": 100.0,
+        "total_count": 2
+      },
+      "trips": {
+        "allowed_count": 62,
+        "allowed_pct": 100.0,
+        "not_allowed_count": 0,
+        "not_allowed_pct": 0.0,
+        "stated_count": 62,
+        "stated_pct": 100.0,
+        "total_count": 62
+      }
+    },
+    "bikes": {
+      "allowed_count": 62,
+      "allowed_pct": 100.0,
+      "not_allowed_count": 0,
+      "not_allowed_pct": 0.0,
+      "stated_count": 62,
+      "stated_pct": 100.0,
+      "total_count": 62
+    },
+    "cars": {
+      "allowed_count": 0,
+      "allowed_pct": 0.0,
+      "not_allowed_count": 0,
+      "not_allowed_pct": 0.0,
+      "stated_count": 0,
+      "stated_pct": 0.0,
+      "total_count": 62
+    },
+    "fares": {
+      "applied": true,
+      "fare_free": false,
+      "model": "legacy",
+      "scope": "whole_feed"
+    },
+    "graded": false,
+    "measured": true,
+    "realtime": {
+      "configured_kinds": [],
+      "kinds_configured": 0,
+      "scope": "whole_feed"
+    },
+    "route_count": 1,
+    "scope": "ferry_routes_and_trips",
+    "stop_access": {
+      "direct_count": 0,
+      "eligible_terminal_count": 0,
+      "stated_count": 0,
+      "stated_pct": null,
+      "through_station_count": 0
+    },
+    "terminal_hierarchy": {
+      "boarding_location_count": 2,
+      "parented_boarding_location_count": 0,
+      "parented_boarding_location_pct": 0.0,
+      "referenced_station_count": 0
+    },
+    "trip_count": 62
+  },
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/kgb-ak-us/kgb-ak-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-30T00:00:00+00:00",
   "geo": {
     "bbox": [
       -131.81995,
@@ -298,8 +388,35 @@
     "lon": -131.67763,
     "stop_count": 164
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": true,
+    "is_multimodal": true,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 3,
+        "trip_count": 218,
+        "trip_share_pct": 77.9
+      },
+      {
+        "key": "ferry",
+        "label": "Ferry",
+        "route_count": 1,
+        "trip_count": 62,
+        "trip_share_pct": 22.1
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 4,
+    "trip_count": 280
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "554",
       "553"
@@ -319,8 +436,13 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 368 days.",
+        "detail": "Service data covers the next 335 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
@@ -335,6 +457,7 @@
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -346,6 +469,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 1,
       "effort": "A per-route color setting in your scheduling software.",
@@ -357,6 +481,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 151,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -369,8 +494,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -392,9 +517,74 @@
     "single_stop_trips": 0,
     "trips_total": 280
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 4,
+    "has_shapes": true,
+    "path": "data/artifacts/ketchikan-gateway-borough/geometry.geojson",
+    "route_count": 4,
+    "routes": [
+      {
+        "color": "F27D19",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "4505",
+        "label": "Downtown Shuttle",
+        "long": "Downtown Shuttle",
+        "short": "Downtown Shuttle",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "23AF23",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "4519",
+        "label": "Green Line",
+        "long": "Green Line Loop",
+        "short": "Green Line",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3F53B1",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "4520",
+        "label": "Silver Line",
+        "long": "Silver Line",
+        "short": "Silver Line",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1BF2C9",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "4683",
+        "label": "Airport Ferry",
+        "long": "Airport Ferry",
+        "short": "Airport Ferry",
+        "text_color": "FFFFFF",
+        "type_label": "Ferry"
+      }
+    ],
+    "stop_count": 164,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 280 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 280,
+    "trips_with_shape": 280
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "invalid_phone_number",
@@ -411,14 +601,14 @@
     {
       "code": "scorecard_missing_headsigns",
       "count": 188,
-      "effort": "Usually a bulk edit in your scheduling software.",
-      "fix": "Populate trip_headsign to match what the bus displays.",
-      "owner": "Likely your export tool",
+      "effort": "Usually one value per route pattern in your scheduling source.",
+      "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+      "owner": "",
       "points": 10.1,
       "rank": 2,
       "severity": "WARNING",
-      "what": "188 of 280 trips have no headsign.",
-      "why": "Riders at the stop can't tell which direction a bus is going."
+      "what": "188 of 280 trips lack rider-facing destination or direction text.",
+      "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
     },
     {
       "code": "mixed_case_recommended_field",

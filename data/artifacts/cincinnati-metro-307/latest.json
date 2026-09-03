@@ -178,7 +178,7 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 40,
+        "days_until_expiry": 36,
         "feed_end_date": "2026-08-15",
         "feed_start_date": "2026-05-31",
         "feed_version": "gtfs_20260531-20260815_20260626",
@@ -189,9 +189,9 @@
       },
       "findings": [],
       "name": "freshness",
-      "score": 66.7,
+      "score": 60.0,
       "status": "measured",
-      "summary": "Service data covers the next 40 days.",
+      "summary": "Service data covers the next 36 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -291,9 +291,9 @@
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 7.7,
-    "margin_to_next_band": 2.3,
-    "score": 77.7
+    "margin_to_lower_band": 6.3,
+    "margin_to_next_band": 3.7,
+    "score": 76.3
   },
   "recommendations": [
     {
@@ -320,8 +320,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-07-10",
+    "feed_fetched_date": "2026-07-09",
     "kind": "freshness"
   },
   "routability": {
@@ -333,7 +333,7 @@
   },
   "rubric_version": "1.1",
   "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "snapshot_date": "2026-07-10",
   "top_fixes": [
     {
       "code": "equal_shape_distance_same_coordinates",

@@ -6,14 +6,19 @@ import datetime as dt
 import json
 from pathlib import Path
 
-from scorecard_pipeline.config import artifacts_dir, repo_root
+import pytest
+
+from scorecard_pipeline import RUBRIC_VERSION, SCORING_PROFILE_ID
+from scorecard_pipeline.config import Agency, artifacts_dir, register, repo_root
 from scorecard_pipeline.rollups import (
     Rollup,
+    _realtime_block,
     build_rollup,
     load_rollups,
     publish_rollups,
     rollup_csv,
 )
+from scorecard_pipeline.validate import VALIDATOR_VERSION
 
 WHEN = dt.datetime(2026, 6, 12, 12, 0, tzinfo=dt.UTC)
 
@@ -29,6 +34,9 @@ def write_latest(
     country: str | None = None,
     shapes: tuple[int, int] | None = None,
     ntd_id: str | None = None,
+    scoring_profile_id: str = SCORING_PROFILE_ID,
+    validator_version: str = VALIDATOR_VERSION,
+    reader_archive_profile: str | None = None,
 ) -> None:
     agency: dict[str, object] = {"id": agency_id, "name": name}
     if state:
@@ -36,12 +44,30 @@ def write_latest(
     if country:
         agency["country"] = country
     payload: dict[str, object] = {
+        "rubric_version": RUBRIC_VERSION,
+        "scoring_profile": {
+            "id": scoring_profile_id,
+            "rubric_version": RUBRIC_VERSION,
+        },
+        "validator_version": validator_version,
         "agency": agency,
         "snapshot_date": "2026-06-12",
         "overall": {"score": score, "grade": grade},
-        "categories": {"freshness": {"details": {"days_until_expiry": days}}},
+        "feed": {"sha256": f"sha-{agency_id}"},
+        "categories": {
+            "correctness": {"status": "measured", "score": score},
+            "freshness": {
+                "status": "measured",
+                "score": score,
+                "details": {"days_until_expiry": days},
+            },
+            "completeness": {"status": "measured", "score": score},
+            "realtime": {"status": "not_yet_measured"},
+        },
         "top_fixes": fixes or [],
     }
+    if reader_archive_profile is not None:
+        payload["fetch"] = {"reader_archive_profile": reader_archive_profile}
     if shapes is not None:
         total_trips, trips_with_shape = shapes
         payload["shapes_readiness"] = {
@@ -116,6 +142,81 @@ def test_load_rollups_parses_state_selector(tmp_path: Path) -> None:
     assert rollup.member_ids == ()
 
 
+def test_country_rollup_auto_includes_agencies_by_artifact_country() -> None:
+    write_latest("on1", "Ontario One", 80.0, "B", country="CA")
+    write_latest("bc1", "BC One", 70.0, "C", country="ca")  # case-insensitive
+    write_latest("gb1", "GB One", 90.0, "A", country="GB")
+    write_latest("legacy", "Legacy US", 85.0, "B")  # no country: a US record by contract
+    rollup = Rollup(id="country-ca", name="Canada", member_ids=(), country="CA")
+    payload = build_rollup(rollup, WHEN)
+    assert payload["agency_count"] == 2
+    assert sorted(m["id"] for m in payload["members"]) == ["bc1", "on1"]
+
+
+def test_country_rollup_treats_legacy_artifacts_as_us_records() -> None:
+    write_latest("legacy", "Legacy US", 85.0, "B")  # predates the country field
+    write_latest("ca1", "Canada One", 80.0, "B", country="CA")
+    rollup = Rollup(id="country-us", name="United States", member_ids=(), country="US")
+    payload = build_rollup(rollup, WHEN)
+    assert [m["id"] for m in payload["members"]] == ["legacy"]
+
+
+def test_country_rollup_prefers_registry_country_over_artifact() -> None:
+    # The curated registry is the authoritative location; a stale artifact
+    # country must not move an agency between country cohorts.
+    register(Agency("moved", "Moved", "https://example.com/moved.zip", country="CA"))
+    register(Agency("stays", "Stays", "https://example.com/stays.zip"))
+    write_latest("moved", "Moved", 80.0, "B", country="US")
+    write_latest("stays", "Stays", 75.0, "C")
+    rollup = Rollup(id="country-ca", name="Canada", member_ids=(), country="CA")
+    payload = build_rollup(rollup, WHEN)
+    assert [m["id"] for m in payload["members"]] == ["moved"]
+
+
+def test_rollup_prefers_curated_registry_name() -> None:
+    register(Agency("renamed", "Curated Transit", "https://example.com/renamed.zip"))
+    write_latest("renamed", "Stale Export Name", 80.0, "B")
+
+    payload = build_rollup(Rollup("one", "One", ("renamed",)), WHEN)
+
+    assert payload["members"][0]["name"] == "Curated Transit"
+
+
+def test_load_rollups_parses_country_selector(tmp_path: Path) -> None:
+    config = tmp_path / "rollups.yaml"
+    config.write_text("rollups:\n  - id: country-ca\n    name: Canada\n    country: ca\n")
+    (rollup,) = load_rollups(config)
+    assert rollup.country == "CA"
+    assert rollup.state is None
+    assert rollup.member_ids == ()
+
+
+def test_load_rollups_rejects_state_and_country_together(tmp_path: Path) -> None:
+    config = tmp_path / "rollups.yaml"
+    config.write_text("rollups:\n  - id: bad\n    name: Bad\n    state: CA\n    country: CA\n")
+    with pytest.raises(ValueError, match="state or country, not both"):
+        load_rollups(config)
+
+
+def test_load_rollups_rejects_unassigned_country_code(tmp_path: Path) -> None:
+    config = tmp_path / "rollups.yaml"
+    config.write_text("rollups:\n  - id: bad\n    name: Bad\n    country: XX\n")
+    with pytest.raises(ValueError, match="ISO 3166-1"):
+        load_rollups(config)
+
+
+def test_country_rollup_payload_carries_iso_identity() -> None:
+    write_latest("ca1", "Canada One", 80.0, "B", country="CA")
+    rollup = Rollup(id="country-ca", name="Canada", member_ids=(), country="CA")
+    payload = build_rollup(rollup, WHEN)
+    assert payload["rollup"]["country_code"] == "CA"
+    assert payload["rollup"]["country_name"] == "Canada"
+    # Non-country rollups keep their exact prior shape: no country keys at all.
+    plain = build_rollup(Rollup(id="all", name="All tracked agencies", member_ids=()), WHEN)
+    assert "country_code" not in plain["rollup"]
+    assert "country_name" not in plain["rollup"]
+
+
 def test_reserved_dirs_are_not_treated_as_agencies() -> None:
     write_latest("a", "A Transit", 70.0, "C")
     # The changes feed lives under artifacts/changes/latest.json and has no
@@ -181,13 +282,12 @@ def test_ridership_weights_attention_order_high_ridership_first() -> None:
 
 
 def test_ridership_none_leaves_order_unchanged() -> None:
-    # Same feeds, no ridership map: falls back to worst-score-first, so the
-    # lower-scoring "tiny" leads despite carrying fewer riders.
+    # Same feeds, no ridership map: falls back to alphabetical attention order.
     write_latest("big", "Big Transit", 66.0, "D", ntd_id="90001")
     write_latest("tiny", "Tiny Transit", 64.0, "D", ntd_id="90002")
     attention = {"big": "Feed expires in 5 days", "tiny": "Feed expires in 3 days"}
     payload = build_rollup(Rollup("all", "All", ()), WHEN, attention, None)
-    assert [m["id"] for m in payload["members"]] == ["tiny", "big"]
+    assert [m["id"] for m in payload["members"]] == ["big", "tiny"]
     # With no snapshot the trips field is present but None, never a guessed 0.
     assert payload["members"][0]["annual_trips"] is None
 
@@ -205,6 +305,39 @@ def test_ridership_only_reorders_within_attention_group() -> None:
     assert payload["members"][1]["id"] == "huge-ok"
 
 
+def test_duplicate_ntd_reporter_ids_are_quarantined_from_ridership_ordering() -> None:
+    write_latest("first", "First", 70.0, "C", ntd_id="90001")
+    write_latest("second", "Second", 72.0, "C", ntd_id="90001")
+    write_latest("unique", "Unique", 74.0, "C", ntd_id="90002")
+    attention = {member: "Feed expires soon" for member in ("first", "second", "unique")}
+    payload = build_rollup(
+        Rollup("all", "All", ()),
+        WHEN,
+        attention,
+        {"90001": 9_000_000, "90002": 1_000},
+    )
+
+    members = {member["id"]: member for member in payload["members"]}
+    assert members["first"]["annual_trips"] is None
+    assert members["second"]["annual_trips"] is None
+    assert members["unique"]["annual_trips"] == 1_000
+
+
+def test_registry_duplicate_is_quarantined_when_sibling_has_no_rollup_artifact() -> None:
+    register(Agency("visible", "Visible", "https://example.com/visible.zip", ntd_id="00007"))
+    register(Agency("hidden", "Hidden", "https://example.com/hidden.zip", ntd_id="00007"))
+    write_latest("visible", "Visible", 90.0, "A", ntd_id="00007")
+
+    payload = build_rollup(
+        Rollup("all", "All", ()),
+        WHEN,
+        {"visible": "Feed expires soon"},
+        {"7": 1_000_000},
+    )
+
+    assert payload["members"][0]["annual_trips"] is None
+
+
 def test_common_fixes_counts_shared_codes() -> None:
     shared = {
         "code": "scorecard_wheelchair_boarding_unknown",
@@ -212,12 +345,53 @@ def test_common_fixes_counts_shared_codes() -> None:
     }
     write_latest("a", "A", 70.0, "C", fixes=[shared])
     write_latest("b", "B", 72.0, "C", fixes=[shared])
+    write_latest(
+        "old-validator",
+        "Old validator",
+        74.0,
+        "C",
+        fixes=[shared],
+        validator_version="7.0.0",
+    )
     write_latest("c", "C", 75.0, "C", fixes=[{"code": "other", "fix": "Other fix."}])
     payload = build_rollup(Rollup("all", "All", ()), WHEN)
     common = payload["common_fixes"]
     assert len(common) == 1
     assert common[0]["agencies"] == 2
     assert common[0]["code"] == "scorecard_wheelchair_boarding_unknown"
+    assert payload["comparison"]["exclusion_counts"]["validator_version_mismatch"] == 1
+
+
+def test_rollup_members_carry_the_top_finding_code_for_handoff_links() -> None:
+    finding = {
+        "code": "scorecard_wheelchair_boarding_unknown",
+        "fix": "Set wheelchair_boarding on every stop.",
+    }
+    write_latest("a", "A", 70.0, "C", fixes=[finding])
+
+    payload = build_rollup(Rollup("all", "All", ()), WHEN)
+
+    assert payload["members"][0]["top_fix"] == finding["fix"]
+    assert payload["members"][0]["top_fix_code"] == finding["code"]
+
+
+def test_rollup_excludes_a_normalized_reader_profile_from_aggregates() -> None:
+    write_latest("raw", "Raw", 80.0, "B")
+    write_latest(
+        "normalized",
+        "Normalized",
+        100.0,
+        "A",
+        reader_archive_profile="flat-single-root-v1",
+    )
+
+    payload = build_rollup(Rollup("all", "All", ()), WHEN)
+
+    assert payload["agency_count"] == 2
+    assert payload["average_score"] == 80.0
+    assert payload["comparison"]["eligible_count"] == 1
+    assert payload["comparison"]["required_reader_archive_profile"] == "raw-v1"
+    assert payload["comparison"]["exclusion_counts"] == {"reader_archive_profile_mismatch": 1}
 
 
 def test_explicit_membership_limits_the_rollup() -> None:
@@ -226,6 +400,37 @@ def test_explicit_membership_limits_the_rollup() -> None:
     payload = build_rollup(Rollup("just-x", "Just X", ("x",)), WHEN)
     assert payload["agency_count"] == 1
     assert payload["members"][0]["id"] == "x"
+
+
+def test_rollups_exclude_retired_aliases_even_from_explicit_membership() -> None:
+    live = Agency("live", "Live Transit", "https://example.com/live.zip", ntd_id="90001")
+    retired = Agency(
+        "retired",
+        "Retired Transit export",
+        "https://archive.example.com/retired.zip",
+        alias_of=live.id,
+        feed_status="deprecated",
+        ntd_id="90001",
+    )
+    register(live)
+    register(retired)
+    write_latest(live.id, live.name, 91.0, "A", ntd_id="90001")
+    write_latest(retired.id, retired.name, 31.0, "F", ntd_id="90001")
+
+    default_payload = build_rollup(Rollup("all", "All", ()), WHEN)
+    explicit_payload = build_rollup(Rollup("configured", "Configured", (retired.id, live.id)), WHEN)
+
+    assert [member["id"] for member in default_payload["members"]] == [live.id]
+    assert [member["id"] for member in explicit_payload["members"]] == [live.id]
+    weighted = build_rollup(
+        Rollup("weighted", "Weighted", (retired.id, live.id)),
+        WHEN,
+        {live.id: "Feed expires soon"},
+        {"90001": 1_000_000},
+    )
+    assert weighted["members"][0]["annual_trips"] == 1_000_000
+    # The alias's raw artifact is evidence, not current rollup membership.
+    assert (artifacts_dir() / retired.id / "latest.json").exists()
 
 
 def test_publish_rollups_writes_index_and_files() -> None:
@@ -238,9 +443,7 @@ def test_publish_rollups_writes_index_and_files() -> None:
     assert index["rollups"][0]["id"] == "all"
 
 
-def test_state_percentile_compares_states_only() -> None:
-    # Three states, cleanly ordered by average score, plus one non-state named
-    # cohort ("all") that must not be treated as a fourth peer.
+def test_state_rollups_do_not_publish_percentiles() -> None:
     write_latest("hi1", "HI One", 95.0, "A", state="HI")
     write_latest("mid1", "MID One", 60.0, "D", state="MID")
     write_latest("lo1", "LO One", 20.0, "F", state="LO")
@@ -258,13 +461,9 @@ def test_state_percentile_compares_states_only() -> None:
     mid = json.loads((out / "mid.json").read_text())
     lo = json.loads((out / "lo.json").read_text())
     all_ = json.loads((out / "all.json").read_text())
-    # Best of three states reads 100; worst is only ahead of itself (33%);
-    # a non-state rollup ("all", which also spans every agency here) is not a
-    # peer of a state-to-state comparison and carries no percentile at all.
-    assert hi["state_percentile"] == 100
-    assert mid["state_percentile"] == 67
-    assert lo["state_percentile"] == 33
-    assert all_["state_percentile"] is None
+    for payload in (hi, mid, lo, all_):
+        assert payload["state_percentile"] is None
+        assert payload["comparison"]["individual_percentiles_published"] is False
 
 
 def test_state_percentile_absent_with_no_state_rollups() -> None:
@@ -333,3 +532,42 @@ def test_rollup_shapes_readiness_all_zero_when_nothing_measured() -> None:
         "not_measured": 1,
         "total": 1,
     }
+
+
+def test_realtime_block_skips_a_corrupt_record_without_crashing(isolated_repo_root: Path) -> None:
+    """A member's rt-health record that exists but fails to parse must not
+    take down the whole program rollup. It is logged and excluded, not
+    treated as an empty history to overwrite (that refusal lives in
+    rt_health.append_observation, unit-tested there); a healthy sibling
+    member's record still comes through untouched."""
+    rt_dir = isolated_repo_root / "data" / "rt-health"
+    rt_dir.mkdir(parents=True)
+    (rt_dir / "broken.json").write_text("<<<<<<< HEAD\nnot valid json\n=======\n>>>>>>> branch\n")
+    (rt_dir / "healthy.json").write_text(
+        json.dumps(
+            {
+                "agency_id": "healthy",
+                "observations": [
+                    {
+                        "ts": 1,
+                        "kinds_reachable": 1,
+                        "kinds_total": 1,
+                        "worst_lag_seconds": 10,
+                        "coverage_pct": None,
+                    }
+                ],
+            }
+        )
+    )
+
+    result = _realtime_block(
+        [
+            {"id": "broken", "name": "Broken Transit"},
+            {"id": "healthy", "name": "Healthy Transit"},
+            {"id": "unmonitored", "name": "Unmonitored Transit"},
+        ]
+    )
+
+    ids = {row["id"] for row in result["members"]}
+    assert ids == {"healthy"}
+    assert result["monitored_feed_records"] == 1

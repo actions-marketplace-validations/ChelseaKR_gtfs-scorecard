@@ -2,6 +2,17 @@
 
 > Root instruction file for the `gtfs-scorecard` repo. Read fully before writing code.
 
+> **Status (2026-08):** the four build phases below have shipped, and the pilot
+> grew into a live service: the registry carries more than 2,200 curated feed
+> records, with more than 2,100
+> published scorecards, still concentrated in the US and Canada and now
+> carrying reviewed global canaries, scored daily at gtfsscorecard.org, with a
+> versioned read API, a GitHub Marketplace action, and an MCP server. This file
+> remains the product spec
+> (framing, rubric, quality bar — those hold). For what exists now, read
+> `README.md`; for what's next, `docs/roadmap.md`, `docs/product-roadmap.md`,
+> and `docs/ideation/`.
+
 ## What this is
 
 A web dashboard plus ingestion pipeline that scores the quality of a transit agency's GTFS
@@ -112,6 +123,10 @@ software export settings").
 
 ## Build plan
 
+> All four phases are done, including Phase 4's manifest-backed agency
+> registry. The phases stay here as the record of the intended shape;
+> current work is tracked in the roadmap docs named at the top.
+
 ### Phase 1 — Pipeline to first artifact (week 1)
 - Feed discovery and `docs/feeds.md`. Fetch + archive static GTFS for both agencies.
 - gtfs-validator integration; parse notices into a normalized findings model.
@@ -136,7 +151,8 @@ software export settings").
   taxonomy.
 
 ### Phase 4 — Generalize (post-coffee)
-- `agencies.yaml` config so any feed URL can be added; document "add your agency in 10 minutes."
+- Manifest-backed registry config so any feed URL can be added; document "add
+  your agency in 10 minutes."
 - Optional: a third pilot agency (e.g., an MST-sized system) added live during a demo — keep
   this in the back pocket, do not pre-build.
 
@@ -156,9 +172,25 @@ rule-of-three constructions. No hype adjectives. UI copy addresses the agency re
 and respectfully; findings are framed as fixes, never as failures. Vary paragraph and sentence
 openings; do not over-polish.
 
-## Open questions to resolve early
+## Open questions to resolve early (all resolved)
 
-1. Exact feed URLs + licenses for Unitrans and Yolobus (Mobility Database / transit.land).
-2. Does either pilot agency publish GTFS-RT? Shape Phase 3 accordingly.
-3. gtfs-validator runtime needs → Lambda vs Fargate vs Actions-cron decision (write the ADR).
-4. Confirm current Caltrans/Cal-ITP GTFS guidance documents to cite in the rubric.
+1. Feed URLs and licenses for Unitrans and Yolobus — resolved in `docs/feeds.md`.
+2. Pilot GTFS-RT — Yolobus publishes three open RT feeds and the Realtime category scores them. Unitrans moved passenger predictions from UmoIQ to Swiftly in March 2026, but no public Swiftly GTFS-RT endpoint is documented; realtime remains unmeasured and nothing is deducted.
+3. Validator runtime — Actions-cron with a sharded matrix; see `docs/decisions/0001-validator-runtime.md`.
+4. Caltrans/Cal-ITP guidance — cited throughout `docs/rubric.md` and mapped in `docs/crosswalk.md`.
+
+## Agent entrypoint (moved from README "For Claude Code", 2026-07-19)
+
+This file is the build spec: product framing, rubric, and quality bar. The
+original four build phases have shipped; current direction lives in the
+roadmaps and `docs/ideation/`. Hard rules: every metric ships with its
+plain-language explanation; accessibility (WCAG 2.2 AAA) is non-negotiable in
+the web app; agencies without realtime are shown neutrally, never shamed.
+(Agent-facing instructions live here, not in the README; the README states the
+same guardrails for visitors under "Guardrails" and points here. Under the
+v1.0.1 pin this was a declared divergence: that standard's §2 table assigned the
+Claude Code build entrypoint to the README and its §7 told an agent to start
+there, and it had no §9. The pin moved to v2.0.0 on 2026-08-09, which added §9
+"Audience register" and amended §7's first bullet, so DOC-18 now requires the
+arrangement this repo already had. Re-checked 2026-08-15: `agent_docs_separated`
+passes. What was a divergence is conformance under the current pin.)

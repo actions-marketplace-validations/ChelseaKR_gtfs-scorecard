@@ -43,9 +43,17 @@ Table = list[dict[str, str]]
 def _is_shouty(name: str) -> bool:
     """True for names written LIKE THIS. Mirrors the completeness check so the
     fix targets exactly what that finding flags: a fully-uppercase name with at
-    least one 4+ letter word, leaving short acronyms ('UCD', '4 & B') alone."""
+    least one 4+ letter word in a cased script, leaving short acronyms ('UCD',
+    '4 & B') and uncased scripts alone."""
     words = ["".join(c for c in token if c.isalpha()) for token in name.split()]
-    return any(len(w) >= 4 and w == w.upper() for w in words) and name == name.upper()
+    cased = [c for c in name if c.isalpha() and c.lower() != c.upper()]
+    return (
+        bool(cased)
+        and all(c == c.upper() for c in cased)
+        and any(
+            len(w) >= 4 and any(c.lower() != c.upper() for c in w) and w == w.upper() for w in words
+        )
+    )
 
 
 def _titlecase(name: str) -> str:
@@ -86,16 +94,22 @@ def fix_shouty_stop_names(tables: dict[str, Table]) -> FixResult:
 
 
 def fix_shouty_route_names(tables: dict[str, Table]) -> FixResult:
-    """Recase ALL-CAPS route long names, the route-level analogue of the stop
-    name fix."""
-    result = FixResult("autofix_route_name_case", "Recased shouting route names")
+    """Recase ALL-CAPS route names and descriptions.
+
+    MobilityData's ``mixed_case_recommended_field`` notice can point to either
+    ``route_long_name`` or ``route_desc``. Handling only the first made a
+    corrected copy look different without clearing the validator finding that
+    motivated the recipe.
+    """
+    result = FixResult("autofix_route_name_case", "Recased shouting route names and descriptions")
     for row in tables.get("routes.txt", []):
-        name = row.get("route_long_name", "")
-        if name and _is_shouty(name):
-            fixed = _titlecase(name)
-            if fixed != name:
-                row["route_long_name"] = fixed
-                result.note(f"{name} -> {fixed}")
+        for column in ("route_long_name", "route_desc"):
+            value = row.get(column, "")
+            if value and _is_shouty(value):
+                fixed = _titlecase(value)
+                if fixed != value:
+                    row[column] = fixed
+                    result.note(f"{column}: {value} -> {fixed}")
     return result
 
 

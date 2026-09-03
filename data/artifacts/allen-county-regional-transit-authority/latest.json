@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "allen-county-regional-transit-authority",
-    "name": "Allen County Regional Transit Authority"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/allen-county-regional-transit-authority/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/allen-county-regional-transit-authority/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 3,
-        "examples": [
-          "YMCA -> Ymca",
-          "WOCAP -> Wocap",
-          "JSMC -> Jsmc"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 3
+    "name": "Allen County Regional Transit Authority",
+    "subdivision_code": "US-OH",
+    "subdivision_name": "Ohio"
   },
   "categories": {
     "completeness": {
@@ -33,10 +17,14 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 0.0,
-          "headsigns": 13.5,
+          "headsigns": 15.0,
           "stop_names": 14.9,
           "wheelchair_stops": 11.8,
           "wheelchair_trips": 0.0
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 185,
+        "headsign_loop_exempt_trips": 21,
         "headsign_pct": 89.8,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 99.1,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 338,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 206,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 47.0,
@@ -89,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 206,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -107,21 +105,10 @@
           "severity": "WARNING",
           "what": "The feed contains no fare information.",
           "why": "Riders see 'fare unknown' in trip planners and can't budget their trip; visitors are most affected."
-        },
-        {
-          "code": "scorecard_missing_headsigns",
-          "count": 21,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
-          "points": 1.5,
-          "severity": "WARNING",
-          "what": "21 of 206 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
         }
       ],
       "name": "completeness",
-      "score": 55.1,
+      "score": 56.6,
       "status": "measured",
       "summary": "47% of stops state wheelchair accessibility (47% marked accessible, 0% marked not accessible). This measures what the feed publishes, not whether a stop is physically usable. Fare data is not published.",
       "weight": 0.25
@@ -145,8 +132,8 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "fast_travel_between_far_stops",
@@ -179,20 +166,23 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 148,
+        "days_until_expiry": 116,
+        "effective_expiry_date": "2026-12-01",
         "feed_end_date": "2026-12-01",
         "feed_start_date": "2026-05-22",
         "feed_version": "UTC: 22-May-2026 20:58",
         "has_feed_info": true,
         "last_service_date": "2026-12-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 148 days.",
+      "summary": "Service data covers the next 116 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -201,6 +191,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -211,7 +213,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 157 days.",
+        "detail": "Service data covers the next 129 days.",
         "key": "current",
         "met": true
       },
@@ -231,7 +233,14 @@
     "size_bytes": 148647,
     "static_url": "https://data.trilliumtransit.com/gtfs/acrta-oh-us/acrta-oh-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/acrta-oh-us/acrta-oh-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -84.33966,
@@ -243,8 +252,28 @@
     "lon": -84.10799,
     "stop_count": 338
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 10,
+        "trip_count": 206,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 10,
+    "trip_count": 206
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "747"
     ],
@@ -263,22 +292,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 157 days.",
+        "detail": "Service data covers the next 129 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 9.0,
-    "margin_to_next_band": 1.0,
-    "score": 79.0
+    "margin_to_lower_band": 9.4,
+    "margin_to_next_band": 0.6,
+    "score": 79.4
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 2,
       "effort": "A per-route color setting in your scheduling software.",
@@ -290,6 +325,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 77,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -302,8 +338,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -313,15 +349,146 @@
     "single_stop_trips": 0,
     "trips_total": 206
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 10,
+    "has_shapes": true,
+    "path": "data/artifacts/allen-county-regional-transit-authority/geometry.geojson",
+    "route_count": 10,
+    "routes": [
+      {
+        "color": "B444BF",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "19316",
+        "label": "10",
+        "long": "Delphos",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2D4EC5",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "19317",
+        "label": "9",
+        "long": "Bluffton",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFFF00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "7406",
+        "label": "8",
+        "long": "South Metcalf/Shawnee",
+        "short": "8",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2375A8",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "7407",
+        "label": "7",
+        "long": "North East",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "730000",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "7408",
+        "label": "6",
+        "long": "West North",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF5500",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "7409",
+        "label": "5",
+        "long": "South Main",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8400A8",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "7410",
+        "label": "4",
+        "long": "North Main",
+        "short": "4",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "73DFFF",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "7411",
+        "label": "3",
+        "long": "Lima Mall",
+        "short": "3",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF0000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "7413",
+        "label": "2",
+        "long": "Eastgate",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "267300",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "7414",
+        "label": "1",
+        "long": "West Market",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 338,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 206 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 206,
+    "trips_with_shape": 206
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 206,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 1,

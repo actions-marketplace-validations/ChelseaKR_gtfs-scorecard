@@ -14,6 +14,7 @@ part of the fast `make verify` gate.
 from __future__ import annotations
 
 import datetime as dt
+from typing import Any
 
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
@@ -26,7 +27,9 @@ from scorecard_pipeline.metrics import (
     Finding,
     _count_multiplier,
     correctness,
-    freshness,
+)
+from scorecard_pipeline.metrics import (
+    freshness as _freshness_maybe,
 )
 from scorecard_pipeline.rt import RT_KINDS, RtSample, RtWindow, realtime
 from scorecard_pipeline.rt_drift import DriftStats, PlausibilityStats
@@ -35,8 +38,20 @@ from scorecard_pipeline.score import (
     CATEGORY_WEIGHTS,
     build_scorecard,
     letter_grade,
+    published_overall,
 )
 from scorecard_pipeline.validate import NoticeGroup, ValidationReport
+
+
+# `freshness` returns None when the archive held no table that can carry a
+# service date. Every fixture below has one, so this wrapper keeps the existing
+# call sites unchanged while turning an unexpected "not measurable" into a loud
+# failure instead of an attribute error.
+def freshness(*args: Any, **kwargs: Any) -> CategoryResult:
+    result = _freshness_maybe(*args, **kwargs)
+    assert result is not None, "this fixture has date tables and must measure freshness"
+    return result
+
 
 # Bounded profile: enough examples to explore, small enough for `make verify`.
 # deadline=None because per-example wall-clock varies across CI machines. The
@@ -226,13 +241,24 @@ def test_letter_grade_is_total_and_order_preserving(a: float, b: float) -> None:
 def test_overall_lies_within_measured_category_scores(scores: dict[str, float]) -> None:
     """Renormalized weighting is a convex combination: the overall score can
     never leave the [min, max] envelope of the measured categories, and the
-    carried grade always matches the ladder for the overall score."""
+    carried grade always matches the ladder for the score that gets published.
+
+    The ladder is applied to the published score, not the raw one. Hypothesis
+    finds the difference on its own: correctness 67.625, freshness 1.75,
+    completeness 67.625, realtime 95.25 weights out to 59.97..., which prints
+    as 60.0. The published bands make 60 a D, and grading the raw value called
+    it an F -- the exact defect that put "Grade F * 60.0 / 100" on Reseau Stan,
+    Ukmerge and Vilnius District.
+    """
     card = build_scorecard(
         [CategoryResult(name=name, score=score, summary="") for name, score in scores.items()]
     )
     values = list(scores.values())
     assert min(values) - 1e-9 <= card.overall_score <= max(values) + 1e-9
-    assert card.grade == letter_grade(card.overall_score)
+    published = published_overall(card.overall_score)
+    assert card.grade == published["grade"] == letter_grade(published["score"])
+    # And what to_json actually emits agrees with it, which is what a reader sees.
+    assert card.to_json()["overall"] == published
 
 
 # --------------------------------------------------------- fix priority

@@ -1,0 +1,106 @@
+# Lisboa (PT) agencies — one manifest-listed shard of the GTFS Scorecard registry.
+#
+# The field reference and contribution workflow live in registry/README.md.
+# Every id must be unique across every shard listed by registry/index.yaml.
+agencies:
+  - id: transtejo-soflusa
+    name: Transtejo Soflusa (TTSL)
+    country: PT
+    subdivision_code: PT-11
+    subdivision_name: Lisboa
+    mdb_id: "2921"
+    is_official: true
+    static_gtfs_url: https://api.transtejo.pt/files/GTFS.zip
+    license_note: >-
+      CC0 through Portugal's public-administration open-data catalog;
+      attribution is not legally required, but GTFS Scorecard credits TTSL as
+      the source.
+    operating_note: >-
+      One official ferry feed with five routes connecting Lisboa and Setúbal
+      terminals across the Tagus. Counted as one feed record.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://dados.gov.pt/pt/organizations/transtejo-soflusa/
+      terms_url: https://creativecommons.org/publicdomain/zero/1.0/
+      scope: [gtfs_schedule]
+      attribution: TTSL - Transtejo Soflusa, S.A.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-16"
+      identity_reviewed: true
+  - id: carris-metropolitana
+    name: Carris Metropolitana
+    country: PT
+    subdivision_code: PT-11
+    subdivision_name: Lisboa
+    mdb_id: "2027"
+    is_official: true
+    large_feed: true
+    static_gtfs_url: https://api.carrismetropolitana.pt/gtfs
+    license_note: >-
+      CC BY 4.0 through Carris Metropolitana's official GTFS repository; credit
+      Carris Metropolitana. Derived measurements by GTFS Scorecard.
+    operating_note: >-
+      The Lisbon metropolitan area bus network. Its largest table expands past
+      the standard single-entry ceiling, so it is scored on the large-feed tier;
+      counted as one feed record.
+    reuse_evidence:
+      decision: approved
+      source_kind: provider
+      provider_source_url: https://github.com/carrismetropolitana/gtfs
+      terms_url: https://creativecommons.org/licenses/by/4.0/
+      scope: [gtfs_schedule]
+      attribution: Carris Metropolitana.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: metro-lisboa
+    name: Metropolitano de Lisboa
+    country: PT
+    subdivision_code: PT-11
+    subdivision_name: Lisboa
+    is_official: true
+    static_gtfs_url: https://dados.gov.pt/api/1/datasets/r/e7e8ef72-9cee-43a0-b141-656ced144394
+    license_note: >-
+      CC BY 4.0 as recorded on Portugal's national open data portal
+      dados.gov.pt, published by Metropolitano de Lisboa; reuse including
+      commercial reuse is permitted with attribution.
+    operating_note: >-
+      The Lisbon metro network. The download uses the portal's stable
+      latest-version redirect; the underlying dated file URL rotates on each
+      release.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://dados.gov.pt/datasets/gtfs-do-metropolitano-de-lisboa/
+      terms_url: https://creativecommons.org/licenses/by/4.0/
+      scope: [gtfs_schedule]
+      attribution: >-
+        Metropolitano de Lisboa, E.P.E.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-18"
+      identity_reviewed: true
+  - id: cascais-proxima
+    name: Cascais Próxima (MobiCascais)
+    country: PT
+    subdivision_code: PT-11
+    subdivision_name: Lisboa
+    is_official: true
+    static_gtfs_url: https://drive.google.com/uc?export=download&id=13ucYiAJRtu-gXsLa02qKJrGOgDjbnUWX
+    license_note: >-
+      CC BY 4.0 through Portugal's public-administration open-data catalog;
+      credit Cascais Próxima and the Municipality of Cascais.
+    operating_note: >-
+      The municipal catalog's MO06 dataset identifies this as the complete Mobi
+      Cascais network; its current file is distributed from the publisher's
+      stable Google Drive resource.
+    reuse_evidence:
+      decision: approved
+      source_kind: official_portal
+      provider_source_url: https://dados.gov.pt/en/datasets/gtfs-rede-mobi-cascais/#/information
+      terms_url: https://creativecommons.org/licenses/by/4.0/
+      scope: [gtfs_schedule]
+      attribution: Cascais Próxima E.M. S.A.; Município de Cascais.
+      reviewed_by: ChelseaKR
+      reviewed_on: "2026-07-23"
+      identity_reviewed: true

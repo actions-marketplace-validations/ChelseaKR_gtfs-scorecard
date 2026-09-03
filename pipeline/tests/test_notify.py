@@ -7,6 +7,7 @@ import json
 
 import pytest
 
+from scorecard_pipeline import RUBRIC_VERSION, SCORING_PROFILE_ID
 from scorecard_pipeline.alerts import AlertItem, Digest, build_digest
 from scorecard_pipeline.config import artifacts_dir
 from scorecard_pipeline.notify import (
@@ -23,6 +24,7 @@ from scorecard_pipeline.notify import (
     verification_email,
 )
 from scorecard_pipeline.portfolio_digest import PortfolioDigest
+from scorecard_pipeline.validate import VALIDATOR_VERSION
 
 
 def test_email_regex_rejects_url_significant_characters() -> None:
@@ -348,6 +350,26 @@ def _write_index(entries: dict) -> None:  # type: ignore[type-arg]
     path.write_text(json.dumps({"schema_version": "1.1", "agencies": entries}))
 
 
+def _comparable_anomaly_point(
+    date: str, score: float, grade: str, days_until_expiry: int
+) -> dict[str, object]:
+    return {
+        "date": date,
+        "score": score,
+        "grade": grade,
+        "days_until_expiry": days_until_expiry,
+        "rubric_version": RUBRIC_VERSION,
+        "scoring_profile_id": SCORING_PROFILE_ID,
+        "scoring_profile_rubric_version": RUBRIC_VERSION,
+        "validator_version": VALIDATOR_VERSION,
+        "categories": {
+            "correctness": 80.0,
+            "freshness": 80.0,
+            "completeness": 80.0,
+        },
+    }
+
+
 def test_score_cliff_appears_in_digest() -> None:
     """A 20+ point drop in one step (that is not a transient dip) becomes an
     anomaly AlertItem with kind='anomaly' in the built digest."""
@@ -356,11 +378,11 @@ def test_score_cliff_appears_in_digest() -> None:
             "cliffside": {
                 "name": "Cliffside Transit",
                 "history": [
-                    {"date": "2026-06-10", "score": 85.0, "grade": "B", "days_until_expiry": 120},
+                    _comparable_anomaly_point("2026-06-10", 85.0, "B", 120),
                     # 25-point drop — above the SCORE_CLIFF_POINTS threshold
-                    {"date": "2026-06-11", "score": 60.0, "grade": "D", "days_until_expiry": 119},
+                    _comparable_anomaly_point("2026-06-11", 60.0, "D", 119),
                     # stays down, so not a transient dip
-                    {"date": "2026-06-12", "score": 59.0, "grade": "D", "days_until_expiry": 118},
+                    _comparable_anomaly_point("2026-06-12", 59.0, "D", 118),
                 ],
             }
         }
@@ -380,11 +402,11 @@ def test_transient_dip_does_not_appear_in_digest() -> None:
             "bouncy": {
                 "name": "Bouncy Transit",
                 "history": [
-                    {"date": "2026-06-10", "score": 85.0, "grade": "B", "days_until_expiry": 120},
+                    _comparable_anomaly_point("2026-06-10", 85.0, "B", 120),
                     # drops hard for one day — this is the transient dip
-                    {"date": "2026-06-11", "score": 40.0, "grade": "F", "days_until_expiry": 119},
+                    _comparable_anomaly_point("2026-06-11", 40.0, "F", 119),
                     # recovers fully the next day
-                    {"date": "2026-06-12", "score": 84.0, "grade": "B", "days_until_expiry": 118},
+                    _comparable_anomaly_point("2026-06-12", 84.0, "B", 118),
                 ],
             }
         }
@@ -425,6 +447,73 @@ def test_subscriber_kinds_filter_anomaly_items() -> None:
     )[0]
     personal = personal_digest(sub, digest)
     assert [i.kind for i in personal.items] == ["expiry"]
+
+
+def test_export_change_kind_is_subscriber_optable() -> None:
+    """'export_change' is in ALERT_KINDS so subscribers can opt into (or out
+    of) structural export-change alerts explicitly, just like the other
+    kinds (EXP-18's Atom-and-webhook delivery)."""
+    assert "export_change" in ALERT_KINDS
+
+
+def test_subscriber_kinds_filter_export_change_items() -> None:
+    """A subscriber with kinds=['expiry'] does not receive export_change items
+    even when they follow the agency."""
+    digest = Digest(
+        as_of=dt.date(2026, 6, 16),
+        items=[
+            AlertItem(
+                agency_id="unitrans",
+                agency_name="Unitrans",
+                kind="export_change",
+                headline="The export's structure changed",
+                detail="Route 5 (E Street Express) is no longer in the export.",
+                fix="Confirm this was intentional.",
+                scorecard_url="https://gtfsscorecard.org/agency/unitrans/",
+            ),
+            _item("unitrans", "Unitrans", kind="expiry"),
+        ],
+    )
+    sub = parse_subscribers(
+        {"subscribers": [{"email": "a@example.org", "agencies": ["unitrans"], "kinds": ["expiry"]}]}
+    )[0]
+    personal = personal_digest(sub, digest)
+    assert [i.kind for i in personal.items] == ["expiry"]
+
+
+def test_export_change_item_reaches_a_webhook_notification() -> None:
+    """A verified subscriber with a webhook_url and no kinds filter receives
+    an export_change item in their webhook payload, the same path a grade
+    drop already rides (build_webhook_notifications)."""
+    digest = Digest(
+        as_of=dt.date(2026, 6, 16),
+        items=[
+            AlertItem(
+                agency_id="unitrans",
+                agency_name="Unitrans",
+                kind="export_change",
+                headline="The export's structure changed",
+                detail="Route 5 (E Street Express) is no longer in the export.",
+                fix="Confirm this was intentional.",
+                scorecard_url="https://gtfsscorecard.org/agency/unitrans/",
+            ),
+        ],
+    )
+    sub = parse_subscribers(
+        {
+            "subscribers": [
+                {
+                    "email": "a@example.org",
+                    "all": True,
+                    "verified": True,
+                    "webhook_url": "https://hooks.example.org/incoming",
+                }
+            ]
+        }
+    )[0]
+    notes = build_webhook_notifications([sub], digest)
+    assert len(notes) == 1
+    assert "Route 5" in notes[0].payload["text"]
 
 
 # ---------------------------------------------------------------------------

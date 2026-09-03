@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "regional-transportation-district-rtd-178",
-    "name": "Regional Transportation District (RTD)"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/regional-transportation-district-rtd-178/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 5,
-        "examples": [
-          "'route_long_name': 'Brighton / Denver Airport ' -> 'Brighton / Denver Airport'",
-          "'route_long_name': 'North Pecos ' -> 'North Pecos'",
-          "'route_long_name': '28th St / Gunbarrel ' -> '28th St / Gunbarrel'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 5
+    "name": "Regional Transportation District (RTD)",
+    "subdivision_code": "US-CO",
+    "subdivision_name": "Colorado"
   },
   "categories": {
     "completeness": {
@@ -60,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 21501,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -70,8 +58,15 @@
           "has_step_free": false,
           "pathway_count": 0
         },
-        "stops": 7570,
-        "trips": 21586,
+        "stops": 7574,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
+        "trips": 21501,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 98.3,
         "wheelchair_marked_accessible_pct": 98.3,
@@ -86,19 +81,19 @@
           "owner": "Likely your team",
           "points": 0.4,
           "severity": "WARNING",
-          "what": "131 of 7570 stops don't say whether a wheelchair user can board there.",
+          "what": "131 of 7574 stops don't say whether a wheelchair user can board there.",
           "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
         },
         {
           "code": "scorecard_wheelchair_accessible_unknown",
-          "count": 21586,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "count": 21501,
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "21586 of 21586 trips don't say whether the vehicle is wheelchair accessible.",
-          "why": "Even with accessible stops, riders need to know the bus itself can take them."
+          "what": "21501 of 21501 trips don't say whether the vehicle is wheelchair accessible.",
+          "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
         },
         {
           "code": "scorecard_no_fare_data",
@@ -120,7 +115,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         },
         {
           "code": "scorecard_station_no_pathways",
@@ -142,11 +137,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 10,
+        "distinct_codes": 8,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 48,
-          "WARNING": 79
+          "WARNING": 68
         },
         "validator_version": "8.0.1"
       },
@@ -159,8 +154,8 @@
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips move faster between stops than a bus can.",
-          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
+          "what": "Some scheduled trips move faster between stops than a transit vehicle can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no transit vehicle can meet."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -174,59 +169,26 @@
           "why": "ALL-CAPS stop and headsign names are harder to read in apps and are read awkwardly by screen readers."
         },
         {
-          "code": "unusable_trip",
-          "count": 5,
-          "effort": "Worth a vendor question if it appears often.",
-          "fix": "Check the flagged trips in your scheduling software; remove them or restore their missing stops.",
-          "owner": "Likely your export tool",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Some trips serve fewer than two stops.",
-          "why": "A trip with one stop can't be ridden; planners ignore it and it may signal an export problem."
-        },
-        {
-          "code": "unused_trip",
-          "count": 5,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unused_trip' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Unused trip (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "unused_shape",
-          "count": 2,
-          "effort": "One setting.",
-          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
-          "owner": "Likely your export tool",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "The feed contains route shapes no trip uses.",
-          "why": "Harmless to riders, but it bloats the feed and suggests stale export data."
-        },
-        {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "route_long_name_contains_short_name",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "stop_without_stop_time",
@@ -237,18 +199,29 @@
           "points": 4.0,
           "severity": "WARNING",
           "what": "Some stops exist in the feed but no trip ever stops at them.",
-          "why": "Riders may walk to a stop where no bus is scheduled to arrive."
+          "why": "Riders may walk to a stop where no transit vehicle is scheduled to arrive."
+        },
+        {
+          "code": "unused_shape",
+          "count": 1,
+          "effort": "One setting.",
+          "fix": "Turn on 'remove unused shapes' (or the like) in your export tool.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "The feed contains route shapes no trip uses.",
+          "why": "Harmless to riders, but it bloats the feed and suggests stale export data."
         },
         {
           "code": "trip_headsign_matches_intermediate_stop",
           "count": 43,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_headsign_matches_intermediate_stop' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually a bulk edit in your scheduling software.",
+          "fix": "Set trip_headsign to the trip's last stop or its overall destination.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Trip headsign matches intermediate stop (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some trip headsigns name a stop along the way, not the final destination.",
+          "why": "The sign should tell riders where the transit vehicle ends up, so a midpoint name can send them the wrong way."
         },
         {
           "code": "platform_without_parent_station",
@@ -263,46 +236,68 @@
         }
       ],
       "name": "correctness",
-      "score": 60.8,
+      "score": 68.8,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 10 kinds of issue across 127 instances (0 error, 79 warning, 48 informational).",
+      "summary": "The MobilityData validator flagged 8 kinds of issue across 116 instances (0 error, 68 warning, 48 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 82,
+        "days_until_expiry": 50,
+        "effective_expiry_date": "2026-09-26",
         "feed_end_date": "2026-09-26",
         "feed_start_date": "2026-06-07",
-        "feed_version": "Jun26-36807-13-20-20260704-030232",
+        "feed_version": "Jun26-36929-18-25-20260805-030207",
         "has_feed_info": true,
         "last_service_date": "2026-09-26",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
-      "score": 100.0,
+      "score": 83.3,
       "status": "measured",
-      "summary": "Service data covers the next 82 days.",
+      "summary": "Service data covers the next 50 days.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": 89.5,
-        "covered_trips": 137,
-        "drift": {
-          "median_seconds": 26,
-          "observations": 4255,
-          "on_time_share_pct": 94.6,
-          "p90_abs_seconds": 203
+        "alerts_content": {
+          "alerts": 73,
+          "ended_over_30_days_ago": 1,
+          "with_cause_and_effect": 73,
+          "with_description": 70,
+          "with_header_text": 73,
+          "with_informed_entity": 72
         },
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": 94.4,
+        "covered_trips": 356,
+        "drift": {
+          "median_seconds": 48,
+          "observations": 9091,
+          "on_time_share_pct": 91.9,
+          "p90_abs_seconds": 256
+        },
+        "kinds_configured": 3,
         "kinds_reachable": 3,
+        "reachable_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
         "rt_freshness": "stale",
         "samples": 9,
-        "scheduled_trips_in_window": 153,
-        "vehicles_checked": 169,
-        "vehicles_on_route_pct": 98.2,
-        "worst_lag_seconds": 175
+        "scheduled_trips_in_window": 377,
+        "vehicles_checked": 426,
+        "vehicles_on_route_pct": 99.3,
+        "worst_lag_seconds": 81
       },
       "findings": [
         {
@@ -311,29 +306,53 @@
           "effort": "A vendor configuration question.",
           "fix": "Ask your AVL vendor to publish updates at least every 20 seconds (the Caltrans guideline).",
           "owner": "",
-          "points": 5.3,
+          "points": 1.0,
           "severity": "WARNING",
-          "what": "Realtime data was up to 175 seconds old when sampled.",
-          "why": "Stale positions and predictions are worse than none: riders watch a bus that already left."
+          "what": "Realtime data was up to 81 seconds old when sampled.",
+          "why": "Stale positions and predictions are worse than none: riders watch a transit vehicle that already left."
+        },
+        {
+          "code": "scorecard_rt_alerts_ended",
+          "count": 1,
+          "effort": "A few minutes in your alerts tool.",
+          "fix": "Remove or close out ended alerts in your alerts tool; most publish an end date and clear them automatically.",
+          "owner": "",
+          "points": 0.0,
+          "severity": "WARNING",
+          "what": "1 of 73 published service alerts ended more than 30 days ago.",
+          "why": "A rider who reads an alert about a detour that finished weeks ago learns to ignore every future alert."
         },
         {
           "code": "scorecard_rt_trip_coverage",
-          "count": 16,
+          "count": 21,
           "effort": "A vendor data-mapping question.",
           "fix": "Check with your AVL vendor that every vehicle assignment flows into TripUpdates, including school-day and tripper runs.",
           "owner": "",
-          "points": 3.7,
+          "points": 1.9,
           "severity": "WARNING",
-          "what": "16 of 153 trips scheduled during the sampling window had no live predictions.",
+          "what": "21 of 377 trips scheduled during the sampling window had no live predictions.",
           "why": "Riders on those trips get schedule data dressed up as realtime. Caltrans expects every operating trip in TripUpdates."
         }
       ],
       "name": "realtime",
-      "score": 90.7,
+      "score": 97.0,
       "status": "measured",
-      "summary": "Sampled 9 times: 3 of 3 feeds healthy; 89.5% of scheduled trips had live predictions; 98.2% of vehicles on their route; predictions ran a median of 26s behind schedule.",
+      "summary": "Sampled 9 times: 3 of 3 configured feeds healthy; 94.4% of scheduled trips had live predictions; 99.3% of vehicles on their route; predictions ran a median of 48s behind schedule.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -344,7 +363,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 84 days.",
+        "detail": "Service data covers the next 52 days.",
         "key": "current",
         "met": true
       },
@@ -360,17 +379,18 @@
   "feed": {
     "license_note": "License: https://www.rtd-denver.com/business-center/open-spatial-data/gtfs-license-agreement",
     "reachable": true,
-    "sha256": "72ec2de5dbd7a14596c48ee55e126cd48bbc7d854e969120290209d4141e3c47",
-    "size_bytes": 8357509,
+    "sha256": "91674486b9429305421e38b52a74d536ad95232893556b51627e5e2cac08ac56",
+    "size_bytes": 8186179,
     "static_url": "https://www.rtd-denver.com/files/gtfs/google_transit.zip"
   },
   "fetch": {
-    "final_url": "https://www.rtd-denver.com/files/gtfs/google_transit.zip",
+    "final_url": "https://nodejs-prod.rtd-denver.com/api/download/gtfs/google_transit.zip",
     "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
     "source": "origin",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   },
-  "generated_at": "2026-07-04T00:00:00+00:00",
+  "generated_at": "2026-08-05T00:00:00+00:00",
   "geo": {
     "bbox": [
       -105.52548,
@@ -378,16 +398,50 @@
       -104.66953,
       40.20656
     ],
-    "lat": 39.74785,
+    "lat": 39.74789,
     "lon": -104.99235,
-    "stop_count": 7570
+    "stop_count": 7574
+  },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": true,
+    "measured": true,
+    "modes": [
+      {
+        "key": "tram",
+        "label": "Tram / light rail",
+        "route_count": 5,
+        "trip_count": 2601,
+        "trip_share_pct": 12.1
+      },
+      {
+        "key": "rail",
+        "label": "Rail",
+        "route_count": 4,
+        "trip_count": 1542,
+        "trip_share_pct": 7.2
+      },
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 116,
+        "trip_count": 17358,
+        "trip_share_pct": 80.7
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 125,
+    "trip_count": 21501
   },
   "ntd_id_alignment": {
-    "detail": "Your feed's agency_id is RTD; your National Transit Database ID is 80006. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id, so a difference here is a heads-up, not an error.",
+    "detail": "Your feed's agency_id is RTD; your National Transit Database ID is 80006. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "RTD"
     ],
-    "fix": "Optionally set the agency_id for your service to 80006 in agency.txt (and the matching agency_id in routes.txt) so the feed lines up with your NTD record. It is a convenience, not a required feed change: FTA also links agency_id to your NTD ID on your P-50 form.",
+    "fix": "Confirm that P-50 crosswalks agency_id RTD to NTD ID 80006, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "80006",
     "status": "mismatch"
   },
@@ -404,22 +458,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 84 days.",
+        "detail": "Service data covers the next 52 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "Published at a public URL, valid, and current: the three things the NTD GTFS requirement asks of a feed all hold here. Only your own D-10 certification makes that official; this is a heads-up, not a determination."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "C",
-    "margin_to_lower_band": 4.9,
-    "margin_to_next_band": 5.1,
-    "score": 74.9
+    "margin_to_lower_band": 5.7,
+    "margin_to_next_band": 4.3,
+    "score": 75.7
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 24,
       "effort": "A per-route color setting in your scheduling software.",
@@ -431,17 +491,19 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
-      "count": 7166,
+      "count": 7170,
       "effort": "A short text field per affected stop; start with the busiest.",
       "fix": "Add tts_stop_name with the spoken form, e.g. 'Main Street and Second Avenue', for the affected stops.",
       "owner": "",
       "points": 0.0,
       "severity": "INFO",
-      "what": "7166 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"39th St / Table Mesa\", \"Wheat Ridge / Ward Road Station\", \"60th / Sheridan - Arvada Gold Strike Station\", and more).",
+      "what": "7170 stop name(s) use abbreviations or symbols a screen reader may mispronounce, with no spoken form set (\"39th St / Table Mesa\", \"Colfax & Havana Station\", \"Wheat Ridge / Ward Road Station\", and more).",
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -454,24 +516,13 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
-    "boardable_stops": 7439,
+    "boardable_stops": 7443,
     "findings": [
-      {
-        "code": "scorecard_single_stop_trips",
-        "count": 5,
-        "effort": "Usually an export setting or a stop_times mapping in your software.",
-        "fix": "Check your scheduling export: every trip should list each stop it calls at, in order, with times.",
-        "owner": "Likely your export tool",
-        "points": 0.0,
-        "severity": "WARNING",
-        "what": "5 of 21586 trips list fewer than two stops.",
-        "why": "A trip with one stop has no leg a rider can ride; trip planners can't route anyone on it, so the service effectively does not exist."
-      },
       {
         "code": "scorecard_orphan_stops",
         "count": 1,
@@ -480,13 +531,13 @@
         "owner": "Likely your export tool",
         "points": 0.0,
         "severity": "INFO",
-        "what": "1 of 7439 boardable stops are never served by any trip.",
+        "what": "1 of 7443 boardable stops are never served by any trip.",
         "why": "Riders see these stops in apps and on the map but can never catch anything there, which erodes trust in the data."
       }
     ],
     "orphan_stops": 1,
-    "single_stop_trips": 5,
-    "trips_total": 21586
+    "single_stop_trips": 0,
+    "trips_total": 21501
   },
   "route_map": {
     "drawn_route_count": 125,
@@ -632,7 +683,7 @@
         "has_shape": true,
         "id": "107R",
         "label": "R",
-        "long": "Lincoln Station to Peoria Station",
+        "long": "RidgeGate Parkway Station to Peoria Station",
         "short": "R",
         "text_color": "000000",
         "type_label": "Tram / light rail"
@@ -1870,24 +1921,35 @@
         "type_label": "Bus"
       }
     ],
-    "stop_count": 7570,
+    "stop_count": 7574,
     "stop_points_capped": true
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 21501 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 21501,
+    "trips_with_shape": 21501
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_accessible_unknown",
-      "count": 21586,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "count": 21501,
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 1,
       "severity": "WARNING",
-      "what": "21586 of 21586 trips don't say whether the vehicle is wheelchair accessible.",
-      "why": "Even with accessible stops, riders need to know the bus itself can take them."
+      "what": "21501 of 21501 trips don't say whether the vehicle is wheelchair accessible.",
+      "why": "Even with accessible stops, riders need to know the transit vehicle itself can take them."
     },
     {
       "code": "scorecard_no_fare_data",
@@ -1910,8 +1972,8 @@
       "points": 8.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Some scheduled trips move faster between stops than a bus can.",
-      "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
+      "what": "Some scheduled trips move faster between stops than a transit vehicle can.",
+      "why": "Usually a typo'd stop time; riders get arrival times no transit vehicle can meet."
     }
   ],
   "validator_version": "8.0.1"

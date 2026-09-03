@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "harford-transit-link",
-    "name": "Harford Transit LINK"
-  },
-  "autofix": {
-    "available": false
+    "name": "Harford Transit LINK",
+    "subdivision_code": "US-MD",
+    "subdivision_name": "Maryland"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 116,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 98.3,
+        "headsign_scored_pct": 98.3,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 188,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 116,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 116,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -96,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 2,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 0.3,
           "severity": "WARNING",
-          "what": "2 of 116 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "2 of 116 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -113,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -147,13 +160,13 @@
         {
           "code": "non_ascii_or_non_printable_char",
           "count": 63,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'non_ascii_or_non_printable_char' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A planned ID change, not a quick text cleanup.",
+          "fix": "Only change the flagged IDs if an app needs basic ASCII values. Update each place that uses the ID. Keep all names and headsigns in their original language.",
           "owner": "",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Non ascii or non printable char (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some internal IDs use characters outside the basic text set.",
+          "why": "These IDs are valid UTF-8 data. This warning is only about support in older apps. It does not mean that names in other languages are wrong."
         },
         {
           "code": "missing_recommended_field",
@@ -163,7 +176,7 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -185,7 +198,7 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -202,13 +215,13 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         },
         {
           "code": "trip_coverage_not_active_for_next7_days",
@@ -235,13 +248,13 @@
         {
           "code": "service_window_outside_feed_period",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.5,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         },
         {
           "code": "unknown_column",
@@ -263,13 +276,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -1283,
+        "days_until_expiry": -1315,
+        "effective_expiry_date": "2022-12-31",
         "feed_end_date": "2024-02-20",
         "feed_start_date": "2020-02-20",
         "feed_version": "20200220",
         "has_feed_info": true,
         "last_service_date": "2022-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -281,14 +297,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 1283 day(s) ago.",
+          "what": "Service data ended 1315 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 1283 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 1315 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -297,6 +313,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -307,7 +335,7 @@
         "met": false
       },
       {
-        "detail": "Service data expired 1274 days ago.",
+        "detail": "Service data expired 1302 days ago.",
         "key": "current",
         "met": false
       },
@@ -318,7 +346,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 1274 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. 1 validator error to resolve. Service data expired 1302 days ago. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "License: http://mdtrip.org/About/DeveloperResources.aspx",
@@ -327,7 +355,14 @@
     "size_bytes": 268883,
     "static_url": "https://github.com/mobilityequity/maryland-local-gtfs/raw/master/Harford_GTFS.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://raw.githubusercontent.com/mobilityequity/maryland-local-gtfs/master/Harford_GTFS.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -76.3698,
@@ -339,8 +374,28 @@
     "lon": -76.22881,
     "stop_count": 188
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 7,
+        "trip_count": 116,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 7,
+    "trip_count": 116
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "1"
     ],
@@ -359,13 +414,18 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data expired 1274 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 1302 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 1274 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. 1 validator error to resolve. Service data expired 1302 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -375,6 +435,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 5,
       "effort": "A per-route color setting in your scheduling software.",
@@ -386,6 +447,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 170,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -398,8 +460,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -409,9 +471,107 @@
     "single_stop_trips": 0,
     "trips_total": 116
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 7,
+    "has_shapes": true,
+    "path": "data/artifacts/harford-transit-link/geometry.geojson",
+    "route_count": 7,
+    "routes": [
+      {
+        "color": "FF0000",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "96830",
+        "label": "7/Red",
+        "long": "7 / Red Line",
+        "short": "7/Red",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "159562",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "Route 1 - Green Line_Route 1 - Green Line_Havre de Grace to Belair_FF00A500",
+        "label": "1 / Green",
+        "long": "Havre de Grace - Bel Air",
+        "short": "1 / Green",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1383BD",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "Route 2 - Blue Line_Route 2 - Blue Line_Joppatowne to Belair_FF0000FF",
+        "label": "2 / Blue",
+        "long": "Joppatowne - Bel Air",
+        "short": "2 / Blue",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "808285",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "Route 3_Route 3 - Silver Line_Aberdeen Edgewood Joppatowne_FFBFBFBF",
+        "label": "3 / Silver",
+        "long": "Aberdeen / Edgewood / Joppatowne",
+        "short": "3 / Silver",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F7DB33",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "Route 4 - Yellow Line_Route 4 - Yellow Line_Aberdeen Circulator_FFFFEE0B",
+        "label": "4 / Yellow",
+        "long": "Aberdeen Circulator",
+        "short": "4 / Yellow",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "107C8A",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "Route 5 - Teal Line_Route 5 - Teal Line_Aberdeen to Perryville_FF2E94B5",
+        "label": "5 / Teal",
+        "long": "Aberdeen - Perryville",
+        "short": "5 / Teal",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF542E",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "Route 6 - Orange Line_Route 6 - Orange Line_Belair Circulator_FFE03210",
+        "label": "6 / Orange",
+        "long": "Bel Air Circulator",
+        "short": "6 / Orange",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 188,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 116 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 116,
+    "trips_with_shape": 116
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -422,7 +582,7 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 1283 day(s) ago.",
+      "what": "Service data ended 1315 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {

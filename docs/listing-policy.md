@@ -13,6 +13,17 @@ people who support it) see how the feed is doing and what to fix first. The
 sources are public feed catalogs (the Mobility Database, transit.land) and
 agency-submitted feeds.
 
+## Privacy
+
+The public scorecard does not use analytics or track visitors. It sets no
+tracking cookies, sends no page-view beacons, and does not build rider or
+visitor profiles. Site-quality checks use automated synthetic visits instead
+of observing real visitor sessions.
+
+The domain owner may verify ownership through DNS and submit the public sitemap
+to Search Console outside this project. The repository contains no Search
+Console credentials, API configuration, or automated submission workflow.
+
 ## What the grade is, and is not
 
 The grade is a **data-quality and completeness lens** meant to help an agency
@@ -26,14 +37,32 @@ that does not publish realtime is shown neutrally, never penalized for it.
 
 We will act on these quickly and without argument:
 
-- **Correct a name, URL, or detail** that is wrong: open an issue or a pull
-  request against [`agencies.yaml`](../agencies.yaml), or email the address in
-  the repository.
+- **Correct a name, URL, or detail** that is wrong: use the
+  [correction and claim form](https://gtfsscorecard.org/claim/), open a pull
+  request against the [`registry`](../registry/README.md), or email the address in
+  the repository. A correction only needs a public source that supports it.
 - **Request removal**: an agency that does not want to be listed can ask to be
   removed, by the same channels. We honor removal requests; the entry is deleted
   and the agency is excluded from future runs.
 - **Report a feed that has moved or broken**: tell us and we will update or drop
   the URL.
+
+## Agency claims and verification
+
+Agency staff can ask to become the verified contact for a listing. Opening a
+request does not prove ownership or employment. A maintainer verifies one of
+three evidence paths before marking a contact as verified:
+
+- confirmation on an agency-controlled public webpage;
+- a one-time proof file or text at the public feed host; or
+- a private reply from an official agency email domain.
+
+Do not publish private email addresses, access tokens, or credentials in an
+issue. Until evidence has been reviewed, the request remains **unverified**.
+Verification confirms the contact's relationship to the listing. It does not
+endorse the grade, override the rubric, or prevent other people from reporting
+errors. Registry changes still go through a reviewed pull request so the public
+record shows what changed and why.
 
 ## Long-expired feeds
 
@@ -42,13 +71,16 @@ directory, separate from the recently lapsed ones. Two cases hide in that group,
 and we tell them apart by hand rather than by the grade:
 
 - **The agency still runs and the export lapsed.** A curator can record this with
-  an `operating_note` in [`agencies.yaml`](../agencies.yaml) after confirming the
+  an `operating_note` in the relevant [registry shard](../registry/README.md)
+  after confirming the
   service still operates. The scorecard and directory then show the verified note,
   so the feed reads as recoverable rather than defunct.
 - **The service genuinely ended.** When an agency has stopped operating, the entry
-  is retired: it is removed from `agencies.yaml` and excluded from future runs, the
-  same as any removal request. We do not leave a permanent failing grade on an
-  agency that no longer exists.
+  is retired or retained only as a noncurrent alias, and is excluded from
+  future catalog runs. Its current scorecard, badge, conformance files, and map
+  are removed. Date-stamped score records may remain as historical evidence;
+  they are not presented as the agency's current condition. We do not leave a
+  permanent failing grade on an agency that no longer exists.
 
 The registry is curated, so every entry can be reviewed, corrected, or removed
 by a person. If something here is wrong or unwelcome, that is a bug, and we want

@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "atomic-city-transit",
-    "name": "Atomic City Transit"
-  },
-  "autofix": {
-    "available": false
+    "name": "Atomic City Transit",
+    "subdivision_code": "US-NM",
+    "subdivision_name": "New Mexico"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 21.8
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 2428,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 216,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 2428,
         "wheelchair_accessible_pct": 21.8,
         "wheelchair_boarding_pct": 0.5,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1898,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 11.7,
           "severity": "WARNING",
@@ -91,11 +104,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 3,
+        "distinct_codes": 4,
         "instances_by_severity": {
           "ERROR": 0,
           "INFO": 2430,
-          "WARNING": 143
+          "WARNING": 148
         },
         "validator_version": "8.0.1"
       },
@@ -103,13 +116,24 @@
         {
           "code": "trip_distance_exceeds_shape_distance_below_threshold",
           "count": 143,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually an export-tool fix, not hand editing.",
+          "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+          "owner": "Likely your export tool",
           "points": 8.0,
           "severity": "WARNING",
-          "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stop distances run a little past the end of the route line.",
+          "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
+        },
+        {
+          "code": "expired_calendar",
+          "count": 5,
+          "effort": "One setting in most export tools.",
+          "fix": "Remove past service periods the next time you export the feed.",
+          "owner": "Likely your export tool",
+          "points": 4.0,
+          "severity": "WARNING",
+          "what": "Some service calendars in the feed have already ended.",
+          "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
           "code": "unsorted_stop_times",
@@ -135,27 +159,30 @@
         }
       ],
       "name": "correctness",
-      "score": 90.5,
+      "score": 86.5,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 3 kinds of issue across 2573 instances (0 error, 143 warning, 2430 informational).",
+      "summary": "The MobilityData validator flagged 4 kinds of issue across 2578 instances (0 error, 148 warning, 2430 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 178,
+        "days_until_expiry": 146,
+        "effective_expiry_date": "2026-12-31",
         "feed_end_date": "2026-12-31",
         "feed_start_date": "2026-06-08",
         "feed_version": "Updated: Jun 8, 2026, 10:12 AM",
         "has_feed_info": true,
         "last_service_date": "2026-12-31",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [],
       "name": "freshness",
       "score": 100.0,
       "status": "measured",
-      "summary": "Service data covers the next 178 days.",
+      "summary": "Service data covers the next 146 days.",
       "weight": 0.2
     },
     "realtime": {
@@ -164,6 +191,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -174,7 +213,7 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 187 days.",
+        "detail": "Service data covers the next 159 days.",
         "key": "current",
         "met": true
       },
@@ -194,7 +233,14 @@
     "size_bytes": 349468,
     "static_url": "https://gtfs.remix.com/act_los_alamos_nm_us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://gtfs.remix.com/act_los_alamos_nm_us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -106.33245,
@@ -206,8 +252,28 @@
     "lon": -106.29455,
     "stop_count": 216
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 12,
+        "trip_count": 2428,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 12,
+    "trip_count": 2428
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "ACT"
     ],
@@ -226,22 +292,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 187 days.",
+        "detail": "Service data covers the next 159 days.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
     "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "summary": "Published at a public URL, valid, current, and identified with agency_id: the four feed checks for RY2026 all hold here. Only your own D-10 and P-50 filings make that official; this is a heads-up, not a determination."
   },
   "overall": {
     "grade": "B",
-    "margin_to_lower_band": 4.4,
-    "margin_to_next_band": 5.6,
-    "score": 84.4
+    "margin_to_lower_band": 2.7,
+    "margin_to_next_band": 7.3,
+    "score": 82.7
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 3,
       "effort": "A per-route color setting in your scheduling software.",
@@ -253,6 +325,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 210,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -265,8 +338,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -276,9 +349,162 @@
     "single_stop_trips": 0,
     "trips_total": 2428
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 12,
+    "has_shapes": true,
+    "path": "data/artifacts/atomic-city-transit/geometry.geojson",
+    "route_count": 12,
+    "routes": [
+      {
+        "color": "D72732",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "1",
+        "label": "1",
+        "long": "Downtown Circulator",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "387391",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "Barranca Mesa Express",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "445227",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "11",
+        "label": "11",
+        "long": "White Rock Express",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FB6019",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "12-1",
+        "label": "12",
+        "long": "Bandelier",
+        "short": "12",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "007135",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "24",
+        "label": "2C",
+        "long": "White Rock Concert Svc",
+        "short": "2C",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "6B9C3B",
+        "color_name": "gray",
+        "has_shape": true,
+        "id": "29",
+        "label": "2T",
+        "long": "White Rock Truck Route",
+        "short": "2T",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DAD029",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "4",
+        "label": "4",
+        "long": "North Community",
+        "short": "4",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3DC9DA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "5",
+        "label": "5",
+        "long": "Barranca Mesa",
+        "short": "5",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "B04696",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "6",
+        "label": "6",
+        "long": "North Mesa",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "613FA6",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "7",
+        "label": "7",
+        "long": "North Mesa Express",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "C57E03",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "8",
+        "label": "8",
+        "long": "North Community Express",
+        "short": "8",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8A3434",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "9",
+        "label": "9",
+        "long": "Aspen Area Express",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 216,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 2428 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 2428,
+    "trips_with_shape": 2428
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_wheelchair_boarding_unknown",
@@ -295,8 +521,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 1898,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 11.7,
       "rank": 2,
@@ -307,14 +533,14 @@
     {
       "code": "trip_distance_exceeds_shape_distance_below_threshold",
       "count": 143,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'trip_distance_exceeds_shape_distance_below_threshold' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Usually an export-tool fix, not hand editing.",
+      "fix": "Re-generate shape_dist_traveled on export so stop and shape distances use the same units.",
+      "owner": "Likely your export tool",
       "points": 8.0,
       "rank": 3,
       "severity": "WARNING",
-      "what": "Trip distance exceeds shape distance below threshold (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
+      "what": "On some trips the stop distances run a little past the end of the route line.",
+      "why": "The stop and shape distance values don't quite line up, so any math that uses them can drift."
     }
   ],
   "validator_version": "8.0.1"

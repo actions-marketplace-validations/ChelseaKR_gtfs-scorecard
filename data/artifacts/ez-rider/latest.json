@@ -1,23 +1,9 @@
 {
   "agency": {
     "id": "ez-rider",
-    "name": "EZ Rider"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/ez-rider/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/ez-rider/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 1,
-        "examples": [
-          "'route_long_name': 'Odessa 5 ' -> 'Odessa 5'"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 1
+    "name": "EZ Rider",
+    "subdivision_code": "US-TX",
+    "subdivision_name": "Texas"
   },
   "categories": {
     "completeness": {
@@ -31,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 0.0,
@@ -55,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": false,
+        "headsign_applicable_trips": 288,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 0.0,
+        "headsign_scored_pct": 0.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -66,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 652,
+        "translations": {
+          "feed_lang": null,
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 288,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -87,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 288,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -109,13 +109,13 @@
         {
           "code": "scorecard_missing_headsigns",
           "count": 288,
-          "effort": "Usually a bulk edit in your scheduling software.",
-          "fix": "Populate trip_headsign to match what the bus displays.",
-          "owner": "Likely your export tool",
+          "effort": "Usually one value per route pattern in your scheduling source.",
+          "fix": "Add the destination, direction, or 'via' label riders actually see to trip_headsign. Do not copy the route name. If the label changes during the trip, use stop_headsign.",
+          "owner": "",
           "points": 15.0,
           "severity": "WARNING",
-          "what": "288 of 288 trips have no headsign.",
-          "why": "Riders at the stop can't tell which direction a bus is going."
+          "what": "288 of 288 trips lack rider-facing destination or direction text.",
+          "why": "When a route has multiple directions or patterns, the route name alone may not tell riders which service is coming."
         },
         {
           "code": "scorecard_no_feed_contact",
@@ -126,7 +126,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -165,7 +165,7 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some files are missing recommended (not required) fields.",
+          "what": "Some files leave out fields that GTFS asks for but does not require.",
           "why": "Recommended fields like agency_phone or stop descriptions make the feed more useful to riders and trip planners."
         },
         {
@@ -220,19 +220,19 @@
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "A recommended GTFS file (usually feed_info.txt) is missing.",
+          "what": "A file GTFS asks for (usually feed_info.txt) is missing.",
           "why": "feed_info.txt tells apps who publishes the feed and when it expires; without it nobody is warned before data goes stale."
         },
         {
           "code": "stops_match_shape_out_of_order",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'stops_match_shape_out_of_order' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "A few minutes per flagged trip.",
+          "fix": "Check the stop order and the shape direction in your scheduling software; the shape is often drawn backwards.",
+          "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Stops match shape out of order (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "On some trips the stops fall along the route line in a different order than the schedule lists.",
+          "why": "Trip planners can draw the bus doubling back or skipping ahead, which confuses riders reading the map."
         },
         {
           "code": "service_extends_far_in_the_future",
@@ -254,13 +254,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 8943,
+        "days_until_expiry": 8911,
+        "effective_expiry_date": "2050-12-30",
         "feed_end_date": null,
         "feed_start_date": null,
         "feed_version": null,
         "has_feed_info": false,
         "last_service_date": "2050-12-30",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "unusually_distant",
         "service_type": "fixed"
       },
       "findings": [
@@ -279,7 +282,7 @@
       "name": "freshness",
       "score": 85.0,
       "status": "measured",
-      "summary": "Service data covers the next 8943 days.",
+      "summary": "Service is published through 2050-12-30, an unusually distant end date. It may be intentional, but confirm it before treating the feed as maintained.",
       "weight": 0.2
     },
     "realtime": {
@@ -288,6 +291,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -298,7 +313,7 @@
         "met": false
       },
       {
-        "detail": "Service data covers the next 8952 days.",
+        "detail": "The published window is current, but its service end date is unusually distant; confirm that date is intentional.",
         "key": "current",
         "met": true
       },
@@ -318,7 +333,14 @@
     "size_bytes": 194422,
     "static_url": "https://nebula.wsimg.com/40f314b8788fcc32949e0fe528a3c625?AccessKeyId=9E919CD400BCF69A0E80"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://nebula.wsimg.com/40f314b8788fcc32949e0fe528a3c625?AccessKeyId=9E919CD400BCF69A0E80",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -102.41151,
@@ -330,8 +352,28 @@
     "lon": -102.15678,
     "stop_count": 652
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 18,
+        "trip_count": 288,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 18,
+    "trip_count": 288
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "258"
     ],
@@ -350,8 +392,13 @@
         "status": "at_risk"
       },
       {
-        "detail": "Service data covers the next 8952 days.",
+        "detail": "The published window is current, but its service end date is unusually distant; confirm that date is intentional.",
         "key": "current",
+        "status": "ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
@@ -366,6 +413,7 @@
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 8,
       "effort": "A per-route color setting in your scheduling software.",
@@ -377,6 +425,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 596,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -389,8 +438,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -412,9 +461,229 @@
     "single_stop_trips": 8,
     "trips_total": 288
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 14,
+    "has_shapes": true,
+    "path": "data/artifacts/ez-rider/geometry.geojson",
+    "route_count": 18,
+    "routes": [
+      {
+        "color": "DED714",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "TL-19",
+        "label": "Odessa 2",
+        "long": "Odessa 2",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "09AD37",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "TL-20",
+        "label": "Odessa 3",
+        "long": "Odessa 3",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "11CFF5",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "TL-21",
+        "label": "Odessa 4",
+        "long": "Odessa 4",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D122D1",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "TL-23",
+        "label": "Odessa 6",
+        "long": "Odessa 6",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "005DCF",
+        "color_name": "blue",
+        "has_shape": false,
+        "id": "TL-24",
+        "label": "Odessa Special Event 1",
+        "long": "Odessa Special Event 1",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "005DCF",
+        "color_name": "blue",
+        "has_shape": false,
+        "id": "TL-25",
+        "label": "Midland Special Event 1",
+        "long": "Midland Special Event 1",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "005DCF",
+        "color_name": "blue",
+        "has_shape": false,
+        "id": "TL-26",
+        "label": "Odessa Special Event 2",
+        "long": "Odessa Special Event 2",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "005DCF",
+        "color_name": "blue",
+        "has_shape": false,
+        "id": "TL-27",
+        "label": "Midland Special Event 2",
+        "long": "Midland Special Event 2",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "030769",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "TL-29",
+        "label": "Odessa 1",
+        "long": "Odessa 1",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EB1515",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "TL-31",
+        "label": "Odessa 5",
+        "long": "Odessa 5",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "160EF2",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "TL-39",
+        "label": "Odessa Connect",
+        "long": "Odessa Connect",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5430F2",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "TL-40",
+        "label": "Midland Connect",
+        "long": "Midland Connect",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1C038C",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "TL-41",
+        "label": "Midland 1",
+        "long": "Midland 1",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F2EE05",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "TL-42",
+        "label": "Midland 2",
+        "long": "Midland 2",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00BF49",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "TL-43",
+        "label": "Midland 3",
+        "long": "Midland 3",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3BBCD9",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "TL-44",
+        "label": "Midland 4",
+        "long": "Midland 4",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D100D1",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "TL-45",
+        "label": "Midland 6",
+        "long": "Midland 6",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FC0F0F",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "TL-46",
+        "label": "Midland 5",
+        "long": "Midland 5",
+        "short": "",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 652,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "280 of 288 trips have a shape; 8 do not.",
+    "fix": "Fill in shapes.txt and trips.shape_id for the remaining trips so every trip has a path. Reduced, Rural, and Tribal NTD reporters need full coverage by Report Year 2026.",
+    "status": "at_risk",
+    "total_trips": 288,
+    "trips_with_shape": 280
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "block_trips_with_overlapping_stop_times",
@@ -443,8 +712,8 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 288,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 3,

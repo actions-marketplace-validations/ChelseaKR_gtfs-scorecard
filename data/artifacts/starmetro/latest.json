@@ -1,10 +1,9 @@
 {
   "agency": {
     "id": "starmetro",
-    "name": "StarMetro"
-  },
-  "autofix": {
-    "available": false
+    "name": "StarMetro",
+    "subdivision_code": "US-FL",
+    "subdivision_name": "Florida"
   },
   "categories": {
     "completeness": {
@@ -18,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -42,7 +45,10 @@
           "has_flex": true
         },
         "has_fares": true,
+        "headsign_applicable_trips": 1282,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -53,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 974,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1282,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 85.6,
@@ -74,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1282,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -141,8 +154,8 @@
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some scheduled trips travel implausibly fast between stops.",
-          "why": "Usually a typo'd stop time; riders get impossible arrival estimates."
+          "what": "Some scheduled trips move faster between stops than a bus can.",
+          "why": "Usually a typo'd stop time; riders get arrival times no bus can meet."
         },
         {
           "code": "expired_calendar",
@@ -152,7 +165,7 @@
           "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Some service calendars in the feed have already expired.",
+          "what": "Some service calendars in the feed have already ended.",
           "why": "Expired calendars are dead weight and can hide real schedule problems from your staff and vendors."
         },
         {
@@ -191,24 +204,24 @@
         {
           "code": "unknown_file",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'unknown_file' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "A quick look at the flagged file.",
+          "fix": "Check the flagged file name for a typo of a standard GTFS file. Remove it if it is a vendor extra.",
           "owner": "",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Unknown file (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "The feed includes a file that is not part of the GTFS spec.",
+          "why": "Apps ignore files they don't know, and a stray file can hide a misspelled standard file name."
         },
         {
           "code": "service_window_outside_feed_period",
           "count": 6,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'service_window_outside_feed_period' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Two fields in feed_info.txt, or one export setting.",
+          "fix": "Widen feed_start_date and feed_end_date to cover all service dates, or fix the dates that fall outside.",
+          "owner": "Likely your export tool",
           "points": 0.8,
           "severity": "INFO",
-          "what": "Service window outside feed period (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some service dates fall outside the date window set in feed_info.txt.",
+          "why": "feed_info.txt should span every day your service runs, so apps know when the data applies."
         }
       ],
       "name": "correctness",
@@ -219,13 +232,16 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": -673,
+        "days_until_expiry": -705,
+        "effective_expiry_date": "2024-09-01",
         "feed_end_date": "2024-09-01",
         "feed_start_date": "2024-05-07",
         "feed_version": "UTC: 07-May-2024 20:44",
         "has_feed_info": true,
         "last_service_date": "2024-09-01",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
       "findings": [
@@ -237,14 +253,14 @@
           "owner": "Likely your export tool",
           "points": 100.0,
           "severity": "ERROR",
-          "what": "Service data ended 673 day(s) ago.",
+          "what": "Service data ended 705 day(s) ago.",
           "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
         }
       ],
       "name": "freshness",
       "score": 0.0,
       "status": "measured",
-      "summary": "Service data ended 673 day(s) ago. Trip planners have likely already dropped this feed.",
+      "summary": "Service data ended 705 day(s) ago. Trip planners have likely already dropped this feed.",
       "weight": 0.2
     },
     "realtime": {
@@ -253,6 +269,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -263,7 +291,7 @@
         "met": true
       },
       {
-        "detail": "Service data expired 664 days ago.",
+        "detail": "Service data expired 697 days ago.",
         "key": "current",
         "met": false
       },
@@ -274,7 +302,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. Service data expired 664 days ago. States wheelchair access on 86% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data expired 697 days ago. States wheelchair access on 86% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -283,7 +311,14 @@
     "size_bytes": 1301849,
     "static_url": "https://data.trilliumtransit.com/gtfs/starmetro-fl-us/starmetro-fl-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://data.trilliumtransit.com/gtfs/starmetro-fl-us/starmetro-fl-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-30T00:00:00+00:00",
   "geo": {
     "bbox": [
       -84.36447,
@@ -295,8 +330,28 @@
     "lon": -84.28565,
     "stop_count": 974
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 35,
+        "trip_count": 1282,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 35,
+    "trip_count": 1282
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "650"
     ],
@@ -315,13 +370,18 @@
         "status": "ready"
       },
       {
-        "detail": "Service data expired 664 days ago, so FTA would find the link out of date.",
+        "detail": "Service data expired 697 days ago, so FTA would find the link out of date.",
         "key": "current",
         "status": "not_ready"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
+        "status": "ready"
       }
     ],
     "status": "not_ready",
-    "summary": "Resolve this before you certify on the D-10. Service data expired 664 days ago, so FTA would find the link out of date."
+    "summary": "Resolve this before you certify on the D-10. Service data expired 697 days ago, so FTA would find the link out of date."
   },
   "overall": {
     "grade": "F",
@@ -331,6 +391,7 @@
   },
   "recommendations": [
     {
+      "category": "flex",
       "code": "scorecard_flex_completeness_no_booking_rules",
       "count": 1,
       "effort": "A small file; one rule often covers the whole service.",
@@ -342,6 +403,7 @@
       "why": "Riders can see the service area but not how to book, so they can't complete a trip."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 8,
       "effort": "A per-route color setting in your scheduling software.",
@@ -353,6 +415,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 122,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -364,6 +427,7 @@
       "why": "Riders who use a screen reader hear the raw name, so 'Main St & 2nd Ave' can come out as 'Main saint' or drop the ampersand."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_station_missing_step_free_data",
       "count": 2,
       "effort": "Worth it for multi-level or large stations; flat stops don't need it.",
@@ -376,8 +440,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -399,9 +463,415 @@
     "single_stop_trips": 0,
     "trips_total": 1282
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 30,
+    "has_shapes": true,
+    "path": "data/artifacts/starmetro/geometry.geojson",
+    "route_count": 35,
+    "routes": [
+      {
+        "color": "FFF45F",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "14217",
+        "label": "H",
+        "long": "Hartsfield",
+        "short": "H",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "6049",
+        "label": "A",
+        "long": "Azalea",
+        "short": "A",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "662D91",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "6050",
+        "label": "B",
+        "long": "Big Bend",
+        "short": "B",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0068AC",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "6052",
+        "label": "D",
+        "long": "Dogwood",
+        "short": "D",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EF5BA1",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "6053",
+        "label": "E",
+        "long": "Evergreen",
+        "short": "E",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "03BED7",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "6054",
+        "label": "F",
+        "long": "Forest",
+        "short": "F",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED1D24",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "6055",
+        "label": "G",
+        "long": "Gulf",
+        "short": "G",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AC2885",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "6056",
+        "label": "K",
+        "long": "Killearn",
+        "short": "K",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "8A4D1F",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "6057",
+        "label": "L",
+        "long": "Live Oak",
+        "short": "L",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00984A",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6058",
+        "label": "M",
+        "long": "Moss",
+        "short": "M",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "6059",
+        "label": "NN",
+        "long": "Nite Nole",
+        "short": "NN",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "6060",
+        "label": "1",
+        "long": "Nights",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "620562",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "6061",
+        "label": "2",
+        "long": "Nights",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EECC00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "6062",
+        "label": "3",
+        "long": "Nights",
+        "short": "3",
+        "text_color": "020202",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0C943D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6063",
+        "label": "5",
+        "long": "Nights",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "6F7500",
+        "color_name": "brown",
+        "has_shape": false,
+        "id": "6064",
+        "label": "P",
+        "long": "Park",
+        "short": "P",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "575757",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "6065",
+        "label": "R",
+        "long": "Red Hills",
+        "short": "R",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF8000",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "6066",
+        "label": "S",
+        "long": "San Luis",
+        "short": "S",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "6079",
+        "label": "1",
+        "long": "Sundays",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "620562",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "6080",
+        "label": "2",
+        "long": "Sundays",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EECC00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "6081",
+        "label": "3",
+        "long": "Sundays",
+        "short": "3",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0C943D",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6082",
+        "label": "5",
+        "long": "Sundays",
+        "short": "5",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D5D500",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "6083",
+        "label": "T",
+        "long": "Tall Timbers",
+        "short": "T",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "003A39",
+        "color_name": "black",
+        "has_shape": false,
+        "id": "6084",
+        "label": "TCP",
+        "long": "Cascades Park Trolley",
+        "short": "TCP",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3500F6",
+        "color_name": "blue",
+        "has_shape": false,
+        "id": "6085",
+        "label": "TCT",
+        "long": "College Town Trolley",
+        "short": "TCT",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": false,
+        "id": "6086",
+        "label": "TD",
+        "long": "Dinner Trolley",
+        "short": "TD",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "237575",
+        "color_name": "green",
+        "has_shape": false,
+        "id": "6087",
+        "label": "TMT",
+        "long": "Midtown Trolley",
+        "short": "TMT",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "57AE00",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6088",
+        "label": "RG",
+        "long": "Renegade",
+        "short": "RG",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E03434",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "6089",
+        "label": "GA",
+        "long": "Garnet",
+        "short": "GA",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "E0C48F",
+        "color_name": "white",
+        "has_shape": true,
+        "id": "6090",
+        "label": "GO",
+        "long": "Gold",
+        "short": "GO",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "54BBD3",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "6091",
+        "label": "TO",
+        "long": "Tomahawk",
+        "short": "TO",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "5900B3",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "6092",
+        "label": "HE",
+        "long": "Heritage",
+        "short": "HE",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "663300",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "6093",
+        "label": "OS",
+        "long": "Osceola",
+        "short": "OS",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "4D8729",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "6095",
+        "label": "IN",
+        "long": "Innovation",
+        "short": "IN",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "65BD04",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "6096",
+        "label": "W",
+        "long": "Southwood",
+        "short": "W",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 974,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1282 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1282,
+    "trips_with_shape": 1282
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
     {
       "code": "scorecard_feed_expired",
@@ -412,14 +882,14 @@
       "points": 100.0,
       "rank": 1,
       "severity": "ERROR",
-      "what": "Service data ended 673 day(s) ago.",
+      "what": "Service data ended 705 day(s) ago.",
       "why": "When the calendar runs out, trip planners stop showing this agency even though the buses are still running. Riders are told the service does not exist."
     },
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 1282,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
       "rank": 2,

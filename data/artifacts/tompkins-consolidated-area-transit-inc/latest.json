@@ -1,24 +1,9 @@
 {
   "agency": {
     "id": "tompkins-consolidated-area-transit-inc",
-    "name": "Tompkins Consolidated Area Transit Inc"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/tompkins-consolidated-area-transit-inc/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/tompkins-consolidated-area-transit-inc/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_stop_name_case",
-        "count": 2,
-        "examples": [
-          "CISER -> Ciser",
-          "CISER -> Ciser"
-        ],
-        "label": "Recased shouting stop names"
-      }
-    ],
-    "total": 2
+    "name": "Tompkins Consolidated Area Transit Inc",
+    "subdivision_code": "US-NY",
+    "subdivision_name": "New York"
   },
   "categories": {
     "completeness": {
@@ -32,6 +17,10 @@
           "trips_stated_pct": 0.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 7.5,
           "fares": 15.0,
@@ -56,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 1375,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 99.7,
         "pathways": {
           "has_entrances": false,
@@ -67,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 637,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 1375,
         "wheelchair_accessible_pct": 0.0,
         "wheelchair_boarding_pct": 0.0,
@@ -88,8 +87,8 @@
         {
           "code": "scorecard_wheelchair_accessible_unknown",
           "count": 1375,
-          "effort": "Often one default setting in your export.",
-          "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+          "effort": "A default or per-trip field in your export.",
+          "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
           "owner": "Likely your export tool",
           "points": 15.0,
           "severity": "WARNING",
@@ -105,7 +104,7 @@
           "points": 7.5,
           "severity": "INFO",
           "what": "feed_info.txt has no technical contact (feed_contact_email or feed_contact_url).",
-          "why": "App makers and state data programs have nobody to email when they spot a problem with your feed, so problems linger."
+          "why": "Trip-planning apps and regional data coordinators have nobody to email when they spot a problem with your feed, so problems linger."
         }
       ],
       "name": "completeness",
@@ -116,11 +115,11 @@
     },
     "correctness": {
       "details": {
-        "distinct_codes": 6,
+        "distinct_codes": 3,
         "instances_by_severity": {
           "ERROR": 0,
-          "INFO": 2,
-          "WARNING": 31
+          "INFO": 0,
+          "WARNING": 30
         },
         "validator_version": "8.0.1"
       },
@@ -128,13 +127,13 @@
         {
           "code": "route_long_name_contains_short_name",
           "count": 24,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
+          "effort": "One field per flagged route.",
+          "fix": "Drop the short name from route_long_name and keep the long name descriptive, like 'Downtown via 5th Ave'.",
           "owner": "",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Route long name contains short name (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route long names repeat the route's short name inside them.",
+          "why": "Apps show both names together, so riders see the number twice, like '5 5 Downtown'."
         },
         {
           "code": "mixed_case_recommended_field",
@@ -150,108 +149,102 @@
         {
           "code": "missing_feed_contact_email_and_url",
           "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'missing_feed_contact_email_and_url' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 4.0,
-          "severity": "WARNING",
-          "what": "Missing feed contact email and url (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "trip_coverage_not_active_for_next7_days",
-          "count": 1,
-          "effort": "One setting in most export tools.",
-          "fix": "Trim past service periods the next time you export.",
+          "effort": "One field, set once in export settings.",
+          "fix": "Add feed_contact_email or feed_contact_url to feed_info.txt.",
           "owner": "Likely your export tool",
           "points": 4.0,
           "severity": "WARNING",
-          "what": "Many of the feed's trips don't run at all in the next 7 days.",
-          "why": "It usually means old service periods are still in the export, making the feed bigger and harder to check."
-        },
-        {
-          "code": "future_calendar",
-          "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'future_calendar' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 0.5,
-          "severity": "INFO",
-          "what": "Future calendar (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
-        },
-        {
-          "code": "future_feed",
-          "count": 1,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'future_feed' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
-          "points": 0.5,
-          "severity": "INFO",
-          "what": "Future feed (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "feed_info.txt lists no contact email and no contact URL.",
+          "why": "Without a contact, apps like Google Maps can't reach you when they find a problem in the feed."
         }
       ],
       "name": "correctness",
-      "score": 81.0,
+      "score": 86.0,
       "status": "measured",
-      "summary": "The MobilityData validator flagged 6 kinds of issue across 33 instances (0 error, 31 warning, 2 informational).",
+      "summary": "The MobilityData validator flagged 3 kinds of issue across 30 instances (0 error, 30 warning, 0 informational).",
       "weight": 0.35
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 40,
+        "days_until_expiry": 8,
+        "effective_expiry_date": "2026-08-15",
         "feed_end_date": "2026-08-15",
         "feed_start_date": "2026-06-28",
         "feed_version": "20260625",
         "has_feed_info": true,
         "last_service_date": "2026-08-15",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 72.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 8 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
       "name": "freshness",
-      "score": 66.7,
+      "score": 13.3,
       "status": "measured",
-      "summary": "Service data covers the next 40 days.",
+      "summary": "Service data runs out in 8 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
       "details": {
-        "coverage_pct": null,
-        "drift": {
-          "median_seconds": 0,
-          "observations": 1608,
-          "on_time_share_pct": 95.4,
-          "p90_abs_seconds": 31
+        "alerts_content": {
+          "alerts": 6,
+          "ended_over_30_days_ago": 0,
+          "with_cause_and_effect": 6,
+          "with_description": 0,
+          "with_header_text": 6,
+          "with_informed_entity": 6
         },
+        "configured_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
+        "coverage_pct": null,
+        "kinds_configured": 3,
         "kinds_reachable": 3,
+        "reachable_kinds": [
+          "trip_updates",
+          "vehicle_positions",
+          "service_alerts"
+        ],
         "rt_freshness": "fresh",
         "samples": 9,
         "scheduled_trips_in_window": 0,
-        "vehicles_checked": 28,
-        "vehicles_on_route_pct": 89.3,
-        "worst_lag_seconds": 19
+        "worst_lag_seconds": 9
       },
-      "findings": [
-        {
-          "code": "scorecard_rt_vehicles_off_route",
-          "count": 3,
-          "effort": "A vendor support ticket with the trip ids attached.",
-          "fix": "Ask your AVL vendor to check vehicle-to-trip assignments for the flagged trips.",
-          "owner": "",
-          "points": 1.6,
-          "severity": "WARNING",
-          "what": "3 of 28 sampled vehicle positions were far from their assigned route (worst: 736 m).",
-          "why": "A bus shown off its route usually means a wrong trip assignment; riders watch their bus drive the wrong streets."
-        }
-      ],
+      "findings": [],
       "name": "realtime",
-      "score": 97.5,
+      "score": 100.0,
       "status": "measured",
-      "summary": "Sampled 9 times outside service hours: 3 of 3 feeds healthy; 89.3% of vehicles on their route; predictions ran a median of 0s behind schedule.",
+      "summary": "Sampled 9 times outside service hours: 3 of 3 configured feeds healthy; vehicle position plausibility was not measurable.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "high",
+    "measured_categories": 4,
+    "notes": [
+      "All four score categories were measured this run.",
+      "Realtime was sampled in one bounded window of 9 snapshots.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 1,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -262,9 +255,9 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 49 days.",
+        "detail": "Service data runs out in 21 days; renew to qualify.",
         "key": "current",
-        "met": true
+        "met": false
       },
       {
         "detail": "States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each.",
@@ -273,7 +266,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data runs out in 21 days; renew to qualify. States wheelchair access on 0% of stops and 0% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -282,7 +275,14 @@
     "size_bytes": 1287939,
     "static_url": "https://s3.amazonaws.com/tcat-gtfs/tcat-ny-us.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://s3.amazonaws.com/tcat-gtfs/tcat-ny-us.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -76.67761,
@@ -294,12 +294,32 @@
     "lon": -76.48611,
     "stop_count": 637
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 25,
+        "trip_count": 1375,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 25,
+    "trip_count": 1375
+  },
   "ntd_id_alignment": {
-    "detail": "Your feed uses agency_id 0; the NTD asks for your five-digit NTD ID (20145) so the feed lines up with your record.",
+    "detail": "Your feed's agency_id is 0; your National Transit Database ID is 20145. A feed that serves several agencies (a shared regional feed) can legitimately carry more than one agency_id. The values do not need to equal the five-digit NTD ID, so this difference is allowed and carries no score.",
     "feed_agency_ids": [
       "0"
     ],
-    "fix": "Change the agency_id to 20145 in agency.txt and update the matching agency_id in routes.txt.",
+    "fix": "Confirm that P-50 crosswalks agency_id 0 to NTD ID 20145, and keep the feed value stable. Do not change it solely to make the two values equal.",
     "ntd_id": "20145",
     "status": "mismatch"
   },
@@ -316,22 +336,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 49 days.",
+        "detail": "Service data runs out in 21 days; renew before you certify.",
         "key": "current",
+        "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
-    "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "status": "at_risk",
+    "summary": "This feed is close to NTD-ready. Service data runs out in 21 days; renew before you certify."
   },
   "overall": {
-    "grade": "C",
-    "margin_to_lower_band": 4.3,
-    "margin_to_next_band": 5.7,
-    "score": 74.3
+    "grade": "D",
+    "margin_to_lower_band": 5.9,
+    "margin_to_next_band": 4.1,
+    "score": 65.9
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 12,
       "effort": "A per-route color setting in your scheduling software.",
@@ -343,6 +369,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 443,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -355,8 +382,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -366,10 +393,318 @@
     "single_stop_trips": 0,
     "trips_total": 1375
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 25,
+    "has_shapes": true,
+    "path": "data/artifacts/tompkins-consolidated-area-transit-inc/geometry.geojson",
+    "route_count": 25,
+    "routes": [
+      {
+        "color": "211561",
+        "color_name": "black",
+        "has_shape": true,
+        "id": "10",
+        "label": "10",
+        "long": "10",
+        "short": "10",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F36623",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "11",
+        "label": "11",
+        "long": "11",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00736C",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "13",
+        "label": "13",
+        "long": "13",
+        "short": "13",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00AEAF",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "14",
+        "label": "14",
+        "long": "14",
+        "short": "14",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "881407",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "145",
+        "label": "145",
+        "long": "14S",
+        "short": "145",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "D54F28",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "15",
+        "label": "15",
+        "long": "15",
+        "short": "15",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AAA000",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "17",
+        "label": "17",
+        "long": "17",
+        "short": "17",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F5977A",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "20",
+        "label": "20",
+        "long": "20",
+        "short": "20",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "ED1D26",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "21",
+        "label": "21",
+        "long": "21",
+        "short": "21",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00FF4C",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "22",
+        "label": "22",
+        "long": "22",
+        "short": "22",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF00EA",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "23",
+        "label": "23",
+        "long": "23",
+        "short": "23",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "AB6339",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "30",
+        "label": "30",
+        "long": "30",
+        "short": "30",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "027524",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "31",
+        "label": "31",
+        "long": "31",
+        "short": "31",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "615CA8",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "32",
+        "label": "32",
+        "long": "32",
+        "short": "32",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "3BC016",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "36",
+        "label": "36",
+        "long": "36",
+        "short": "36",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "005F22",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "37",
+        "label": "37",
+        "long": "37",
+        "short": "37",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "0077A4",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "40",
+        "label": "40",
+        "long": "40",
+        "short": "40",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "014964",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "43",
+        "label": "43",
+        "long": "43",
+        "short": "43",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "009955",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "51",
+        "label": "51",
+        "long": "51",
+        "short": "51",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "2D3194",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "52",
+        "label": "52",
+        "long": "52",
+        "short": "52",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F5999D",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "65",
+        "label": "65",
+        "long": "65",
+        "short": "65",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "EB048E",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "67",
+        "label": "67",
+        "long": "67",
+        "short": "67",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F24040",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "81",
+        "label": "81",
+        "long": "81",
+        "short": "81",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "00A99E",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "82",
+        "label": "82",
+        "long": "82",
+        "short": "82",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "400080",
+        "color_name": "blue",
+        "has_shape": true,
+        "id": "90",
+        "label": "90",
+        "long": "90",
+        "short": "90",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 637,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 1375 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 1375,
+    "trips_with_shape": 1375
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 72.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 8 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 637,
@@ -377,7 +712,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 1,
+      "rank": 2,
       "severity": "WARNING",
       "what": "637 of 637 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -385,26 +720,14 @@
     {
       "code": "scorecard_wheelchair_accessible_unknown",
       "count": 1375,
-      "effort": "Often one default setting in your export.",
-      "fix": "Set wheelchair_accessible on every trip (most small-agency fleets are 100% accessible, so this is often a single default).",
+      "effort": "A default or per-trip field in your export.",
+      "fix": "Set wheelchair_accessible on every trip. If every vehicle is accessible, this may be one default; otherwise use the value for each trip.",
       "owner": "Likely your export tool",
       "points": 15.0,
-      "rank": 2,
+      "rank": 3,
       "severity": "WARNING",
       "what": "1375 of 1375 trips don't say whether the vehicle is wheelchair accessible.",
       "why": "Even with accessible stops, riders need to know the bus itself can take them."
-    },
-    {
-      "code": "route_long_name_contains_short_name",
-      "count": 24,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'route_long_name_contains_short_name' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
-      "points": 6.0,
-      "rank": 3,
-      "severity": "WARNING",
-      "what": "Route long name contains short name (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
     }
   ],
   "validator_version": "8.0.1"

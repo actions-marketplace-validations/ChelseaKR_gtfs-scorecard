@@ -7,6 +7,8 @@ with citations lives in docs/rubric.md and must stay in sync.
 from __future__ import annotations
 
 import datetime as dt
+import math
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -175,6 +177,114 @@ def correctness(report: ValidationReport) -> CategoryResult:
 # `scorecard render-constants`, so there is no hand-kept mirror to sync.
 STALE_FEED_DAYS = 365
 
+# A date more than ten calendar years beyond the check is far outside ordinary
+# schedule publishing, but GTFS does not forbid it. Treat it as a review signal,
+# not a validity error or a score deduction. Ten years deliberately leaves room
+# for legitimate multi-year planning while catching sentinel-like dates such as
+# 2100. Calendar years (rather than a fixed day count) keep leap years from
+# moving the boundary.
+SERVICE_HORIZON_REVIEW_YEARS = 10
+
+
+def _years_after(value: dt.date, years: int) -> dt.date:
+    """Return the same calendar date ``years`` later, clamping leap day."""
+    if value.year > dt.date.max.year - years:
+        return dt.date.max
+    try:
+        return value.replace(year=value.year + years)
+    except ValueError:
+        # The only valid date that cannot be replaced this way is February 29
+        # in a target year without a leap day.
+        return value.replace(year=value.year + years, day=28)
+
+
+def service_horizon_status(expiry: dt.date | None, today: dt.date) -> str:
+    """Classify an end date without turning a review threshold into a rule.
+
+    ``unusually_distant`` means strictly more than ten calendar years after the
+    check date. The boundary itself remains ``within_review_threshold``. An
+    unknown expiry stays ``unknown`` rather than being treated as normal.
+    """
+    if expiry is None:
+        return "unknown"
+    if expiry > _years_after(today, SERVICE_HORIZON_REVIEW_YEARS):
+        return "unusually_distant"
+    return "within_review_threshold"
+
+
+def _published_date(value: Any) -> dt.date | None:
+    """Read a published ISO date without making a wall-clock assumption."""
+    if isinstance(value, dt.datetime):
+        return value.date()
+    if isinstance(value, dt.date):
+        return value
+    if not isinstance(value, str):
+        return None
+    try:
+        return dt.date.fromisoformat(value.strip())
+    except ValueError:
+        return None
+
+
+def resolve_service_horizon_status(
+    values: Mapping[str, Any], snapshot_date: dt.date | str | None = None
+) -> str:
+    """Return the explicit horizon status or derive it for legacy records.
+
+    Artifacts and index/catalog rows published before schema 1.10 have no
+    ``service_horizon_status``. Derive the same strict calendar-year threshold
+    from their immutable snapshot plus either ``effective_expiry_date`` or
+    ``days_until_expiry`` so the first deploy does not expose a sentinel-like
+    countdown. Records with no usable dates stay ``unknown``.
+    """
+    explicit = values.get("service_horizon_status")
+    if explicit in ("within_review_threshold", "unusually_distant", "unknown"):
+        return str(explicit)
+
+    checked = _published_date(
+        snapshot_date if snapshot_date is not None else values.get("snapshot_date")
+    )
+    if checked is None:
+        checked = _published_date(values.get("date"))
+    if checked is None:
+        return "unknown"
+
+    expiry = _published_date(values.get("effective_expiry_date"))
+    if expiry is None:
+        days = values.get("days_until_expiry")
+        if isinstance(days, bool) or not isinstance(days, (int, float)):
+            return "unknown"
+        if isinstance(days, float) and (not days.is_integer() or not math.isfinite(days)):
+            return "unknown"
+        try:
+            expiry = checked + dt.timedelta(days=int(days))
+        except OverflowError:
+            return "unknown"
+    return service_horizon_status(expiry, checked)
+
+
+def presented_freshness_summary(
+    category: Mapping[str, Any], snapshot_date: dt.date | str | None = None
+) -> str:
+    """Return freshness summary copy that is safe for legacy artifacts.
+
+    Pre-1.10 artifacts embedded the raw countdown in ``summary``. Presentation
+    and assistant surfaces use this adapter so an old sentinel-like horizon is
+    disclosed as a trust advisory without rewriting immutable artifacts.
+    """
+    summary = str(category.get("summary") or "")
+    details = category.get("details")
+    if not isinstance(details, Mapping):
+        return summary
+    if resolve_service_horizon_status(details, snapshot_date) != "unusually_distant":
+        return summary
+    end = _published_date(details.get("effective_expiry_date"))
+    through = f" through {end.isoformat()}" if end else " to an unusually distant date"
+    return (
+        f"Service is published{through}. It may be intentional, but confirm the end date "
+        "before treating the feed as maintained."
+    )
+
 
 def expiry_status(days_until_expiry: int | None) -> str:
     """Bucket a feed by how its validity window relates to today.
@@ -237,8 +347,30 @@ def operating_signal(status: str, consecutive_failures: int) -> str:
     return "unreachable" if consecutive_failures >= UNREACHABLE_STREAK_CHECKS else "reachable"
 
 
-def freshness(dates: FeedDates, today: dt.date, service_type: str = "fixed") -> CategoryResult:
+def freshness(
+    dates: FeedDates, today: dt.date, service_type: str = "fixed"
+) -> CategoryResult | None:
     """Score how far into the future the feed remains usable.
+
+    Returns ``None`` -- no category, no number -- when the archive carried no
+    table that can hold a service date. Scoring that 0.0 published a measurement
+    nobody made: an archive with no calendars is not a feed whose service ends
+    today, it is not a feed. ``None`` drops the category out of the artifact and
+    out of the weighted average exactly as an unmeasured realtime feed does, so
+    the page says "not yet measured" instead of a floor that reads like one.
+
+    Also ``None`` when the archive describes no service at all -- no stops and
+    no trips. Dates alone are not freshness. `boxcar` shipped a feed_info.txt
+    ending 2027-08-07 over an archive with zero stops and zero trips, and
+    published "Service data covers the next 365 days" and a 100.0 for it. There
+    was no service data; the sentence and the number were both about nothing.
+    A date read out of a feed that describes nothing is not a measurement of
+    how long riders can plan.
+
+    This cannot quietly excuse a real feed. A feed that ships calendar.txt and
+    has no usable end date has been measured and still scores 0 with its
+    finding; only the total absence of every date-bearing table, or of every
+    stop and every trip, returns None.
 
     Rationale (rubric.md "Freshness"): the classic small-agency failure is a
     silently expiring feed. Full credit when service data covers 60+ days
@@ -256,6 +388,8 @@ def freshness(dates: FeedDates, today: dt.date, service_type: str = "fixed") -> 
     own finding code instead of a lapse alarm. A feed expired over a year
     stays serious regardless, so neither path hides a genuinely abandoned feed.
     """
+    if not dates.has_date_tables or not dates.has_service_content:
+        return None
     findings: list[Finding] = []
     details: dict[str, Any] = {
         "has_feed_info": dates.has_feed_info,
@@ -272,6 +406,10 @@ def freshness(dates: FeedDates, today: dt.date, service_type: str = "fixed") -> 
     intermittent = declared_intermittent or dates.seasonal_boundary
 
     expiry = dates.effective_expiry()
+    horizon_status = service_horizon_status(expiry, today)
+    details["effective_expiry_date"] = expiry.isoformat() if expiry else None
+    details["service_horizon_status"] = horizon_status
+    details["service_horizon_review_years"] = SERVICE_HORIZON_REVIEW_YEARS
     if expiry is None:
         details["days_until_expiry"] = None
         return CategoryResult(
@@ -319,10 +457,10 @@ def freshness(dates: FeedDates, today: dt.date, service_type: str = "fixed") -> 
                     code="scorecard_intermittent_calendar_ended",
                     severity="WARNING",
                     count=1,
-                    what=f"The published calendar for this {kind} service ended "
-                    f"{-days_left} day(s) ago.",
-                    why="Between service periods this can be expected, but while service is "
-                    "running without a published calendar, trip planners show nothing.",
+                    what=f"This {kind} service has no published calendar. The last "
+                    f"one ended {-days_left} day(s) ago.",
+                    why="Between service periods this is normal. But if buses are "
+                    "running with no published calendar, trip planners show nothing.",
                     fix="Publish the calendar for the current or next service period and set "
                     "feed_info feed_end_date past it.",
                     effort="One export when the next period's schedule is set.",
@@ -344,12 +482,12 @@ def freshness(dates: FeedDates, today: dt.date, service_type: str = "fixed") -> 
                     code="scorecard_planned_service_boundary",
                     severity="WARNING",
                     count=1,
-                    what=f"The published calendar ended {-days_left} day(s) ago at a "
-                    "boundary between the feed's own scheduled service periods.",
-                    why="The calendar encodes distinct service periods (like academic "
-                    "terms), so this looks like a planned transition rather than a "
-                    "lapse — but trip planners still show nothing until the next "
-                    "period is published.",
+                    what=f"The published calendar ended {-days_left} day(s) ago, "
+                    "right where one of the feed's own service periods ends.",
+                    why="The calendar sets out separate service periods, such as "
+                    "school terms. So this reads as a planned change, not a lapse. "
+                    "Trip planners still show nothing until you publish the next "
+                    "period.",
                     fix="Confirm your next service period is published: export its "
                     "calendar and set feed_info feed_end_date past it.",
                     effort="One export when the next period's schedule is set.",
@@ -372,8 +510,8 @@ def freshness(dates: FeedDates, today: dt.date, service_type: str = "fixed") -> 
                 why="When the calendar runs out, trip planners stop showing this "
                 "agency even though the buses are still running. Riders are told "
                 "the service does not exist.",
-                fix="Re-export the feed with a calendar that reaches further out, and "
-                "set feed_info feed_end_date past your next service change.",
+                fix="Re-export the feed with a calendar that reaches further out. "
+                "Set feed_end_date in feed_info.txt past your next service change.",
                 effort="Usually one export setting; export on a schedule so it never lapses again.",
                 deduction=100.0,
             )
@@ -403,6 +541,16 @@ def freshness(dates: FeedDates, today: dt.date, service_type: str = "fixed") -> 
                 # is a governed methodology change (see METHODOLOGY_CHANGELOG).
                 deduction=round((1 - days_left / 60) * 60 + 20, 1),
             )
+        )
+    elif horizon_status == "unusually_distant":
+        # GTFS permits this date. Keep the existing full-credit score while
+        # making clear that a distant end date alone is not evidence that the
+        # feed is actively maintained. This is summary/detail metadata, not a
+        # category finding, so finding prevalence, diffs, and Top 3 stay stable.
+        summary = (
+            f"Service is published through {expiry.isoformat()}, an unusually distant "
+            "end date. It may be intentional, but confirm it before treating the feed "
+            "as maintained."
         )
     else:
         summary = f"Service data covers the next {days_left} days."

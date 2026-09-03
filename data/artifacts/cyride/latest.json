@@ -1,25 +1,9 @@
 {
   "agency": {
     "id": "cyride",
-    "name": "CyRide"
-  },
-  "autofix": {
-    "available": true,
-    "download_path": "data/artifacts/cyride/corrected.zip",
-    "download_url": "https://d14aimrgrbaz2a.cloudfront.net/data/artifacts/cyride/corrected.zip",
-    "fixes": [
-      {
-        "code": "autofix_trim_whitespace",
-        "count": 33,
-        "examples": [
-          "'route_desc': ' ' -> ''",
-          "'route_url': ' ' -> ''",
-          "'route_desc': ' ' -> ''"
-        ],
-        "label": "Trimmed surrounding whitespace"
-      }
-    ],
-    "total": 33
+    "name": "CyRide",
+    "subdivision_code": "US-IA",
+    "subdivision_name": "Iowa"
   },
   "categories": {
     "completeness": {
@@ -33,6 +17,10 @@
           "trips_stated_pct": 100.0
         },
         "accessibility_measures": "presence_not_usability",
+        "cemv": {
+          "declared": false,
+          "supported": false
+        },
         "components": {
           "contact": 15.0,
           "fares": 15.0,
@@ -57,7 +45,10 @@
           "has_flex": false
         },
         "has_fares": true,
+        "headsign_applicable_trips": 876,
+        "headsign_loop_exempt_trips": 0,
         "headsign_pct": 100.0,
+        "headsign_scored_pct": 100.0,
         "mixed_case_stop_name_pct": 100.0,
         "pathways": {
           "has_entrances": false,
@@ -68,6 +59,13 @@
           "pathway_count": 0
         },
         "stops": 348,
+        "translations": {
+          "feed_lang": "en",
+          "has_translations": false,
+          "languages": [],
+          "translated_tables": [],
+          "translation_count": 0
+        },
         "trips": 876,
         "wheelchair_accessible_pct": 100.0,
         "wheelchair_boarding_pct": 0.0,
@@ -107,13 +105,13 @@
         {
           "code": "equal_shape_distance_same_coordinates",
           "count": 8,
-          "effort": "Varies.",
-          "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-          "owner": "",
+          "effort": "Usually one export setting.",
+          "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+          "owner": "Likely your export tool",
           "points": 6.0,
           "severity": "WARNING",
-          "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-          "why": "See the linked rule for what this affects."
+          "what": "Some route lines list the same point twice in a row.",
+          "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
         },
         {
           "code": "unknown_column",
@@ -135,20 +133,35 @@
     },
     "freshness": {
       "details": {
-        "days_until_expiry": 41,
+        "days_until_expiry": 9,
+        "effective_expiry_date": "2026-08-16",
         "feed_end_date": "2026-08-16",
         "feed_start_date": "2026-05-16",
         "feed_version": "20260513",
         "has_feed_info": true,
         "last_service_date": "2026-08-16",
         "seasonal_boundary": false,
+        "service_horizon_review_years": 10,
+        "service_horizon_status": "within_review_threshold",
         "service_type": "fixed"
       },
-      "findings": [],
+      "findings": [
+        {
+          "code": "scorecard_feed_expiring_soon",
+          "count": 1,
+          "effort": "One export setting.",
+          "fix": "Re-export with a validity window that reaches at least 60 days out.",
+          "owner": "Likely your export tool",
+          "points": 71.0,
+          "severity": "WARNING",
+          "what": "Service data runs out in 9 day(s).",
+          "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+        }
+      ],
       "name": "freshness",
-      "score": 68.3,
+      "score": 15.0,
       "status": "measured",
-      "summary": "Service data covers the next 41 days.",
+      "summary": "Service data runs out in 9 day(s). Publish an updated feed soon or riders will lose trip planning.",
       "weight": 0.2
     },
     "realtime": {
@@ -157,6 +170,18 @@
       "summary": "Not scored yet. Nothing here counts against the grade.",
       "weight": 0.2
     }
+  },
+  "confidence": {
+    "feed_age_days": 0,
+    "fetch_source": "origin",
+    "level": "medium",
+    "measured_categories": 3,
+    "notes": [
+      "Realtime quality was not measured this run. It does not count against the grade.",
+      "The feed was downloaded from the agency's own URL."
+    ],
+    "rt_windows": 0,
+    "total_categories": 4
   },
   "conformance": {
     "awarded": false,
@@ -167,9 +192,9 @@
         "met": true
       },
       {
-        "detail": "Service data covers the next 50 days.",
+        "detail": "Service data runs out in 22 days; renew to qualify.",
         "key": "current",
-        "met": true
+        "met": false
       },
       {
         "detail": "States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each.",
@@ -178,7 +203,7 @@
       }
     ],
     "status": "not_yet",
-    "summary": "This feed is close to the conformance mark. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
+    "summary": "This feed is close to the conformance mark. Service data runs out in 22 days; renew to qualify. States wheelchair access on 0% of stops and 100% of trips; the mark needs 90% of each."
   },
   "feed": {
     "license_note": "No stated data license in the Mobility Database; verify before publishing.",
@@ -187,7 +212,14 @@
     "size_bytes": 280934,
     "static_url": "https://www.cyride.net/gtf/gtfs.zip"
   },
-  "generated_at": "2026-06-27T00:00:00+00:00",
+  "fetch": {
+    "final_url": "https://www.cyride.net/gtf/gtfs.zip",
+    "max_attempts": 4,
+    "reader_archive_profile": "raw-v1",
+    "source": "origin",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  },
+  "generated_at": "2026-07-25T00:00:00+00:00",
   "geo": {
     "bbox": [
       -93.69577,
@@ -199,8 +231,28 @@
     "lon": -93.63786,
     "stop_count": 348
   },
+  "mode_profile": {
+    "ferry_only": false,
+    "graded": false,
+    "has_ferry": false,
+    "is_multimodal": false,
+    "measured": true,
+    "modes": [
+      {
+        "key": "bus",
+        "label": "Bus",
+        "route_count": 16,
+        "trip_count": 876,
+        "trip_share_pct": 100.0
+      }
+    ],
+    "primary_mode": "bus",
+    "primary_mode_label": "Bus",
+    "route_count": 16,
+    "trip_count": 876
+  },
   "ntd_id_alignment": {
-    "detail": "If you report to the National Transit Database, your GTFS agency_id should be your five-digit NTD ID by report year 2026 (2025 for full reporters). We don't have your NTD ID on file, so this one is not checked yet.",
+    "detail": "This feed provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk it on the P-50 form. The value does not need to equal the five-digit NTD ID; we do not have that ID on file, so the optional equality comparison is not checked yet.",
     "feed_agency_ids": [
       "CYRIDE"
     ],
@@ -219,22 +271,28 @@
         "status": "ready"
       },
       {
-        "detail": "Service data covers the next 50 days.",
+        "detail": "Service data runs out in 22 days; renew before you certify.",
         "key": "current",
+        "status": "at_risk"
+      },
+      {
+        "detail": "agency.txt provides agency_id. For RY2026, keep one stable value for each NTD reporter represented in the feed and crosswalk each value on the P-50 form.",
+        "key": "agency_id",
         "status": "ready"
       }
     ],
-    "status": "ready",
-    "summary": "This feed looks ready for your NTD certification: published at a public URL, valid, and current. The official check is still your D-10 certification."
+    "status": "at_risk",
+    "summary": "This feed is close to NTD-ready. Service data runs out in 22 days; renew before you certify."
   },
   "overall": {
-    "grade": "B",
-    "margin_to_lower_band": 1.4,
-    "margin_to_next_band": 8.6,
-    "score": 81.4
+    "grade": "D",
+    "margin_to_lower_band": 8.1,
+    "margin_to_next_band": 1.9,
+    "score": 68.1
   },
   "recommendations": [
     {
+      "category": "accessibility",
       "code": "scorecard_route_color_low_contrast",
       "count": 7,
       "effort": "A per-route color setting in your scheduling software.",
@@ -246,6 +304,7 @@
       "why": "Low-contrast route badges are hard to read for riders with low vision and wash out on a phone screen in sunlight at the stop."
     },
     {
+      "category": "accessibility",
       "code": "scorecard_stop_name_needs_tts",
       "count": 7,
       "effort": "A short text field per affected stop; start with the busiest.",
@@ -258,8 +317,8 @@
     }
   ],
   "recompute": {
-    "as_of": "2026-07-06",
-    "feed_fetched_date": "2026-07-05",
+    "as_of": "2026-08-07",
+    "feed_fetched_date": "2026-08-06",
     "kind": "freshness"
   },
   "routability": {
@@ -269,10 +328,219 @@
     "single_stop_trips": 0,
     "trips_total": 876
   },
-  "rubric_version": "1.1",
-  "schema_version": "1.4",
-  "snapshot_date": "2026-07-06",
+  "route_map": {
+    "drawn_route_count": 15,
+    "has_shapes": true,
+    "path": "data/artifacts/cyride/geometry.geojson",
+    "route_count": 16,
+    "routes": [
+      {
+        "color": "DA1F3D",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "811",
+        "label": "1",
+        "long": "Red West",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "DA1F3D",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "812",
+        "label": "1",
+        "long": "Red East",
+        "short": "1",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008A4B",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "821",
+        "label": "2",
+        "long": "Green West",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "008A4B",
+        "color_name": "green",
+        "has_shape": true,
+        "id": "822",
+        "label": "2",
+        "long": "Green East",
+        "short": "2",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1989CA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "830",
+        "label": "3",
+        "long": "Blue",
+        "short": "3",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FFCC00",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "850",
+        "label": "5",
+        "long": "Yellow",
+        "short": "5",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "996633",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "861",
+        "label": "6",
+        "long": "Brown South",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "996633",
+        "color_name": "brown",
+        "has_shape": true,
+        "id": "862",
+        "label": "6",
+        "long": "Brown North",
+        "short": "6",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "6C55A3",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "870",
+        "label": "7",
+        "long": "Purple",
+        "short": "7",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "1FB7DA",
+        "color_name": "teal",
+        "has_shape": true,
+        "id": "880",
+        "label": "8",
+        "long": "Aqua",
+        "short": "8",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "A74888",
+        "color_name": "purple",
+        "has_shape": true,
+        "id": "890",
+        "label": "9",
+        "long": "Plum",
+        "short": "9",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF4422",
+        "color_name": "red",
+        "has_shape": true,
+        "id": "900",
+        "label": "11",
+        "long": "Cherry",
+        "short": "11",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "FF9966",
+        "color_name": "pink",
+        "has_shape": true,
+        "id": "920",
+        "label": "14",
+        "long": "Peach",
+        "short": "14",
+        "text_color": "000000",
+        "type_label": "Bus"
+      },
+      {
+        "color": "F87600",
+        "color_name": "orange",
+        "has_shape": true,
+        "id": "940",
+        "label": "23",
+        "long": "Orange",
+        "short": "23",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "CCA02F",
+        "color_name": "yellow",
+        "has_shape": true,
+        "id": "950",
+        "label": "25",
+        "long": "Gold",
+        "short": "25",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      },
+      {
+        "color": "000000",
+        "color_name": "black",
+        "has_shape": false,
+        "id": "999",
+        "label": "TEST",
+        "long": "",
+        "short": "TEST",
+        "text_color": "FFFFFF",
+        "type_label": "Bus"
+      }
+    ],
+    "stop_count": 348,
+    "stop_points_capped": false
+  },
+  "rubric_version": "1.3",
+  "schema_version": "1.17",
+  "scoring_profile": {
+    "id": "gtfs-scorecard-1.3",
+    "provenance": "GTFS Scorecard's project-authored weights, deductions, thresholds, grade bands, and fix ranking, informed by the California Transit Data Guidelines and the MobilityData gtfs-validator. It is not a worldwide standard or a compliance determination.",
+    "rubric_version": "1.3"
+  },
+  "shapes_readiness": {
+    "detail": "All 876 trips have a shape in shapes.txt.",
+    "status": "ready",
+    "total_trips": 876,
+    "trips_with_shape": 876
+  },
+  "snapshot_date": "2026-08-07",
   "top_fixes": [
+    {
+      "code": "scorecard_feed_expiring_soon",
+      "count": 1,
+      "effort": "One export setting.",
+      "fix": "Re-export with a validity window that reaches at least 60 days out.",
+      "owner": "Likely your export tool",
+      "points": 71.0,
+      "rank": 1,
+      "severity": "WARNING",
+      "what": "Service data runs out in 9 day(s).",
+      "why": "When the calendar runs out, trip planners stop showing this agency. Fixing it now is calmer than after riders notice."
+    },
     {
       "code": "scorecard_wheelchair_boarding_unknown",
       "count": 348,
@@ -280,7 +548,7 @@
       "fix": "Set wheelchair_boarding to 1 (accessible) or 2 (not accessible) for every stop. A field survey can start with the busiest stops.",
       "owner": "Likely your team",
       "points": 25.0,
-      "rank": 1,
+      "rank": 2,
       "severity": "WARNING",
       "what": "348 of 348 stops don't say whether a wheelchair user can board there.",
       "why": "Riders who use wheelchairs can't plan a trip when accessibility is marked 'unknown'; apps show no information at all."
@@ -288,26 +556,14 @@
     {
       "code": "equal_shape_distance_same_coordinates",
       "count": 8,
-      "effort": "Varies.",
-      "fix": "Review the rule documentation for 'equal_shape_distance_same_coordinates' at https://gtfs-validator.mobilitydata.org/rules.html and check the flagged rows in your feed.",
-      "owner": "",
+      "effort": "Usually one export setting.",
+      "fix": "Turn on shape cleanup in your export tool, or drop the repeated points from shapes.txt.",
+      "owner": "Likely your export tool",
       "points": 6.0,
-      "rank": 2,
-      "severity": "WARNING",
-      "what": "Equal shape distance same coordinates (flagged by the MobilityData validator).",
-      "why": "See the linked rule for what this affects."
-    },
-    {
-      "code": "unknown_column",
-      "count": 1,
-      "effort": "A quick look at the flagged files.",
-      "fix": "Check the flagged column names for misspellings of standard GTFS fields; remove them if they are vendor extras.",
-      "owner": "",
-      "points": 0.5,
       "rank": 3,
-      "severity": "INFO",
-      "what": "Some files contain columns that are not part of the GTFS spec.",
-      "why": "Harmless to riders, but apps ignore these columns and they can hide typos in real column names."
+      "severity": "WARNING",
+      "what": "Some route lines list the same point twice in a row.",
+      "why": "Repeated points don't hurt riders, but they can skew distance math and hint at a shaky export."
     }
   ],
   "validator_version": "8.0.1"

@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -654,6 +655,49 @@ def test_reindex_preserves_s3_history_not_present_in_clean_checkout() -> None:
     assert dates == ["2026-06-16", "2026-06-17"]
 
 
+def test_incremental_publish_preserves_s3_history_not_present_locally() -> None:
+    """A re-score in a bounded checkout must not erase S3-only index rows.
+
+    Intraday refresh hydrates index.json plus today's and yesterday's dated
+    files, then re-scores and freshness-sweeps feeds through publish(). Each
+    publish used to rebuild the agency's history from local files alone, so
+    every older S3-only date vanished; by 2026-10-12 the national trend had two
+    dates left.
+    """
+    from scorecard_pipeline.publish import rebuild_index
+
+    for day, score in ((16, 70.0), (17, 75.0), (18, 80.0)):
+        publish(make_artifact(dt.date(2026, 6, day), score=score))
+    # The checkout no longer holds the two older dated files; S3 does.
+    for day in (16, 17):
+        (artifacts_dir() / "unitrans" / f"2026-06-{day}.json").unlink()
+
+    publish(make_artifact(dt.date(2026, 6, 19), score=85.0))
+    index = json.loads((artifacts_dir() / "index.json").read_text())
+    history = index["agencies"]["unitrans"]["history"]
+    assert [item["date"] for item in history] == [
+        "2026-06-16",
+        "2026-06-17",
+        "2026-06-18",
+        "2026-06-19",
+    ]
+    assert [item["score"] for item in history] == [70.0, 75.0, 80.0, 85.0]
+
+    # The full reindex that follows in the workflow agrees.
+    rebuild_index()
+    index = json.loads((artifacts_dir() / "index.json").read_text())
+    assert len(index["agencies"]["unitrans"]["history"]) == 4
+
+
+def test_incremental_publish_still_drops_an_unreadable_local_date() -> None:
+    """A dated file that is present but unreadable stays out of the history."""
+    publish(make_artifact(dt.date(2026, 6, 16), score=70.0))
+    (artifacts_dir() / "unitrans" / "2026-06-16.json").write_text("{not json")
+    publish(make_artifact(dt.date(2026, 6, 17), score=80.0))
+    index = json.loads((artifacts_dir() / "index.json").read_text())
+    assert [item["date"] for item in index["agencies"]["unitrans"]["history"]] == ["2026-06-17"]
+
+
 def test_reindex_preserves_authoritative_latest_when_current_dated_is_absent() -> None:
     """A skipped feed cannot roll back to the checkout's older cutover file."""
     from scorecard_pipeline.publish import rebuild_index
@@ -851,3 +895,417 @@ def test_history_entry_letter_comes_from_its_own_score() -> None:
     artifact = make_artifact(dt.date(2026, 6, 19))
     point = _history_entry(_contradicting(artifact))
     assert (point["score"], point["grade"]) == (80.0, "B")
+
+
+# --- the consequence block on every finding (issue #367) ---------------------
+
+
+def _artifact_with_findings(
+    agency: Agency = AGENCY, *, ntd_id: str | None = "90142"
+) -> dict[str, Any]:
+    from scorecard_pipeline.metrics import Finding
+
+    def make(code: str, count: int, deduction: float) -> Finding:
+        return Finding(
+            code=code,
+            severity="WARNING",
+            count=count,
+            what="w",
+            why="y",
+            fix="f",
+            effort="e",
+            deduction=deduction,
+        )
+
+    card = build_scorecard(
+        [
+            CategoryResult(
+                name="completeness",
+                score=70.0,
+                summary="s",
+                findings=[
+                    make("scorecard_wheelchair_boarding_unknown", 120, 10.0),
+                    make("scorecard_orphan_stops", 4, 2.0),
+                    make("scorecard_no_fare_data", 1, 5.0),
+                ],
+            )
+        ]
+    )
+    artifact = build_artifact(agency, make_fetch(dt.date(2026, 6, 11)), card, GENERATED_AT)
+    artifact["geo"] = {"stop_count": 296}
+    artifact["routability"] = {"boardable_stops": 274, "trips_total": 1794}
+    if ntd_id is not None:
+        artifact["ntd_id_alignment"] = {"ntd_id": ntd_id}
+    return artifact
+
+
+def _every_block(published: dict[str, Any]) -> list[dict[str, Any]]:
+    blocks = [
+        f["consequence"]
+        for cat in published["categories"].values()
+        for f in cat.get("findings", [])
+    ]
+    blocks.extend(f["consequence"] for f in published["top_fixes"])
+    return blocks
+
+
+def test_publish_attaches_a_consequence_block_to_every_finding() -> None:
+    dated = publish(_artifact_with_findings())
+    published = json.loads(dated.read_text())
+    blocks = _every_block(published)
+    assert len(blocks) == 3 + len(published["top_fixes"])
+    assert published["top_fixes"], "the fixture must produce top fixes to check"
+    by_code = {b["code"]: b for b in blocks}
+    assert by_code["scorecard_wheelchair_boarding_unknown"]["reach"]["total"] == 296
+    assert by_code["scorecard_orphan_stops"]["reach"]["total_source"] == (
+        "routability.boardable_stops"
+    )
+    assert by_code["scorecard_no_fare_data"]["reach"]["reason"] == "feed_level"
+    # latest.json is the same record as the dated evidence.
+    latest = json.loads((dated.parent / "latest.json").read_text())
+    assert _every_block(latest) == blocks
+
+
+def test_published_absences_are_never_written_as_values() -> None:
+    """A US record's writer joins neither input, and says so rather than zero."""
+    published = json.loads(publish(_artifact_with_findings()).read_text())
+    for block in _every_block(published):
+        assert block["ridership"]["annual_rider_trips"] is None
+        assert block["ridership"]["reason"] == "not_joined_here"
+        assert block["served_area_need"]["tier"] is None
+        assert block["served_area_need"]["reason"] == "not_joined_here"
+        assert "annual rider-trips" not in block["line"]
+        assert not any("was supplied" in note for note in block["absences"])
+
+
+def test_a_canadian_record_publishes_the_ntd_scope_absence() -> None:
+    canadian = Agency(
+        id="grt",
+        name="Grand River Transit",
+        static_gtfs_url="https://example.org/grt.zip",
+        country="CA",
+    )
+    published = json.loads(publish(_artifact_with_findings(canadian, ntd_id=None)).read_text())
+    for block in _every_block(published):
+        assert block["ridership"] == {
+            "annual_rider_trips": None,
+            "ntd_id": None,
+            "reason": "outside_ridership_scope",
+        }
+        assert block["served_area_need"]["scale"] == "ca_cimd"
+        assert any("United States National Transit Database" in n for n in block["absences"])
+
+
+def test_two_records_sharing_an_ntd_reporter_both_publish_an_absence() -> None:
+    from scorecard_pipeline.config import AGENCIES
+
+    first = Agency(id="a1", name="A one", static_gtfs_url="https://e.org/1.zip", ntd_id="90142")
+    second = Agency(id="a2", name="A two", static_gtfs_url="https://e.org/2.zip", ntd_id="0090142")
+    alone = Agency(id="a3", name="A three", static_gtfs_url="https://e.org/3.zip", ntd_id="90001")
+    for agency in (first, second, alone):
+        AGENCIES[agency.id] = agency
+
+    for agency in (first, second):
+        published = json.loads(publish(_artifact_with_findings(agency)).read_text())
+        for block in _every_block(published):
+            assert block["ridership"]["annual_rider_trips"] is None
+            assert block["ridership"]["reason"] == "duplicate_ntd_reporter"
+
+    published = json.loads(publish(_artifact_with_findings(alone, ntd_id="90001")).read_text())
+    assert {b["ridership"]["reason"] for b in _every_block(published)} == {"not_joined_here"}
+
+
+def test_a_retired_alias_does_not_quarantine_its_successors_reporter() -> None:
+    from scorecard_pipeline.config import AGENCIES
+
+    live = Agency(id="live", name="Live", static_gtfs_url="https://e.org/l.zip", ntd_id="90142")
+    retired = Agency(
+        id="old",
+        name="Old",
+        static_gtfs_url="https://e.org/o.zip",
+        ntd_id="90142",
+        alias_of="live",
+    )
+    AGENCIES.update({"live": live, "old": retired})
+    published = json.loads(publish(_artifact_with_findings(live)).read_text())
+    assert {b["ridership"]["reason"] for b in _every_block(published)} == {"not_joined_here"}
+
+
+def test_publish_rebuilds_the_block_a_sweep_carried_forward() -> None:
+    artifact = _artifact_with_findings()
+    first = json.loads(publish(artifact).read_text())
+    carried = json.loads(json.dumps(first))
+    # The sweep copies category findings forward and rebuilds top_fixes from
+    # their fields, so the block arrives stale on one list and absent on the other.
+    for cat in carried["categories"].values():
+        for f in cat.get("findings", []):
+            f["consequence"]["reach"]["affected"] = 999_999
+    for fix in carried["top_fixes"]:
+        del fix["consequence"]
+    again = json.loads(publish(carried).read_text())
+    assert _every_block(again) == _every_block(first)
+
+
+def test_the_schema_refuses_an_absence_written_as_a_value() -> None:
+    """Negative controls: each sabotage must land, and each must be refused.
+
+    The schema's only job here is the portfolio's most common defect: a missing
+    number published as zero. A sabotage that silently failed to apply would
+    read as a pass, so every mutation is asserted before it is validated.
+    """
+    import copy
+
+    import jsonschema
+
+    from scorecard_pipeline.publish import validate_artifact
+
+    published = json.loads(publish(_artifact_with_findings()).read_text())
+    validate_artifact(published)  # the untouched record is valid
+
+    def sabotaged(path: tuple[str, str], value: object) -> dict[str, Any]:
+        bad: dict[str, Any] = copy.deepcopy(published)
+        block = bad["top_fixes"][0]["consequence"]
+        block[path[0]][path[1]] = value
+        assert bad["top_fixes"][0]["consequence"][path[0]][path[1]] == value
+        assert bad != published
+        return bad
+
+    for path, value in (
+        (("ridership", "annual_rider_trips"), 0),
+        (("served_area_need", "tier"), "lower"),
+        (("reach", "reason"), "feed_level"),
+        (("ridership", "reason"), ""),
+        # An absent identifier written as an empty string reads as a value too.
+        (("ridership", "ntd_id"), ""),
+        (("served_area_need", "scale"), ""),
+    ):
+        bad = sabotaged(path, value)
+        with pytest.raises(jsonschema.ValidationError):
+            validate_artifact(bad)
+
+
+def test_the_schema_refuses_a_share_for_a_finding_with_no_basis() -> None:
+    """A feed-level finding has no share, even one that looks plausible."""
+    import copy
+
+    import jsonschema
+
+    from scorecard_pipeline.publish import validate_artifact
+
+    published = json.loads(publish(_artifact_with_findings()).read_text())
+    findings = published["categories"]["completeness"]["findings"]
+    index = next(i for i, f in enumerate(findings) if f["consequence"]["reach"]["basis"] == "none")
+    bad = copy.deepcopy(published)
+    reach = bad["categories"]["completeness"]["findings"][index]["consequence"]["reach"]
+    reach.update({"share": 1.0, "affected": 1, "total": 1, "reason": ""})
+    assert (
+        bad["categories"]["completeness"]["findings"][index]["consequence"]["reach"]["share"] == 1.0
+    )
+    with pytest.raises(jsonschema.ValidationError):
+        validate_artifact(bad)
+
+
+def test_the_schema_still_accepts_a_joined_value() -> None:
+    """The controls above are not vacuous: a real value with no reason passes."""
+    import copy
+
+    from scorecard_pipeline.publish import validate_artifact
+
+    published = json.loads(publish(_artifact_with_findings()).read_text())
+    good = copy.deepcopy(published)
+    block = good["top_fixes"][0]["consequence"]
+    block["ridership"] = {"annual_rider_trips": 0, "ntd_id": "90142", "reason": ""}
+    block["served_area_need"] = {"tier": "high", "scale": "us_acs", "reason": ""}
+    validate_artifact(good)
+
+
+# ------------------------------------------------------------- index batching
+#
+# The intraday freshness sweep publishes ~2,500 feeds in one process. Each
+# publish parsed and rewrote the whole index.json, which since the history
+# restore above holds every agency's full history (148 MB on 2026-10-22), so
+# the first sweep of each UTC day ran 134 to 167 minutes and was cancelled at
+# the job's 175-minute bound. publish() now takes an index_batch and the
+# caller writes the index once. These tests hold that the once-written index
+# is the same bytes the per-publish path leaves behind.
+
+CORPUS_SIZE = 50
+
+
+def _corpus_registry() -> dict[str, Agency]:
+    """Fifty canonical feeds plus one retired alias, whose dated evidence may
+    still be published but whose index entry is removed, not written."""
+    agencies = [
+        Agency(
+            id=f"agency-{i:02d}",
+            name=f"Agency {i:02d}",
+            static_gtfs_url=f"https://example.org/{i:02d}.zip",
+            license_note="test",
+        )
+        for i in range(CORPUS_SIZE)
+    ]
+    agencies.append(
+        Agency(
+            id="alias-retired",
+            name="Retired Alias",
+            static_gtfs_url="https://example.org/retired.zip",
+            license_note="test",
+            alias_of="agency-00",
+        )
+    )
+    return {agency.id: agency for agency in agencies}
+
+
+def _corpus_artifact(agency: Agency, date: dt.date, score: float) -> dict[str, Any]:
+    fetch = FetchResult(
+        agency_id=agency.id,
+        path=Path("/tmp/gtfs.zip"),
+        url=agency.static_gtfs_url,
+        fetched_date=date,
+        sha256=FEED_SHA,
+        size_bytes=1024,
+        reused=False,
+        source="unknown",
+    )
+    card = build_scorecard([CategoryResult(name="correctness", score=score, summary="s")])
+    return build_artifact(agency, fetch, card, GENERATED_AT)
+
+
+def _count_index_writes(monkeypatch: pytest.MonkeyPatch) -> list[Path]:
+    """Every index.json write, counted at the one writer all index updates use."""
+    from scorecard_pipeline import publish as publish_module
+
+    real = publish_module._write_json
+    writes: list[Path] = []
+
+    def counting(path: Path, payload: dict[str, Any]) -> None:
+        if path.name == "index.json":
+            writes.append(path)
+        real(path, payload)
+
+    monkeypatch.setattr(publish_module, "_write_json", counting)
+    return writes
+
+
+def _publish_corpus(
+    root: Path, registry: dict[str, Agency], *, batched: bool
+) -> tuple[bytes, int, dict[str, dict[str, Any]] | None]:
+    """Publish the corpus into ``root`` and return the index bytes, the number
+    of publishes made, and the batch (None on the per-publish path)."""
+    from scorecard_pipeline.publish import flush_index
+
+    artifacts_dir().mkdir(parents=True)
+    # Rows the checkout does not hold (their dated files live in S3 alone):
+    # the merge must carry them, on both paths.
+    seed = {
+        "schema_version": SCHEMA_VERSION,
+        "agencies": {
+            "agency-03": {
+                "name": "Agency 03",
+                "history": [{"date": "2026-05-01", "score": 50.0, "grade": "F"}],
+            },
+            "agency-07": {
+                "name": "Agency 07",
+                "history": [{"date": "2026-05-02", "score": 51.0, "grade": "F"}],
+            },
+        },
+    }
+    (artifacts_dir() / "index.json").write_text(json.dumps(seed, indent=2, sort_keys=True) + "\n")
+
+    batch: dict[str, dict[str, Any]] | None = {} if batched else None
+    publishes = 0
+    for i in range(CORPUS_SIZE):
+        agency = registry[f"agency-{i:02d}"]
+        publish(_corpus_artifact(agency, dt.date(2026, 6, 16), 60.0 + i / 2), index_batch=batch)
+        publishes += 1
+    # A second date for one feed, and the retired alias's evidence, in the same loop.
+    publish(_corpus_artifact(registry["agency-10"], dt.date(2026, 6, 17), 70.0), index_batch=batch)
+    publish(
+        _corpus_artifact(registry["alias-retired"], dt.date(2026, 6, 16), 40.0), index_batch=batch
+    )
+    publishes += 2
+    if batch is not None:
+        flush_index(batch)
+    return (artifacts_dir() / "index.json").read_bytes(), publishes, batch
+
+
+def test_a_batched_index_flush_is_byte_identical_to_per_publish_updates(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fifty-two publishes over fifty agencies, a seeded index with S3-only
+    rows, one feed published on two dates and one retired alias: the index the
+    batch flushes once is the same bytes the per-publish path writes fifty-two
+    times. The write count is the control: the per-publish path really did
+    write the index once per publish, so the counter sees every write and the
+    batch is what removed all but one of them."""
+    from scorecard_pipeline.config import AGENCIES
+
+    registry = _corpus_registry()
+    AGENCIES.update(registry)
+    writes = _count_index_writes(monkeypatch)
+
+    monkeypatch.setenv("SCORECARD_ROOT", str(tmp_path / "sequential"))
+    sequential, publishes, no_batch = _publish_corpus(
+        tmp_path / "sequential", registry, batched=False
+    )
+    sequential_writes = len(writes)
+    writes.clear()
+
+    monkeypatch.setenv("SCORECARD_ROOT", str(tmp_path / "batched"))
+    batched, _, batch = _publish_corpus(tmp_path / "batched", registry, batched=True)
+    batched_writes = len(writes)
+
+    assert no_batch is None
+    assert batch is not None
+    # agency-10's second publish replaced its first entry; the alias is held too.
+    assert len(batch) == CORPUS_SIZE + 1
+    assert batched == sequential
+    assert batched_writes == 1
+    # The negative control, and proof it applied: the index_batch=None path wrote
+    # the index on every one of the fifty-two publishes.
+    assert publishes == CORPUS_SIZE + 2
+    assert sequential_writes == publishes
+
+    index = json.loads(batched)
+    assert len(index["agencies"]) == CORPUS_SIZE
+    assert "alias-retired" not in index["agencies"]
+    history = {k: [row["date"] for row in v["history"]] for k, v in index["agencies"].items()}
+    assert history["agency-03"] == ["2026-05-01", "2026-06-16"]
+    assert history["agency-07"] == ["2026-05-02", "2026-06-16"]
+    assert history["agency-10"] == ["2026-06-16", "2026-06-17"]
+    assert history["agency-00"] == ["2026-06-16"]
+
+
+def test_a_batched_publish_leaves_the_index_alone_until_the_flush(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Between publishes the index is untouched, and an empty batch is a no-op:
+    a loop that published nothing never wrote the index, and still does not."""
+    from scorecard_pipeline.publish import flush_index
+
+    writes = _count_index_writes(monkeypatch)
+    index_path = artifacts_dir() / "index.json"
+
+    flush_index({})
+    assert not index_path.exists()
+    assert writes == []
+
+    batch: dict[str, dict[str, Any]] = {}
+    publish(make_artifact(dt.date(2026, 6, 16), score=70.0), index_batch=batch)
+    publish(make_artifact(dt.date(2026, 6, 17), score=80.0), index_batch=batch)
+    assert not index_path.exists()
+    assert writes == []
+    assert list(batch) == ["unitrans"]
+    assert batch["unitrans"]["snapshot_date"] == "2026-06-17"
+    # The dated evidence and the current pointers were written as they always are.
+    assert (artifacts_dir() / "unitrans" / "2026-06-16.json").exists()
+    latest = json.loads((artifacts_dir() / "unitrans" / "latest.json").read_text())
+    assert latest["snapshot_date"] == "2026-06-17"
+
+    flush_index(batch)
+    assert writes == [index_path]
+    index = json.loads(index_path.read_text())
+    assert [row["date"] for row in index["agencies"]["unitrans"]["history"]] == [
+        "2026-06-16",
+        "2026-06-17",
+    ]

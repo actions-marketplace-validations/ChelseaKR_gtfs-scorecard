@@ -13,8 +13,9 @@ often and keep the expiry countdown and grade current on its own.
 
 It carries forward the last full score's correctness, completeness, and realtime
 (those need a re-fetch to change) and recomputes only freshness for the sweep
-date, then re-derives the overall grade and top fixes the same way scoring does.
-The result is written as a new dated artifact marked `recompute`, so it never
+date, then re-derives the overall grade, the top fixes, and the two verdicts
+that read the expiry countdown (the conformance mark and NTD readiness) the same
+way scoring does. The result is written as a new dated artifact marked `recompute`, so it never
 rewrites a past snapshot's freshness (which must stay fixed at that snapshot's
 date) and trend history stays honest.
 """
@@ -24,6 +25,7 @@ from __future__ import annotations
 import datetime as dt
 from typing import Any
 
+from .corrections import grades_a_feed_with_nothing_in_it
 from .gtfs import FeedDates
 from .metrics import CategoryResult, Finding, freshness
 from .score import CATEGORY_WEIGHTS, build_scorecard
@@ -59,6 +61,31 @@ def _category_from_json(d: dict[str, Any]) -> CategoryResult:
     )
 
 
+def last_fetched_date(artifact: dict[str, Any]) -> str | None:
+    """The date the feed behind ``artifact`` was last actually downloaded.
+
+    A full score's ``snapshot_date`` is that date. A sweep's is not: the sweep
+    stamps the day it recomputed freshness, having fetched nothing. So the
+    answer for a swept artifact is the fetch date it already carries, and
+    reading ``snapshot_date`` off it instead reports the previous sweep.
+
+    That is what the field did, and sweeps run every cycle, so the claim was
+    almost always "fetched yesterday". Measured against the published store on
+    2026-09-13: of 472 records published as freshness recomputes, 468 named
+    ``feed_fetched_date: 2026-09-12`` while their feeds had not been downloaded
+    since 2026-08-10 -- unchanged ``feed_sha256`` across the whole window. The
+    field exists so a consumer "never mistakes it for a fresh validation"; a
+    date one day old says exactly that.
+    """
+    prior = artifact.get("recompute")
+    if isinstance(prior, dict) and prior.get("kind") == "freshness":
+        fetched = prior.get("feed_fetched_date")
+        if isinstance(fetched, str) and fetched:
+            return fetched
+    snapshot = artifact.get("snapshot_date")
+    return snapshot if isinstance(snapshot, str) else None
+
+
 def _feed_dates(details: dict[str, Any]) -> FeedDates:
     # feed_publisher_name is not stored and not read by freshness(), so None.
     # seasonal_boundary round-trips through details (freshness() records it);
@@ -87,14 +114,48 @@ def can_resweep(artifact: dict[str, Any]) -> bool:
     return bool(details.get("feed_end_date") or details.get("last_service_date"))
 
 
+def carries_a_grade_the_scorer_would_refuse(artifact: dict[str, Any]) -> bool:
+    """True when the categories this sweep would carry forward grade nothing.
+
+    The sweep re-measures freshness and carries correctness, rider experience
+    and realtime forward untouched, because those need a re-fetch to change.
+    That is sound while the carried categories are a measurement. It is not when
+    they grade an archive with no stops and no trips: ``score_feed_content``
+    refuses to produce such a scorecard at all (``UnreadableFeedError``, #331),
+    and a sweep that re-stamps one publishes today what no run today could.
+
+    The two failures compound. A feed the scorer refuses writes no artifact, so
+    the run leaves the old letter in place; the sweep then re-dates that letter
+    every cycle, so a grade nobody can reproduce reads as current indefinitely
+    and the refusal never gets the chance to take it down. Measured against the
+    published store on 2026-09-13, ``boxcar`` published B 83.9 and
+    ``fr-pan-14652`` D 69.3 this way, both stamped with that day's date over
+    archives their own artifacts record as holding 0 stops and 0 trips --
+    and ``corrections.yaml`` states of the first that "no run can publish an A,
+    or anything else, here".
+
+    Holding the artifact back stops the re-stamping. It does not retract what is
+    already published: a withdrawal is a reviewed entry in ``corrections.yaml``,
+    which is why the sweep names every record it holds back rather than skipping
+    it quietly.
+    """
+    return grades_a_feed_with_nothing_in_it(artifact)
+
+
 def needs_sweep(artifact: dict[str, Any], today: dt.date) -> bool:
     """True when a feed can be reswept and its latest score predates `today`.
 
     A feed already scored on the sweep date (a full run, or an earlier sweep the
     same day) is current, so re-sweeping would only restamp it and, worse, demote
     a full score to a freshness-only recompute. Skipping keeps the sweep safe to
-    run alongside and after the daily full score, and makes repeat runs no-ops."""
+    run alongside and after the daily full score, and makes repeat runs no-ops.
+
+    False also for an artifact whose carried categories grade an archive with
+    nothing in it, which the sweep must not re-publish under a new date; see
+    :func:`carries_a_grade_the_scorer_would_refuse`."""
     if not can_resweep(artifact):
+        return False
+    if carries_a_grade_the_scorer_would_refuse(artifact):
         return False
     snapshot = artifact.get("snapshot_date")
     return not (isinstance(snapshot, str) and snapshot >= today.isoformat())
@@ -135,11 +196,16 @@ def resweep(artifact: dict[str, Any], today: dt.date) -> tuple[dict[str, Any], d
     new_artifact["snapshot_date"] = today.isoformat()
     # Mark this as a freshness-only recompute, naming the date the feed was last
     # actually fetched, so a consumer never mistakes it for a fresh validation.
+    # That date survives a chain of sweeps rather than advancing with each one
+    # (last_fetched_date): a sweep downloads nothing, so it cannot be evidence
+    # of a download.
     new_artifact["recompute"] = {
         "kind": "freshness",
         "as_of": today.isoformat(),
-        "feed_fetched_date": artifact.get("snapshot_date"),
+        "feed_fetched_date": last_fetched_date(artifact),
     }
+
+    _rederive_expiry_verdicts(new_artifact)
 
     old = artifact.get("overall", {})
     summary = {
@@ -154,3 +220,24 @@ def resweep(artifact: dict[str, Any], today: dt.date) -> tuple[dict[str, Any], d
         "grade_changed": old.get("grade") != card["overall"]["grade"],
     }
     return new_artifact, summary
+
+
+def _rederive_expiry_verdicts(artifact: dict[str, Any]) -> None:
+    """Re-derive the stored verdicts that quote the expiry countdown, in place.
+
+    ``conformance`` and ``ntd_readiness`` each name the days left on the feed,
+    read from the freshness category. Before this, the sweep rebuilt freshness,
+    ``overall`` and ``top_fixes`` but copied both blocks forward from the last
+    full score, so one record contradicted itself. SacRT's ``latest.json`` for
+    2026-08-07 led with "Service data runs out in 8 day(s)" while both blocks
+    still said 21 days, the count from the full score two weeks earlier.
+
+    ``ntd_readiness`` is a US-only block (ADR 0026), so it is re-derived only
+    where the full score attached it; the sweep must not invent one abroad.
+    """
+    from .ntd import assess as assess_ntd_readiness
+    from .publish import _current_conformance
+
+    artifact["conformance"] = _current_conformance(artifact)
+    if isinstance(artifact.get("ntd_readiness"), dict):
+        artifact["ntd_readiness"] = assess_ntd_readiness(artifact).to_dict()

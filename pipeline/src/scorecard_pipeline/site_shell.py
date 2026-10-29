@@ -102,6 +102,7 @@ _NAV_SECTION_PREFIXES = {
     "/concept/": "/how-to-read/",
     "/press/": "/how-to-read/",
     "/support/": "/about/",
+    "/bundle/": "/about/",
 }
 
 
@@ -167,7 +168,7 @@ def _nav_stops_html(active: str | None, lang: str = "en", path: str | None = Non
 def _nav_html(canonical: str, lang: str = "en") -> str:
     """The primary wayfinding nav: the site's sections as stops on a route line,
     with the current page's stop filled (aria-current). The #theme-control slot is
-    where theme.js mounts the colour-theme menu."""
+    where theme.js mounts the color-theme menu."""
     path = canonical.replace(BASE_URL, "") or "/"
     menu = "Menú" if lang == "es" else "Menu"
     return (
@@ -196,15 +197,58 @@ STATIC_NAV_PAGES: dict[str, str | None] = {
     "data/index.html": None,
     "support/index.html": "/about/",
     "fetcher/index.html": "/about/",
-    # Program report bundle (docs/program-plan.md): unlinked and noindex until
-    # the payment rail is verified end to end; registered here so the shared
-    # nav and footer stay in sync and the doc-stats sweep reads them.
-    "bundle/index.html": None,
-    "bundle/setup/index.html": None,
+    # Program report bundle (docs/program-plan.md): /bundle/ is indexable and,
+    # since the tier launched, reachable from the shared footer's "For
+    # programs" section on every page, from the home page, /about/, /data/,
+    # /support/, /tools/, and every program rollup. It sits in the About
+    # section (the same stop its parent /support/ fills), so the wayfinding bar
+    # says where a reader is instead of going blank. /bundle/setup/ is the
+    # post-checkout form and stays noindex and out of the sitemap: it says
+    # nothing to a reader who arrives without a Checkout Session, so an
+    # indexed one would collect search traffic it can only turn away. Both are
+    # registered here so the shared nav and footer stay in sync and the
+    # doc-stats sweep reads them.
+    "bundle/index.html": "/about/",
+    "bundle/setup/index.html": "/about/",
+    # Buy by invoice or purchase order: the same product as /bundle/ for a
+    # buyer who cannot use a card link. A request page that composes a mailto
+    # link; no checkout, no stored data, and every price read from plan.json.
+    "invoice/index.html": "/about/",
+    # The scorecard history tables (ADR 0063, docs/history-tables.md): the
+    # landing page is indexable and sits under /data/, the free open-data page;
+    # /data/history/setup/ is the post-checkout page and stays noindex and out
+    # of the sitemap for the same reason /bundle/setup/ does.
+    "data/history/index.html": None,
+    "data/history/setup/index.html": None,
 }
 
 # The one shared footer, single-sourced here so the generated pages and the
 # hand-authored static pages can never drift apart (same mechanism as the nav).
+#
+# Every footer carries the analytics opt-out (docs/decisions/0056). Without
+# scripts it is a link to the privacy statement; web/src/measure.js turns it
+# into a toggle that is remembered on the device and switches off both PostHog
+# and GA4. Its wording lives here, in data attributes, so the script carries no
+# copy and the Spanish footer can carry Spanish. The status span beside it
+# announces the change to screen readers. check_site_seo.py fails a page that
+# loads the measurement script without one of these.
+ANALYTICS_OPT_OUT_HTML = (
+    '<a href="/about/#privacy-opt-out" data-analytics-toggle'
+    ' data-label-on="Opt out of analytics" data-label-off="Opt back in to analytics"'
+    ' data-status-off="Analytics is off on this device."'
+    ' data-status-on="Analytics comes back on from the next page you open.">'
+    "Opt out of analytics</a>"
+    '<span class="visually-hidden" role="status" data-analytics-status></span>'
+)
+ANALYTICS_OPT_OUT_HTML_ES = (
+    '<a href="/about/#privacy-opt-out" hreflang="en" data-analytics-toggle'
+    ' data-label-on="Desactivar la analítica" data-label-off="Volver a activar la analítica"'
+    ' data-status-off="La analítica está desactivada en este dispositivo."'
+    ' data-status-on="La analítica vuelve a funcionar desde la próxima página que abra.">'
+    "Desactivar la analítica</a>"
+    '<span class="visually-hidden" role="status" data-analytics-status></span>'
+)
+
 _US_TOOLS_FOOTER_SECTION = """          <li class="footer-subhead">United States tools</li>
           <li><a href="/ntd/">U.S. NTD readiness</a></li>
           <li><a href="/equity/">U.S. equity</a></li>
@@ -252,6 +296,14 @@ FOOTER_HTML = f"""<footer class="site-footer">
             <li><a href="/data/">Open data</a></li>
           </ul>
         </section>
+        <section aria-labelledby="footer-programs-h">
+          <h2 id="footer-programs-h">For programs</h2>
+          <ul>
+            <li><a href="/program/all/">Program rollups</a></li>
+            <li><a href="/bundle/">Board report bundle (paid)</a></li>
+          </ul>
+          <p class="footer-aside">Scoring an agency is free. A purchase buys no influence over grades, methodology, or which agencies are listed.</p>
+        </section>
         <section aria-labelledby="footer-project-h">
           <h2 id="footer-project-h">Project</h2>
           <ul>
@@ -263,6 +315,8 @@ FOOTER_HTML = f"""<footer class="site-footer">
             <li><a href="/crosswalk/">Standards crosswalk</a></li>
             <li><a href="/press/">For reporters</a></li>
             <li><a href="/accessibility/">Accessibility</a></li>
+            <li><a href="/about/#privacy">Privacy</a></li>
+            <li>{ANALYTICS_OPT_OUT_HTML}</li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/CONTRIBUTING.md">Contribute</a></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a></li>
           </ul>
@@ -273,15 +327,17 @@ FOOTER_HTML = f"""<footer class="site-footer">
 
 # Agency pages outside the United States keep all shared global navigation but
 # do not foreground a policy tool that cannot apply to them. General pages keep
-# the labelled U.S. section discoverable, and U.S. agency pages remain unchanged.
+# the labeled U.S. section discoverable, and U.S. agency pages remain unchanged.
 FOOTER_HTML_WITHOUT_US_TOOLS = FOOTER_HTML.replace(_US_TOOLS_FOOTER_SECTION.rstrip() + "\n", "")
 
-FOOTER_HTML_ES = """<footer class="site-footer">
+FOOTER_HTML_ES = f"""<footer class="site-footer">
     <div class="wrap">
       <p>Herramienta de código abierto para revisar datos de transporte público.</p>
       <p><a href="/es/">Buscar una agencia</a> ·
       <a href="/agencies/" hreflang="en">Directorio completo (en inglés)</a> ·
       <a href="/accessibility/" hreflang="en">Accesibilidad (en inglés)</a> ·
+      <a href="/about/#privacy" hreflang="en">Privacidad (en inglés)</a> ·
+      {ANALYTICS_OPT_OUT_HTML_ES} ·
       <a href="/" hreflang="en">English</a></p>
     </div>
   </footer>"""
@@ -365,6 +421,590 @@ def sync_static_navs() -> list[Path]:
     return changed
 
 
+# Site measurement (docs/decisions/0055-cookieless-site-measurement.md). One
+# first-party script, web/src/measure.js, on every page the site serves, and one
+# PostHog project key written into it at deploy time by `scorecard
+# render-measure` from the POSTHOG_KEY secret. The committed copy of the script
+# has no key and sends nothing; the deploy with no key ships exactly that copy.
+#
+# Two mechanisms keep this honest. `sync_static_measure` gives every
+# hand-authored page the tag the generated pages get from `_page`, and
+# tests/test_measure.py fails on a page without it, with two of it, or with a
+# redirect stub carrying it. `render_measure_script` is the only way a key
+# reaches the site, and it refuses anything that does not look like a PostHog
+# project key rather than splicing an arbitrary string into JavaScript.
+MEASURE_SCRIPT_PATH = "src/measure.js"
+MEASURE_SCRIPT_TAG = '<script src="/src/measure.js" defer></script>'
+MEASURE_HOST = "https://us.i.posthog.com"
+MEASURE_KEY_ENV = "POSTHOG_KEY"
+# The pages that are written by hand rather than by _page: the nav-synced set
+# plus the two landing pages, which carry their own header.
+MEASURED_STATIC_PAGES: tuple[str, ...] = (*STATIC_NAV_PAGES, "index.html", "es/index.html")
+_THEME_SCRIPT_TAG_RE = re.compile(
+    r'^(?P<indent>[ \t]*)<script src="/src/theme\.js" defer></script>$', re.MULTILINE
+)
+_MEASURE_SCRIPT_TAG_RE = re.compile(
+    r'^[ \t]*<script src="/src/measure\.js" defer></script>\n', re.MULTILINE
+)
+# The one line of the shim a deploy rewrites. Anchored on the trailing marker so
+# a second `var KEY` anywhere else in the file is not silently taken for it.
+_MEASURE_KEY_LINE_RE = re.compile(
+    r'^(?P<indent>[ \t]*)var KEY = "(?P<key>[^"\n]*)"; // measure:key$', re.MULTILINE
+)
+# What a PostHog project key looks like. Anything else is refused: the value is
+# spliced into a JavaScript string literal, and a deploy that fails loudly on a
+# mistyped secret is better than one that ships a broken shim or an injection.
+_MEASURE_KEY_RE = re.compile(r"phc_[A-Za-z0-9]{8,}")
+
+# Google Analytics 4 (docs/decisions/0056-google-analytics-4.md): a second,
+# separate block in the same script, with its own marked line. The measurement
+# id is public by design, so it is committed in site-seo.json rather than kept
+# as a secret, and render-measure writes it into the assembled site the same
+# way it writes the PostHog key. An empty value leaves the block a no-op that
+# loads nothing.
+GA4_LOADER_HOST = "https://www.googletagmanager.com"
+GA4_ID_SETTING = "measurement_ga4_id"
+_GA4_ID_LINE_RE = re.compile(
+    r'^(?P<indent>[ \t]*)var GA4_ID = "(?P<id>[^"\n]*)"; // measure:ga4-id$', re.MULTILINE
+)
+# What a GA4 measurement id looks like. It is spliced into a string literal too.
+_GA4_ID_RE = re.compile(r"G-[A-Z0-9]{4,16}")
+
+
+def ga4_measurement_id(config: Path | None = None) -> str:
+    """The GA4 measurement id committed in ``site-seo.json``, or "" when unset.
+
+    ``config`` defaults to the repository's ``site-seo.json``. A value that is
+    not a string, or not shaped like a GA4 id, is refused here rather than at
+    the moment it would be written into JavaScript."""
+    path = config if config is not None else _repo_root() / "site-seo.json"
+    value = json.loads(path.read_text(encoding="utf-8")).get(GA4_ID_SETTING, "")
+    if not isinstance(value, str):
+        raise ValueError(f"{GA4_ID_SETTING} in {path.name} must be a string")
+    value = value.strip()
+    if value and not _GA4_ID_RE.fullmatch(value):
+        raise ValueError(
+            f"{GA4_ID_SETTING} in {path.name} does not look like a GA4 measurement id "
+            "(G- followed by capital letters and digits); refusing to write it into the site"
+        )
+    return value
+
+
+def measure_tag_count(html: str) -> int:
+    """How many measurement script tags one document carries."""
+    return len(_MEASURE_SCRIPT_TAG_RE.findall(html + "\n"))
+
+
+def with_measure_tag(html: str, *, label: str = "page") -> str:
+    """``html`` carrying exactly one measurement tag, placed after the theme
+    script every page loads first. Existing copies are removed first, so a page
+    that somehow gained two ends up with one, not three."""
+    stripped = _MEASURE_SCRIPT_TAG_RE.sub("", html)
+    anchors = list(_THEME_SCRIPT_TAG_RE.finditer(stripped))
+    if len(anchors) != 1:
+        raise ValueError(
+            f"{label}: expected one theme.js script tag to place the measurement tag after, "
+            f"found {len(anchors)}"
+        )
+    anchor = anchors[0]
+    insert = f"\n{anchor.group('indent')}{MEASURE_SCRIPT_TAG}"
+    return stripped[: anchor.end()] + insert + stripped[anchor.end() :]
+
+
+def sync_static_measure() -> list[Path]:
+    """Give each hand-authored page exactly one measurement script tag.
+
+    The same shape as ``sync_static_navs``: one canonical tag, a ``make``
+    target that writes it, and a test that fails CI on drift. Returns the paths
+    that changed (empty when in sync). Run via ``make sync-measure``."""
+    web = _repo_root() / "web"
+    changed: list[Path] = []
+    for rel in MEASURED_STATIC_PAGES:
+        path = web / rel
+        old = path.read_text()
+        new = with_measure_tag(old, label=str(path))
+        if new != old:
+            path.write_text(new)
+            changed.append(path)
+    return changed
+
+
+def render_measure_script(key: str | None, source: str | None = None, *, ga4_id: str = "") -> str:
+    """The shim with ``key`` written into its one key line, and ``ga4_id``
+    into its one GA4 line.
+
+    ``source`` defaults to the committed ``web/src/measure.js``. An empty or
+    absent key renders the file byte-identical to a committed copy that carries
+    no key, which is how a deploy with no secret set ships nothing that sends.
+    An empty ``ga4_id`` does the same for the GA4 block: nothing loads.
+    """
+    text = (
+        source if source is not None else (_repo_root() / "web" / MEASURE_SCRIPT_PATH).read_text()
+    )
+    matches = list(_MEASURE_KEY_LINE_RE.finditer(text))
+    if len(matches) != 1:
+        raise ValueError(
+            f"{MEASURE_SCRIPT_PATH}: expected exactly one `var KEY = ...; // measure:key` line, "
+            f"found {len(matches)}"
+        )
+    value = (key or "").strip()
+    if value and not _MEASURE_KEY_RE.fullmatch(value):
+        raise ValueError(
+            f"{MEASURE_KEY_ENV} does not look like a PostHog project key (phc_ followed by "
+            "letters and digits); refusing to write it into the site"
+        )
+    match = matches[0]
+    line = f'{match.group("indent")}var KEY = "{value}"; // measure:key'
+    text = text[: match.start()] + line + text[match.end() :]
+    return _with_ga4_id(text, ga4_id)
+
+
+def _with_ga4_id(text: str, ga4_id: str) -> str:
+    """``text`` with ``ga4_id`` written into its one GA4 line."""
+    matches = list(_GA4_ID_LINE_RE.finditer(text))
+    if len(matches) != 1:
+        raise ValueError(
+            f"{MEASURE_SCRIPT_PATH}: expected exactly one `var GA4_ID = ...; // measure:ga4-id` "
+            f"line, found {len(matches)}"
+        )
+    value = ga4_id.strip()
+    if value and not _GA4_ID_RE.fullmatch(value):
+        raise ValueError(
+            f"{GA4_ID_SETTING} does not look like a GA4 measurement id (G- followed by "
+            "capital letters and digits); refusing to write it into the site"
+        )
+    match = matches[0]
+    line = f'{match.group("indent")}var GA4_ID = "{value}"; // measure:ga4-id'
+    return text[: match.start()] + line + text[match.end() :]
+
+
+def write_measure_script(out: Path, key: str | None, *, ga4_id: str = "") -> bool:
+    """Write the rendered shim to ``out``. Returns whether PostHog measurement
+    is on, which is the same question as whether a key was written. Whether
+    GA4 is on is whether ``ga4_id`` is non-empty, which the caller knows."""
+    rendered = render_measure_script(key, ga4_id=ga4_id)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(rendered)
+    return bool((key or "").strip())
+
+
+# The /bundle/ Service node the offers attach to, and the id web/src/bundle.js
+# looks up before it replaces the block at view time. Keeping the id identical
+# is the whole mechanism: the server writes this block, and bundle.js removes
+# and rewrites *that same element* from its own fetch of plan.json, so the page
+# carries exactly one offers block whether or not scripts run, and a plan that
+# says nothing is for sale still leaves no offer standing.
+BUNDLE_SERVICE_ID = f"{BASE_URL}/bundle/#service"
+BUNDLE_OFFERS_SCRIPT_ID = "plan-offers-jsonld"
+BUNDLE_PLAN_PATH = "bundle/plan.json"
+BUNDLE_PAGE_PATH = "bundle/index.html"
+# The generated regions in the hand-authored /bundle/ page. Both are written by
+# `make sync-bundle-offers` from plan.json and compared byte for byte in CI, so
+# neither is a copy of a price: they are renderings of the one document that
+# owns it. tests/test_bundle_offers_markup.py holds that.
+_BUNDLE_OFFERS_RE = re.compile(r"<!-- offers:begin -->.*?<!-- offers:end -->", re.DOTALL)
+_BUNDLE_NOSCRIPT_RE = re.compile(
+    r"<!-- noscript-plans:begin -->.*?<!-- noscript-plans:end -->", re.DOTALL
+)
+# Every marker pair a generated region may use, in the order they appear. The
+# price guards in tests/test_paid_tier_visibility.py and
+# tests/test_bundle_plan_contract.py subtract exactly these spans before they
+# sweep for a typed amount, so the exemption is the generator's output and
+# nothing else.
+BUNDLE_GENERATED_REGION_RES = (_BUNDLE_OFFERS_RE, _BUNDLE_NOSCRIPT_RE)
+_BUNDLE_OFFERS_EMPTY_NOTE = (
+    "<!-- Nothing is for sale: plan.json either switches payments off or lists no "
+    "product with both a numeric price and an https checkout link. The page states "
+    "no price because there is none to state. -->"
+)
+
+
+def bundle_offer_nodes(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    """One schema.org Offer per sellable product, from ``plan.json`` alone.
+
+    Built only from fields the plan actually carries, and in the plan file's own
+    product order: a product with no numeric price, or no https checkout link,
+    or a plan with ``paymentsAvailable`` anything but ``True``, contributes
+    nothing. That is the same set of refusals ``web/src/bundle.js::offerNodes``
+    applies to the same file, deliberately — the served markup and the runtime
+    markup are two readings of one source, and they refuse the same things.
+
+    No amount is written here. Every value is read from the plan, which is why
+    switching the tier off stays a data change: edit ``plan.json``, run
+    ``make sync-bundle-offers``, and the offers disappear from the page.
+    ``test_bundle_offers_markup_matches_plan_json`` fails the build if the two
+    are ever out of step, so a price cannot change without the served page
+    changing with it.
+    """
+    if plan.get("paymentsAvailable") is not True:
+        return []
+    currency = str(plan.get("currency") or "USD")
+    products = plan.get("products")
+    if not isinstance(products, dict):
+        return []
+    nodes: list[dict[str, Any]] = []
+    for key, product in products.items():
+        if not isinstance(product, dict):
+            continue
+        price = product.get("price")
+        if not isinstance(price, (int, float)) or isinstance(price, bool):
+            continue
+        checkout = product.get("checkout_url")
+        if not isinstance(checkout, str) or not checkout.startswith("https://"):
+            continue
+        interval = product.get("interval")
+        offer: dict[str, Any] = {
+            "@type": "Offer",
+            "name": str(product.get("label") or key),
+            "price": str(price),
+            "priceCurrency": currency,
+            "availability": "https://schema.org/InStock",
+            "url": checkout,
+            "category": "subscription" if interval else "one-time",
+        }
+        if interval:
+            offer["priceSpecification"] = {
+                "@type": "UnitPriceSpecification",
+                "price": str(price),
+                "priceCurrency": currency,
+                "billingDuration": 1,
+                "billingIncrement": 1,
+                "unitCode": "ANN" if interval == "year" else "MON",
+            }
+        nodes.append(offer)
+    return nodes
+
+
+#: The node's display name, carried in this one generated block (not only in
+#: the hand-authored Service block above it in the HTML) so the block is a
+#: self-sufficient Product on its own: Google's Product structured data
+#: requires "name" plus at least one of offers/review/aggregateRating, and
+#: whether two <script type="application/ld+json"> tags on one page that
+#: share an @id are actually merged into one node by a given consumer is not
+#: something to depend on. Not a price, so it is not routed through
+#: plan.json: a display name is not the thing test_bundle_offers_markup.py
+#: guards against drifting from the plan.
+BUNDLE_SERVICE_NAME = "Program report bundle"
+
+
+def bundle_offers_jsonld(plan: dict[str, Any]) -> dict[str, Any] | None:
+    """The Service node carrying those offers, or ``None`` when there are none.
+
+    Attached to the page's static Service node by ``@id`` so the two merge into
+    one entity rather than describing two services, and carrying ``url`` so the
+    node identifies the page it is on -- which is also what
+    ``check_site_seo.py``'s required-type check asks of every top-level node of
+    a required type.
+
+    ``@type`` carries both ``Service`` (what ``site-seo.json`` requires of
+    ``/bundle/``) and ``Product`` (what Google's Product structured data --
+    the free "Popular products" and product-snippet surfaces -- requires of a
+    node before its ``offers`` are eligible at all; a pure ``Service`` node is
+    not). Schema.org's own definition of ``Product`` is "any offered product
+    or service," so this is not a mischaracterization, just a second,
+    Google-legible name for the same node.
+    """
+    nodes = bundle_offer_nodes(plan)
+    if not nodes:
+        return None
+    # Ordered on the numeric value, reported as the string the Offer carries,
+    # so the range is never a reformatted version of a price stated elsewhere
+    # on the same page: "49" here and "49.0" in the offer would be two
+    # renderings of one amount, and only one of them is what the plan says.
+    by_price = sorted(nodes, key=lambda offer: float(offer["price"]))
+    offers: dict[str, Any] | list[dict[str, Any]] = (
+        nodes[0]
+        if len(nodes) == 1
+        else {
+            "@type": "AggregateOffer",
+            "priceCurrency": str(plan.get("currency") or "USD"),
+            "lowPrice": by_price[0]["price"],
+            "highPrice": by_price[-1]["price"],
+            "offerCount": len(nodes),
+            "offers": nodes,
+        }
+    )
+    return {
+        "@context": "https://schema.org",
+        "@type": ["Service", "Product"],
+        "@id": BUNDLE_SERVICE_ID,
+        "name": BUNDLE_SERVICE_NAME,
+        "url": f"{BASE_URL}/bundle/",
+        "offers": offers,
+    }
+
+
+def bundle_offers_region(plan: dict[str, Any]) -> str:
+    """The generated block, markers included, exactly as it appears on disk."""
+    node = bundle_offers_jsonld(plan)
+    inner = (
+        _BUNDLE_OFFERS_EMPTY_NOTE
+        if node is None
+        else (
+            f'<script id="{BUNDLE_OFFERS_SCRIPT_ID}" type="application/ld+json">'
+            f"{json.dumps(node, separators=(',', ':'))}</script>"
+        )
+    )
+    return f"<!-- offers:begin -->\n  {inner}\n  <!-- offers:end -->"
+
+
+# The renewal condition, word for word as web/src/bundle.js prints it on a
+# subscription card. A reader shown a monthly amount and not this has been
+# told the price of something other than what they would be buying, so the
+# no-scripting list carries it too and
+# test_the_renewal_condition_reads_the_same_with_and_without_scripting fails the
+# build if the two ever reword apart.
+BUNDLE_RENEWAL_NOTE = (
+    "Renews a bundle you have already bought, and covers the same agencies as "
+    "that bundle. Buy a bundle first."
+)
+# Why the no-scripting list states prices and offers no checkout control:
+# /bundle/setup/, where Stripe returns the buyer, is a form with no action and
+# no method that web/src/bundle-setup.js submits. Without scripting it cannot be
+# completed, so a buy link here would take the money and strand the buyer. The
+# page's rule is to describe nothing it cannot do; this is that rule applied to
+# the checkout as well as to the price.
+_BUNDLE_NOSCRIPT_CLOSING = (
+    "Prices are in {currency} and are set on the server, not on this page. "
+    "Paying and setting up a bundle both need scripting enabled, so this list "
+    "carries no checkout. Every free part of this site works without it, "
+    "including the board report each agency gets for its own feed."
+)
+_BUNDLE_NOSCRIPT_EMPTY = (
+    "No plan is for sale from this page right now. The free single-agency board "
+    "report is unchanged: open any agency page and choose the board one-pager."
+)
+
+
+def bundle_price_text(amount: float, currency: str) -> str:
+    """One plan's amount, rendered the way a reader sees it.
+
+    Matches what ``web/src/bundle.js`` prints, so the page reads identically
+    with and without scripting: ``Intl.NumberFormat`` in ``en-US`` over ``USD``
+    with no fraction digits gives a leading dollar sign, no decimals, and a
+    thousands separator above 999. Any other ISO 4217 code takes the same
+    fallback shape the script uses when ``Intl`` refuses the code, because there
+    is no ``Intl`` here to ask and inventing a symbol would be this file's own
+    opinion about an amount it does not own.
+
+    No worked example is written out here on purpose: an amount in this file is
+    the thing test_no_template_carries_a_price_that_plan_json_owns forbids, and
+    it does not read docstrings. It caught one while this function was written.
+    """
+    rendered = f"{amount:,.0f}"
+    return f"${rendered}" if currency == "USD" else f"{rendered} {currency}"
+
+
+def bundle_noscript_html(plan: dict[str, Any]) -> str:
+    """The plan list a reader without scripting sees, from ``plan.json`` alone.
+
+    Gated on exactly what ``bundle_offer_nodes`` is gated on, so the three
+    surfaces -- the cards the script draws, the ``Offer`` nodes a crawler reads,
+    and this -- turn on and off together. A plan that sells nothing renders the
+    sentence saying so, which is the same rule the rest of the page follows:
+    never describe what the page cannot do.
+    """
+    return _noscript_html(plan, empty=_BUNDLE_NOSCRIPT_EMPTY, closing=_BUNDLE_NOSCRIPT_CLOSING)
+
+
+def _noscript_html(plan: dict[str, Any], *, empty: str, closing: str) -> str:
+    """One page's no-scripting plan list; the two sentences are the page's own."""
+    currency = str(plan.get("currency") or "USD")
+    products = plan.get("products")
+    sellable: list[tuple[str, dict[str, Any]]] = []
+    if plan.get("paymentsAvailable") is True and isinstance(products, dict):
+        for key, product in products.items():
+            if not isinstance(product, dict):
+                continue
+            price = product.get("price")
+            if not isinstance(price, (int, float)) or isinstance(price, bool):
+                continue
+            checkout = product.get("checkout_url")
+            if not isinstance(checkout, str) or not checkout.startswith("https://"):
+                continue
+            sellable.append((str(key), product))
+
+    if not sellable:
+        return f"<noscript>\n        <p>{esc(empty)}</p>\n      </noscript>"
+
+    cards = []
+    for key, product in sellable:
+        interval = product.get("interval")
+        amount = bundle_price_text(float(product["price"]), currency)
+        price_line = f"{amount} per {interval}" if interval else amount
+        # The heading ids are prefixed because the script builds its own cards
+        # with plan-<key>-h. With scripting on, this element's content is parsed
+        # as text and never enters the document, but a prefix costs nothing and
+        # removes the question.
+        renewal = (
+            f'\n          <p class="fineprint">{esc(BUNDLE_RENEWAL_NOTE)}</p>' if interval else ""
+        )
+        cards.append(
+            f'        <section class="support-path" aria-labelledby="ns-plan-{esc(key)}-h">\n'
+            f'          <p class="support-path-kicker">'
+            f"{'Subscription' if interval else 'One time'}</p>\n"
+            f'          <h2 id="ns-plan-{esc(key)}-h">'
+            f"{esc(product.get('label') or key)}</h2>\n"
+            f'          <p class="plan-price">{esc(price_line)}</p>{renewal}\n'
+            f"        </section>"
+        )
+    closing_text = closing.format(currency=currency)
+    body = "\n".join(cards)
+    return f'<noscript>\n{body}\n        <p class="fineprint">{esc(closing_text)}</p>\n      </noscript>'
+
+
+def bundle_noscript_region(plan: dict[str, Any]) -> str:
+    """The generated no-scripting block, markers included, as it sits on disk."""
+    return (
+        "<!-- noscript-plans:begin -->\n      "
+        f"{bundle_noscript_html(plan)}\n      <!-- noscript-plans:end -->"
+    )
+
+
+# The scorecard history tables' page (ADR 0063): the same two generated
+# regions as /bundle/, read from its own plan file, so the price lives in one
+# document and reaches the served bytes the same way.
+HISTORY_SERVICE_ID = f"{BASE_URL}/data/history/#service"
+HISTORY_PLAN_PATH = "data/history/plan.json"
+HISTORY_PAGE_PATH = "data/history/index.html"
+HISTORY_SERVICE_NAME = "Scorecard history tables"
+_HISTORY_NOSCRIPT_CLOSING = (
+    "Prices are in {currency} and are set on the server, not on this page. Paying and "
+    "collecting the download link both need scripting enabled, so this list carries no "
+    "checkout. Every dated scorecard the tables are built from stays free at its own address."
+)
+_HISTORY_NOSCRIPT_EMPTY = (
+    "The history tables are not for sale from this page right now. Every dated scorecard they "
+    "are built from is free at its own address, and the export command is open source."
+)
+
+
+def history_offers_jsonld(plan: dict[str, Any]) -> dict[str, Any] | None:
+    """The history page's Service node carrying its offer, or None when none.
+
+    Built by the same refusals as the bundle's (``bundle_offer_nodes``), on the
+    history plan file, attached to the page's static Service node by ``@id``.
+    """
+    nodes = bundle_offer_nodes(plan)
+    if not nodes:
+        return None
+    by_price = sorted(nodes, key=lambda offer: float(offer["price"]))
+    offers: dict[str, Any] | list[dict[str, Any]] = (
+        nodes[0]
+        if len(nodes) == 1
+        else {
+            "@type": "AggregateOffer",
+            "priceCurrency": str(plan.get("currency") or "USD"),
+            "lowPrice": by_price[0]["price"],
+            "highPrice": by_price[-1]["price"],
+            "offerCount": len(nodes),
+            "offers": nodes,
+        }
+    )
+    return {
+        "@context": "https://schema.org",
+        "@type": ["Service", "Product"],
+        "@id": HISTORY_SERVICE_ID,
+        "name": HISTORY_SERVICE_NAME,
+        "url": f"{BASE_URL}/data/history/",
+        "offers": offers,
+    }
+
+
+def history_offers_region(plan: dict[str, Any]) -> str:
+    """The history page's generated offers block, markers included."""
+    node = history_offers_jsonld(plan)
+    inner = (
+        _BUNDLE_OFFERS_EMPTY_NOTE
+        if node is None
+        else (
+            f'<script id="{BUNDLE_OFFERS_SCRIPT_ID}" type="application/ld+json">'
+            f"{json.dumps(node, separators=(',', ':'))}</script>"
+        )
+    )
+    return f"<!-- offers:begin -->\n  {inner}\n  <!-- offers:end -->"
+
+
+def history_noscript_html(plan: dict[str, Any]) -> str:
+    """The history page's no-scripting plan list, from its plan file alone."""
+    return _noscript_html(plan, empty=_HISTORY_NOSCRIPT_EMPTY, closing=_HISTORY_NOSCRIPT_CLOSING)
+
+
+def history_noscript_region(plan: dict[str, Any]) -> str:
+    """The history page's generated no-scripting block, markers included."""
+    return (
+        "<!-- noscript-plans:begin -->\n      "
+        f"{history_noscript_html(plan)}\n      <!-- noscript-plans:end -->"
+    )
+
+
+def _sync_offers(
+    web: Path, page_path: str, plan_path: str, offers_region: Any, noscript_region: Any
+) -> list[Path]:
+    """Rewrite one page's two generated regions from its plan file."""
+    path = web / page_path
+    plan = json.loads((web / plan_path).read_text())
+    old = path.read_text()
+    new = old
+    for marker, pattern, generated in (
+        ("offers", _BUNDLE_OFFERS_RE, offers_region(plan)),
+        ("noscript-plans", _BUNDLE_NOSCRIPT_RE, noscript_region(plan)),
+    ):
+        match = pattern.search(new)
+        if match is None:
+            raise ValueError(f"{path}: expected one {marker}:begin/{marker}:end region, found none")
+        new = new[: match.start()] + generated + new[match.end() :]
+    if new == old:
+        return []
+    path.write_text(new)
+    return [path]
+
+
+def sync_history_offers(root: Path | None = None) -> list[Path]:
+    """Rewrite /data/history/'s generated regions from web/data/history/plan.json.
+
+    The same mechanism as :func:`sync_bundle_offers`, on the history tables'
+    own plan file; ``make sync-bundle-offers`` runs both and
+    tests/test_history_plan_contract.py fails CI when the page and the plan
+    disagree.
+    """
+    web = (root or _repo_root()) / "web"
+    return _sync_offers(
+        web, HISTORY_PAGE_PATH, HISTORY_PLAN_PATH, history_offers_region, history_noscript_region
+    )
+
+
+def sync_bundle_offers(root: Path | None = None) -> list[Path]:
+    """Rewrite /bundle/'s generated offers block from web/bundle/plan.json.
+
+    The same shape as ``sync_static_navs``: one canonical source, one delimited
+    region in a hand-authored page, a ``make`` target that regenerates it, and a
+    test that fails CI when the two drift. Returns the paths that changed (empty
+    when in sync).
+
+    Why the page needs this at all, measured on the live site on 2026-09-13:
+    ``/bundle/`` was selling four plans and the bytes it served contained no
+    price and no ``Offer`` node. Prices existed only in the DOM after
+    ``bundle.js`` fetched the plan, so anything reading the page without running
+    scripts -- which is most of what indexes a page -- saw a sales page that
+    sold nothing at no price.
+
+    Generated rather than hand-maintained on purpose. A typed copy of the
+    amounts would be the fourth place a price lives, and the reason this
+    repository already gates ``plan.json`` against the other three is that a
+    copied price keeps selling after the plan changes.
+
+    Two regions now, written together from one read of the plan: the ``Offer``
+    JSON-LD a crawler reads, and the plan list a reader without scripting reads.
+    They were one problem -- the served bytes stated no price -- and half of it
+    was closed for machines only. Nothing else in the page is touched.
+    """
+    web = (root or _repo_root()) / "web"
+    return _sync_offers(
+        web, BUNDLE_PAGE_PATH, BUNDLE_PLAN_PATH, bundle_offers_region, bundle_noscript_region
+    )
+
+
 def fit_seo_title(title: str) -> str:
     """Return ``title`` without its site suffix when it overruns the bound.
 
@@ -386,7 +1026,7 @@ def _page(
     description: str,
     canonical: str,
     body: str,
-    jsonld: dict[str, Any] | None = None,
+    jsonld: dict[str, Any] | list[dict[str, Any]] | None = None,
     head_extra: str = "",
     robots: str | None = None,
     wide: bool = False,
@@ -400,15 +1040,22 @@ def _page(
     ``wide`` widens the main column for pages whose value is tabular: prose
     keeps its own measure, tables get the screen (WCAG 1.4.8 line-length
     limits apply to prose, not data tables). On an agency-scoped page,
-    ``country_code`` removes the labelled United States policy-tool links when
+    ``country_code`` removes the labeled United States policy-tool links when
     they cannot apply; shared global links and all U.S. pages stay unchanged.
     ``main_modifier`` adds a page-family hook without replacing the shared
     container classes."""
     title = fit_seo_title(title)
-    ld = (
-        f'\n  <script type="application/ld+json">{json.dumps(jsonld, separators=(",", ":"))}</script>'
-        if jsonld
-        else ""
+    # One <script> per node, never one array, because a page can describe more
+    # than one entity: a program rollup is both a listing page and a published
+    # dataset. Separate blocks keep each node independently readable, and they
+    # are what check_site_seo.py's required_json_ld_types walks -- it asks each
+    # node for its own @context and url, which an array element cannot inherit
+    # from a sibling.
+    nodes = [jsonld] if isinstance(jsonld, dict) else list(jsonld or [])
+    ld = "".join(
+        f'\n  <script type="application/ld+json">{json.dumps(node, separators=(",", ":"))}</script>'
+        for node in nodes
+        if node
     )
     if robots:
         ld += f'\n  <meta name="robots" content="{esc(robots)}">'
@@ -444,7 +1091,11 @@ def _page(
   <meta name="twitter:image" content="{esc(_SOCIAL_IMAGE_URL)}">
   <meta name="twitter:image:alt" content="{esc(_SOCIAL_IMAGE_ALT)}">
   <link rel="stylesheet" href="/src/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2f3ee'/%3E%3C/svg%3E">{ld}
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{ld}
   <script>
     /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
     try {{
@@ -454,6 +1105,7 @@ def _page(
     }} catch (e) {{}}
   </script>
   <script src="/src/theme.js" defer></script>
+  {MEASURE_SCRIPT_TAG}
   <script src="/src/nav.js" defer></script>
   <noscript><style>
     /* Without JS the menu button cannot expand the collapsed nav, so show the

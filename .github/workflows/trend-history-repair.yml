@@ -1,0 +1,162 @@
+name: Trend history repair
+
+# Operator-only, dispatch-only. Two steps the national trend needs and no
+# scheduled workflow can do, because both read the whole dated store:
+#
+# 1. Restore index.json history rows. Until the incremental-publish fix
+#    (publish.merge_index_history), every intraday re-score or freshness sweep
+#    rebuilt a feed's index history from the bounded checkout, so rows whose
+#    dated record lived only in S3 dropped out of index.json. On 2026-10-12 the
+#    public trend had two dates left. `scorecard backfill-index-history` puts
+#    those rows back from the stored dated records; it never replaces a row and
+#    never adds one past a feed's current index tail.
+# 2. Rescore earlier-rubric records under the current rubric from what each
+#    record stored (`scorecard rescore-history`, rescore_history.py), and write
+#    the derived rescored-history.json beside index.json. The Pages deploy reads
+#    it for the trend. Dated records are never rewritten.
+#
+# The default is a dry run that prints the counts. `write: true` uploads the two
+# derived files. The job holds the shared artifact-publish lock, so it cannot
+# interleave with the daily, intraday, or targeted publishers.
+
+on:
+  workflow_dispatch:
+    inputs:
+      write:
+        description: "Upload the repaired index.json and rescored-history.json (default: dry run)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC: read the dated store, write the two derived files
+    concurrency:
+      group: artifacts-publish
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - name: Install the pipeline
+        working-directory: pipeline
+        run: uv sync --locked
+
+      - name: Require the authoritative artifact bucket
+        env:
+          ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+        run: |
+          if [ -z "$ARTIFACTS_BUCKET" ]; then
+            echo "::error title=ARTIFACTS_BUCKET is required::There is no dated store to repair from."
+            exit 1
+          fi
+
+      - name: Authenticate to AWS
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
+
+      # About 270,000 small objects (measured 2026-10-12: 7.9 GB including
+      # retired directories). Raised concurrency keeps the copy to minutes.
+      #
+      # Dated records are immutable once their day has passed, so the mirror is
+      # kept in the Actions cache, shared with history-export.yml (same path,
+      # same key family, same object filter), and `aws s3 sync
+      # --exact-timestamps --delete` fetches only what S3 added or changed. A
+      # dry run followed by a `write` run no longer reads the whole store twice.
+      # The index is read separately and in full, and is stored compressed
+      # (scripts/s3-index.sh).
+      - name: Restore the dated-artifact mirror
+        id: dated-mirror
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/dated-artifact-mirror
+          key: dated-artifact-mirror-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            dated-artifact-mirror-v1-
+
+      - name: Mirror the dated records and the current index
+        id: mirror
+        env:
+          ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+        run: |
+          set -euo pipefail
+          aws configure set default.s3.max_concurrent_requests 64
+          mirror="$RUNNER_TEMP/dated-artifact-mirror"
+          log="$RUNNER_TEMP/dated-mirror-sync.log"
+          mkdir -p "$mirror"
+          scripts/s3-index.sh get "${ARTIFACTS_BUCKET}" "$RUNNER_TEMP/index.json"
+          aws s3 sync "s3://${ARTIFACTS_BUCKET}/data/artifacts" "$mirror" \
+            --exclude "*" \
+            --include "*/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].json" \
+            --delete --exact-timestamps --no-progress > "$log"
+          downloads=$(grep -c '^download:' "$log" || true)
+          removed=$(grep -c '^delete:' "$log" || true)
+          echo "::notice title=dated-artifact mirror::${downloads} objects downloaded, ${removed} removed"
+          echo "downloads=${downloads}" >> "$GITHUB_OUTPUT"
+          echo "removed=${removed}" >> "$GITHUB_OUTPUT"
+          echo "dated records mirrored: $(find "$mirror" -name '*.json' | wc -l)"
+
+      - name: Save the dated-artifact mirror
+        if: ${{ steps.mirror.outputs.downloads != '0' || steps.mirror.outputs.removed != '0' || steps.dated-mirror.outputs.cache-matched-key == '' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/dated-artifact-mirror
+          key: dated-artifact-mirror-v1-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Restore dropped index rows
+        working-directory: pipeline
+        run: |
+          set -euo pipefail
+          uv run scorecard backfill-index-history \
+            --mirror "$RUNNER_TEMP/dated-artifact-mirror" --index "$RUNNER_TEMP/index.json" --write \
+            | tee "$RUNNER_TEMP/backfill.txt"
+
+      - name: Rescore earlier-rubric records
+        working-directory: pipeline
+        run: |
+          set -euo pipefail
+          uv run scorecard rescore-history \
+            --mirror "$RUNNER_TEMP/dated-artifact-mirror" --index "$RUNNER_TEMP/index.json" \
+            --out "$RUNNER_TEMP/rescored-history.json" | tee "$RUNNER_TEMP/rescore.txt"
+          jq '.reproduction' "$RUNNER_TEMP/rescored-history.json" | tee -a "$RUNNER_TEMP/rescore.txt"
+          {
+            echo "## Index rows restored"
+            echo '```'
+            cat "$RUNNER_TEMP/backfill.txt"
+            echo '```'
+            echo "## Rescore coverage and native reproduction"
+            echo '```'
+            cat "$RUNNER_TEMP/rescore.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the two derived files
+        if: ${{ inputs.write }}
+        env:
+          ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+          # Store the index as gzip (31x smaller to read back) once the repo
+          # variable INDEX_GZIP is "1". Unset, it stays plain JSON; every reader
+          # accepts both (scripts/s3-index.sh).
+          INDEX_GZIP: ${{ vars.INDEX_GZIP }}
+        run: |
+          set -euo pipefail
+          artifact_uri="s3://${ARTIFACTS_BUCKET}/data/artifacts"
+          # rescored-history.json first: index.json is the commit pointer.
+          aws s3 cp "$RUNNER_TEMP/rescored-history.json" \
+            "${artifact_uri}/rescored-history.json" \
+            --cache-control "max-age=300" --only-show-errors
+          scripts/s3-index.sh put "${ARTIFACTS_BUCKET}" "$RUNNER_TEMP/index.json"
+          echo "Uploaded. The next Pages deploy renders the repaired trend."

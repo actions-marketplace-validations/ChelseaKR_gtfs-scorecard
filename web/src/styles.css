@@ -343,8 +343,14 @@ a:hover { color: var(--green-bright); }
 }
 .support-path p { margin-block: 0 0.75rem; }
 .support-path > :last-child { margin-bottom: 0; }
+/* The plan grid is the one place these cards are a set of like things, so its
+   buy buttons sit on one baseline instead of staggering by how long each
+   plan's label wrapped. Scoped to that grid: on /support/ the paths differ in
+   length on purpose, and bottom-aligning them strands a control in white space. */
+#plan-grid .support-path { display: flex; flex-direction: column; }
+#plan-grid .support-path > :last-child { margin-top: auto; }
 @media (min-width: 64rem) {
-  .support-paths { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .support-paths { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
 }
 
 /* Sponsor tiers on /support/: a definition list so each amount is announced
@@ -627,8 +633,14 @@ a:hover { color: var(--green-bright); }
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem clamp(1.4rem, 3vw, 3rem);
+}
+/* Five sections since "For programs" joined the footer. Below this width three
+   columns read better than five squeezed ones; the 760px and 340px rules below
+   step it down further and, not overlapping this query, are unaffected by it. */
+@media (min-width: 64rem) {
+  .footer-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
 .footer-grid section { min-width: 0; }
 .footer-grid h2 {
@@ -648,6 +660,12 @@ a:hover { color: var(--green-bright); }
   font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+.footer-grid .footer-aside {
+  margin: 0.7rem 0 0;
+  color: #bcccbd;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 .footer-grid a {
   width: fit-content;
@@ -918,7 +936,7 @@ main:focus { outline: none; }
 }
 .stat-lab { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.3; }
 
-/* grade distribution: one proportional, labelled segment per grade */
+/* grade distribution: one proportional, labeled segment per grade */
 .grade-distribution {
   list-style: none;
   margin: 0;
@@ -956,7 +974,7 @@ main:focus { outline: none; }
 .grade-seg .seg-n { color: var(--ink-soft); font-weight: 400; font-variant-numeric: tabular-nums; }
 
 /* ---------- shared visualization grammar ----------
-   Ranked percentages use a zero-based "service route": a labelled line starts
+   Ranked percentages use a zero-based "service route": a labeled line starts
    at a stop marker and runs to the exact value. The semantic list is both chart
    and text equivalent, so no fact depends on SVG, hover, or color. */
 .service-chart {
@@ -1556,6 +1574,10 @@ main:focus { outline: none; }
 .score-hero .overall strong { color: var(--ink); font-size: 1.05rem; }
 .snapshot-note { margin: 0.15rem 0 0; font-size: 0.8rem; color: var(--ink-soft); }
 .disclaimer { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--ink-soft); max-width: 34rem; font-style: italic; }
+/* The "Source feed" line under an agency hero: the feed URL on file and its
+   Mobility Database history.
+   A feed URL has no spaces to break at, so it wraps anywhere at 320px. */
+.feed-source { margin: 0 0 0.6rem; font-size: 0.9rem; overflow-wrap: anywhere; }
 .legend { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 0.6rem; max-width: 40rem; }
 .legend-row { display: grid; grid-template-columns: 2.2rem 1fr; gap: 0.7rem; align-items: start; }
 
@@ -1578,7 +1600,8 @@ main:focus { outline: none; }
   margin: 0 0 2.4rem;
 }
 .expired-panel > .page-lede { margin-top: 0.2rem; }
-.expired-panel .section-sub {
+.expired-panel .section-sub,
+#members-h ~ .section-sub {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.08rem;
@@ -1674,7 +1697,7 @@ main:focus { outline: none; }
   background: var(--card);
 }
 /* Placeholder text inside the map container; MapLibre clears it when it
-   initialises, so it shows until the visitor requests the enhancement. */
+   initializes, so it shows until the visitor requests the enhancement. */
 .national-map .map-fallback {
   padding: 1.2rem;
   color: var(--muted, inherit);
@@ -1739,7 +1762,7 @@ main:focus { outline: none; }
   border-radius: 50%;
   border: 1px solid var(--line);
 }
-/* The grade letter inside each legend dot, so the legend never leans on colour
+/* The grade letter inside each legend dot, so the legend never leans on color
    alone (it mirrors the grade letter drawn on every map marker). */
 .map-dot-letter {
   font-size: 0.62rem;
@@ -1814,8 +1837,8 @@ main:focus { outline: none; }
 .need-hatch { stroke: none; pointer-events: none; }
 .need-empty { fill: var(--paper-deep); stroke: var(--line); }
 /* Equity choropleth <-> state-table brushing (progressive enhancement; the state
-   table is the accessible primary). An outline in the text colour on the state
-   and a neutral row tint, both readable on every theme and not colour-only. */
+   table is the accessible primary). An outline in the text color on the state
+   and a neutral row tint, both readable on every theme and not color-only. */
 .need-state[data-state] { cursor: pointer; }
 .need-state.is-brushed { stroke: var(--ink); stroke-width: 1.8px; }
 .leaderboard tr.is-brushed th,
@@ -1833,7 +1856,7 @@ main:focus { outline: none; }
 .need-swatch.need-moderate { background: #d6894e; }
 .need-swatch.need-lower { background: #5b9c7a; }
 .need-swatch.need-empty { background: var(--paper-deep); }
-/* The legend swatch mirrors the map's hatch so the texture cue, not just colour,
+/* The legend swatch mirrors the map's hatch so the texture cue, not just color,
    distinguishes the high and moderate tiers. */
 .need-swatch.need-high::after,
 .need-swatch.need-moderate::after {
@@ -1873,7 +1896,7 @@ main:focus { outline: none; }
 .route-map-section { position: relative; }
 #route-data { outline: none; }
 #routes-after-map { outline: none; }
-/* Recolour control on the national all-routes map (/routes/). */
+/* Recolor control on the national all-routes map (/routes/). */
 .map-colormode {
   border: 1.5px solid var(--line);
   border-radius: var(--radius);
@@ -1936,8 +1959,8 @@ main:focus { outline: none; }
 /* Linked brushing between the route table and the map: the row whose line is
    hovered or tapped lights up, and the reverse. This is a transient hover and
    selection affordance, not data encoding, so a neutral tint (which keeps AAA
-   text contrast on every theme) carries it, with a left bar in the text colour
-   as a non-colour cue. */
+   text contrast on every theme) carries it, with a left bar in the text color
+   as a non-color cue. */
 .route-table tr[data-route-key] { cursor: pointer; }
 .route-table tr.is-brushed th,
 .route-table tr.is-brushed td { background: rgba(127, 127, 127, 0.18); }
@@ -2011,6 +2034,14 @@ main:focus { outline: none; }
   border: 1.5px solid var(--line);
   border-radius: var(--radius);
   resize: vertical;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+/* The embed badge preview is 320px wide by design; at the WCAG reflow width it
+   shrinks with its column instead of widening the page. */
+.embed img {
+  max-width: 100%;
+  height: auto;
 }
 .copy-btn {
   font: inherit;
@@ -2212,7 +2243,7 @@ main:focus { outline: none; }
 .delta-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; max-width: 26rem; }
 /* Findings absent from a later compatible check; no causal attribution. */
 .cleared-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: grid; gap: 0.45rem; max-width: 40rem; }
-.cleared-row { font-size: 0.9rem; line-height: 1.45; }
+.cleared-row { font-size: 0.9rem; line-height: 1.45; overflow-wrap: anywhere; }
 .cleared-mark { color: var(--success-text); font-weight: 700; }
 .delta-row {
   display: flex;
@@ -2275,7 +2306,7 @@ main:focus { outline: none; }
 .finding .how { margin: 0; font-size: 0.9rem; }
 .finding .how strong { color: var(--green); }
 .finding .code { font-size: 0.74rem; color: var(--ink-soft); }
-.finding .fix-guide { color: var(--green); font-weight: 600; white-space: nowrap; }
+.finding .fix-guide { color: var(--green); font-weight: 600; }
 .availability {
   display: inline-flex;
   align-items: center;
@@ -2351,6 +2382,11 @@ main:focus { outline: none; }
 }
 .program-row h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
 .program-row > div { flex: 1; }
+.program-list-compact li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.program-list-compact .fineprint { margin-inline-start: 0.4rem; }
 .program-fix { margin: 0.3rem 0 0; font-size: 0.9rem; color: var(--ink-soft); }
 
 /* Supporter workspace (cohort): change line, private notes, shared fixes. */
@@ -2481,6 +2517,58 @@ main:focus { outline: none; }
   font-weight: 600;
 }
 
+/* The compact tier summary plan-summary.js renders on pages that are not
+   /bundle/. Text only, no checkout control: the buy links stay on the page
+   that states delivery, refund, and what a purchase does not buy. */
+.plan-tiles {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+.plan-tile {
+  min-width: 0;
+  padding: 0.8rem 0.9rem;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+}
+.plan-tile-kicker {
+  margin: 0 0 0.2rem;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.plan-tile-name {
+  margin: 0 0 0.3rem;
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+.plan-tile-price {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.plan-summary-status { margin: 0 0 0.75rem; font-size: 0.88rem; }
+
+/* The terms a buyer needs before the checkout links, not after them. */
+.buy-terms {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.15rem;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-inline-start: 5px solid var(--green);
+  border-radius: var(--radius);
+  list-style: none;
+}
+.buy-terms li { margin: 0 0 0.55rem; }
+.buy-terms li:last-child { margin-bottom: 0; }
+
 
 /* The browser's default file picker is only about 22px tall on mobile. Keep
    the pre-publish check's local-only upload control at the same target size as
@@ -2537,7 +2625,7 @@ main:focus { outline: none; }
 
 @media print {
   .site-header, .site-footer, .filterbar, .skip-link, .backlink,
-  .cohort-remove, .picker-aside, .route-rule { display: none; }
+  .cohort-remove, .picker-aside, .route-rule, .program-offer { display: none; }
   body { background: #fff; }
   .agency-card, .fix-card, .finding, .cat-card, .program-row { box-shadow: none; }
   /* A call sheet: drop the note toggles, show the notes that exist, keep each
@@ -2670,6 +2758,16 @@ main:focus { outline: none; }
 .alert .aowner { margin-left: .5rem; font-size: .72rem; font-weight: 600; color: var(--ink-soft);
   background: var(--paper-deep); border-radius: 999px; padding: .1rem .5rem; white-space: nowrap; }
 
+/* The feed-level lines under the fixes: rider-trips and transit need, each a
+   number with its source and date or the plain reason there is none. Text
+   carries every meaning here; nothing is colored to say "measured" or "absent". */
+.consequence { margin: 1.1rem 0 0; padding-block-start: 1rem; border-block-start: 1.5px dashed var(--line); }
+.consequence h3 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin: 0 0 .5rem; }
+.consequence ul { margin: 0; padding-inline-start: 1.2rem; }
+.consequence li { margin: 0 0 .45rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.consequence-more { margin: 0; }
+.consequence-more a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; overflow-wrap: anywhere; }
+
 @media (max-width: 640px) {
   .service-chart { padding-inline: 0.85rem; }
   .service-bar-head { align-items: start; gap: 0.5rem; }
@@ -2687,7 +2785,7 @@ main:focus { outline: none; }
 
 /* ===================================================================
    WCAG 2.2 AAA polish: line-length cap (1.4.8), target size (2.5.5),
-   and the colour-selection control (1.4.8).
+   and the color-selection control (1.4.8).
    =================================================================== */
 
 /* 1.4.8 visual presentation: cap prose measure so lines stay readable.
@@ -2700,6 +2798,8 @@ main p,
 .group-note,
 .finding .why,
 .finding .how,
+.consequence li,
+.consequence .fineprint,
 .fix-card .fix-why,
 .alert .awhy,
 .cat-card .summary,
@@ -2716,9 +2816,14 @@ main p,
   align-items: center;
   min-height: 44px;
 }
+/* The link names the finding it opens ("Read the fix guide for
+   scorecard_wheelchair_boarding_unknown"), and a notice code has no break
+   opportunity of its own. Let it break anywhere, as .fix-context code already
+   does, or the code widens the page past the 320px reflow width. */
+.fix-guide { overflow-wrap: anywhere; }
 .cohort-note > summary { width: fit-content; padding: 0.2rem 0.2rem; }
 
-/* The colour-selection control (1.4.8), shared with the landing page. */
+/* The color-selection control (1.4.8), shared with the landing page. */
 .theme-control { position: relative; display: inline-flex; }
 .theme-control-footer { margin: 0.8rem 0 0; }
 .theme-toggle {
@@ -2809,7 +2914,7 @@ main p,
     background: var(--paper);
   }
 
-  /* Keep the grade letter and pressed-facet count light on their coloured fills. */
+  /* Keep the grade letter and pressed-facet count light on their colored fills. */
   :root:not([data-theme]) .grade-chip { color: #f2f3ee; }
   :root:not([data-theme]) .facet-chip[aria-pressed="true"] { color: #15181b; }
 

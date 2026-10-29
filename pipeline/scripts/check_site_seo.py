@@ -11,7 +11,7 @@ import sys
 from collections import Counter, defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from typing import Any, cast
@@ -29,12 +29,19 @@ _CONFIG_KEYS = {
     "retained_redirects_path",
     "fragment_exempt_prefixes",
     "noindex_path_patterns",
+    "conditional_noindex_path_patterns",
+    "lastmod_required_path_patterns",
+    "lastmod_shown_path_patterns",
     "canonical_aliases",
     "hreflang_groups",
     "required_json_ld_types",
     "redirect_aliases",
     "title_length",
     "description_length",
+    "measurement_script",
+    "measurement_host",
+    "measurement_ga4_host",
+    "measurement_ga4_id",
 }
 _IGNORED_SCHEMES = {"blob", "data", "javascript", "mailto", "sms", "tel"}
 _HEADING_TAGS = ("h1", "h2", "h3", "h4", "h5", "h6")
@@ -73,14 +80,34 @@ _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _DATETIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$")
 _REFRESH_RE = re.compile(r"^\s*0(?:\.0+)?\s*;\s*url\s*=\s*(.+?)\s*$", re.IGNORECASE)
 # Mirrors scorecard_pipeline.agencies.ID_PATTERN at the public route boundary.
-_AGENCY_PATH_RE = re.compile(r"^/agency/[a-z0-9][a-z0-9_-]*/$")
+# A retained redirect names a scorecard, or one of the pages a scorecard links
+# beside itself (its call-prep brief, board one-pager or clearance log), so
+# a moved scorecard's companion URLs redirect instead of answering 404.
+_AGENCY_PATH_RE = re.compile(r"^/agency/[a-z0-9][a-z0-9_-]*/(?:(?:brief|board|fixes)/)?$")
 _SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
+# The site-measurement contract (docs/decisions/0055-cookieless-site-measurement
+# .md): the one declared first-party script is the whole of what the site
+# collects about a visit, so every page must load it exactly once, a redirect
+# stub must not load it at all, and nothing else on the site may name a
+# telemetry host. The hosts below serve vendor analytics loaders; the PostHog
+# SDK loader is listed by its asset hosts because it is the thing that would
+# bring autocapture and session recording with it. The declared measurement
+# host is deliberately not on this list: the rule for it is that only the
+# declared script may name it, and that the declared script names nothing else.
+# Google Analytics 4 (docs/decisions/0056-google-analytics-4.md) follows the
+# same rule: its loader host is declared as measurement_ga4_host, the declared
+# script may name it, and nothing else on the site may name any Google
+# Analytics host, so GA4 can reach a page only through the declared script.
 _FORBIDDEN_TELEMETRY_HOST_SUFFIXES = (
     "google-analytics.com",
+    "analytics.google.com",
     "googletagmanager.com",
+    "us-assets.i.posthog.com",
+    "eu-assets.i.posthog.com",
+    "app.posthog.com",
 )
 _FORBIDDEN_TELEMETRY_MARKERS = _FORBIDDEN_TELEMETRY_HOST_SUFFIXES
-_FORBIDDEN_TELEMETRY_FILES = {"analytics.js"}
+_HTTPS_HOST_RE = re.compile(r"https://([a-z0-9.-]+)", re.IGNORECASE)
 
 
 class ConfigError(ValueError):
@@ -97,12 +124,20 @@ class Config:
     retained_redirects_path: str
     fragment_exempt_prefixes: tuple[str, ...]
     noindex_path_patterns: tuple[str, ...]
+    conditional_noindex_path_patterns: tuple[str, ...]
     canonical_aliases: dict[str, str]
     hreflang_groups: tuple[dict[str, str], ...]
     required_json_ld_types: dict[str, tuple[str, ...]]
     redirect_aliases: dict[str, str]
     title_length: tuple[int, int]
     description_length: tuple[int, int]
+    measurement_script: str
+    measurement_host: str
+    measurement_ga4_host: str
+    measurement_ga4_id: str
+    # Sitemap <lastmod> rules (see _validate_sitemap_lastmods). Both optional.
+    lastmod_required_path_patterns: tuple[str, ...] = ()
+    lastmod_shown_path_patterns: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, order=True)
@@ -165,6 +200,8 @@ class Page:
     og: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
     ids: Counter[str] = field(default_factory=Counter)
     fragment_names: set[str] = field(default_factory=set)
+    # Elements carrying data-analytics-toggle, the footer opt-out (ADR 0056).
+    opt_out_controls: int = 0
 
 
 class PageParser(HTMLParser):
@@ -293,6 +330,8 @@ class PageParser(HTMLParser):
             self._inline_script_parts.append(data)
 
     def _collect_common(self, tag: str, values: dict[str, str]) -> None:
+        if "data-analytics-toggle" in values:
+            self.page.opt_out_controls += 1
         identifier = values.get("id", "").strip()
         if identifier:
             self.page.ids[identifier] += 1
@@ -477,8 +516,26 @@ def _read_config_object(path: Path) -> dict[str, Any]:
     return raw
 
 
+# Keys a site may leave out. Every other key in _CONFIG_KEYS is required.
+_OPTIONAL_CONFIG_KEYS = {
+    "conditional_noindex_path_patterns",
+    "lastmod_required_path_patterns",
+    "lastmod_shown_path_patterns",
+}
+
+
+def _optional_path_patterns(raw: dict[str, Any], key: str) -> tuple[str, ...]:
+    """An optional list of path patterns, validated like every other pattern list."""
+    if key not in raw:
+        return ()
+    patterns = _string_list(raw, key)
+    for pattern in patterns:
+        _validate_path_pattern(pattern, key)
+    return patterns
+
+
 def _validate_config_keys(raw: dict[str, Any]) -> None:
-    missing = sorted(_CONFIG_KEYS - raw.keys())
+    missing = sorted(_CONFIG_KEYS - _OPTIONAL_CONFIG_KEYS - raw.keys())
     unknown = sorted(raw.keys() - _CONFIG_KEYS)
     if missing or unknown:
         details = []
@@ -545,9 +602,18 @@ def _valid_hostname(hostname: str) -> bool:
 
 def _config_path_lists(
     raw: dict[str, Any],
-) -> tuple[tuple[str, ...], tuple[str, ...]]:
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     fragment_prefixes = _string_list(raw, "fragment_exempt_prefixes")
     noindex_patterns = _string_list(raw, "noindex_path_patterns")
+    # Optional: paths whose pages decide for themselves whether they are
+    # indexable (a thin clearance log is noindex; a full one is not). The
+    # page's own robots meta is the signal, and the sitemap must agree with it.
+    # Unlike noindex_path_patterns, an unmatched pattern here is not a finding:
+    # these pages exist only where their data does (clearance logs need
+    # receipts), so a render without that data would fail for no reason.
+    conditional_patterns: tuple[str, ...] = ()
+    if "conditional_noindex_path_patterns" in raw:
+        conditional_patterns = _string_list(raw, "conditional_noindex_path_patterns")
     for value in fragment_prefixes:
         _public_path(value, "fragment_exempt_prefixes", allow_fragment=False)
         if not value.endswith("/") or "*" in value:
@@ -556,7 +622,15 @@ def _config_path_lists(
             )
     for pattern in noindex_patterns:
         _validate_path_pattern(pattern, "noindex_path_patterns")
-    return fragment_prefixes, noindex_patterns
+    for pattern in conditional_patterns:
+        _validate_path_pattern(pattern, "conditional_noindex_path_patterns")
+    overlap = sorted(set(noindex_patterns) & set(conditional_patterns))
+    if overlap:
+        raise ConfigError(
+            "a path pattern cannot be in both 'noindex_path_patterns' and "
+            f"'conditional_noindex_path_patterns': {', '.join(overlap)}"
+        )
+    return fragment_prefixes, noindex_patterns, conditional_patterns
 
 
 def _validate_path_pattern(pattern: str, key: str) -> None:
@@ -662,12 +736,59 @@ def _validate_terminal_aliases(
             raise ConfigError(f"alias target must not be a configured noindex page: {source!r}")
 
 
+_GA4_ID_RE = re.compile(r"^G-[A-Z0-9]{4,16}$")
+
+
+def _https_origin(raw: dict[str, Any], key: str) -> str:
+    """``raw[key]`` as an https origin with no path, or a ConfigError."""
+    host = raw[key]
+    if not isinstance(host, str):
+        raise ConfigError(f"{key} must be an https origin with no path")
+    parts = urlsplit(host)
+    if (
+        parts.scheme != "https"
+        or not parts.hostname
+        or "@" in parts.netloc
+        or parts.path
+        or parts.query
+        or parts.fragment
+    ):
+        raise ConfigError(f"{key} must be an https origin with no path")
+    return host
+
+
+def _ga4_settings(raw: dict[str, Any]) -> tuple[str, str]:
+    """The GA4 loader origin the declared script may also name, and the GA4
+    measurement id, empty when GA4 is off (docs/decisions/0056)."""
+    ga4_id = raw["measurement_ga4_id"]
+    if not isinstance(ga4_id, str) or (ga4_id and not _GA4_ID_RE.fullmatch(ga4_id)):
+        raise ConfigError("measurement_ga4_id must be empty or a GA4 measurement id (G-...)")
+    return _https_origin(raw, "measurement_ga4_host"), ga4_id
+
+
+def _measurement_settings(raw: dict[str, Any]) -> tuple[str, str]:
+    """The declared measurement script (a root-relative .js path) and the one
+    https origin it may send to."""
+    script = raw["measurement_script"]
+    if (
+        not isinstance(script, str)
+        or not script.startswith("/")
+        or script.startswith("//")
+        or not script.endswith(".js")
+        or ".." in script.split("/")
+    ):
+        raise ConfigError("measurement_script must be a root-relative .js path")
+    return script, _https_origin(raw, "measurement_host")
+
+
 def load_config(path: Path) -> Config:
     """Read and strictly validate schema-v1 configuration."""
     raw = _read_config_object(path)
     _validate_config_keys(raw)
     origin = _site_origin(raw)
-    fragment_prefixes, noindex_patterns = _config_path_lists(raw)
+    fragment_prefixes, noindex_patterns, conditional_patterns = _config_path_lists(raw)
+    measurement_script, measurement_host = _measurement_settings(raw)
+    measurement_ga4_host, measurement_ga4_id = _ga4_settings(raw)
 
     canonical_aliases = _path_mapping(raw, "canonical_aliases", allow_fragment=False)
     redirect_aliases = _path_mapping(raw, "redirect_aliases", allow_fragment=True)
@@ -684,12 +805,21 @@ def load_config(path: Path) -> Config:
         ),
         fragment_exempt_prefixes=fragment_prefixes,
         noindex_path_patterns=noindex_patterns,
+        conditional_noindex_path_patterns=conditional_patterns,
+        lastmod_required_path_patterns=_optional_path_patterns(
+            raw, "lastmod_required_path_patterns"
+        ),
+        lastmod_shown_path_patterns=_optional_path_patterns(raw, "lastmod_shown_path_patterns"),
         canonical_aliases=canonical_aliases,
         hreflang_groups=_hreflang_groups(raw),
         required_json_ld_types=_required_json_ld_types(raw),
         redirect_aliases=redirect_aliases,
         title_length=_length_bounds(raw, "title_length"),
         description_length=_length_bounds(raw, "description_length"),
+        measurement_script=measurement_script,
+        measurement_host=measurement_host,
+        measurement_ga4_host=measurement_ga4_host,
+        measurement_ga4_id=measurement_ga4_id,
     )
 
 
@@ -721,6 +851,26 @@ def _is_noindex_path(public_path: str, config: Config) -> bool:
     return any(
         _matches_path_pattern(public_path, pattern) for pattern in config.noindex_path_patterns
     )
+
+
+def _is_conditional_noindex_path(public_path: str, config: Config) -> bool:
+    return any(
+        _matches_path_pattern(public_path, pattern)
+        for pattern in config.conditional_noindex_path_patterns
+    )
+
+
+def _page_is_noindex(page: Page, config: Config) -> bool:
+    """Whether this rendered page is out of the index.
+
+    A configured noindex path is out whatever it rendered (the noindex check
+    reports a page that forgot its robots meta). A conditional path is out
+    only when the page itself carries a robots meta: the renderer decides
+    which pages do, and the sitemap has to follow that decision.
+    """
+    if _is_noindex_path(page.public_path, config):
+        return True
+    return _is_conditional_noindex_path(page.public_path, config) and bool(page.robots)
 
 
 def _intended_canonical_path(page: Page, config: Config) -> str:
@@ -863,77 +1013,187 @@ def _is_forbidden_telemetry_reference(value: str, page: Page, config: Config) ->
         hostname = (resolved.hostname or "").casefold()
     except ValueError:
         return False
-    if any(
+    return any(
         hostname == suffix or hostname.endswith(f".{suffix}")
         for suffix in _FORBIDDEN_TELEMETRY_HOST_SUFFIXES
-    ):
-        return True
-    origin = urlsplit(config.site_origin)
-    return (
-        resolved.netloc.casefold() == origin.netloc.casefold()
-        and PurePosixPath(unquote(resolved.path)).name in _FORBIDDEN_TELEMETRY_FILES
     )
 
 
-def _contains_forbidden_telemetry_marker(value: str) -> bool:
+def _names_undeclared_telemetry(value: str, measurement_host: str) -> bool:
+    """Whether JavaScript outside the declared script names a telemetry host,
+    the declared measurement host included: measurement comes from one file."""
     folded = value.casefold()
-    return any(marker in folded for marker in _FORBIDDEN_TELEMETRY_MARKERS)
+    if any(marker in folded for marker in _FORBIDDEN_TELEMETRY_MARKERS):
+        return True
+    return measurement_host in folded
 
 
-def _validate_no_tracking(
+def _measurement_references(page: Page, config: Config) -> list[Reference]:
+    """The asset references on ``page`` that load the declared measurement script."""
+    found: list[Reference] = []
+    for reference in page.assets:
+        target = _local_target(reference.value, page, config)
+        if target is not None and target.path == config.measurement_script:
+            found.append(reference)
+    return found
+
+
+def _validate_measurement(
     site_root: Path,
     pages: dict[str, Page],
     files: set[str],
     config: Config,
     findings: list[Finding],
-) -> None:
-    for page in pages.values():
-        for reference in page.assets:
-            if _is_forbidden_telemetry_reference(reference.value, page, config):
-                findings.append(
-                    Finding(
-                        "privacy.telemetry_asset",
-                        page.relative_path,
-                        (
-                            f"line {reference.line}: tracking/analytics asset is forbidden: "
-                            f"{reference.value!r}"
-                        ),
-                    )
-                )
-        for script in page.inline_scripts:
-            if _contains_forbidden_telemetry_marker(script.value):
-                findings.append(
-                    Finding(
-                        "privacy.telemetry_script",
-                        page.relative_path,
-                        f"line {script.line}: inline tracking/analytics loader is forbidden",
-                    )
-                )
+) -> int:
+    """Hold the site-measurement contract; return how many pages carry exactly
+    one copy of the declared script.
 
+    Four rules. Every page that is not a redirect stub loads the declared
+    script exactly once, because a page without it is a page the disclosure
+    on /about/#privacy does not describe, and a page with two of it reports
+    every view twice. Each such page also carries the footer opt-out control
+    (ADR 0056), so no page measures a reader without offering the way out.
+    A redirect stub loads nothing, since it is not a page a reader is on.
+    No page and no other script names a vendor analytics loader or the
+    measurement host itself, so the declared script stays the whole of
+    what is sent. And the declared script names no https host but the ones
+    declared for it (the measurement host, and the GA4 loader host of ADR
+    0056), so another destination cannot arrive inside the file the contract
+    allows.
+    """
+    script_relative = config.measurement_script.lstrip("/")
+    if script_relative not in files:
+        findings.append(
+            Finding(
+                "measurement.script_missing",
+                script_relative,
+                "the declared measurement script is not in the site",
+            )
+        )
+    measurement_host = (urlsplit(config.measurement_host).hostname or "").casefold()
+
+    measured = 0
+    for page in pages.values():
+        measured += _validate_page_measurement(page, config, findings)
+        _validate_page_telemetry(page, config, measurement_host, findings)
     for relative_path in sorted(files):
-        path = PurePosixPath(relative_path)
-        if path.name in _FORBIDDEN_TELEMETRY_FILES:
+        if PurePosixPath(relative_path).suffix.casefold() != ".js":
+            continue
+        _validate_script_telemetry(
+            site_root, relative_path, script_relative, config, measurement_host, findings
+        )
+    return measured
+
+
+def _validate_page_measurement(page: Page, config: Config, findings: list[Finding]) -> int:
+    """Return 1 when ``page`` loads the declared script exactly once and is not
+    a redirect stub; otherwise record why and return 0."""
+    loads = _measurement_references(page, config)
+    if page.refreshes:
+        for reference in loads:
             findings.append(
                 Finding(
-                    "privacy.telemetry_file",
-                    relative_path,
-                    "tracking/analytics loader file is forbidden by the public privacy policy",
+                    "measurement.on_redirect",
+                    page.relative_path,
+                    f"line {reference.line}: a redirect stub must not load the measurement script",
                 )
             )
-        if path.suffix.casefold() != ".js":
-            continue
-        # A distinct name: `script` above this loop is a Reference, and reusing
-        # it for the file's text made a strict-mode type error inside the
-        # privacy gate that nothing was checking.
-        script_source = (site_root / relative_path).read_text(encoding="utf-8")
-        if _contains_forbidden_telemetry_marker(script_source):
+        return 0
+    if not loads:
+        findings.append(
+            Finding(
+                "measurement.missing",
+                page.relative_path,
+                f"page does not load the measurement script {config.measurement_script!r}",
+            )
+        )
+        return 0
+    if len(loads) > 1:
+        lines = ", ".join(str(reference.line) for reference in loads)
+        findings.append(
+            Finding(
+                "measurement.duplicate",
+                page.relative_path,
+                f"page loads the measurement script {len(loads)} times (lines {lines})",
+            )
+        )
+        return 0
+    if not page.opt_out_controls:
+        # ADR 0056: a page that measures a reader offers the way to stop it.
+        findings.append(
+            Finding(
+                "measurement.opt_out_missing",
+                page.relative_path,
+                "page loads the measurement script but has no [data-analytics-toggle] opt-out",
+            )
+        )
+        return 0
+    return 1
+
+
+def _validate_page_telemetry(
+    page: Page, config: Config, measurement_host: str, findings: list[Finding]
+) -> None:
+    for reference in page.assets:
+        if _is_forbidden_telemetry_reference(reference.value, page, config):
+            findings.append(
+                Finding(
+                    "privacy.telemetry_asset",
+                    page.relative_path,
+                    (
+                        f"line {reference.line}: tracking/analytics asset is forbidden: "
+                        f"{reference.value!r}"
+                    ),
+                )
+            )
+    for script in page.inline_scripts:
+        if _names_undeclared_telemetry(script.value, measurement_host):
             findings.append(
                 Finding(
                     "privacy.telemetry_script",
-                    relative_path,
-                    "JavaScript contains a forbidden tracking/analytics host",
+                    page.relative_path,
+                    f"line {script.line}: an inline script names a telemetry host; "
+                    f"measurement may come only from {config.measurement_script!r}",
                 )
             )
+
+
+def _validate_script_telemetry(
+    site_root: Path,
+    relative_path: str,
+    script_relative: str,
+    config: Config,
+    measurement_host: str,
+    findings: list[Finding],
+) -> None:
+    """One JavaScript file: the declared script may name only its declared
+    host; every other file may name no telemetry host at all."""
+    # A distinct name from the Reference the page loop calls `script`: reusing
+    # that name for a file's text once made a strict-mode type error inside
+    # the privacy gate that nothing was checking.
+    script_source = (site_root / relative_path).read_text(encoding="utf-8")
+    if relative_path == script_relative:
+        named = {match.group(1).casefold() for match in _HTTPS_HOST_RE.finditer(script_source)}
+        ga4_host = (urlsplit(config.measurement_ga4_host).hostname or "").casefold()
+        declared = " and ".join(repr(host) for host in (measurement_host, ga4_host))
+        for other in sorted(named - {measurement_host, ga4_host}):
+            findings.append(
+                Finding(
+                    "measurement.undeclared_host",
+                    relative_path,
+                    f"the measurement script names {other!r}; only {declared} are declared for it",
+                )
+            )
+        return
+    if _names_undeclared_telemetry(script_source, measurement_host):
+        findings.append(
+            Finding(
+                "privacy.telemetry_script",
+                relative_path,
+                f"JavaScript names a telemetry host; measurement may come only from "
+                f"{config.measurement_script!r}",
+            )
+        )
 
 
 def _validate_metadata(
@@ -1184,6 +1444,7 @@ def _validate_redirect(
 
 def _validate_noindex(page: Page, config: Config, findings: list[Finding]) -> None:
     expected = _is_noindex_path(page.public_path, config)
+    conditional = _is_conditional_noindex_path(page.public_path, config)
     if len(page.robots) > 1:
         findings.append(
             Finding(
@@ -1198,12 +1459,12 @@ def _validate_noindex(page: Page, config: Config, findings: list[Finding]) -> No
             Finding("noindex.missing", page.relative_path, "configured noindex page is indexable")
         )
         return
-    if not expected and page.robots:
+    if not expected and not conditional and page.robots:
         findings.append(
             Finding("noindex.unexpected", page.relative_path, "unconfigured robots meta is present")
         )
         return
-    if expected:
+    if page.robots:
         directives = {item for item in re.split(r"[\s,]+", page.robots[0].casefold()) if item}
         if directives != {"follow", "noindex"}:
             findings.append(
@@ -1256,8 +1517,22 @@ def _json_ld_nodes(value: Any) -> list[dict[str, Any]]:
     return nodes
 
 
-def _validate_json_ld(page: Page, findings: list[Finding]) -> list[dict[str, Any]]:
+def _validate_json_ld(
+    page: Page, findings: list[Finding]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Parse every JSON-LD block, returning (all nodes, top-level nodes).
+
+    The two lists answer two different questions and conflating them was a
+    defect. *All* nodes is the right scope for a property that can legitimately
+    appear at any depth -- a ``DataDownload``'s ``contentUrl``, a date. *Top
+    level* is the right scope for "this page declares an entity of type X":
+    only a node a block starts with is the page's own subject. A node reached
+    through ``provider``, ``isRelatedTo`` or ``isBasedOn`` is a reference to
+    something described elsewhere, and demanding it carry this page's canonical
+    URL is asking a pointer to be its own target.
+    """
     nodes: list[dict[str, Any]] = []
+    top_level: list[dict[str, Any]] = []
     for block in page.json_ld:
         try:
             value = json.loads(
@@ -1285,6 +1560,8 @@ def _validate_json_ld(page: Page, findings: list[Finding]) -> list[dict[str, Any
             )
             continue
         nodes.extend(_json_ld_nodes(value))
+        block_nodes = value if isinstance(value, list) else [value]
+        top_level.extend(item for item in block_nodes if isinstance(item, dict))
         for location, date_value in _json_ld_dates(value):
             if not _valid_iso_date(date_value):
                 findings.append(
@@ -1294,7 +1571,71 @@ def _validate_json_ld(page: Page, findings: list[Finding]) -> list[dict[str, Any
                         f"line {block.line}: {location} is not a valid ISO 8601 date",
                     )
                 )
-    return nodes
+    return nodes, top_level
+
+
+def _validate_json_ld_distributions(
+    page: Page,
+    nodes: list[dict[str, Any]],
+    config: Config,
+    files: set[str],
+    findings: list[Finding],
+) -> None:
+    """Every same-origin ``contentUrl`` in this page's JSON-LD must be a file
+    the assembled site actually ships.
+
+    A ``DataDownload`` is the one part of a structured-data block that makes a
+    promise about something outside the page: an agency scorecard's
+    ``latest.json``, a program rollup's ``.json`` and ``.csv``. Nothing else
+    checks them. ``<a href>`` and ``<img src>`` are resolved against the site
+    tree by ``_validate_reference``; a URL that appears only inside a
+    ``<script type="application/ld+json">`` block is invisible to the parser's
+    link and asset collectors, so a distribution could 404 on every page of a
+    family with the whole SEO contract green.
+
+    That is the failure worth catching here, because it is silent in both
+    directions: a machine reader follows the link and gets an error page, and a
+    person never sees the link at all. The public artifact tree is assembled by
+    an allowlist (``scripts/assemble_public_artifacts.sh``), so a filename that
+    stops crossing the deployment boundary -- exactly what that script is built
+    to do -- takes the advertised download with it and changes no markup.
+
+    Off-origin ``contentUrl`` values are left alone: this check resolves files,
+    and it does not make network requests.
+    """
+    for node in nodes:
+        raw = node.get("contentUrl")
+        if not isinstance(raw, str) or not raw.strip():
+            continue
+        try:
+            target = _local_target(raw, page, config)
+        except ValueError:
+            findings.append(
+                Finding(
+                    "jsonld.malformed_distribution",
+                    page.relative_path,
+                    f"malformed JSON-LD contentUrl {raw!r}",
+                )
+            )
+            continue
+        if target is None:
+            continue
+        if target.scheme != "https":
+            findings.append(
+                Finding(
+                    "jsonld.insecure_distribution",
+                    page.relative_path,
+                    f"same-site JSON-LD contentUrl must use HTTPS: {raw!r}",
+                )
+            )
+        if _resolve_file(target.path, files) is None:
+            findings.append(
+                Finding(
+                    "jsonld.missing_distribution",
+                    page.relative_path,
+                    f"JSON-LD contentUrl does not exist in the site: {raw!r}",
+                )
+            )
 
 
 def _node_has_type(node: dict[str, Any], type_name: str) -> bool:
@@ -1304,15 +1645,23 @@ def _node_has_type(node: dict[str, Any], type_name: str) -> bool:
 
 def _validate_required_json_ld(
     page: Page,
-    nodes: list[dict[str, Any]],
+    top_level_nodes: list[dict[str, Any]],
     config: Config,
     findings: list[Finding],
 ) -> None:
+    """A configured page family must declare each required @type as its own subject.
+
+    Matched against top-level nodes only. A page that merely *mentions* an
+    entity of the required type -- ``provider``, ``isRelatedTo``,
+    ``isBasedOn`` -- has not declared it, so a nested mention no longer
+    satisfies the requirement, and is no longer asked to carry this page's
+    canonical URL either.
+    """
     for pattern, required_types in config.required_json_ld_types.items():
         if not _matches_path_pattern(page.public_path, pattern):
             continue
         for type_name in required_types:
-            matching = [node for node in nodes if _node_has_type(node, type_name)]
+            matching = [node for node in top_level_nodes if _node_has_type(node, type_name)]
             if not matching:
                 findings.append(
                     Finding(
@@ -1359,7 +1708,7 @@ def _validate_duplicate_metadata(
             if (
                 page.public_path in redirect_aliases
                 or page.public_path in config.canonical_aliases
-                or _is_noindex_path(page.public_path, config)
+                or _page_is_noindex(page, config)
             ):
                 continue
             values = getter(page)
@@ -1620,8 +1969,7 @@ def _expected_sitemap_urls(
     return {
         _absolute(config, _intended_canonical_path(page, config))
         for page in pages.values()
-        if page.public_path not in redirect_aliases
-        and not _is_noindex_path(page.public_path, config)
+        if page.public_path not in redirect_aliases and not _page_is_noindex(page, config)
     }
 
 
@@ -1651,7 +1999,14 @@ def _parse_sitemap(path: Path, relative_path: str, findings: list[Finding]) -> E
     return cast("Element", root)
 
 
-def _sitemap_locations(root: Element, relative_path: str, findings: list[Finding]) -> list[str]:
+def _sitemap_locations(
+    root: Element,
+    relative_path: str,
+    findings: list[Finding],
+    lastmods: dict[str, str] | None = None,
+) -> list[str]:
+    """The sitemap's URLs. When ``lastmods`` is given it is filled with each
+    URL's first ``<lastmod>`` text; a URL without one is simply absent."""
     locations: list[str] = []
     for url_node in root:
         if url_node.tag != _sitemap_tag("url"):
@@ -1672,6 +2027,8 @@ def _sitemap_locations(root: Element, relative_path: str, findings: list[Finding
         location = (loc_nodes[0].text or "").strip()
         locations.append(location)
         for lastmod in (child for child in url_node if child.tag == _sitemap_tag("lastmod")):
+            if lastmods is not None:
+                lastmods.setdefault(location, (lastmod.text or "").strip())
             if not _valid_iso_date((lastmod.text or "").strip()):
                 findings.append(
                     Finding(
@@ -1681,6 +2038,92 @@ def _sitemap_locations(root: Element, relative_path: str, findings: list[Finding
                     )
                 )
     return locations
+
+
+def _today_utc() -> date:
+    """Today's date in UTC. Used only to reject a lastmod from the future, never
+    to produce one; tests replace it."""
+    return datetime.now(UTC).date()
+
+
+_ISO_DATE_IN_TEXT = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
+_HEAD_OR_SCRIPT = re.compile(r"<(head|script|style)\b.*?</\1>", re.IGNORECASE | re.DOTALL)
+
+
+def _dates_shown_in_page(site_root: Path, page: Page) -> set[str]:
+    """ISO dates in a page's body text. The head and scripts are dropped so a
+    date in JSON-LD or a meta tag cannot vouch for a sitemap lastmod."""
+    try:
+        text = (site_root / page.relative_path).read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return set()
+    return set(_ISO_DATE_IN_TEXT.findall(_HEAD_OR_SCRIPT.sub(" ", text)))
+
+
+def _validate_sitemap_lastmods(
+    site_root: Path,
+    pages: dict[str, Page],
+    config: Config,
+    locations: list[str],
+    lastmods: dict[str, str],
+    findings: list[Finding],
+) -> None:
+    """Hold the sitemap's ``<lastmod>`` to what a crawler can verify.
+
+    * ``sitemap.future_lastmod``: no date later than tomorrow (UTC). Google
+      ignores a lastmod it cannot believe, and then ignores the field.
+    * ``sitemap.missing_lastmod``: a URL in ``lastmod_required_path_patterns``
+      has none. Those classes derive one from recorded data, so none means the
+      derivation broke.
+    * ``sitemap.lastmod_not_on_page``: for ``lastmod_shown_path_patterns`` the
+      lastmod must be a date the page itself prints, which a build-clock date
+      is not.
+    """
+    relative_path = config.sitemap_path
+    origin = config.site_origin
+    by_public_path = {page.public_path: page for page in pages.values()}
+    latest_allowed = _today_utc().toordinal() + 1
+    for location in locations:
+        path = location[len(origin) :] if location.startswith(origin) else ""
+        value = lastmods.get(location)
+        if (
+            value
+            and _valid_iso_date(value)
+            and date.fromisoformat(value[:10]).toordinal() > latest_allowed
+        ):
+            findings.append(
+                Finding(
+                    "sitemap.future_lastmod",
+                    relative_path,
+                    f"lastmod {value} for {location!r} is in the future",
+                )
+            )
+        required = any(
+            _matches_path_pattern(path, p) for p in config.lastmod_required_path_patterns
+        )
+        if required and not value:
+            findings.append(
+                Finding(
+                    "sitemap.missing_lastmod",
+                    relative_path,
+                    f"{location!r} must carry a lastmod derived from its data",
+                )
+            )
+        shown = any(_matches_path_pattern(path, p) for p in config.lastmod_shown_path_patterns)
+        page = by_public_path.get(path)
+        if (
+            shown
+            and value
+            and page is not None
+            and value[:10] not in _dates_shown_in_page(site_root, page)
+        ):
+            findings.append(
+                Finding(
+                    "sitemap.lastmod_not_on_page",
+                    relative_path,
+                    f"lastmod {value} for {location!r} is not a date the page shows",
+                )
+            )
 
 
 def _validate_sitemap(
@@ -1694,7 +2137,9 @@ def _validate_sitemap(
     root = _parse_sitemap(site_root / relative_path, relative_path, findings)
     if root is None:
         return
-    locations = _sitemap_locations(root, relative_path, findings)
+    lastmods: dict[str, str] = {}
+    locations = _sitemap_locations(root, relative_path, findings, lastmods)
+    _validate_sitemap_lastmods(site_root, pages, config, locations, lastmods, findings)
     for location, count in sorted(Counter(locations).items()):
         if count > 1:
             findings.append(
@@ -1832,10 +2277,13 @@ def _validate_page(
             require_h1=page.public_path not in config.canonical_aliases,
         )
         _validate_presentation(page, config, findings)
-    _validate_noindex(page, config, findings)
-    json_ld_nodes = _validate_json_ld(page, findings)
+        # A redirect stub carries no robots meta even under a noindex path
+        # (a moved brief, say): _validate_redirect reports one if it does.
+        _validate_noindex(page, config, findings)
+    json_ld_nodes, top_level_json_ld = _validate_json_ld(page, findings)
+    _validate_json_ld_distributions(page, json_ld_nodes, config, files, findings)
     if not is_redirect:
-        _validate_required_json_ld(page, json_ld_nodes, config, findings)
+        _validate_required_json_ld(page, top_level_json_ld, config, findings)
     for reference in page.misplaced_seo:
         findings.append(
             Finding(
@@ -1876,7 +2324,7 @@ def _validate_presentation(page: Page, config: Config, findings: list[Finding]) 
     noindex page is measured; only the h1 expectation follows the alias
     exemption, because the app shell writes its h1 at runtime."""
     is_alias = page.public_path in config.canonical_aliases
-    if not is_alias and not _is_noindex_path(page.public_path, config):
+    if not is_alias and not _page_is_noindex(page, config):
         _validate_metadata_lengths(page, config, findings)
     _validate_heading_levels(page, findings, expect_h1=not is_alias)
 
@@ -1926,7 +2374,7 @@ def audit(site_root: Path, config: Config) -> tuple[list[Finding], dict[str, int
     for page in pages.values():
         _validate_page(page, pages, files, config, redirect_aliases, findings)
 
-    _validate_no_tracking(site_root, pages, files, config, findings)
+    measured_pages = _validate_measurement(site_root, pages, files, config, findings)
     _validate_noindex_patterns(pages, config, findings)
     _validate_required_json_ld_patterns(pages, config, findings)
     _validate_duplicate_metadata(pages, config, redirect_aliases, findings)
@@ -1935,13 +2383,20 @@ def audit(site_root: Path, config: Config) -> tuple[list[Finding], dict[str, int
     _validate_robots(site_root, config, findings)
 
     sorted_findings = sorted(set(findings))
-    noindex_pages = sum(_is_noindex_path(page.public_path, config) for page in pages.values())
+    noindex_pages = sum(
+        _page_is_noindex(page, config) and page.public_path not in redirect_aliases
+        for page in pages.values()
+    )
     canonical_aliases = sum(page.public_path in config.canonical_aliases for page in pages.values())
     redirect_alias_count = sum(page.public_path in redirect_aliases for page in pages.values())
     stats = {
         "canonical_aliases": canonical_aliases,
         "html_files": len(pages),
         "indexable_pages": (len(pages) - noindex_pages - redirect_alias_count - canonical_aliases),
+        # Pages carrying exactly one measurement script, printed beside the
+        # page count so the two numbers can be read off the same report: the
+        # contract holds when they differ by exactly the redirect stubs.
+        "measured_pages": measured_pages,
         "noindex_pages": noindex_pages,
         "redirect_aliases": sum(bool(page.refreshes) for page in pages.values()),
     }
@@ -1958,6 +2413,7 @@ def _report(
         "canonical_aliases": 0,
         "html_files": 0,
         "indexable_pages": 0,
+        "measured_pages": 0,
         "noindex_pages": 0,
         "redirect_aliases": 0,
     }

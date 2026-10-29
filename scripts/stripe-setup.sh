@@ -32,7 +32,7 @@ command -v jq >/dev/null || { echo "jq not found" >&2; exit 2; }
 case "$STRIPE_SECRET_KEY" in
   sk_test_*|rk_test_*) MODE="test" ;;
   sk_live_*|rk_live_*) MODE="live" ;;
-  *) echo "Unrecognised key prefix; refusing to guess the mode." >&2; exit 2 ;;
+  *) echo "Unrecognized key prefix; refusing to guess the mode." >&2; exit 2 ;;
 esac
 echo "Mode: $MODE  Site: $SITE" >&2
 
@@ -61,11 +61,35 @@ price_refresh_yr=$(api prices create --product "$refresh_product" --currency usd
 
 # Payment Links send the buyer to the setup form with the session reference.
 success="${SITE}/bundle/setup/?session_id={CHECKOUT_SESSION_ID}"
+# Requires a "Terms of service" URL to be set once, by hand, in the Stripe
+# Dashboard under Settings > Public business information: that account-level
+# setting is what the checkbox this turns on actually links to, and there is
+# no per-Payment-Link field for it. Point it at ${SITE}/bundle/#plans-h, the
+# page whose buy-terms list and FAQ carry the delivery, refund, and
+# auto-renewal commitments a buyer is agreeing to. This was unset when the
+# four live Payment Links currently in web/bundle/plan.json were created;
+# re-run stripe-setup.sh (new links, `line`/`checkout_url` values change) or
+# apply the same two fields to the existing ones with `stripe payment_links
+# update <id>` by hand once the Dashboard setting is in place. Neither is done
+# here: recreating spends new ids for no reason, and this script must not
+# touch a live Payment Link that is already selling.
+#
+# Payment methods are listed explicitly: card (which carries Apple Pay and
+# Google Pay) and Link. Without this field a Payment Link follows the
+# account's default payment method configuration, which on the live account
+# offered Cash App Pay and Amazon Pay to an organizational buyer; the one live
+# checkout attempt (2026-09-18) chose Cash App Pay and expired unpaid. An
+# explicit list also keeps a later dashboard toggle from adding a method this
+# purchase does not want. The four live links predate this; the owner applies
+# the same two values to each with `stripe payment_links update <id>`.
 link() {
   api payment_links create \
     -d "line_items[0][price]=$1" -d "line_items[0][quantity]=1" \
+    -d "payment_method_types[0]=card" -d "payment_method_types[1]=link" \
     -d "after_completion[type]=redirect" \
     -d "after_completion[redirect][url]=$success" \
+    -d "consent_collection[terms_of_service]=required" \
+    -d "custom_text[submit][message]=Delivery, refund, and cancellation terms: ${SITE}/bundle/#plans-h" \
     | jq -r .url
 }
 link_bundle_25=$(link "$price_bundle_25")

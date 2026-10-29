@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 from dataclasses import replace
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 import yaml
@@ -154,10 +155,35 @@ def test_parse_catalog_keeps_gtfs_rows_only() -> None:
     assert types["101"] == "gtfs-rt"
 
 
-def test_v2_source_is_separate_from_legacy_operational_default() -> None:
-    assert DEFAULT_PROPOSAL_CATALOG_URL == MOBILITY_DATABASE_FEEDS_V2_URL
+def test_no_default_catalog_reads_the_disallowed_v2_host() -> None:
+    """ADR 0070: files.mobilitydatabase.org disallows every path in robots.txt."""
+    assert DEFAULT_PROPOSAL_CATALOG_URL == LEGACY_MOBILITY_DATABASE_CATALOG_URL
     assert DEFAULT_CATALOG_URL == LEGACY_MOBILITY_DATABASE_CATALOG_URL
-    assert DEFAULT_PROPOSAL_CATALOG_URL != DEFAULT_CATALOG_URL
+    disallowed = "files.mobilitydatabase.org"
+    assert urlsplit(MOBILITY_DATABASE_FEEDS_V2_URL).hostname == disallowed
+    assert urlsplit(DEFAULT_PROPOSAL_CATALOG_URL).hostname != disallowed
+    assert urlsplit(DEFAULT_CATALOG_URL).hostname != disallowed
+
+
+def test_a_catalog_url_on_the_disallowed_host_is_refused_before_any_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from scorecard_pipeline import mobilitydb as m
+
+    calls: list[str] = []
+
+    def fake_safe_get(url: str, **kw: object) -> bytes:
+        calls.append(url)
+        return b"id\n"
+
+    monkeypatch.setattr(m, "safe_get", fake_safe_get)
+    with pytest.raises(ValueError, match="disallows automated access"):
+        fetch_catalog_bytes(MOBILITY_DATABASE_FEEDS_V2_URL)
+    assert calls == []
+    # Negative control: the same stub serves an allowed host, so the refusal
+    # above is the host rule and not a broken stub.
+    assert fetch_catalog_bytes("https://example.org/catalog.csv") == b"id\n"
+    assert calls == ["https://example.org/catalog.csv"]
 
 
 def test_v2_fixture_has_exact_schema_and_maps_supported_fields() -> None:
@@ -490,7 +516,8 @@ def test_catalog_fetch_exposes_exact_bytes_for_one_fetch_parse_and_hash(
 
     calls: list[tuple[str, int, int]] = []
 
-    def fake_safe_get(url: str, *, timeout: int, max_bytes: int) -> bytes:
+    def fake_safe_get(url: str, *, timeout: int, max_bytes: int, headers: dict[str, str]) -> bytes:
+        assert "Mozilla" not in headers["User-Agent"]
         calls.append((url, timeout, max_bytes))
         return b"id,data_type\nsource,gtfs\n"
 
@@ -1144,6 +1171,90 @@ def test_hosted_mirror_url_keeps_nonlegacy_catalog_url(
         )
         == "https://mirror.example.org/community.zip"
     )
+
+
+def test_hosted_mirror_url_skips_a_deprecated_catalog_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A replaced catalog record's hosted copy is not a stand-in for its URL.
+
+    SacRT's registry record pins mdb-1296, which the catalog deprecated in
+    favor of mdb-2137. Its hosted copy stopped at a September 2024 export, so
+    scoring it when iportal.sacrt.com's certificate expired published a feed
+    the agency had replaced two years earlier. Neither the pinned id nor the
+    URL match may select that row.
+    """
+    from scorecard_pipeline import mobilitydb as m
+
+    feeds = [replace(parse_catalog(MIRROR_CATALOG)[0], status="deprecated", redirect_ids=("2137",))]
+    monkeypatch.setattr(m, "load_catalog", lambda **_: feeds)
+
+    assert (
+        m.hosted_mirror_url(
+            "yolobus", "Yolobus", "https://unreachable.example.org/feed.zip", "1295"
+        )
+        is None
+    )
+    assert (
+        m.hosted_mirror_url("yolobus", "Yolobus", "https://www.yolobus.com/GTFS/google_transit.zip")
+        is None
+    )
+
+
+@pytest.mark.parametrize("status", ["", "active", "inactive"])
+def test_hosted_mirror_url_still_uses_a_row_that_is_not_deprecated(
+    monkeypatch: pytest.MonkeyPatch, status: str
+) -> None:
+    from scorecard_pipeline import mobilitydb as m
+
+    feeds = [replace(parse_catalog(MIRROR_CATALOG)[0], status=status)]
+    monkeypatch.setattr(m, "load_catalog", lambda **_: feeds)
+
+    assert (
+        m.hosted_mirror_url(
+            "yolobus", "Yolobus", "https://unreachable.example.org/feed.zip", "1295"
+        )
+        == "https://files.mobilitydatabase.org/mdb-1295/latest.zip"
+    )
+
+
+#: The two Rīgas Satiksme rows as the catalog CSV carried them on 2026-10-02,
+#: trimmed to the columns the mirror lookup reads.
+RIGA_CATALOG = (
+    "id,data_type,location.country_code,location.subdivision_name,provider,"
+    "urls.direct_download,urls.latest,status,redirect.id\n"
+    "mdb-884,gtfs,LV,Rīga,Rīgas Satiksme,http://saraksti.rigassatiksme.lv/riga/gtfs.zip,"
+    "https://files.mobilitydatabase.org/mdb-884/latest.zip,deprecated,mdb-3502\n"
+    "mdb-3502,gtfs,LV,Rīga,Rīgas Satiksme,"
+    "https://data.gov.lv/dati/dataset/6d78358a-0095-4ce3-b119-6cde5d0ac54f/resource/"
+    "3f7719a3-cc74-416a-b3a6-d7933b0d655e/download/marsrutusaraksti06_2026.zip,"
+    "https://files.mobilitydatabase.org/mdb-3502/latest.zip,active,\n"
+)
+
+
+def test_rigas_satiksme_pins_the_catalog_successor_so_it_keeps_a_mirror(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The registry record pins the row the catalog redirects to, not the retired one.
+
+    mdb-884 is deprecated in favor of mdb-3502, and a deprecated row supplies no
+    mirror. The registry URL matches neither row's download, so the pinned id is
+    the only way to a mirror. On 2026-10-02 saraksti.rigassatiksme.lv timed out
+    and the run scored mdb-884's copy; with mdb-884 skipped, the old pin would
+    have left Rīga with no fallback at all.
+    """
+    from scorecard_pipeline import mobilitydb as m
+    from scorecard_pipeline.agencies import read_agencies
+
+    shard = Path(__file__).resolve().parents[2] / "registry" / "lv" / "rix.yaml"
+    (riga,) = [agency for agency in read_agencies(shard) if agency.id == "rigas-satiksme"]
+    monkeypatch.setattr(m, "load_catalog", lambda **_: parse_catalog(RIGA_CATALOG))
+
+    assert (
+        m.hosted_mirror_url(riga.id, riga.name, riga.static_gtfs_url, riga.mdb_id)
+        == "https://files.mobilitydatabase.org/mdb-3502/latest.zip"
+    )
+    assert m.hosted_mirror_url(riga.id, riga.name, riga.static_gtfs_url, "884") is None
 
 
 @pytest.mark.parametrize(

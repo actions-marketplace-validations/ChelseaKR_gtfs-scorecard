@@ -68,12 +68,33 @@ def test_hand_authored_pages_do_not_block_on_remote_fonts() -> None:
 
 
 def test_hand_authored_pages_describe_the_shared_social_image() -> None:
-    pages = set(STATIC_NAV_PAGES) | {"index.html"}
+    """Every hand-authored page shares the root og.png and its alt text,
+    except /bundle/: the paid tier gets its own card (bundle-og.png,
+    web/bundle-og.svg) with its own alt text, since a launch post sharing
+    /bundle/ should not show a reader the free tool's card."""
+    pages = (set(STATIC_NAV_PAGES) | {"index.html"}) - {"bundle/index.html"}
     alt = "GTFS Scorecard: transit data quality for small agencies."
     for rel in pages:
         html = (_REPO / "web" / rel).read_text()
+        assert 'content="https://gtfsscorecard.org/og.png"' in html, rel
         assert html.count(f'<meta property="og:image:alt" content="{alt}">') == 1, rel
         assert html.count(f'<meta name="twitter:image:alt" content="{alt}">') == 1, rel
+        assert "bundle-og.png" not in html, rel
+
+
+def test_bundle_page_describes_its_own_social_image() -> None:
+    html = (_REPO / "web" / "bundle" / "index.html").read_text()
+    alt = (
+        "GTFS Scorecard Program Report Bundle: board reports for every "
+        "agency your program supports."
+    )
+    image_url = "https://gtfsscorecard.org/bundle-og.png"
+    assert html.count(f'<meta property="og:image" content="{image_url}">') == 1
+    assert html.count(f'<meta name="twitter:image" content="{image_url}">') == 1
+    assert html.count(f'<meta property="og:image:alt" content="{alt}">') == 1
+    assert html.count(f'<meta name="twitter:image:alt" content="{alt}">') == 1
+    assert html.count('<meta property="og:image:width" content="1200">') == 1
+    assert html.count('<meta property="og:image:height" content="630">') == 1
 
 
 def test_homepages_publish_the_exact_reciprocal_language_pair() -> None:
@@ -95,6 +116,40 @@ def test_shared_social_image_has_declared_dimensions() -> None:
     png = (_REPO / "web" / "og.png").read_bytes()
     assert png[:16] == b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
     assert struct.unpack(">II", png[16:24]) == (1200, 630)
+
+
+def test_bundle_social_image_has_declared_dimensions() -> None:
+    png = (_REPO / "web" / "bundle-og.png").read_bytes()
+    assert png[:16] == b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+    assert struct.unpack(">II", png[16:24]) == (1200, 630)
+
+
+def test_apple_touch_icon_is_the_declared_180_square() -> None:
+    png = (_REPO / "web" / "apple-touch-icon.png").read_bytes()
+    assert png[:16] == b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+    assert struct.unpack(">II", png[16:24]) == (180, 180)
+
+
+_FAVICON_LINKS = (
+    '<link rel="icon" type="image/svg+xml" href="/favicon.svg">',
+    '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">',
+    '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">',
+    '<link rel="shortcut icon" href="/favicon.ico">',
+    '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">',
+)
+
+
+def test_hand_authored_pages_carry_the_full_icon_set() -> None:
+    """Every hand-authored page links the real mark (favicon.svg) plus its
+    PNG/ICO fallbacks and the apple-touch-icon, not the old inline circle+dot
+    data URI. Mirrors _page()'s <head> (test_render_site.py), which generated
+    pages get automatically; these pages don't, so nothing catches drift here
+    except this test."""
+    for rel in set(STATIC_NAV_PAGES) | {"index.html", "es/index.html"}:
+        html = (_REPO / "web" / rel).read_text()
+        for link in _FAVICON_LINKS:
+            assert link in html, f"{rel}: missing {link!r}"
+        assert "data:image/svg+xml" not in html, f"{rel}: still carries the old inline favicon"
 
 
 _MONEY_PAGES = (
@@ -168,6 +223,40 @@ def test_landing_names_both_counts_and_the_shipped_service_scope() -> None:
     )
     for href in representative_surfaces:
         assert f'href="{href}"' in html, href
+
+
+def test_landing_points_at_the_history_tables_from_the_open_data_card_only() -> None:
+    """One sentence on the "Use the public data" card, beside the /data/ link
+    it already carried, and nowhere else on the page: not in the primary nav,
+    which sync_static_navs writes from _NAV_ITEMS, and not in the program-tier
+    section, which sells the bundle. The anchor says "paid" before the click,
+    as the bundle's own card link does, and no amount is typed anywhere on the
+    page: the bundle's home-page copy carries none either, its plan summary
+    being fetched at view time."""
+    html = (_REPO / "web" / "index.html").read_text()
+    # The landing page carries its own header and footer, not the shared ones.
+    head, separator, _footer = html.partition("<footer>")
+    assert separator, "the landing page has no footer; the split below proves nothing"
+    assert head.count('href="/data/history/"') == 1
+
+    header = re.search(r'<header class="home-header">.*?</header>', html, re.S)
+    assert header is not None, "the landing header was renamed; this check now reads nothing"
+    assert "/data/history/" not in header.group(0)
+    assert _NAV_STOPS_RE.search(html) is None, "the landing page grew the shared nav; split on it"
+    assert all("/data/history/" not in href for _label, href in _NAV_ITEMS)
+
+    programs = head[
+        head.index('id="programs"') : head.index("</section>", head.index('id="programs"'))
+    ]
+    assert "/data/history/" not in programs
+
+    card_nav = head.index('<nav aria-label="Reuse public evidence">')
+    card = head[head.rfind("<li>", 0, card_nav) : head.index("</li>", card_nav)]
+    assert 'href="/data/"' in card
+    assert '<a href="/data/history/">scorecard history tables (paid)</a>' in card
+
+    plan = json.loads((_REPO / "web" / "data" / "history" / "plan.json").read_text())
+    assert f"${plan['products']['history_once']['price']}" not in html
 
 
 def test_landing_leads_with_the_quality_workflow_and_keeps_the_pilot_bounded() -> None:
@@ -315,3 +404,28 @@ def test_open_data_page_publishes_data_catalog_jsonld() -> None:
     assert "does not\n      relicense or redistribute the underlying GTFS files" in html
     assert "feed records in the current file" in html
     assert "agencies in the current file" not in html
+
+
+def test_open_data_dataset_carries_what_google_dataset_search_requires() -> None:
+    """Google Dataset Search lists a Dataset only with both a name and a
+    description, and the description must run 50 to 5,000 characters."""
+    html = (_REPO / "web" / "data" / "index.html").read_text()
+    match = re.search(r'<script type="application/ld\+json">(.*?)</script>', html)
+    assert match is not None
+    [dataset] = json.loads(match.group(1))["dataset"]
+    assert dataset["@type"] == "Dataset"
+    assert dataset["name"].strip()
+    description = dataset["description"]
+    assert 50 <= len(description) <= 5000
+    # It describes the published file in the page's own terms: worldwide
+    # coverage, one row per feed record, the columns the page lists.
+    assert "worldwide" in description
+    assert "one row per feed record" in description
+    assert "days until the service calendar expires" in description
+    assert dataset["isAccessibleForFree"] is True
+    assert dataset["creator"] == {
+        "@type": "Organization",
+        "name": "GTFS Scorecard",
+        "url": "https://gtfsscorecard.org/",
+    }
+    assert dataset["license"] == "https://creativecommons.org/licenses/by/4.0/"

@@ -53,13 +53,61 @@ HARDCODED_STRING_BASELINE = {
     # plain-language explanation, and fine print adds enough quote pairs to
     # expose four more matches in this deliberately simple whole-file heuristic,
     # so record 392 while the presenter copy remains pseudolocalizable.
-    "app.js": 392,
+    # Raised 392 -> 395: #/programs and #/program/<id> now say what their static
+    # twins at /program/ and /program/<id>/ already said about the paid tier
+    # (the two shared promises plus one pointer sentence per view), which until
+    # now the app named nowhere. A deliberate increase, to move into the catalog
+    # with the rest of the tier copy when the tier joins it.
+    "app.js": 395,
     # Program report bundle pages (docs/program-plan.md): unlinked and
     # noindex, so not yet in the locale catalog. Their status and form copy
     # is recorded here for the same ratchet as landing-scorecard.js.
-    "bundle-setup.js": 9,
-    "bundle.js": 8,
+    # Raised 9 -> 10: the two disabled states of the post-checkout form now
+    # answer differently depending on whether Stripe left an order reference
+    # in the address, because one of those readers has already paid and the
+    # old single message told them nothing had been charged. A deliberate
+    # increase, to work back down through the catalog with the rest of these
+    # pages when the tier joins it.
+    "bundle-setup.js": 10,
+    # Raised 8 -> 9: each subscription card now says on its face that a refresh
+    # renews a bundle already bought and covers the same agencies. The server
+    # refuses a refresh with no bundle before it consumes the checkout, so the
+    # sentence is not the enforcement; it is what stops a buyer paying to find
+    # that out. A deliberate increase, to work back down with the rest of these
+    # pages when the tier joins the catalog.
+    # Raised 9 -> 10: the runtime-rewritten offers node now carries its own
+    # name ("Program report bundle") so it stands alone as a complete Google
+    # Product node, rather than depending on a merge with the page's separate
+    # Service block for a property Product structured data requires. Schema.org
+    # vocabulary values elsewhere on this same node (Offer, AggregateOffer,
+    # InStock, and the like) are not counted here because they are single
+    # words; this is the first two-word literal the offers node itself has
+    # carried. Not user-facing copy, so it is recorded rather than moved into
+    # the catalog.
+    # Raised 10 -> 12 (ADR 0057): the checkout button at the top of the page
+    # names the entry bundle's price ("Buy for ... through Stripe") and its
+    # cadence ("paid once"), both built from plan.json so no amount is typed.
+    # A deliberate increase, to move into the catalog with the rest of the
+    # tier copy when the tier joins it.
+    "bundle.js": 12,
+    # The history tables' two pages (ADR 0063): the landing page's price,
+    # cadence and status copy, built from web/data/history/plan.json so no
+    # amount is typed, and the post-checkout page's confirmation, link and
+    # cannot-run messages. New modules, so these are first recorded baselines
+    # rather than increases, to move into the catalog with the rest of the
+    # paid-tier copy when the tier joins it.
+    # /invoice/ (buy by invoice or purchase order): all reader-facing wording is in
+    # the HTML, so the two matches are a class-name template and a selector, not copy.
+    "invoice.js": 2,
+    "history-setup.js": 11,
+    "history.js": 11,
     "config.js": 1,
+    # Worded consequence for the scorecard page (issue #367). New module, so a
+    # first baseline rather than an increase, and zero on purpose: every
+    # sentence it returns is filled from the shared copy the pipeline generates
+    # (consequence.py through constants.js) or from the app catalog, so it holds
+    # no English of its own to localize.
+    "consequence.js": 0,
     "es.js": 2,
     "i18n.js": 0,
     # The hand-authored landing page is not yet part of the generated SPA
@@ -70,7 +118,21 @@ HARDCODED_STRING_BASELINE = {
     # the source and method labels for freshness findings raise it to 121.
     "landing-scorecard.js": 121,
     "locale.js": 0,
+    # The site-measurement shim (docs/decisions/0055): event and property
+    # names only, no reader-facing copy. The matches are the strict-mode
+    # directives, which this heuristic counts in theme.js and nav.js too: one
+    # for the PostHog block and, since ADR 0056, one each for the separate GA4
+    # block and the footer opt-out control, whose wording comes from the
+    # footer markup. A sentence a reader sees does not belong in this file, so
+    # this stays at 3.
+    "measure.js": 3,
     "nav.js": 4,
+    # The compact paid-tier summary the landing page and /support/ render from
+    # web/bundle/plan.json. New module, so this is its first recorded baseline
+    # rather than an increase: six English literals, all of them the same
+    # status and tier copy the /bundle/ pages above carry, to move into the
+    # catalog with them when the tier joins it.
+    "plan-summary.js": 6,
     "submit.js": 17,
     "subscribe.js": 8,
     "theme.js": 4,

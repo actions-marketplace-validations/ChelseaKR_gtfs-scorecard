@@ -4,13 +4,22 @@ The scorecard is free for every transit agency, and it stays that way. An agency
 
 The public version of this page is [gtfsscorecard.org/support](https://gtfsscorecard.org/support/). This document is the repository copy of the same commitments.
 
+A program or consultancy that prepares packets for many agencies can buy every agency's board report as one branded archive at [gtfsscorecard.org/bundle](https://gtfsscorecard.org/bundle/) (how it works: [docs/program-plan.md](program-plan.md)); purchase buys no influence over grades, methodology, or which agencies are listed.
+
 ## What sponsorship pays for
 
-The core service costs single-digit dollars a month today. A $75 to $200 monthly
+The core service is built to be cheap and is not yet as cheap as it should be. In
+September 2026 the Amazon S3 charges in the region that holds the published scorecard
+data were $28.35, read from AWS Cost Explorer: $17.26 for data leaving the bucket,
+$8.80 for requests, and $2.29 for storage. We have not yet measured which readers cause
+the outbound data; the likeliest cause is the project's own scheduled runs re-reading
+what they published earlier, and changes to cut it are under way. The target is under
+$10 a month by March 31, 2027. Other AWS charges, such as DNS and the web firewall, are
+shared with other projects, so this page states no total. A $75 to $200 monthly
 operating envelope would add bounded capacity while keeping hard spending caps:
 
 - Hosting and bandwidth for the static site, the read API, and the grade badges the project publishes.
-- The scheduled daily data refresh: fetching more than 2,200 configured feed records
+- The scheduled daily data refresh: fetching more than 2,600 configured feed records
   in the current worldwide coverage, still mostly in the US and Canada. The public
   status page reports the exact current count and records when each run completed.
 - Validator compute. Each refresh runs feeds through the canonical MobilityData gtfs-validator.
@@ -26,7 +35,20 @@ Every service runs with a hard spending cap. If a cost line grows past this rang
 
 ## What sponsors get
 
-Acknowledgment, deliberately little else. Sponsors are listed on the [/support/](https://gtfsscorecard.org/support/) page and in the repository, with what their support pays for. Sponsorship buys no influence over grades, methodology, or which agencies are listed; the full rubric is public in [docs/rubric.md](rubric.md).
+Acknowledgment, deliberately little else. Named sponsors are listed with what their support pays for. Sponsorship buys no influence over grades, methodology, or which agencies are listed; the full rubric is public in [docs/rubric.md](rubric.md).
+
+## Who sponsors, and sponsors that are graded here
+
+Sponsors are named on the /support/ page and in the repository if they ask to be. Anonymous sponsors are counted and their total is shown. A sponsor that publishes a feed graded on this site, or sells GTFS products or services, is always named.
+
+- The share of graded feed records that belong to a sponsor, or that a sponsor built, is published beside its name.
+- A feed a sponsor built or publishes is scored and framed identically to every other feed, by the same code and rubric. A sponsor's corrections go through the same public claim form as everyone's.
+- Sponsorship is accepted only at the listed tiers.
+- No sponsorship is accepted while the sponsor has an open dispute about its own grade.
+
+Vendors may sponsor this project; sponsors are listed on /support/ and are graded by the same rubric as every other vendor.
+
+The reasoning, and what this commits the project to, is in [ADR 0071](decisions/0071-sponsors-whose-feeds-are-graded.md).
 
 The real return is the tool itself: it stays free for every agency, including the small and rural systems it was built for.
 
@@ -40,7 +62,7 @@ it arrives through; nothing is earmarked.
 
 | Tier | What it is sized to |
 | --- | --- |
-| $5 a month | The static core: site, daily scoring run, read API, single-digit dollars a month today. |
+| $5 a month | The static core: site, daily scoring run, read API. Their S3 charges were $28.35 in September 2026; the cost section above has the breakdown and the target. |
 | $25 a month | The dynamic edges: the subscribe API, the badge and API worker, and the MCP endpoint, which run on per-request compute at about $15 a month at plausible volume. |
 | $50 one time | About one month of on-demand scoring at demo-era volume ($20 to $60), the next capacity the project would add. |
 | $100 a month | On-demand scoring of any GTFS URL from a web form, every month ([ADR 0029](decisions/0029-instant-score-funnel.md)). Written, not switched on; this is its running cost. |

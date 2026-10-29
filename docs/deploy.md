@@ -44,15 +44,21 @@ set them, and forks keep working with nothing set:
 | --- | --- | --- |
 | Mirror artifacts to the CDN bucket | `ARTIFACTS_BUCKET` | `AWS_ROLE_ARN` secret, `infra/artifacts` applied |
 | Send the feed-health email digest | `SES_FROM` | a verified SES sender, `infra/alerts` applied |
+| Build the monthly history tables export (ADR 0063) | `ARTIFACTS_BUCKET` | `HISTORY_AWS_ROLE_ARN` secret, the `history_export` role from `infra/artifacts` |
 | AWS region (optional) | `AWS_REGION` | defaults to `us-west-2` |
+| Count page views and bundle checkout clicks ([ADR 0055](decisions/0055-cookieless-site-measurement.md)) | `POSTHOG_KEY` (a **secret**, not a variable) | a PostHog Cloud US project with "Discard client IP data" on; unset keeps the site silent |
+| Google Analytics 4 ([ADR 0056](decisions/0056-google-analytics-4.md)) | nothing: the measurement id is committed as `measurement_ga4_id` in `site-seo.json` | a GA4 web data stream with Google signals off and enhanced measurement's history, site search and form interaction options off; `""` turns GA4 off |
 
 Set variables and secrets under **Settings → Secrets and variables → Actions**.
 
-## 0. One-time: remote state bucket (only for `artifacts`)
+## 0. One-time: remote state bucket (`artifacts` and `program-bundle`)
 
-`infra/artifacts/backend.tf` keeps Terraform state in an S3 bucket named
-`gtfs-scorecard-tfstate-ckr`. Create it once before the first apply (skip if it
-exists):
+`infra/artifacts/backend.tf` and `infra/program-bundle/backend.tf` keep
+Terraform state in an S3 bucket named `gtfs-scorecard-tfstate-ckr`, under
+separate keys. `program-bundle` is there because its state holds the GitHub
+token and both Stripe secrets as Lambda environment variables, which must not
+sit in a local `terraform.tfstate` on one machine. Create the bucket once
+before the first apply (skip if it exists):
 
 ```sh
 aws s3api create-bucket --bucket gtfs-scorecard-tfstate-ckr \
@@ -61,7 +67,7 @@ aws s3api put-bucket-versioning --bucket gtfs-scorecard-tfstate-ckr \
   --versioning-configuration Status=Enabled
 ```
 
-Use a different name if that one is taken, and update `backend.tf` to match.
+Use a different name if that one is taken, and update both `backend.tf` files to match.
 
 ## 1. Artifacts CDN (`infra/artifacts`)
 
@@ -89,6 +95,23 @@ Then:
    When `ARTIFACTS_BUCKET` is set but `ARTIFACTS_CDN` is not, the daily
    workflow's CDN privacy canary falls back to the maintainer's CloudFront
    domain, which a fork does not want to inherit.
+
+### Storing the aggregate index compressed
+
+`data/artifacts/index.json` holds every agency's full score history and is the
+largest single object in the bucket (about 151 MB plain, about 5 MB gzipped).
+The workflows read and write it only through `scripts/s3-index.sh`:
+
+- `get` accepts either form (it looks for the gzip magic bytes) and writes plain
+  JSON, so a reader works before and after the writers change.
+- `put` writes plain JSON unless the Actions variable `INDEX_GZIP` is `1`, in
+  which case it writes gzip labelled `Content-Encoding: gzip` after checking the
+  bytes decode back to the file. A browser or `curl --compressed` still receives
+  JSON; `aws s3 cp` and boto3 do not decode, which is why nothing else reads the
+  object directly.
+
+To turn it on, set `INDEX_GZIP` to `1`; to turn it off, delete the variable. The
+next publish writes the other form and every reader keeps working.
 
 ### How the daily run decides what to upload
 
@@ -248,7 +271,7 @@ Actions; this is the inventory an operator should know exists:
 | `equity.yml` | weekly | Refreshes the US equity overlay from Census ACS (ADR 0015). |
 | `canada-equity.yml` | monthly | Refreshes the Canada overlay from StatCan CIMD (ADR 0027). |
 | `otp-qa.yml` | weekly | Routing QA against containerized OpenTripPlanner (ADR 0014). |
-| `dataset-release.yml` | monthly | Tags the citable `dataset-YYYY-MM` release with the flat exports. |
+| `dataset-release.yml` | monthly | Tags the citable `dataset-YYYY-MM` release with the flat exports. Fires on days 1, 2 and 3; days 2 and 3 are no-ops once the month has a successful run. |
 | `onboard.yml` | on issue | Scores a feed from a "score-request" issue and comments the scorecard. |
 | `validator-canary.yml` | manual | Shadow-scores a candidate validator version for governed upgrades. |
 | `tiles.yml` | manual | Rebuilds the national PMTiles route archive (needs tippecanoe). |
@@ -256,8 +279,15 @@ Actions; this is the inventory an operator should know exists:
 | `ci.yml`, `a11y.yml`, `e2e.yml`, `security.yml`, `pages.yml` | push/PR | The merge and deploy gates. |
 
 The monthly dataset release has two hosting prerequisites: repository-level
-immutable releases must remain enabled, and `SCHEDULED_WRITER_SSH_KEY` must
-match the trusted public key in `.github/release-signers`. The signing secret is
+immutable releases must remain enabled, and `SCHEDULED_WRITER_SSH_KEY` must be
+the private half of the one entry in `.github/dataset-signers` (its public half
+is the repository deploy key "gtfs-scorecard scheduled writer"). The workflow
+and `promote_dataset_release.sh` verify dataset tags against that file and
+nothing else. `vX.Y.Z` tags are verified by `release-sign.yml` against
+`.github/release-signers`, which holds the owner's key only; the two lists are
+separate so a tag the machine key signs can never read as maintainer-signed.
+`test_workflow_safety.py` pins both fingerprints, so a key rotation updates the
+secret, the file and the test in one change. The signing secret is
 available only to the tag-creation step and is removed from the runner before
 bundle assembly. The workflow creates an SSH-signed annotated `dataset-YYYY-MM`
 tag, verifies the local signature and hosted tag object, and then consumes the
@@ -283,10 +313,12 @@ credential never enters Actions.
 `pages.yml` also runs as the deploy job of the daily, intraday, and targeted
 data workflows. Its own push trigger ignores `data/rt-health/**`, so the
 three-hourly realtime observation commit does not add a redundant site build of
-its own; the observations go out with the next intraday refresh deploy, at most
-three hours later. The refresh and the realtime sampler both run every three
-hours, so an observation is never more than one sampling interval behind the
-site.
+its own; the observations go out with the next intraday refresh deploy. The
+refresh runs and publishes to S3 every three hours, but to cut S3 egress it
+redeploys the site only on every other cycle (those starting in the 00, 06, 12
+and 18 UTC windows; a manual dispatch always deploys), so the site can be up to
+about six hours behind S3. Watchdog's staleness check allows 14 hours for that
+reason.
 
 ### What each site build downloads from S3
 
@@ -324,7 +356,11 @@ uv run python scripts/check_site_seo.py \
 It checks internal links, assets, forms, fragments, duplicate IDs, head-only
 page metadata, exact canonical aliases, sitemap and robots rules, reciprocal
 HTTPS language links, required structured-data identity and dates, and the
-public no-tracking contract. A finding stops the build.
+site-measurement contract: exactly one `/src/measure.js` on every page, none on
+a redirect stub, no other telemetry host anywhere on the site, and no host but
+the declared ones inside that script (the PostHog host and, for GA4, the
+`measurement_ga4_host` loader origin). A finding stops the build. The report's
+`measured_pages` sits beside `html_files` so the two can be read together.
 
 It also measures two things a page can get wrong while every element is
 present. `title_length` and `description_length` in `site-seo.json` bound each
@@ -348,8 +384,19 @@ runs against `/`, `/agencies/`, `/agency/unitrans/`, and
 `/fix/expired_calendar/`, then retains the reports and log for 90 days. A
 manual watchdog dispatch runs both the availability and Lighthouse jobs.
 
-These are synthetic checks. The deployed pages do not load analytics, set
-tracking cookies, or send visitor beacons. Search Console setup is deliberately
+These are synthetic checks. The deployed pages load one first-party measurement
+script, `web/src/measure.js`, which sends page views and bundle checkout clicks
+to PostHog Cloud US only when the deploy wrote a `POSTHOG_KEY` into it (the
+"Write the measurement key into the assembled site" step in `pages.yml`; the
+committed copy has no key and sends nothing). The same step writes the GA4
+measurement id from `site-seo.json` into the script's second block, which then
+loads Google Analytics 4. The PostHog block sets no cookie; GA4 sets the `_ga`
+cookies outside the EEA, the UK and Switzerland. Both honor Global Privacy
+Control and Do Not Track, and GA4 never loads on `localhost`, so the Lighthouse
+runs above do not count as visits. See
+[ADR 0055](decisions/0055-cookieless-site-measurement.md),
+[ADR 0056](decisions/0056-google-analytics-4.md), and the statement at
+`/about/#privacy`. Search Console setup is deliberately
 outside the deployment: the domain owner can complete DNS verification and
 submit `https://gtfsscorecard.org/sitemap.xml`, but this repository must not
 store Search Console credentials, API configuration, or an automated

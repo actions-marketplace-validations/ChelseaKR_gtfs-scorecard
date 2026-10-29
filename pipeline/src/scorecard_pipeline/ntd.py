@@ -24,7 +24,8 @@ agency's own D-10 and P-50 filing.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from typing import Any
 
 from .metrics import expiry_status, resolve_service_horizon_status
@@ -39,6 +40,12 @@ NOT_READY = "not_ready"
 # had a defect we had never looked at. An unmeasured pillar therefore carries
 # this status, is left out of the overall verdict, and is named in the summary.
 NOT_CHECKED = "not_checked"
+# A feed whose every trip is GTFS-Flex demand-response service. It is measured,
+# but it is reported on its own row and is in no shapes.txt headline count: FTA's
+# July 2025 notice does not say whether such a feed is expected to carry shapes,
+# and a zone or time-window trip has no fixed path to trace. Deliberately outside
+# ``_RANK`` so nothing that ranks or counts the three coverage states picks it up.
+FLEX_ONLY = "flex_only"
 
 # Ranks the three verdicts we can actually reach. NOT_CHECKED is absent on
 # purpose: membership in this mapping is what "we measured it" means.
@@ -334,8 +341,9 @@ class ShapesReadiness:
     publish: Full Reporters from Report Year 2025, and Reduced, Rural, and Tribal
     Reporters from Report Year 2026
     (https://www.federalregister.gov/documents/2025/07/10/2025-12813/national-transit-database-reporting-changes-and-clarifications-for-report-years-2025-and-2026).
-    FTA estimated only just over a third of reporters already provided it when the
-    rule was finalized.
+    When FTA proposed the change in October 2024 it estimated that over one-third
+    of all reporters already maintained the file (document 2024-25341); the July
+    2025 final notice does not repeat the estimate.
 
     This checks the feed itself, not the agency's reporter type or reporting
     year, so a "not ready" result is a heads-up to check against your own NTD
@@ -350,6 +358,7 @@ class ShapesReadiness:
     fix: str  # the concrete action; empty when none is needed
     total_trips: int
     trips_with_shape: int
+    flex_only: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         out: dict[str, Any] = {
@@ -360,10 +369,16 @@ class ShapesReadiness:
         }
         if self.fix:
             out["fix"] = self.fix
+        if self.flex_only:
+            # Present only when true, so every artifact scored before this
+            # existed (no key) and every fixed-route feed serializes as before.
+            out["flex_only"] = True
         return out
 
 
-def assess_shapes_readiness(total_trips: int, trips_with_shape: int) -> ShapesReadiness:
+def assess_shapes_readiness(
+    total_trips: int, trips_with_shape: int, *, flex_only: bool = False
+) -> ShapesReadiness:
     """Assess shape coverage from a feed's own trip/shape counts.
 
     Takes the two counts directly (rather than a GTFS zip path) so the check is
@@ -371,12 +386,27 @@ def assess_shapes_readiness(total_trips: int, trips_with_shape: int) -> ShapesRe
     fields, the same pattern ``assess_id_alignment`` uses for agency_id.
     """
     if total_trips == 0:
+        # Not a verdict. There is no trip to carry a shape, so coverage has no
+        # denominator and the check did not run. NOT_READY here said "can't be
+        # checked" in the prose and counted the feed as a certification failure
+        # in the same breath, on the agency's page and in every pct_ready.
         return ShapesReadiness(
-            NOT_READY,
-            "trips.txt has no rows, so shape coverage can't be checked.",
+            NOT_CHECKED,
+            "trips.txt has no rows, so shape coverage could not be checked.",
             "",
             0,
             0,
+        )
+    if flex_only:
+        return ShapesReadiness(
+            FLEX_ONLY,
+            f"Every trip in this feed is GTFS-Flex demand-response service "
+            f"({trips_with_shape} of {total_trips} trips have a shape). Flex-only feeds are "
+            "reported on their own row and are not counted in the shapes.txt totals.",
+            "",
+            total_trips,
+            trips_with_shape,
+            True,
         )
     if trips_with_shape == 0:
         return ShapesReadiness(
@@ -419,6 +449,13 @@ class PortfolioSummary:
     not_ready: int
     pct_ready: float
     by_state: dict[str, dict[str, int]]
+    # Feeds set aside as Flex-only (shapes summary only; 0 for the readiness
+    # summary). They are in none of total/ready/at_risk/not_ready.
+    flex_only: int = 0
+    # The same feeds by state. Kept out of ``by_state`` because that mapping is a
+    # published format contract (ntd.json, the dataset release validator) with a
+    # fixed key set.
+    flex_only_by_state: dict[str, int] = field(default_factory=dict)
 
 
 def _state_of(artifact: dict[str, Any]) -> str:
@@ -473,8 +510,10 @@ def portfolio_summary(artifacts: list[dict[str, Any]]) -> PortfolioSummary:
 
 
 def shapes_status(artifact: dict[str, Any]) -> str | None:
-    """This feed's current shapes.txt readiness status, or None when the check
-    has not run for it (non-US feeds, or artifacts that predate the check).
+    """This feed's current shapes.txt readiness status, or None when there is
+    none: the check has not run for it (non-US feeds, or artifacts that predate
+    the check), or it ran and could not measure anything (a feed with no trips,
+    which has no denominator for coverage).
 
     Recomputed from the stored trip counts when they are present (the same
     pattern render_site's ``_current_shapes_readiness`` uses), so a threshold or
@@ -487,7 +526,14 @@ def shapes_status(artifact: dict[str, Any]) -> str | None:
     total = shapes.get("total_trips")
     with_shape = shapes.get("trips_with_shape")
     if isinstance(total, int) and isinstance(with_shape, int):
-        return assess_shapes_readiness(total, with_shape).status
+        status = assess_shapes_readiness(
+            total, with_shape, flex_only=shapes.get("flex_only") is True
+        ).status
+        # _RANK membership is what "we measured it" means, so a recomputed
+        # NOT_CHECKED leaves the population here exactly as an artifact that
+        # predates the check does. A Flex-only feed is measured too, but is its
+        # own state, kept out of the three-way count by the callers.
+        return status if status in _RANK or status == FLEX_ONLY else None
     stored = str(shapes.get("status", ""))
     return stored if stored in _RANK else None
 
@@ -509,6 +555,9 @@ def shapes_portfolio_summary(artifacts: list[dict[str, Any]]) -> PortfolioSummar
         if artifact.get("agency", {}).get("country", "US") == "US"
         and (status := shapes_status(artifact)) is not None
     ]
+    # Flex-only feeds are reported separately and are in no headline denominator.
+    flex_only = sum(1 for status, _ in counted if status == FLEX_ONLY)
+    counted = [(status, state) for status, state in counted if status != FLEX_ONLY]
     total = len(counted)
     ready = at_risk = not_ready = 0
     by_state: dict[str, dict[str, int]] = {}
@@ -524,8 +573,94 @@ def shapes_portfolio_summary(artifacts: list[dict[str, Any]]) -> PortfolioSummar
         else:
             not_ready += 1
             bucket["not_ready"] += 1
+    flex_only_by_state: dict[str, int] = {}
+    for artifact in artifacts:
+        if (
+            artifact.get("agency", {}).get("country", "US") == "US"
+            and shapes_status(artifact) == FLEX_ONLY
+        ):
+            state = _state_of(artifact)
+            flex_only_by_state[state] = flex_only_by_state.get(state, 0) + 1
     pct_ready = round(ready / total * 100, 1) if total else 0.0
-    return PortfolioSummary(total, ready, at_risk, not_ready, pct_ready, by_state)
+    return PortfolioSummary(
+        total, ready, at_risk, not_ready, pct_ready, by_state, flex_only, flex_only_by_state
+    )
+
+
+# A state gets its own /ntd/states/<slug>/ page only when at least this many of
+# its tracked feeds were actually measured for shapes coverage. Below it the
+# page would be a handful of rows that /ntd/shapes/ already carries in its state
+# table, and the site is still finding out how many of its generated pages
+# Google indexes at all. The number is a design choice, not a regulatory one.
+MIN_STATE_PAGE_FEEDS = 5
+
+
+def state_slug(state: str) -> str:
+    """URL slug for a state name: lowercase words joined by hyphens."""
+    return "-".join(re.findall(r"[a-z0-9]+", state.lower()))
+
+
+@dataclass(frozen=True)
+class StateFeedRow:
+    """One tracked feed on a state's RY2026 readiness page.
+
+    ``shapes`` and ``agency_id`` are ready / at_risk / not_ready, or None when the
+    check did not run for this feed. None is shown as "not checked" and is never
+    counted, so an unmeasured feed cannot read as a pass or a failure.
+    """
+
+    id: str
+    name: str
+    shapes: str | None
+    trips_with_shape: int | None
+    total_trips: int | None
+    agency_id: str | None
+    # The scoring run this row reflects, as recorded; the state page's sitemap
+    # lastmod is the newest of these. Unvalidated here, render_site checks it.
+    snapshot_date: str | None = None
+
+
+def state_pages(artifacts: list[dict[str, Any]]) -> dict[str, list[StateFeedRow]]:
+    """Per-state worklists of tracked US feeds for the RY2026 state pages.
+
+    Only states with at least ``MIN_STATE_PAGE_FEEDS`` feeds measured for shapes
+    coverage are returned. Feeds without a state are never grouped under a
+    made-up one.
+    """
+    grouped: dict[str, list[StateFeedRow]] = {}
+    for artifact in artifacts:
+        agency = artifact.get("agency", {})
+        if agency.get("country", "US") != "US":
+            continue
+        state = _state_of(artifact)
+        if state == "Unlocated":
+            continue
+        shapes = shapes_status(artifact)
+        counts = artifact.get("shapes_readiness") or {}
+        total = counts.get("total_trips") if shapes is not None else None
+        with_shape = counts.get("trips_with_shape") if shapes is not None else None
+        pillar = next((p for p in assess(artifact).pillars if p.key == "agency_id"), None)
+        agency_id = pillar.status if pillar is not None and pillar.status in _RANK else None
+        agency_key = str(agency.get("id", ""))
+        grouped.setdefault(state, []).append(
+            StateFeedRow(
+                id=agency_key,
+                name=str(agency.get("name") or agency_key),
+                shapes=shapes,
+                trips_with_shape=with_shape if isinstance(with_shape, int) else None,
+                total_trips=total if isinstance(total, int) else None,
+                agency_id=agency_id,
+                snapshot_date=artifact.get("snapshot_date"),
+            )
+        )
+    return {
+        state: sorted(
+            rows,
+            key=lambda r: (-_RANK.get(r.shapes or "", -1), r.name.lower(), r.id),
+        )
+        for state, rows in sorted(grouped.items())
+        if sum(1 for r in rows if r.shapes not in (None, FLEX_ONLY)) >= MIN_STATE_PAGE_FEEDS
+    }
 
 
 def one_fix_from_ready(artifacts: list[dict[str, Any]]) -> list[dict[str, Any]]:

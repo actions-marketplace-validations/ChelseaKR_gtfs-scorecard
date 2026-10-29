@@ -294,7 +294,7 @@ def _render_compare_page(catalog: list[dict[str, Any]]) -> str:
           return e;
         }}
         // A score cell; when this side is measured, higher, and the gap is real,
-        // the number is emphasised with a text note, never colour alone.
+        // the number is emphasized with a text note, never color alone.
         function scoreCell(mine, theirs) {{
           var td = el("td");
           if (mine === null) {{ td.textContent = "Not yet published"; return td; }}
@@ -654,7 +654,7 @@ _FFLATE_VERSION = "0.8.2"
 # The check page's logic, kept out of the f-string so braces stay readable.
 # The five questions mirror the rubric's plain-language framing; every status
 # is carried in text ("Looks good" / "Needs attention" / "Can't tell yet"),
-# never colour. See _render_check_page for the page around it.
+# never color. See _render_check_page for the page around it.
 _CHECK_PAGE_SCRIPT = r"""    <script>
       (function () {
         var input = document.getElementById("check-file");
@@ -930,7 +930,7 @@ def _render_check_page() -> str:
     The person exporting a feed from scheduling software does not run CI; this
     meets them at the moment of export. The zip never leaves the page (fflate
     unzips it client-side, loaded only when a file arrives), the five answers
-    are framed as fixes with a text status never colour, and the page is loud
+    are framed as fixes with a text status never color, and the page is loud
     that the canonical validator remains the authority: it links try.html for
     the full scorecard. The file input is the accessible primary; the drop
     zone is an enhancement."""
@@ -967,54 +967,98 @@ def _render_check_page() -> str:
     )
 
 
-# Every self-serve tool, one entry each: (href, name, one-sentence what-for).
+# Every self-serve tool, one entry each:
+# (href, name, one-sentence what-for, what it costs you to use).
+#
+# The last field used to be derived from the href ("GitHub account" for
+# /try.html, "No account" for everything else), which had no way to say
+# "Paid" and would have labeled the program bundle free. It is stated per
+# entry now, so an entry that costs money cannot be described as one that
+# does not by default.
 _TOOLS = [
     (
         "/app/",
         "Interactive app",
         "Browse every scorecard with live search, filters, and the state grid.",
+        "No account",
     ),
     (
         "/compare/",
         "Compare two agencies",
         "Check whether two scorecards are like-for-like before showing them side by side.",
+        "No account",
     ),
     (
         "/check/",
         "Check a feed before you publish",
         "Drop your GTFS zip in and get the five pre-publish questions answered; the file never leaves your browser.",
+        "No account",
+    ),
+    (
+        "/gtfs-validator/",
+        "GTFS validator and the scorecard grade",
+        "How the scorecard works with the MobilityData validator, how to check a feed, and what the grade does not claim.",
+        "No account",
     ),
     (
         "/try.html",
         "Request a one-off score",
         "Submit a published feed URL through the GitHub-backed request path, or run the scorer locally; hosted instant scoring is not enabled.",
+        "GitHub account",
     ),
-    ("/query/", "Query the dataset", "Run SQL over the covered dataset, right in the page."),
+    (
+        "/query/",
+        "Query the dataset",
+        "Run SQL over the covered dataset, right in the page.",
+        "No account",
+    ),
     (
         "/subscribe.html",
         "Feed-health alerts",
         "Get an email before a feed expires or when its grade changes.",
+        "No account",
     ),
-    ("/submit.html", "Add your agency", "Track a new feed on this site in about ten minutes."),
+    (
+        "/submit.html",
+        "Add your agency",
+        "Track a new feed on this site in about ten minutes.",
+        "No account",
+    ),
     (
         "/agency/unitrans/brief/",
         "Call-prep briefs",
         "Every agency has a printable one-page brief for a check-in call (this links an example; find yours from its scorecard).",
+        "No account",
     ),
     (
         "/agency/unitrans/board/",
         "Board-ready one-pagers",
         "Open a printable board summary for each agency (this links the Unitrans example).",
+        "No account",
+    ),
+    (
+        "/bundle/",
+        "Board reports for a whole program",
+        "Every agency a program supports, as one archive of those same board reports, branded with the program's name and logo; the single-agency report above stays free.",
+        "Paid",
     ),
     (
         "/procurement/",
         "For agencies: procurement",
         "Contract and acceptance-test language for holding a GTFS vendor to the same bar.",
+        "No account",
     ),
     (
         "/data/",
         "Open data",
         "Download the covered dataset, CC BY 4.0, with a versioned public API.",
+        "No account",
+    ),
+    (
+        "/data/history/",
+        "Scorecard history tables",
+        "Every dated check and every finding across the covered corpus as two Parquet tables, rebuilt monthly and licensed to one organization; the dated scorecards behind them stay free.",
+        "Paid",
     ),
 ]
 
@@ -1025,16 +1069,17 @@ def _render_tools_page() -> str:
     the primary nav."""
     items = "".join(
         f'<li class="finding"><p class="what"><a href="{esc(href)}">{esc(name)}</a> '
-        f'<span class="availability">{"GitHub account" if href == "/try.html" else "No account"}</span></p>'
+        f'<span class="availability">{esc(availability)}</span></p>'
         f'<p class="why">{esc(what)}</p></li>'
-        for href, name, what in _TOOLS
+        for href, name, what, availability in _TOOLS
     )
     body = f"""    {_breadcrumb([("Home", "/"), ("Tools", None)])}
     <a class="backlink" href="/">&larr; Home</a>
     <h1 class="page-title">Tools.</h1>
     <p class="page-lede">Everything on this site you can act with, not just read: check a
-    feed, request a full score, compare agencies, query the data, and get alerts. Most work
-    without an account; the one-off request is clearly marked because it uses GitHub.</p>
+    feed, request a full score, compare agencies, query the data, and get alerts. Each entry
+    says what it costs you. Most work without an account; the one-off request is marked because
+    it uses GitHub, and the two paid entries are marked because they are paid.</p>
     <ul class="findings">{items}</ul>
     <p class="fineprint">All of it is open source; the
     <a href="https://github.com/ChelseaKR/gtfs-scorecard">repository</a> has the CLI and

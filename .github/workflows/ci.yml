@@ -10,12 +10,26 @@ permissions:
 
 # Cancel superseded runs on the same ref (new push to a PR) to save minutes.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # `github.ref` is `refs/pull/N/merge` on a pull request, so grouping by it cancels
+  # superseded runs of the SAME pull request. That is the intent, and the saving, and it
+  # is kept.
+  #
+  # On a push it is `refs/heads/main` for EVERY commit, so consecutive pushes to main
+  # shared one group and the second canceled the first outright. Flipping
+  # `cancel-in-progress` to false does not fix it either: a queued run is then evicted
+  # from the pending slot by the next arrival. Both roads end with a commit on main whose
+  # only check-run is `cancelled`, and a canceled run is no signal at all — not a pass,
+  # not a failure, and easy to misread as either. Two commits lost their verdict this way
+  # on 2026-09-06.
+  #
+  # So a push is grouped by its own SHA and cancels nothing: one commit, one verdict.
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: pipeline
@@ -23,8 +37,14 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           persist-credentials: false
+          # tests/test_documented_action_ref.py checks that the release tag the
+          # public `uses:` examples pin actually exists. A default checkout
+          # fetches no tags, so that assertion would skip here and the gate
+          # would quietly stop covering the case it was written for.
+          fetch-tags: true
       - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
+          enable-cache: true
           python-version: "3.12"
       - run: uv sync --locked
       # CICD-27/OBS-22 parity: CI runs the exact same merge-blocking gate a
@@ -43,10 +63,10 @@ jobs:
       - run: uv build --wheel
       # Import and dispatch from the built artifact, not the editable checkout.
       # This catches package-data omissions in Marketplace/uvx installations.
-      - run: uvx --from dist/scorecard_pipeline-*.whl scorecard --help
+      - run: uvx --from dist/gtfs_scorecard-*.whl scorecard --help
       - name: Verify packaged data and sync receipt contract
         run: |
-          wheel="$(pwd)/$(find dist -name 'scorecard_pipeline-*.whl' -print -quit)"
+          wheel="$(pwd)/$(find dist -name 'gtfs_scorecard-*.whl' -print -quit)"
           isolated="$(mktemp -d)"
           uv venv "$isolated/venv"
           uv pip install --python "$isolated/venv/bin/python" "$wheel"

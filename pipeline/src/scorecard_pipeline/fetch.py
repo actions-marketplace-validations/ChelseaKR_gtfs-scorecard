@@ -12,25 +12,31 @@ import json
 import logging
 import shutil
 import zipfile
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .config import Agency, raw_dir
+from .config import Agency, FetchAuth, raw_dir
+from .feed_auth import (
+    AUTH_DISCLOSURE,
+    FETCH_AUTH_KINDS,
+    describe_failure,
+    published_url,
+    resolve_credential,
+)
 from .net import FetchTrace, UnresolvableHostError, UnsafeURLError, safe_download, safe_get
+from .robots_policy import USER_AGENT as ROBOTS_USER_AGENT
+from .robots_policy import shared_checker
+from .worklock import outside_heavy_section
 
 log = logging.getLogger(__name__)
 
-# Many agencies serve their public GTFS from behind a WAF or CDN that rejects
-# non-browser User-Agents with a 403 (the same way it would a scraper), which
-# blocked legitimate public-feed fetches used for exactly this kind of
-# consumption. Present as a current browser, the way Google's and Apple's
-# transit fetchers and ordinary trip planners do, with the Accept headers a
-# browser sends. We still fetch once a day and honour polling etiquette.
-USER_AGENT = (
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-)
+# Every feed request identifies the project and links to it, so a publisher
+# can see who is asking and say no. Until 2026-10-13 this presented as Chrome to
+# get past WAFs that refuse non-browser clients; the maintainer withdrew that
+# (ADR 0070). A host that refuses this User-Agent is recorded as unreachable.
+USER_AGENT = ROBOTS_USER_AGENT
 FEED_HEADERS = {
     "User-Agent": USER_AGENT,
     "Accept": "application/zip,application/octet-stream,application/x-zip-compressed,*/*",
@@ -127,6 +133,19 @@ class FetchProvenance:
     final_url: str
     max_attempts: int
     origin_error: str | None = None
+    # The fetch_auth kind when the bytes came from a credentialed request
+    # (#371); None for every keyless fetch. Never the credential.
+    auth_kind: str | None = None
+
+
+class CredentialedFetchError(RuntimeError):
+    """A credentialed request failed; the message never quotes a URL.
+
+    A requests error names the full URL it was fetching, and a ``query``
+    credential is part of that URL. This replaces it with the exception class
+    and HTTP status. It is raised ``from None`` so the original, URL-bearing
+    exception is not printed as the cause either.
+    """
 
 
 @dataclass(frozen=True)
@@ -159,6 +178,9 @@ class FetchResult:
     # file in one directory or added surrounding filename whitespace.
     reader_path: Path | None = None
     reader_archive_normalized: bool = False
+    # The fetch_auth kind the bytes were fetched with (#371), read back from
+    # the provenance sidecar on reuse. None for a keyless fetch.
+    auth_kind: str | None = None
 
     @property
     def reader_view_path(self) -> Path:
@@ -259,11 +281,67 @@ def _reader_members(archive: zipfile.ZipFile) -> list[ReaderMember]:
     return parsed
 
 
+#: Files whose presence in a directory marks that directory as the GTFS feed.
+#: The specification's required tables, plus the two calendar files and
+#: feed_info.txt, which is the same set the site's own "is this a feed?" check
+#: uses. A directory of producer notes, license text, or shapefiles carries none
+#: of them, so it is never mistaken for the feed itself.
+GTFS_FEED_MARKER_TABLES = frozenset(
+    {
+        "agency.txt",
+        "stops.txt",
+        "routes.txt",
+        "trips.txt",
+        "stop_times.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "feed_info.txt",
+    }
+)
+
+
+def _carries_gtfs_tables(names: Iterable[str]) -> bool:
+    """Whether any of ``names`` is a GTFS table, ignoring surrounding space."""
+    return any(name.strip() in GTFS_FEED_MARKER_TABLES for name in names)
+
+
+def _table_bearing_prefixes(nested_files: list[ReaderMember]) -> set[tuple[str, ...]]:
+    """Directory prefixes that directly hold at least one GTFS table.
+
+    A prefix is the member's full parent path, so ``a/b/stops.txt`` reports
+    ``("a", "b")``. Depth is not restricted: what identifies the feed directory
+    is the tables in it, not how many folders a producer wrapped around it.
+    """
+    return {
+        parts[:-1] for _entry, parts in nested_files if parts[-1].strip() in GTFS_FEED_MARKER_TABLES
+    }
+
+
 def _reader_mapping(parsed: list[ReaderMember]) -> ReaderMapping | None:
-    """The one allowed filename mapping, or None when no view is needed."""
+    """The one allowed filename mapping, or None when no view is needed.
+
+    Three rules, in order (issue #333):
+
+    1. A GTFS table at the archive root wins, and the root is read exactly as it
+       is today. A flat archive can take no other branch.
+    2. Otherwise the tables are resolved under the single directory prefix that
+       holds them, at whatever depth that prefix sits. GitLab's archive endpoint
+       wraps a feed in ``<repo>-<ref>-<path>/<path>/``, two folders deep, and the
+       one-folder rule that preceded this read those feeds as having no tables at
+       all.
+    3. Two or more prefixes holding tables is an ambiguous archive -- most likely
+       several agencies' feeds in one bundle -- and stays unreadable rather than
+       having one of them picked for it.
+    """
     root_files = [item for item in parsed if len(item[1]) == 1]
     nested_files = [item for item in parsed if len(item[1]) > 1]
-    if root_files:
+    prefixes = _table_bearing_prefixes(nested_files)
+    root_carries_tables = _carries_gtfs_tables(parts[0] for _entry, parts in root_files)
+
+    # Rule 1. Also the branch taken when nothing anywhere in the archive looks
+    # like a GTFS table, which keeps an archive with no feed in it on exactly
+    # the path it took before: no view, nothing read, and the scorer's refusal.
+    if root_files and (root_carries_tables or not prefixes):
         if not any(parts[0].strip() != parts[0] for _, parts in root_files):
             return None
         if nested_files:
@@ -274,6 +352,18 @@ def _reader_mapping(parsed: list[ReaderMember]) -> ReaderMapping | None:
         return [(entry, parts[0].strip()) for entry, parts in root_files]
     if not nested_files:
         return None
+
+    # Rule 3, before rule 2: an ambiguous archive must not be resolved at all.
+    if len(prefixes) > 1:
+        raise ValueError("GTFS archive has multiple possible root folders carrying GTFS tables")
+    # Rule 2. Only the chosen directory's own members become the reader view;
+    # anything filed elsewhere in the archive is not this feed's table.
+    if prefixes:
+        prefix = next(iter(prefixes))
+        return [(entry, parts[-1].strip()) for entry, parts in nested_files if parts[:-1] == prefix]
+
+    # No GTFS table anywhere in the archive. Reject the shapes that were
+    # rejected before, for the same reasons and with the same wording.
     if len({parts[0] for _, parts in nested_files}) != 1:
         raise ValueError("GTFS archive has multiple possible root folders")
     if any(len(parts) != 2 for _, parts in nested_files):
@@ -321,12 +411,16 @@ def prepare_reader_archive(path: Path, limits: ArchiveLimits | None = None) -> R
     packaging errors. Our readers use a separate view so freshness,
     completeness, and descriptive features do not all become falsely empty.
 
-    Only two unambiguous transforms are allowed: strip one common root folder,
-    and trim surrounding whitespace from a root filename. Mixed roots, deeper
-    trees, unsafe components, and names that collide after trimming are rejected
-    instead of guessing. A canonical root feed with harmless nested extras needs
-    no transform and conservatively stays on ``raw-v1``; a transformable wrapped
-    root mixed with another root is rejected. ``path`` itself is never modified.
+    Only two unambiguous transforms are allowed: strip the directory prefix that
+    holds the feed's tables, and trim surrounding whitespace from a filename. The
+    prefix is found by looking for GTFS tables rather than by counting folders,
+    so a feed wrapped two directories deep resolves as readily as one wrapped in
+    a single folder (issue #333). Unsafe components, names that collide after
+    trimming, and archives where two or more directories each hold GTFS tables
+    are rejected instead of guessed at: a bundle of several agencies' feeds must
+    never be scored as if it were one agency's. A canonical root feed with
+    harmless nested extras needs no transform and conservatively stays on
+    ``raw-v1``. ``path`` itself is never modified.
     """
     # Reproduce and any future direct caller get the same zip-bomb boundary as
     # fetch_static before we stream a single member into the reader view.
@@ -345,12 +439,22 @@ def prepare_reader_archive(path: Path, limits: ArchiveLimits | None = None) -> R
     return ReaderArchive(path=output, normalized=True)
 
 
-def _fetch_to(url: str, dest: Path, *, max_bytes: int, retries: int, large: bool) -> str:
+def _fetch_to(
+    url: str,
+    dest: Path,
+    *,
+    max_bytes: int,
+    retries: int,
+    large: bool,
+    credential_headers: dict[str, str] | None = None,
+) -> str:
     """Fetch ``url`` into ``dest``, returning the served final URL.
 
     A large feed streams straight to disk with a bounded memory footprint
     (net.safe_download); a standard feed keeps the existing buffer-then-write
     path so the 1,300 ordinary feeds see byte-for-byte the same behavior.
+    ``credential_headers`` are passed only by the credentialed path, and net.py
+    sends them to the requested URL's own origin only.
     """
     trace = FetchTrace()
     if large:
@@ -362,6 +466,7 @@ def _fetch_to(url: str, dest: Path, *, max_bytes: int, retries: int, large: bool
             max_bytes=max_bytes,
             retries=retries,
             trace=trace,
+            credential_headers=credential_headers,
         )
     else:
         body = safe_get(
@@ -371,9 +476,48 @@ def _fetch_to(url: str, dest: Path, *, max_bytes: int, retries: int, large: bool
             max_bytes=max_bytes,
             retries=retries,
             trace=trace,
+            credential_headers=credential_headers,
         )
         dest.write_bytes(body)
     return trace.final_url or url
+
+
+def _download_credentialed(
+    agency: Agency, auth: FetchAuth, dest: Path, limits: ArchiveLimits | None
+) -> FetchProvenance:
+    """Fetch a registration-walled feed with the credential its record names.
+
+    Fail-closed by construction (issue #371, feed_auth.py): the credential is
+    resolved before anything touches the network, so a missing variable raises
+    CredentialNotConfiguredError with no request made. There is no mirror
+    branch here at all. A failed request raises CredentialedFetchError, whose
+    message carries no URL. The recorded final URL is the published form
+    (scheme, host, path), because the query can hold the credential.
+    """
+    import requests
+
+    credential = resolve_credential(auth)
+    large = limits is not None
+    max_bytes = limits.max_download_bytes if limits else MAX_GTFS_DOWNLOAD_BYTES
+    try:
+        final_url = _fetch_to(
+            credential.apply_to_url(agency.static_gtfs_url),
+            dest,
+            max_bytes=max_bytes,
+            retries=FETCH_RETRIES,
+            large=large,
+            credential_headers=credential.headers or None,
+        )
+    except (requests.exceptions.RequestException, UnsafeURLError) as exc:
+        raise CredentialedFetchError(
+            f"credentialed fetch of the configured feed failed: {describe_failure(exc)}"
+        ) from None
+    return FetchProvenance(
+        source="origin",
+        final_url=published_url(final_url),
+        max_attempts=FETCH_RETRIES + 1,
+        auth_kind=credential.kind,
+    )
 
 
 def _download_with_mirror_fallback(
@@ -391,8 +535,17 @@ def _download_with_mirror_fallback(
     Returns a FetchProvenance stating which URL actually served the bytes now on
     disk, so the published artifact can say "we scored the mirror copy" instead
     of passing a mirror fetch off as an origin fetch.
+
+    A record with ``fetch_auth`` never reaches the fallback below: it goes to
+    _download_credentialed, which has no mirror branch (issue #371).
     """
     import requests
+
+    # ADR 0070: robots.txt first. A refusal raises RobotsRefusedError, which the
+    # run records as "not fetched", never as the agency's outage or a score.
+    shared_checker().require(agency.static_gtfs_url)
+    if agency.fetch_auth is not None:
+        return _download_credentialed(agency, agency.fetch_auth, dest, limits)
 
     large = limits is not None
     max_bytes = limits.max_download_bytes if limits else MAX_GTFS_DOWNLOAD_BYTES
@@ -417,6 +570,34 @@ def _download_with_mirror_fallback(
                 agency.id, agency.name, agency.static_gtfs_url, agency.mdb_id
             )
         if not mirror:
+            raise
+        from urllib.parse import urlsplit
+
+        from .mobilitydb import DISALLOWED_CATALOG_HOSTS
+
+        if (urlsplit(mirror).hostname or "").lower() in DISALLOWED_CATALOG_HOSTS:
+            # ADR 0070: the Mobility Database's hosted copies live on a host
+            # whose robots.txt disallows every path. Not even asked.
+            log.warning(
+                "%s: origin %s unreachable (%s); no mirror fallback (%s is not read)",
+                agency.id,
+                agency.static_gtfs_url,
+                type(origin_exc).__name__,
+                urlsplit(mirror).hostname,
+            )
+            raise
+        mirror_verdict = shared_checker().check(mirror)
+        if not mirror_verdict.allowed:
+            # The mirror host's robots.txt refuses us, so the origin's own
+            # failure stands.
+            log.warning(
+                "%s: origin %s unreachable (%s); mirror %s not fetched (%s)",
+                agency.id,
+                agency.static_gtfs_url,
+                type(origin_exc).__name__,
+                mirror,
+                mirror_verdict.reason,
+            )
             raise
         log.warning(
             "%s: origin %s unreachable (%s); falling back to Mobility Database mirror %s",
@@ -448,6 +629,11 @@ def _write_provenance_sidecar(dest: Path, prov: FetchProvenance) -> None:
     }
     if prov.origin_error:
         payload["origin_error"] = prov.origin_error
+    if prov.auth_kind:
+        # The disclosure, never the credential: a rerun that reuses these bytes
+        # must still say they came from a gated endpoint.
+        payload["auth"] = AUTH_DISCLOSURE
+        payload["auth_kind"] = prov.auth_kind
     sidecar = dest.parent / PROVENANCE_FILENAME
     sidecar.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
@@ -464,6 +650,16 @@ def _read_provenance_sidecar(dest: Path) -> dict[str, Any]:
     except (OSError, json.JSONDecodeError):
         return {}
     return data if isinstance(data, dict) else {}
+
+
+def _recorded_auth_kind(recorded: dict[str, Any]) -> str | None:
+    """The auth kind a sidecar records, or None when it records none or an
+    unrecognized one. Only the fixed disclosure and a known kind are read
+    back, so a hand-edited sidecar cannot put arbitrary text in an artifact."""
+    kind = recorded.get("auth_kind")
+    if recorded.get("auth") == AUTH_DISCLOSURE and kind in FETCH_AUTH_KINDS:
+        return str(kind)
+    return None
 
 
 def fetch_static(agency: Agency, date: dt.date, force: bool = False) -> FetchResult:
@@ -498,19 +694,25 @@ def fetch_static(agency: Agency, date: dt.date, force: bool = False) -> FetchRes
             origin_error=str(recorded["origin_error"]) if recorded.get("origin_error") else None,
             reader_path=reader_archive.path,
             reader_archive_normalized=reader_archive.normalized,
+            auth_kind=_recorded_auth_kind(recorded),
         )
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     log.info("%s: downloading %s", agency.id, agency.static_gtfs_url)
     tmp = dest.with_suffix(".zip.part")
     try:
-        prov = _download_with_mirror_fallback(agency, tmp, limits)
+        # Waiting on a server is not heavy work: a sibling run may validate
+        # meanwhile (worklock.py; a no-op outside the intraday rescore).
+        with outside_heavy_section():
+            prov = _download_with_mirror_fallback(agency, tmp, limits)
     except BaseException:
         tmp.unlink(missing_ok=True)
         raise
 
     if not zipfile.is_zipfile(tmp):
         tmp.unlink(missing_ok=True)
+        # static_gtfs_url is the credential-free URL on file, even for a
+        # credentialed record: a query credential is appended only in flight.
         raise ValueError(f"{agency.id}: response from {agency.static_gtfs_url} is not a zip")
     try:
         _validate_gtfs_archive(tmp, limits)
@@ -536,4 +738,5 @@ def fetch_static(agency: Agency, date: dt.date, force: bool = False) -> FetchRes
         origin_error=prov.origin_error,
         reader_path=reader_archive.path,
         reader_archive_normalized=reader_archive.normalized,
+        auth_kind=prov.auth_kind,
     )

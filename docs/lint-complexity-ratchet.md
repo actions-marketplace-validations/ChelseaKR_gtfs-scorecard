@@ -16,7 +16,40 @@ debt explicitly here with a dated, visible `# noqa: C901` at each site
 pointing back to this file — rather than leaving `C90` out of `select`
 (which would let the audit's FAIL stand unchanged) or leaving CI red.
 
-**Last synced:** 2026-08-27, from the regenerated table that
+**Last synced:** 2026-09-18, on the intraday refresh's time budget.
+`_cmd_liveness` fell from 13 to 12: choosing which feeds a sweep checks moved
+into `_liveness_targets`, and the checks themselves into `liveness.check_feeds`,
+which now runs them side by side across hosts. `run_agency` did not change. The
+turn at heavy work it now runs inside is taken by `_cmd_run` and handed back
+inside `fetch_static` and `_realtime_categories`, so it gained no branch. Only
+the `_cmd_liveness` row was edited, and the table still holds fourteen.
+
+**Synced before this:** 2026-09-12, on publishing `/program/` as a static index of the
+program rollups. Two numbers fell and none rose: `render_site` 56 to 53, because
+the rollup loop and both its guards moved into `_write_program_pages` rather than
+the index being written inside the one function in this module already listed as
+debt; and `_render_brief` 16 to 14, because the two nested conditions behind its
+portfolio backlink became one `_portfolio_pointer` call, now shared with the
+agency page. `_render_agency` gained that line and stayed at 13 for the same
+reason. No row was added or removed, and the table still holds fourteen.
+
+**Synced earlier that day:** on merging `main` into #362. `_cmd_try` crossed
+the floor at 12 without either branch putting it there: `--batch` (#363) added
+its dispatch and `--history` (#362) added its recording block in the same
+week, and each was under the floor on its own. No row was added for it. Its
+optional-output blocks moved into `_try_side_outputs`, which took `_cmd_try`
+back under the floor with no suppression, per this file's rule that a new
+`# noqa: C901` needs discussion and its instruction to ratchet down when
+touching a function for a feature. That edit moved `_cmd_liveness` to
+`cli.py:3076`; no number changed, and the table still holds fourteen rows.
+
+**Previously synced:** 2026-09-11, when `build_digest` fell under the floor:
+its per-feed alert logic moved into `alerts.feed_alert_items` so the private
+workspace trend of #362 raises the same items, and its row and suppression
+were removed. The table was regenerated with the file:line each function has
+today; no other number changed.
+
+**Synced before that:** 2026-08-27, from the regenerated table that
 `pipeline/tests/test_complexity_ratchet.py` prints. The file:line column moved
 when `render_site` gained the per-feed failure context of issue #308; no number
 changed. Synced by hand earlier the same day alongside the seasonal-boundary
@@ -47,27 +80,26 @@ without discussion.
 
 | Function | File:line | Complexity | Note |
 |---|---|---|---|
-| `render_site` | `src/scorecard_pipeline/render_site.py:10034` | 56 | Top-level orchestrator calling every page renderer in sequence; the biggest single item here — candidate: split into `render_site` (thin driver) plus a registry of `(route, render_fn)` pairs. The 56th branch attaches the NTD reporter-coverage block only when the committed snapshot reconciles (#278), so a reporter count that does not add up is never written into `ntd.json`. |
+| `render_site` | `src/scorecard_pipeline/render_site.py:10685` | 53 | Top-level orchestrator calling every page renderer in sequence; the biggest single item here — candidate: split into `render_site` (thin driver) plus a registry of `(route, render_fn)` pairs. Down from 56 on 2026-09-12: the rollup loop and both its guards moved into `_write_program_pages`, so the page family that gained a `/program/` index did not add a branch here. |
 | `parse_agencies` | `src/scorecard_pipeline/agencies.py:171` | 36 | Config-parsing fan-out over many optional YAML fields; candidate: split per-field validators. |
 | `propose_agencies_with_dispositions` | `src/scorecard_pipeline/mobilitydb.py:666` | 32 | Mobility Database matching heuristics; candidate: extract match-scoring helper. Was tracked as `propose_agencies`, which is now a thin wrapper at `mobilitydb.py:909` with no suppression. |
-| `render_digest` | `src/scorecard_pipeline/alerts.py:526` | 17 | Digest section assembly; candidate: extract one function per digest section. |
-| `_render_brief` | `src/scorecard_pipeline/render_site.py:3059` | 16 | Template string assembly. |
-| `completeness` | `src/scorecard_pipeline/completeness.py:209` | 16 | Rider-experience field scoring; candidate: extract per-field scorers. The 16th branch is the guard that returns no category at all for an archive with no stops and no trips, so a rider-experience score is never published for a feed that described none. |
+| `render_digest` | `src/scorecard_pipeline/alerts.py:550` | 17 | Digest section assembly; candidate: extract one function per digest section. |
 | `parse_subscribers` | `src/scorecard_pipeline/notify.py:87` | 15 | Subscriber YAML parsing and validation; candidate: split per-field validators (same shape as `parse_agencies`). |
-| `build_digest` | `src/scorecard_pipeline/alerts.py:426` | 14 | Alert digest construction. Was suppressed with a bare `# noqa: C901` and no row; both fixed here. |
+| `completeness` | `src/scorecard_pipeline/completeness.py:278` | 14 | Rider-experience field scoring; candidate: extract per-field scorers. One of its branches is the guard that returns no category at all for an archive with no stops and no trips, so a rider-experience score is never published for a feed that described none. Down from 16 on 2026-10-01: the headsign passes moved into `_headsign_credit` when `stop_headsign` credit was added (ADR 0060). |
+| `_render_brief` | `src/scorecard_pipeline/render_site.py:3148` | 14 | Template string assembly. |
 | `parse_ridership_csv` | `src/scorecard_pipeline/ridership.py:58` | 14 | CSV column-mapping heuristics; candidate: extract per-column parsers. |
-| `_cmd_liveness` | `src/scorecard_pipeline/cli.py:2611` | 13 | CLI subcommand with several independent check branches; candidate: table-driven checks. |
-| `_render_agency` | `src/scorecard_pipeline/render_site.py:2641` | 13 | Template string assembly. Its suppression pointed at this file and had no row; added here. |
+| `_render_agency` | `src/scorecard_pipeline/render_site.py:2652` | 13 | Template string assembly. Its suppression pointed at this file and had no row; added here. |
 | `route_type_family` | `src/scorecard_pipeline/modes.py:48` | 13 | GTFS route-type classification. Moved here from `route_geometry.py`, which now keeps a two-line wrapper with no suppression. Its `# noqa` carries its own rationale ("explicit spec range mapping") rather than pointing at this file; that is a deliberate permanent exemption, listed so the count reconciles. |
-| `_board_hero` | `src/scorecard_pipeline/render_site.py:1144` | 12 | Template string assembly with several conditional blocks. |
+| `_board_hero` | `src/scorecard_pipeline/render_site.py:1155` | 12 | Template string assembly with several conditional blocks. |
+| `_cmd_liveness` | `src/scorecard_pipeline/cli.py:3246` | 12 | CLI subcommand with several independent check branches; candidate: table-driven checks. |
 | `compute_drift` | `src/scorecard_pipeline/rt_drift.py:96` | 12 | Schedule-vs-RT drift computation; candidate: extract per-window drift helper. |
-| `run_agency` | `src/scorecard_pipeline/cli.py:170` | 12 | Per-agency run driver. Was suppressed with a bare `# noqa: C901` and no row; both fixed here. |
+| `run_agency` | `src/scorecard_pipeline/cli.py:183` | 12 | Per-agency run driver. Was suppressed with a bare `# noqa: C901` and no row; both fixed here. |
 
-Fifteen sites, sorted by how far over the floor they sit. Three rows that used
+Fourteen sites, sorted by how far over the floor they sit. Four rows that used
 to be here are gone because the functions are now under the floor:
 `_md_to_html` (`render_site.py:5182`), `_render_agency_index`
-(`render_site.py:4445`), and `realtime` (`rt.py`, was 29, issue #250). None of
-them carries a suppression any more.
+(`render_site.py:4445`), and `realtime` (`rt.py`, was 29, issue #250), and `build_digest` (`alerts.py`, was 14,
+issue #362). None of them carries a suppression any more.
 
 ## Plan
 
@@ -83,7 +115,7 @@ below still reading 54 against ruff's 55.
 
 Ratchet down opportunistically: when touching any function above for a
 feature/bugfix, refactor it under the threshold and delete its row rather
-than editing around it. `render_site` (56), `parse_agencies` (36) and
+than editing around it. `render_site` (53), `parse_agencies` (36) and
 `propose_agencies_with_dispositions` (32) are the highest-value targets given
 how far over the floor they sit. Re-run
 `ruff check --statistics` after each removal to confirm the count only goes

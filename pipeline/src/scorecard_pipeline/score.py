@@ -27,7 +27,7 @@ GRADE_BANDS = [(90.0, "A"), (80.0, "B"), (70.0, "C"), (60.0, "D"), (0.0, "F")]
 # The overall score is published to one decimal. The letter and the band
 # margins have to be derived from that same published number, not from the
 # unrounded value behind it: a raw 79.96875 publishes as "80.0", and grading
-# the raw value labelled it C while docs/rubric.md and the published
+# the raw value labeled it C while docs/rubric.md and the published
 # scoring.json both say 80 is a B. Nine live artifacts carried a letter that
 # contradicted their own printed score that way (bus-eireann, express-bus-ie,
 # slieve-bloom-coach-tours, cape-ann-transportation-authority-cata-447,
@@ -84,6 +84,21 @@ def published_overall(score: float) -> dict[str, Any]:
 # national effect ships with the change (canary.py, docs/rubric.md "Governed
 # upgrades").
 METHODOLOGY_CHANGELOG: list[dict[str, str]] = [
+    {
+        "rubric_version": "1.4",
+        "effective_date": "2026-10-01",
+        "summary": (
+            "A trip now counts as having a headsign when it carries trip_headsign or "
+            "when every one of its stop times carries stop_headsign, as the GTFS "
+            "reference allows. Feeds that publish destinations only per stop, such "
+            "as TriMet's, were scored as having none. Artifacts keep the literal "
+            "trip_headsign share and add a count of trips credited through "
+            "stop_headsign. See ADR 0060. When feed_info's end date is earlier than "
+            "a service calendar that runs on, the expiry finding now names both "
+            "dates and asks for that one field to be corrected. Freshness still "
+            "scores the declared end date, so no score moves (ADR 0061)."
+        ),
+    },
     {
         "rubric_version": "1.3",
         "effective_date": "2026-07-24",
@@ -256,6 +271,7 @@ def grade_margins(score: float) -> tuple[float | None, float]:
 _OPERATIONAL_CODES = (
     "scorecard_feed_expired",
     "scorecard_feed_expiring_soon",
+    "scorecard_feed_end_date_before_calendar",
     "scorecard_no_expiry_date",
 )
 

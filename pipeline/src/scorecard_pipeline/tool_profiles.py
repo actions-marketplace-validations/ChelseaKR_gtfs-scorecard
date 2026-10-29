@@ -41,6 +41,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .config import repo_root
+from .url_redaction import redact_url_text
 
 # How a fix reaches the published feed, per tool.
 #   hosted    — a service produces and hosts the feed; the agency asks them.
@@ -276,6 +277,21 @@ _NAME_SUFFIXES = (
 _SNAPSHOT = Path("data") / "feed-publishers.json"
 
 
+#: Every producing-tool profile, by its key. ``detect_tool`` answers from a feed
+#: URL; a caller who already knows which tool an agency uses (the MCP server's
+#: ``explain_finding``, say) needs the same guidance without one. An unknown key
+#: returns None rather than the nearest match: naming the wrong vendor in a fix
+#: path is worse than being generic.
+PROFILES_BY_KEY: dict[str, ToolProfile] = {
+    profile.key: profile for profile in (_TRILLIUM, _GTFS_BUILDER, _REMIX, _PASSIO, _REPO, _ARCHIVE)
+}
+
+
+def profile_for_key(key: str) -> ToolProfile | None:
+    """The tool profile for a key, or None when the key is not one we profile."""
+    return PROFILES_BY_KEY.get(str(key).strip().casefold())
+
+
 def _host(url: str) -> str:
     netloc = urlparse(url).netloc.lower()
     netloc = netloc.split("@")[-1].split(":")[0]
@@ -342,10 +358,15 @@ def _load_snapshot(path: Path) -> dict[str, tuple[str, str]]:
         url = str(record.get("url") or "")
         if not url:
             continue
-        index[url] = (
+        declaration = (
             str(record.get("publisher_name") or ""),
             str(record.get("publisher_url") or ""),
         )
+        index[url] = declaration
+        # A published artifact names the feed by its redacted URL (ADR 0066),
+        # so the declaration answers to that form too. A clean URL maps to
+        # itself and adds nothing.
+        index.setdefault(redact_url_text(url), declaration)
     return index
 
 

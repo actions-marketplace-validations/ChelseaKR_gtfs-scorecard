@@ -11,15 +11,25 @@ The deploy bundles the scorecard_pipeline package alongside these files
 request validation is the pipeline's own parse_request and not a second copy.
 
 Environment (set by Terraform):
-  GITHUB_TOKEN          fine-scoped token with actions: write on the repo
+  GITHUB_TOKEN          fine-scoped token: actions: write to dispatch the
+                        fulfillment workflow, issues: write for the daily
+                        reconciler's standing report (reconcile_handler.py)
   GITHUB_REPO           owner/name, e.g. ChelseaKR/gtfs-scorecard
   WORKFLOW_FILE         report-bundle.yml
   WORKFLOW_REF          branch to dispatch on, default main
   STRIPE_SECRET_KEY     restricted key: read checkout sessions only
   STRIPE_WEBHOOK_SECRET signing secret of the one webhook endpoint
+  STRIPE_PRICE_IDS      JSON of terraform's stripe_price_ids: plan key -> price id
+  PAYMENTS_ENABLED      "1" while the purchase surface is open; anything else closes it
+  GOOGLE_ADS_CONVERSION_ACTION
+                        Google Ads conversion action resource name; blank (default)
+                        keeps conversion_tracking.py's seam a no-op. Read by the
+                        webhook only, wired through this env block like every other
+                        variable here.
   SUBSCRIPTIONS_TABLE   DynamoDB table of subscriptions (hash: id)
   BUNDLES_TABLE         DynamoDB table of bundle capabilities (hash: bundle_id)
-  ARTIFACTS_BUCKET      where report-bundle.yml puts program-bundles/<id>/bundle.zip
+  ARTIFACTS_BUCKET      private bucket: orders in program-requests/, archives
+                        in program-bundles/
   ALLOW_ORIGIN          CORS origin of the setup form (never '*')
 """
 
@@ -30,6 +40,8 @@ import hashlib
 import hmac
 import json
 import os
+import re
+import secrets
 import time
 import urllib.error
 import urllib.parse
@@ -42,12 +54,95 @@ STRIPE_API = "https://api.stripe.com"
 # Kept in step with scorecard_pipeline.bundle.DOWNLOAD_DAYS and the S3
 # lifecycle rule for program-bundles/ in infra/artifacts/main.tf.
 DOWNLOAD_DAYS = 30
+# Where a validated order is stored for report-bundle.yml to collect, and the
+# shape of the reference that names it. The prefix is outside the CloudFront
+# allow-list and expires with the same 30-day rule as the archives (infra/
+# artifacts/main.tf): an order lives only as long as the capability row that
+# can re-dispatch it.
+REQUESTS_PREFIX = "program-requests/"
+ORDER_REF_RE = re.compile(r"^[a-f0-9]{32}$")
 # Stripe's own recommended replay tolerance for the signed timestamp.
 SIGNATURE_TOLERANCE_SECONDS = 300
 
 
+# What each price buys (docs/program-plan.md, "Prices"). The setup route holds
+# the agency list to the cap of the price that was actually paid for. Keys
+# match terraform's stripe_price_ids and web/bundle/plan.json's products.
+#
+# These are ceilings, not entitlements, and the difference is the whole point
+# of setup_handler._inherited_cap. A refresh renews a bundle somebody already
+# bought and covers the agencies *that bundle* covers, so the 100 on the two
+# refresh rows is only the widest a refresh could ever be, never what one buys
+# on its own. Read as an entitlement it made the cheapest product dominate the
+# most expensive one: $49 a month delivered the same 100-agency archive the
+# $349 bundle sells, because the caps were equal and nothing required the
+# bundle first. The equal caps were deliberate; the arbitrage was not.
+PLAN_AGENCY_CAPS: dict[str, int] = {
+    "bundle_25": 25,
+    "bundle_100": 100,
+    "refresh_mo": 100,
+    "refresh_yr": 100,
+}
+# The one-time archives, and the subscriptions that renew one. Every key of
+# PLAN_AGENCY_CAPS belongs to exactly one of these two; a plan in neither
+# would be sold with no cap rule at all, which is what the setup route's
+# entitlement check would then have to guess at.
+ONE_TIME_PLANS = ("bundle_25", "bundle_100")
+SUBSCRIPTION_PLANS = ("refresh_mo", "refresh_yr")
+# The history tables (ADR 0063, docs/history-tables.md): a one-time purchase
+# of the newest monthly export that history-export.yml wrote. Not a bundle:
+# there is no agency list, no cap, no workflow dispatch, and a history
+# purchase never counts as a bundle a refresh could renew. The key matches
+# terraform's history_price_id and web/data/history/plan.json.
+HISTORY_PLANS = ("history_once",)
+# Every plan a configured price may sell. price_plans() recognizes nothing
+# outside this tuple, so a price id typed against an unknown key sells nothing.
+KNOWN_PLANS = (*PLAN_AGENCY_CAPS, *HISTORY_PLANS)
+# Where history-export.yml writes each month's zip: one shared object per
+# month, outside the CloudFront allow-list, reachable only through the
+# download route, which presigns the one key a capability row names.
+HISTORY_PREFIX = "history/"
+HISTORY_OBJECT_RE = re.compile(r"^history/(\d{4}-\d{2})/history\.zip$")
+# Key prefixes in the bundles table. A bare bundle id is a capability row; a
+# `session#` row is the setup route's claim on a Checkout Session, and a
+# `checkout#` row is the webhook's note of a completed checkout. Neither
+# prefixed row carries `expires_at`, so both outlive the 30-day capability
+# TTL -- which is what lets a refresh bought in March find the bundle bought
+# in January (setup_handler._inherited_cap).
+SESSION_PREFIX = "session#"
+CHECKOUT_PREFIX = "checkout#"
+# One page of line items is plenty: every Payment Link scripts/stripe-setup.sh
+# creates has exactly one, and a longer list is refused unread.
+_LINE_ITEMS_LIMIT = 10
+
+
 class UpstreamError(RuntimeError):
-    """A GitHub or Stripe call failed; the message is safe to log, not to show."""
+    """A GitHub or Stripe call failed; the message is safe to log, not to show.
+
+    ``status`` is the HTTP status when the service answered, else None.
+    """
+
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+def payments_enabled() -> bool:
+    """True only while Terraform has opened the purchase surface. The API
+    route for the setup form is removed when the gate is closed; this is the
+    same gate read again inside the Lambda, so a stale route or a direct
+    invoke cannot build anything either."""
+    return os.environ.get("PAYMENTS_ENABLED", "0") == "1"
+
+
+def history_enabled() -> bool:
+    """True only while Terraform has opened the history tier as well.
+
+    A second gate inside :func:`payments_enabled`, read from HISTORY_ENABLED,
+    so the bundle can be on sale while the history tables are not yet, and a
+    history checkout that arrives early is refused with its checkout unused
+    rather than delivered from a store with nothing in it."""
+    return payments_enabled() and os.environ.get("HISTORY_ENABLED", "0") == "1"
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +182,7 @@ def epoch_in(days: int) -> int:
 
 
 # ---------------------------------------------------------------------------
-# GitHub: dispatch the fulfilment workflow
+# GitHub: dispatch the fulfillment workflow
 # ---------------------------------------------------------------------------
 
 
@@ -103,18 +198,58 @@ def _request(
         with urllib.request.urlopen(req, timeout=20) as resp:  # noqa: S310 - fixed hosts only
             raw = resp.read().decode()
     except urllib.error.HTTPError as err:
-        raise UpstreamError(f"{method} {url} -> HTTP {err.code}") from err
+        raise UpstreamError(f"{method} {url} -> HTTP {err.code}", status=err.code) from err
     except (urllib.error.URLError, OSError) as err:
         raise UpstreamError(f"{method} {url} failed: {err}") from err
     return json.loads(raw) if raw.strip() else {}
 
 
-def dispatch_bundle_workflow(inputs: dict[str, str]) -> None:
-    """POST a workflow_dispatch for report-bundle.yml with the given inputs.
+def new_order_ref() -> str:
+    """A fresh 128-bit name for one dispatched order. Not the bundle id, and not derived from
+    it: it appears in a public run log, so it must reveal nothing, and on its own it grants
+    nothing (the object it names is readable only by the workflow's AWS role)."""
+    return secrets.token_hex(16)
 
-    GitHub returns 204 with no body on success. Inputs are the workflow's
-    declared inputs and nothing else; the workflow re-validates every one.
+
+def request_key(order_ref: str) -> str:
+    """Where :func:`store_request` puts an order, and where report-bundle.yml reads it."""
+    if not ORDER_REF_RE.fullmatch(order_ref):
+        raise ValueError("an order reference is 32 lowercase hex characters")
+    return f"{REQUESTS_PREFIX}{order_ref}.json"
+
+
+def store_request(order_ref: str, request: dict[str, Any]) -> None:
+    """Write one validated order to the private bucket for the workflow to collect.
+
+    Raises UpstreamError when the write fails, so the caller answers "could not start" and the
+    buyer can resend the same checkout, exactly as for a failed dispatch.
     """
+    body = json.dumps(request, sort_keys=True).encode()
+    try:
+        import boto3
+
+        s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-west-2"))
+        s3.put_object(
+            Bucket=os.environ["ARTIFACTS_BUCKET"],
+            Key=request_key(order_ref),
+            Body=body,
+            ContentType="application/json",
+            ServerSideEncryption="AES256",
+        )
+    except Exception as err:  # botocore ClientError, EndpointConnectionError, a missing bucket
+        raise UpstreamError(f"storing the order request failed: {type(err).__name__}") from err
+
+
+def dispatch_bundle_workflow(order_ref: str) -> None:
+    """POST a workflow_dispatch for report-bundle.yml naming one stored order.
+
+    The one input is the order reference. Nothing a buyer typed and nothing
+    that grants access (the bundle id is the download capability) travels in
+    the dispatch, because GitHub prints a step's environment in the run log
+    and this repository's run logs are public. GitHub returns 204 with no body
+    on success.
+    """
+    request_key(order_ref)  # refuses a malformed reference before anything is sent
     repo = os.environ["GITHUB_REPO"]
     workflow = os.environ.get("WORKFLOW_FILE", "report-bundle.yml")
     ref = os.environ.get("WORKFLOW_REF", "main")
@@ -125,24 +260,26 @@ def dispatch_bundle_workflow(inputs: dict[str, str]) -> None:
             "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
             "Accept": "application/vnd.github+json",
         },
-        {"ref": ref, "inputs": inputs},
+        {"ref": ref, "inputs": {"order_ref": order_ref}},
     )
 
 
-def workflow_inputs(request: dict[str, Any]) -> dict[str, str]:
-    """The workflow_dispatch inputs for a stored or validated request dict."""
-    agency_ids = request.get("agency_ids") or []
-    if isinstance(agency_ids, list | tuple):
-        agency_ids = ",".join(str(a) for a in agency_ids)
-    return {
-        "bundle_id": str(request["bundle_id"]),
-        "program_name": str(request["program_name"]),
-        "accent": str(request.get("accent") or ""),
-        "logo": str(request.get("logo") or ""),
-        "agency_ids": str(agency_ids),
-        "deliver_to": str(request["deliver_to"]),
-        "cadence": str(request.get("cadence") or "one_time"),
-    }
+def github_request(method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
+    """One authenticated call against this repository's GitHub API.
+
+    Shares the workflow_dispatch token. Raises UpstreamError on any non-2xx,
+    so a caller that cannot reach GitHub fails rather than carrying on.
+    """
+    repo = os.environ["GITHUB_REPO"]
+    return _request(
+        method,
+        f"{GITHUB_API}/repos/{repo}{path}",
+        {
+            "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+            "Accept": "application/vnd.github+json",
+        },
+        payload,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -157,6 +294,86 @@ def stripe_get(path: str) -> dict[str, Any]:
         raise UpstreamError("STRIPE_SECRET_KEY is not configured")
     out = _request("GET", f"{STRIPE_API}{path}", {"Authorization": f"Bearer {key}"})
     return out if isinstance(out, dict) else {}
+
+
+def price_plans() -> dict[str, str]:
+    """Map each configured Stripe price id to the plan it sells.
+
+    Read from STRIPE_PRICE_IDS on every call. A blank id, an unknown plan
+    key, or unreadable JSON recognizes nothing, and an id configured for two
+    plans is dropped rather than guessed: a half-configured deploy refuses a
+    purchase it cannot place, and never sells more than was paid for.
+    """
+    raw = os.environ.get("STRIPE_PRICE_IDS") or "{}"
+    try:
+        configured = json.loads(raw)
+    except ValueError:
+        # Refusing everything is the right behavior, but doing it silently is
+        # not: from the outside a mangled price map is indistinguishable from
+        # nobody having bought anything. Say so, once per call, in the log.
+        print("STRIPE_PRICE_IDS is not readable JSON; no price is recognized")
+        return {}
+    if not isinstance(configured, dict):
+        print("STRIPE_PRICE_IDS is not a JSON object; no price is recognized")
+        return {}
+    plans: dict[str, str] = {}
+    ambiguous: set[str] = set()
+    for plan, price in configured.items():
+        if plan not in KNOWN_PLANS or not isinstance(price, str) or not price.strip():
+            continue
+        price = price.strip()
+        if price in plans:
+            ambiguous.add(price)
+        plans[price] = plan
+    if ambiguous:
+        print(f"STRIPE_PRICE_IDS maps {len(ambiguous)} price id(s) to two plans; dropping them")
+    return {price: plan for price, plan in plans.items() if price not in ambiguous}
+
+
+def _price_id(item: object) -> str:
+    """The price id of one line item or subscription item."""
+    if not isinstance(item, dict):
+        return ""
+    price = item.get("price")
+    if isinstance(price, dict):
+        return str(price.get("id") or "")
+    return str(price or "")
+
+
+def plan_for_items(items: object) -> tuple[str, str] | None:
+    """(price id, plan) when ``items`` is exactly one item on a configured
+    price, else None. Every Payment Link scripts/stripe-setup.sh creates has
+    one line item, so anything else was not bought through one of them."""
+    if not isinstance(items, list) or len(items) != 1:
+        return None
+    price = _price_id(items[0])
+    plan = price_plans().get(price)
+    return (price, plan) if plan else None
+
+
+def checkout_plan(session_id: str) -> tuple[str, str] | None:
+    """What a Checkout Session bought: (price id, plan), or None when it was
+    not one of this product's prices.
+
+    Reads the session's line items with the same restricted key ("Checkout
+    Sessions: Read" covers them). Raises UpstreamError when Stripe cannot be
+    read, so a caller never mistakes an outage for a foreign purchase.
+    """
+    quoted = urllib.parse.quote(session_id, safe="")
+    listing = stripe_get(f"/v1/checkout/sessions/{quoted}/line_items?limit={_LINE_ITEMS_LIMIT}")
+    if listing.get("has_more"):
+        return None
+    return plan_for_items(listing.get("data"))
+
+
+def subscription_plan(subscription: dict[str, Any]) -> tuple[str, str] | None:
+    """(price id, plan) for a Stripe subscription object on one of the two
+    refresh prices, read from the object itself; None for anything else."""
+    items = subscription.get("items")
+    found = plan_for_items(items.get("data") if isinstance(items, dict) else None)
+    if found is None or found[1] not in SUBSCRIPTION_PLANS:
+        return None
+    return found
 
 
 def verify_stripe_signature(
@@ -201,9 +418,131 @@ def table(env_name: str) -> Any:
     return boto3.resource("dynamodb", region_name=region).Table(os.environ[env_name])
 
 
-def bundle_row(request: dict[str, Any], *, source: str, session_id: str = "") -> dict[str, Any]:
-    """The capability row for one bundle: who it is for, when it expires."""
+def scan_all(source: Any, **kwargs: Any) -> list[dict[str, Any]]:
+    """Every item of a table, following LastEvaluatedKey to the end.
+
+    A single ``scan`` returns one page, and a caller that reads only the first
+    one sees a prefix of the table and cannot tell that it did. Any
+    ``FilterExpression`` is passed through, but a filter is a bandwidth
+    saving, never the correctness argument: DynamoDB applies it after the
+    read, and a caller must still check what it got.
+    """
+    rows: list[dict[str, Any]] = []
+    while True:
+        page = source.scan(**kwargs)
+        rows.extend(page.get("Items") or [])
+        start = page.get("LastEvaluatedKey")
+        if not start:
+            return rows
+        kwargs = {**kwargs, "ExclusiveStartKey": start}
+
+
+def newest_history_object(s3: Any, bucket: str) -> tuple[str, str] | None:
+    """The newest ``history/<YYYY-MM>/history.zip`` in the bucket, as
+    ``(key, month)``, or None when no monthly build exists yet.
+
+    Lists the prefix page by page and keeps only keys of the exact shape the
+    workflow writes, so a stray object under the prefix can never be sold.
+    Newest is by the month in the key, not by the object's timestamp: a
+    make-good re-run of an older month must not displace the current one.
+    """
+    newest: tuple[str, str] | None = None
+    kwargs: dict[str, Any] = {"Bucket": bucket, "Prefix": HISTORY_PREFIX}
+    while True:
+        page = s3.list_objects_v2(**kwargs)
+        for obj in page.get("Contents") or []:
+            key = str(obj.get("Key") or "")
+            match = HISTORY_OBJECT_RE.fullmatch(key)
+            if match is None:
+                continue
+            month = match.group(1)
+            if newest is None or month > newest[1]:
+                newest = (key, month)
+        token = page.get("NextContinuationToken") if page.get("IsTruncated") else None
+        if not token:
+            return newest
+        kwargs = {**kwargs, "ContinuationToken": token}
+
+
+def history_row(
+    *,
+    bundle_id: str,
+    archive_key: str,
+    month: str,
+    deliver_to: str,
+    session_id: str,
+    plan: str,
+) -> dict[str, Any]:
+    """The capability row for one history purchase.
+
+    The same table and TTL as a bundle's row, so the download route, the
+    reconciler, and the TTL sweep treat it the same way. ``archive_key`` names
+    the shared monthly object the link opens; a bundle row has none because its
+    key is derived from the bundle id. ``program_name`` and ``order_ref`` are
+    present and empty so the reconciler's readers find the fields they expect.
+    """
     return {
+        "bundle_id": bundle_id,
+        "product": "history",
+        "plan": plan,
+        "archive_key": archive_key,
+        "month": month,
+        "deliver_to": deliver_to,
+        "program_name": "",
+        "source": "history",
+        "session_id": session_id,
+        "created_at": now_iso(),
+        "expires_at": epoch_in(DOWNLOAD_DAYS),
+        "order_ref": "",
+    }
+
+
+def send_email(to: str, subject: str, body: str) -> None:
+    """One plain-text email through SES from SES_FROM.
+
+    Raises UpstreamError on any failure so the caller can say the link was
+    issued but not mailed, which is a different sentence from "delivered".
+    """
+    source = os.environ.get("SES_FROM", "")
+    if not source or "@" not in source:
+        raise UpstreamError("SES_FROM is not configured")
+    try:
+        import boto3
+
+        ses = boto3.client("ses", region_name=os.environ.get("AWS_REGION", "us-west-2"))
+        ses.send_email(
+            Source=source,
+            Destination={"ToAddresses": [to]},
+            Message={"Subject": {"Data": subject}, "Body": {"Text": {"Data": body}}},
+        )
+    except Exception as err:  # botocore ClientError, an unverified identity, a sandbox
+        raise UpstreamError(f"sending the delivery email failed: {type(err).__name__}") from err
+
+
+def bundle_row(
+    request: dict[str, Any],
+    *,
+    source: str,
+    session_id: str = "",
+    deliver_by_epoch: int | None = None,
+    order_ref: str = "",
+) -> dict[str, Any]:
+    """The capability row for one bundle: who it is for, when it expires, and
+    when it was promised by.
+
+    ``order_ref`` is the reference to the stored order object the fulfillment
+    workflow reads (``store_request``). It is written here, before the
+    dispatch, so a make-good re-run of report-bundle.yml has a handle to the
+    order even when the run that should have consumed it never started.
+
+    ``deliver_by_epoch`` is written once, at checkout, and never recomputed.
+    A promise recalculated later is a promise that moves, and this one carries
+    a refund. It is absent on a refresh row on purpose: the two-business-day
+    commitment is made at a purchase, and a subscription's monthly archive is
+    a different promise. A row without it can still be reported undelivered;
+    it simply cannot breach a deadline nobody made.
+    """
+    row = {
         "bundle_id": request["bundle_id"],
         "deliver_to": request["deliver_to"],
         "program_name": request["program_name"],
@@ -211,4 +550,8 @@ def bundle_row(request: dict[str, Any], *, source: str, session_id: str = "") ->
         "session_id": session_id,
         "created_at": now_iso(),
         "expires_at": epoch_in(DOWNLOAD_DAYS),
+        "order_ref": order_ref,
     }
+    if deliver_by_epoch is not None:
+        row["deliver_by_epoch"] = int(deliver_by_epoch)
+    return row

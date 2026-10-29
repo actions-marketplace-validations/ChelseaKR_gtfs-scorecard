@@ -1,7 +1,7 @@
 # Convenience targets. CI runs the same commands directly (see .github/workflows);
 # these just give them stable names. `uv` runs inside the pipeline/ project.
 
-.PHONY: verify tiles tiles-geojsonl map-geometry render-site render-constants golden-refresh test contrast readability no-todos sync-static-nav mutation mutation-results iac
+.PHONY: clients clients-check clients-control clients-test clients-build verify tiles tiles-geojsonl map-geometry render-site render-constants golden-refresh test contrast readability no-todos sync-static-nav sync-measure sync-bundle-offers sync-invoice-docs mutation mutation-results iac
 
 # The merge-blocking gate: lint, format, types, tests, the AAA contrast check,
 # and the plain-language readability check. Mirrors .github/workflows/ci.yml.
@@ -77,6 +77,26 @@ render-constants:
 sync-static-nav:
 	cd pipeline && uv run python -c "from scorecard_pipeline.render_site import sync_static_navs; print('synced:', [str(p) for p in sync_static_navs()])"
 
+# Give every hand-authored page exactly one <script src="/src/measure.js">
+# tag, the site-measurement shim the generated pages get from _page
+# (docs/decisions/0055). tests/test_measure.py fails CI when a page lacks it,
+# carries two, or a redirect stub carries one.
+sync-measure:
+	cd pipeline && uv run python -c "from scorecard_pipeline.site_shell import sync_static_measure; print('synced:', [str(p) for p in sync_static_measure()])"
+
+# Regenerate /bundle/'s offers JSON-LD from web/bundle/plan.json, the single
+# source of every price. The served page stated no price at all until this
+# existed; tests/test_bundle_offers_markup.py fails CI when the block and the
+# plan disagree, so a price cannot change without the page changing with it.
+sync-bundle-offers:
+	cd pipeline && uv run python -c "from scorecard_pipeline.site_shell import sync_bundle_offers, sync_history_offers; print('synced:', [str(p) for p in sync_bundle_offers() + sync_history_offers()])"
+
+# Regenerate docs/invoice/quote-template.{md,html} from web/bundle/plan.json, the
+# single source of every price. tests/test_invoice_docs.py fails CI when the
+# committed quote and the plan disagree.
+sync-invoice-docs:
+	cd pipeline && uv run python -c "from scorecard_pipeline.invoice_docs import sync_invoice_docs; print('synced:', [str(p) for p in sync_invoice_docs()])"
+
 # Rebuild the national all-routes vector tiles + PMTiles archive (web/tiles/).
 # Requires tippecanoe on PATH (brew install tippecanoe). NOT part of `verify` or
 # the daily build — tippecanoe is not in the daily image. See docs/decisions/0023.
@@ -129,3 +149,40 @@ iac:
 		terraform -chdir="$$dir" init -backend=false -input=false >/dev/null; \
 		terraform -chdir="$$dir" validate; \
 	done
+
+# Typed clients generated from web/api/v1/openapi.yaml (#370). The generators
+# are dev tooling pinned by exact version in clients/python/pyproject.toml and
+# clients/typescript/package.json, with lockfiles, and they never reach the
+# pipeline or the web app. Nothing here publishes anything; the owner steps for
+# that are in docs/typed-clients.md.
+#
+#   clients          regenerate everything under clients/ that is derived
+#   clients-check    regenerate to a temp directory, fail on any difference
+#   clients-control  prove clients-check fails on a stale description, a stale
+#                    schema and a hand edit (the negative control)
+#   clients-test     contract tests for both clients, against recorded responses
+#   clients-build    build both packages without publishing them
+#
+# The cheap half of the drift check, which needs no generator, runs inside
+# `make verify` as pipeline/tests/test_clients_drift.py. clients.yml runs the rest.
+CLIENTS_UV = uv run --project clients/python --locked --only-group dev
+
+clients:
+	cd clients/typescript && npm ci --ignore-scripts
+	$(CLIENTS_UV) python pipeline/scripts/generate_clients.py
+
+clients-check:
+	cd clients/typescript && npm ci --ignore-scripts
+	$(CLIENTS_UV) python pipeline/scripts/generate_clients.py --check
+
+clients-control:
+	cd clients/typescript && npm ci --ignore-scripts
+	$(CLIENTS_UV) python pipeline/scripts/generate_clients.py --control
+
+clients-test:
+	cd clients/python && uv run --locked pytest -q
+	cd clients/typescript && npm ci --ignore-scripts && npm run typecheck && npm test
+
+clients-build:
+	cd clients/python && uv build --wheel --out-dir "$$(mktemp -d)"
+	cd clients/typescript && npm ci --ignore-scripts && npm run build && npm pack --dry-run

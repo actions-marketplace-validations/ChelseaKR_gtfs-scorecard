@@ -105,7 +105,7 @@ def test_profile_preserves_unknown_enum_values() -> None:
     assert profile["cars"]["not_allowed_count"] == 1  # type: ignore[index]
 
 
-def test_feed_level_facts_are_labelled_and_ordered() -> None:
+def test_feed_level_facts_are_labeled_and_ordered() -> None:
     profile = _profile()
 
     assert profile["fares"] == {
@@ -164,13 +164,15 @@ def test_profile_reads_zip_and_fare_model(
     assert profile["realtime"]["configured_kinds"] == ["vehicle_positions"]
 
 
-def test_oversized_table_skips_profile_instead_of_failing(
+def test_oversized_small_table_skips_profile_instead_of_failing(
     make_gtfs_zip: Callable[..., Path],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # A national aggregate's stop_times.txt can exceed the per-table memory cap.
-    # The ferry profile is descriptive, so it is skipped, not fatal: run_agency
-    # still writes the feed's scorecard. Shrink the cap so a tiny table trips it.
+    # routes/trips/stops are still read whole, so one of them over the per-table
+    # memory cap still skips the profile. It is descriptive, so that is not
+    # fatal: run_agency still writes the feed's scorecard. Shrink the cap so a
+    # tiny table trips it. (stop_times.txt is streamed and no longer consults
+    # the cap at all -- tests/test_stop_times_streaming.py holds that.)
     path = make_gtfs_zip(
         {
             "routes.txt": "route_id,route_type\nf,4\n",

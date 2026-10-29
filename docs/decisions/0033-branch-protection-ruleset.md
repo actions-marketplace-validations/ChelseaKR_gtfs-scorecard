@@ -115,6 +115,23 @@ at deploy time. Committed as `.github/rulesets/main.json`:
   reviewable, reproducible configuration. Verification includes reading the
   live rulesets back and running the intraday refresh through its S3 score and
   liveness publish plus Pages deployment path.
+- **Correction, 2026-09-06: `tags.json` shipped with an empty
+  `bypass_actors`, and `main.json` next to it did not.** Two files, one
+  convention, and only one of them followed it. An empty list is not a
+  stricter version of the rule — it means *nobody* can move or delete a tag
+  matching `refs/tags/v*.*.*`, the repository owner included, with an admin
+  token, from the web UI. `v1.4.0` matches that pattern and points at a
+  2026-07-25 commit `main` has since left hundreds of commits behind, so a
+  mistagged release here has no remedy short of burning the version number or
+  a support ticket. The floating `v1` tag is unaffected either way: the glob
+  requires two literal dots and never matched it. `tags.json` now carries the
+  same repository-admin bypass `main.json` has, and
+  `pipeline/tests/test_ruleset_bypass.py` fails the build if either file loses
+  it or if the two disagree. **The corrected file is not the live ruleset**
+  — applying it needs
+  `gh api repos/ChelseaKR/gtfs-scorecard/rulesets/{id} -X PUT --input
+  .github/rulesets/tags.json`, which is the owner's action, exactly as the
+  required-checks note below already says of `main.json`.
 - Every future PR now needs the nine listed checks green and one approval
   before merge — including the author's own future PRs, which is the point.
 - If `infra/compute`, CodeQL, dependency-audit, zizmor, or container-scan
@@ -125,3 +142,47 @@ at deploy time. Committed as `.github/rulesets/main.json`:
 - Generated operational state must remain outside `main`. A future workflow
   that needs a direct bot push must introduce and justify its own narrowly
   enforceable protection model before it ships.
+
+## Addendum, 2026-09-06: the `@v1` premise is stale, the exclusion still stands
+
+The reasoning above excludes the bare `v1` tag from
+`.github/rulesets/tags.json` on the ground that "`README.md`'s `uses:
+ChelseaKR/gtfs-scorecard@v1` depends on this." On 2026-09-06 the public
+examples in `README.md` and `docs/ci-action.md` were changed to pin a full
+release tag, so that stated premise no longer holds. The exclusion was
+re-examined and is kept, for a different and stronger reason.
+
+What was measured on 2026-09-06:
+
+- `v1` and `v1.4.0` point at the same commit (`d800e0b4`, 2026-07-25). `v1` has
+  not moved since.
+- `main` is 439 commits ahead of that commit.
+- `v1.4.0` is the newest published release. It predates the refusal of an
+  archive holding no schedule data, so it grades such an archive `F (31.3/100)`
+  with `passed=true` — a fabricated grade, and the exact defect class this
+  project exists to expose. The refusal is on `main` and in no release.
+- Version 1.5.0 is declared in `pipeline/pyproject.toml` and has a `CHANGELOG.md`
+  section dated 2026-08-18, but no tag and no release exist for it. The docs
+  recommended pinning `@v1.5.0`, a tag that has never existed, and
+  `tests/test_action_v2.py` asserted that they do so.
+
+Why the exclusion is kept:
+
+- Every workflow that copied `@v1` out of the docs before 2026-09-06 can
+  receive the fabricated-grade fix only by that tag moving. An `update` rule on
+  `refs/tags/v1` would strand those consumers on `v1.4.0` permanently. That is
+  a worse outcome than a mutable pointer, and it is not reversible for anyone
+  who has stopped watching the repository.
+- The Marketplace convention argument in the original decision is unchanged;
+  it is simply no longer the load-bearing one.
+
+What replaces the removed premise: the project no longer *recommends* the
+floating tag, and `tests/test_documented_action_ref.py` fails if any public
+example names a floating major again. Keeping the tag movable and keeping it
+out of the documented form are separate decisions; both hold.
+
+No ruleset was changed by this addendum. One unrelated finding was recorded and
+not acted on: `.github/rulesets/tags.json` carries `"bypass_actors": []`, while
+`.github/rulesets/main.json` carries the repository-admin bypass. An empty
+bypass list on a tag ruleset means the repository owner cannot delete or move a
+mistagged release herself. That is an owner decision, not a docs one.

@@ -51,6 +51,7 @@ env:
 jobs:
   plan:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       shards: ${{ steps.plan.outputs.shards }}
       shard_count: ${{ steps.plan.outputs.count }}
@@ -60,6 +61,7 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
+          enable-cache: true
           python-version: "3.12"
       - id: plan
         working-directory: pipeline
@@ -85,10 +87,16 @@ jobs:
     # RELIABILITY (issue #297): a shard whose runner is killed mid-validation
     # (observed: ovapi-netherlands, "received a shutdown signal") previously had
     # no bound short of the platform's 360-minute default, so a hang was
-    # indistinguishable from a slow shard for six hours. Sized above the
-    # slowest recent successful shard (~32 min) with headroom for registry
-    # growth; a shard that blows through this is a hang worth surfacing, not
-    # ordinary variance.
+    # indistinguishable from a slow shard for six hours. This comment said the
+    # slowest recent shard took ~32 minutes; measured 2026-09-18 over the 11
+    # daily runs from 2026-09-09 it took 31 to 53, and the shard holding
+    # `autolinee-toscane` (one record, 20.6 minutes, mostly two
+    # source requests of about 9 minutes each) ran at 47 to 53 of these 55 on eight of them. That
+    # record now has a shard of its own (`own_shard` in the registry); the next
+    # slowest shard took 33 to 37 minutes. `watchdog.yml` reads the longest shard of
+    # each run against this bound and fails at 90%, so the margin is watched
+    # rather than argued from a number written once. A shard that blows through
+    # this is a hang worth surfacing, not ordinary variance.
     timeout-minutes: 55
     permissions:
       contents: read
@@ -156,16 +164,57 @@ jobs:
           rm -rf "$stage" "$outcomes"
           mkdir -p "$stage"
           echo "shard_started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+          # RELIABILITY: two of this loop's S3 calls carried `|| true` and two
+          # did not, and under `set -euo pipefail` the unguarded pair could
+          # abort the shard mid-loop. Observed 2026-09-05 in run 33968878878:
+          # the second of this shard's agencies hit "Connection broken:
+          # ConnectionResetError(104, 'Connection reset by peer')" on the
+          # artifact prefetch, the step exited 1, and the shard's remaining
+          # agencies were never attempted — about 65 records lost their daily
+          # refresh to one transient socket error. That is exactly what the
+          # design note below forbids: "one agency's feed being unreachable
+          # must not abort the shard".
+          #
+          # Neither call is a correctness input, so continuing past an
+          # exhausted retry degrades the run without inventing anything:
+          #
+          #   - the artifact prefetch is a cache warm-up. `_liveness_unchanged`
+          #     consults `_artifact_contract_current` first and returns False
+          #     when the prior artifact is missing, so a miss re-scores the feed
+          #     from scratch: more work, same answer, never a published number
+          #     standing in for absent data.
+          #   - the structure-fingerprint upload feeds collect's staging sync.
+          #     A file that never arrives leaves that agency's previous
+          #     fingerprint in place to be re-derived, rather than a wrong one.
+          #
+          # Retries use the same 1/2/3 backoff shape as `tag_dated_artifact`
+          # below. The AWS CLI's own retries sit underneath this; these are for
+          # the case where those are already exhausted. Both call sites tolerate
+          # exhaustion explicitly, and every exhaustion is announced.
+          s3_retry() {
+            local what="$1"
+            shift
+            local attempt
+            for attempt in 1 2 3; do
+              if "$@"; then
+                return 0
+              fi
+              sleep $((attempt * 2))
+            done
+            echo "::warning title=s3 retry exhausted::${what}"
+            return 1
+          }
           echo "$MATRIX_SHARD" | jq -r '.[]' | while read -r id; do
             echo "::group::$id"
             if [ -n "$ARTIFACTS_BUCKET" ]; then
               today=$(date -u +%Y-%m-%d)
               yesterday=$(date -u -d yesterday +%Y-%m-%d)
-              aws s3 sync "s3://${ARTIFACTS_BUCKET}/data/artifacts/${id}" \
+              s3_retry "${id}: prior artifacts could not be fetched after 3 attempts; scoring the feed from scratch" \
+                aws s3 sync "s3://${ARTIFACTS_BUCKET}/data/artifacts/${id}" \
                 "$GITHUB_WORKSPACE/data/artifacts/${id}" \
                 --exclude "*" --include "latest.json" \
                 --include "${today}.json" --include "${yesterday}.json" \
-                --only-show-errors
+                --only-show-errors || true
               aws s3 cp "s3://${ARTIFACTS_BUCKET}/cache/fixlog/${id}/fixlog.json" \
                 "$GITHUB_WORKSPACE/data/artifacts/${id}/fixlog.json" \
                 --only-show-errors || true
@@ -183,9 +232,10 @@ jobs:
               # holds the serialized publish lock.
               if [ -n "$ARTIFACTS_BUCKET" ] && \
                  [ -f "$GITHUB_WORKSPACE/data/cache/structure/${id}.json" ]; then
-                aws s3 cp "$GITHUB_WORKSPACE/data/cache/structure/${id}.json" \
+                s3_retry "${id}: structure fingerprint not staged after 3 attempts; collect keeps the previous copy" \
+                  aws s3 cp "$GITHUB_WORKSPACE/data/cache/structure/${id}.json" \
                   "s3://${ARTIFACTS_BUCKET}/cache/structure-staging/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}/${id}.json" \
-                  --only-show-errors
+                  --only-show-errors || true
               fi
               mkdir -p "$stage/$id"
               cp -a "$GITHUB_WORKSPACE/data/artifacts/$id/." "$stage/$id/"
@@ -236,12 +286,26 @@ jobs:
     # so one dead shard (e.g. a runner killed validating a large feed) skipped
     # collect and deploy entirely and dropped the whole day's publish, even
     # though the other 31 shards scored cleanly. `!cancelled()` runs collect
-    # whenever the workflow wasn't cancelled outright, regardless of individual
+    # whenever the workflow wasn't canceled outright, regardless of individual
     # shard outcomes; the artifact-count floor below refuses to publish only
     # when that leniency would otherwise ship an empty corpus.
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # RELIABILITY (issue #390): 60 had no measured runtime behind it. Measured
+    # 2026-09-13 over the 72 scheduled runs from 2026-07-04 to 2026-09-13:
+    # successful runs took 5.2 to 56.7 minutes (median 40.5, n=59). The slowest
+    # used 94.5% of 60 (2026-07-28); September's slowest used 89.5% (53.7 on
+    # 2026-09-05). None was stopped at its bound. Collect runs after every shard
+    # and grows with the registry, so a bound that close is a timeout kill
+    # waiting for a heavy day, and a killed collect drops that day's publish.
+    #
+    # The daily cadence is not the ceiling here: consecutive fires were never
+    # less than about 20 hours apart. The shared `artifacts-publish` slot is.
+    # Intraday refresh fires into the same serial group as little as 114.2
+    # minutes apart, so 90 keeps a collect that runs to its bound shorter than
+    # the tightest refresh gap. One collect can then make at most one refresh
+    # wait, and never a second whose arrival would evict the first.
+    timeout-minutes: 90
     concurrency:
       group: artifacts-publish
       cancel-in-progress: false
@@ -271,8 +335,7 @@ jobs:
           # which snapshot it must represent. Reindex uses that verified pair
           # even when lifecycle retention removed its dated object, so it cannot
           # roll current back to the older cutover files in the checkout.
-          aws s3 cp "s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts/index.json" \
-            data/artifacts/index.json --only-show-errors
+          scripts/s3-index.sh get "${{ vars.ARTIFACTS_BUCKET }}" data/artifacts/index.json
           aws s3 cp "s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts" data/artifacts \
             --recursive --exclude "*" --include "*/latest.json" --only-show-errors
           # index.json is the public commit pointer. A failed intraday run can
@@ -443,6 +506,25 @@ jobs:
       # (which set no variable) skip it entirely and keep serving from Pages.
       - name: Publish artifacts to S3
         if: ${{ vars.ARTIFACTS_BUCKET != '' }}
+        # `shell: bash` is `bash --noprofile --norc -eo pipefail {0}`. The default
+        # `run:` shell is `bash -e {0}` — errexit WITHOUT pipefail — so the
+        # `jq ... | while read` below reported the `while` loop's status, which is
+        # zero however the jq ended. An index.json that jq could not read (a
+        # different top-level shape, a truncated hydrate, an error document) staged
+        # ZERO fix logs, the step carried on, and `aws s3 sync "$fixlog_stage"
+        # ... /cache/fixlog --delete` further down deleted every private fix log in
+        # the bucket to match an empty directory — exit 0, no failed step, the
+        # comparison memory gone. The structurally identical `jq | sort -u | while`
+        # in "Hydrate the authoritative current corpus" IS guarded, by its own
+        # `set -euo pipefail`; this one, which gates a `--delete`, was not.
+        # Set per step, not job-wide: several steps here (the weekly digest, the
+        # coverage check) pipe deliberately tolerantly and would change behavior.
+        shell: bash
+        env:
+          # Store the index as gzip (31x smaller to read back) once the repo
+          # variable INDEX_GZIP is "1". Unset, it stays plain JSON; every reader
+          # accepts both (scripts/s3-index.sh).
+          INDEX_GZIP: ${{ vars.INDEX_GZIP }}
         run: |
           # Dated history is additive: S3 is the durable record of artifacts a
           # fresh collect checkout does not carry. The retirement manifest is
@@ -477,7 +559,6 @@ jobs:
           # it is excluded here and uploaded only after all public writes and
           # deletes. Direct mutable latest.json consumers are not atomic with
           # this sequence; the deployed Pages manifest is the bound snapshot.
-          artifact_uri="s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts"
           uv run --project pipeline --with boto3 scorecard publish-artifacts \
             --root data/artifacts \
             --bucket "${{ vars.ARTIFACTS_BUCKET }}" --prefix data/artifacts \
@@ -499,8 +580,7 @@ jobs:
             --delete --cache-control "max-age=300" --only-show-errors
           # Advance the aggregate index only after every public artifact write
           # and bounded deletion above has completed successfully.
-          aws s3 cp data/artifacts/index.json "${artifact_uri}/index.json" \
-            --cache-control "max-age=300" --only-show-errors
+          scripts/s3-index.sh put "${{ vars.ARTIFACTS_BUCKET }}" data/artifacts/index.json
           # Advance private comparison memory only after the public publication
           # it describes succeeded.
           aws s3 sync "$fixlog_stage" \
@@ -603,7 +683,17 @@ jobs:
         env:
           SUBSCRIPTIONS_TABLE: gtfs-scorecard-subscriptions
           ALERTS_API_BASE: https://5oemr66b9a.execute-api.us-west-2.amazonaws.com
-        run: uv run --with boto3 python -m scorecard_pipeline.cli notify --send --from "${{ vars.SES_FROM }}"
+          # The sender reaches the command through the environment, which the
+          # command reads itself, rather than being expanded into the script
+          # text that the run log prints.
+          SES_FROM: ${{ vars.SES_FROM }}
+        # PRIVACY: this repository is public, so this step's log is a
+        # publication, and this is the one step that reads real subscribers'
+        # addresses. `notify` registers an ::add-mask:: for every address,
+        # webhook URL and unsubscribe token before it sends anything, and a
+        # failed send is reported by position and error code, never by
+        # recipient. tests/test_workflow_safety.py holds both.
+        run: uv run --with boto3 python -m scorecard_pipeline.cli notify --send
 
       # The digest silently never sending is worse than it loudly not sending:
       # if the variable is unset, say so in the run summary every day so an
@@ -640,3 +730,4 @@ jobs:
       perf_gate: advisory
     secrets:
       PAGES_AWS_ROLE_ARN: ${{ secrets.PAGES_AWS_ROLE_ARN }}
+      POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}

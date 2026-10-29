@@ -9,11 +9,16 @@ cross-agency vendor ranking or inferred vendor identity.
 from __future__ import annotations
 
 import hashlib
+from dataclasses import dataclass
 from typing import Any
 
 from .comparisons import producer_contract
+from .consequence import FeedContext, join_feed_context, reach_for, reach_sentence
 
-PACKET_SCHEMA_VERSION = "1.1"
+# 1.2 adds each work item's ``consequence`` (what a fix covers) and a packet-level
+# ``consequence_context`` (rider-trips and need, joined when the packet is built,
+# with source and date or the reason there is none). Additive (issue #367).
+PACKET_SCHEMA_VERSION = "1.2"
 
 
 def _packet_id(artifact: dict[str, Any]) -> str:
@@ -63,9 +68,14 @@ def _finding_category(
     return ""
 
 
-def _acceptance_contract(
+def acceptance_contract(
     acceptance_test: dict[str, Any],
 ) -> tuple[str, str, str, str, str, tuple[str, ...]] | None:
+    """The producer contract an acceptance test or a packet baseline names.
+
+    ``None`` when any part is missing, so an incomplete contract can never
+    compare equal to an artifact that happens to lack the same field.
+    """
     measured = acceptance_test.get("measured_categories")
     if not isinstance(measured, list) or not all(isinstance(value, str) for value in measured):
         return None
@@ -82,12 +92,31 @@ def _acceptance_contract(
     return contract
 
 
-def _notice_instances(category_result: Any, notice_code: str) -> int | None:
+@dataclass(frozen=True)
+class NoticeObservation:
+    """Whether a measured category raises a notice, and the instances it counts."""
+
+    present: bool
+    instances: int
+
+
+def observe_notice(category_result: Any, notice_code: str) -> NoticeObservation | None:
+    """Read one notice from one category result.
+
+    ``None`` when the category was not measured or its findings cannot be read:
+    an unmeasured category says nothing about a notice, and must never read as
+    one that went away. Presence and count are reported separately because they
+    are different facts. A notice can be raised with a count of 0 ("0 of 0
+    stops don't say whether a wheelchair user can board there" is raised, with
+    a deduction, for an empty stops table), and a count alone cannot tell that
+    apart from a notice that is gone.
+    """
     if not isinstance(category_result, dict) or category_result.get("status") != "measured":
         return None
     findings = category_result.get("findings")
     if not isinstance(findings, list):
         return None
+    present = False
     total = 0
     for finding in findings:
         if not isinstance(finding, dict) or str(finding.get("code") or "") != notice_code:
@@ -95,8 +124,9 @@ def _notice_instances(category_result: Any, notice_code: str) -> int | None:
         count = finding.get("count")
         if not isinstance(count, int) or isinstance(count, bool) or count < 0:
             return None
+        present = True
         total += count
-    return total
+    return NoticeObservation(present=present, instances=total)
 
 
 def acceptance_test_passes(
@@ -107,9 +137,10 @@ def acceptance_test_passes(
     Acceptance is fail-closed: the complete producer contract must match, the
     source category must still be measured, and the notice count must equal the
     packet's expectation. Removing a category from measurement therefore cannot
-    make its findings look resolved.
+    make its findings look resolved. A notice expected to have zero instances
+    must be absent, not merely counted at zero.
     """
-    expected_contract = _acceptance_contract(acceptance_test)
+    expected_contract = acceptance_contract(acceptance_test)
     if expected_contract is None:
         return False
     if producer_contract(candidate_artifact) != expected_contract:
@@ -135,21 +166,42 @@ def acceptance_test_passes(
     categories = candidate_artifact.get("categories") or {}
     if not isinstance(categories, dict):
         return False
-    actual_instances = _notice_instances(categories.get(category), notice_code)
-    return actual_instances == expected_instances
+    observation = observe_notice(categories.get(category), notice_code)
+    if observation is None:
+        return False
+    if expected_instances == 0:
+        # The packet's own method text says "confirm ... this notice is absent".
+        # Comparing the count with 0 instead passed a notice raised with a count
+        # of 0 on the very bytes that produced the packet.
+        return not observation.present
+    return observation.present and observation.instances == expected_instances
+
+
+def _work_item_consequence(fix: dict[str, Any], artifact: dict[str, Any]) -> dict[str, Any]:
+    """What fixing this item covers, from the artifact's own counts."""
+    reach = reach_for(fix, artifact)
+    return {"reach": reach.to_json(), "line": reach_sentence(reach)}
 
 
 def build_evidence_packet(
     artifact: dict[str, Any],
     *,
     scorecard_url: str | None = None,
+    feed_context: FeedContext | None = None,
 ) -> dict[str, Any]:
     """Return a deterministic vendor remediation packet for one artifact.
 
     The packet repeats the artifact's snapshot and generated timestamps rather
     than using the wall clock, so rerunning it over the same evidence produces
     byte-equivalent JSON after canonical serialization.
+
+    ``feed_context`` is the render-time join of rider-trips and need
+    (``consequence.join_feed_context``). A caller holding no snapshots passes
+    nothing, and the packet then states those two as not joined rather than
+    omitting them. The context never enters ``packet_id``: it describes the
+    feed, not the evidence a retest is held to.
     """
+    context = feed_context if feed_context is not None else join_feed_context(artifact)
     agency = artifact.get("agency", {})
     feed = artifact.get("feed", {})
     overall = artifact.get("overall", {})
@@ -176,6 +228,7 @@ def build_evidence_packet(
                 "requested_change": str(fix.get("fix", "")),
                 "effort_hint": str(fix.get("effort", "")),
                 "likely_owner": str(fix.get("owner", "Unassigned")),
+                "consequence": _work_item_consequence(fix, artifact),
                 "acceptance_test": {
                     "notice_code": code,
                     "expected_instances": 0,
@@ -218,6 +271,7 @@ def build_evidence_packet(
             "artifact_schema_version": artifact.get("schema_version"),
         },
         "work_items": work_items,
+        "consequence_context": context.to_json(),
         "completion": {
             "required": [
                 "Publish corrected GTFS at the agency's canonical feed URL.",
@@ -274,6 +328,8 @@ def render_evidence_packet_markdown(packet: dict[str, Any]) -> str:
                 "",
                 f"**Why it matters:** {item['rider_or_operational_impact']}",
                 "",
+                f"**What a fix covers:** {item.get('consequence', {}).get('line', '')}",
+                "",
                 f"**Requested change:** {item['requested_change']}",
                 "",
                 f"**Effort hint:** {item['effort_hint']}",
@@ -281,6 +337,19 @@ def render_evidence_packet_markdown(packet: dict[str, Any]) -> str:
                 "**Acceptance:** rerun under the baseline producer contract, confirm "
                 f"`{category}` remains measured, and confirm `{item['notice_code']}` has "
                 f"{acceptance['expected_instances']} instances.",
+                "",
+            ]
+        )
+    context = packet.get("consequence_context") or {}
+    context_lines = [str(line) for line in context.get("lines") or [] if str(line).strip()]
+    if context_lines:
+        lines.extend(["## Riders and need behind these fixes", ""])
+        lines.extend(f"- {line}" for line in context_lines)
+        lines.extend(
+            [
+                "",
+                "These describe this feed only. They do not rank agencies, and they do not "
+                "change the grade or the order of the work items.",
                 "",
             ]
         )

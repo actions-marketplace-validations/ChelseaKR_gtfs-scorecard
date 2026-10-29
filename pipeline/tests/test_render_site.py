@@ -1212,13 +1212,20 @@ def test_render_retires_stale_f_scorecard_and_redirects_to_live_successor(
         in redirect
     )
     assert "Retired Unitrans export</a>" not in redirect
-    assert not (stale_page / "brief").exists()
+    # The stale brief is gone; its URL now redirects to the successor's
+    # scorecard, like the retired record's board and clearance log (ADR 0067).
+    brief = (stale_page / "brief" / "index.html").read_text()
+    assert "stale brief" not in brief
+    assert f"url=/agency/{successor_id}/" in brief
     retained_redirects = json.loads(
         (isolated_repo_root / "web" / "_meta" / "retained-agency-redirects.json").read_text()
     )
     assert retained_redirects == {
         "schema_version": 1,
-        "redirects": {f"/agency/{retired_id}/": f"/agency/{successor_id}/"},
+        "redirects": {
+            f"/agency/{retired_id}/{suffix}": f"/agency/{successor_id}/"
+            for suffix in ("", "board/", "brief/", "fixes/")
+        },
     }
     # Historical JSON remains available even though it is no longer a current
     # directory row or scorecard page.
@@ -1848,6 +1855,68 @@ def test_states_by_agency_joins_prefixed_v2_id_to_numeric_legacy_catalog(
     assert _states_by_agency() == {"v2-feed": "California"}
 
 
+def test_states_by_agency_prefers_the_registry_subdivision_over_the_mobility_database(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The registry's curated subdivision decides a US record's state before the
+    Mobility Database is asked. Shaped on the 2026-10-01 cut: Norwalk Transit
+    District is curated as US-CT while its Mobility Database row says
+    California, and 95 records with a curated subdivision but no `state`
+    published a blank one. Either made the dataset release refuse with
+    "catalog.json geography disagrees with the canonical registry"."""
+    from scorecard_pipeline import config, mobilitydb
+    from scorecard_pipeline.config import Agency
+
+    monkeypatch.setattr(
+        config,
+        "AGENCIES",
+        {
+            "curated-state": Agency(
+                "curated-state", "Curated", "https://example.org/a.zip", state="Oregon"
+            ),
+            "norwalk": Agency(
+                "norwalk",
+                "Norwalk Transit District",
+                "https://example.org/n.zip",
+                mdb_id="mdb-2242",
+                subdivision_code="US-CT",
+                subdivision_name="Connecticut",
+            ),
+            "no-mdb-match": Agency(
+                "no-mdb-match",
+                "Curated Subdivision Only",
+                "https://example.org/c.zip",
+                mdb_id="mdb-999",
+                subdivision_code="US-CA",
+            ),
+            "mdb-only": Agency(
+                "mdb-only", "Mobility Database Only", "https://example.org/m.zip", mdb_id="mdb-7"
+            ),
+            "abroad": Agency(
+                "abroad",
+                "Abroad",
+                "https://example.org/x.zip",
+                country="CA",
+                subdivision_code="CA-ON",
+            ),
+        },
+    )
+    catalog = mobilitydb.parse_catalog(
+        "mdb_source_id,data_type,location.subdivision_name,provider,"
+        "urls.direct_download\n"
+        "2242,gtfs,California,Norwalk,https://example.org/n.zip\n"
+        "7,gtfs,Nevada,Mobility Database Only,https://example.org/m.zip\n"
+    )
+    monkeypatch.setattr(mobilitydb, "load_catalog", lambda: catalog)
+
+    assert _states_by_agency() == {
+        "curated-state": "Oregon",
+        "norwalk": "Connecticut",
+        "no-mdb-match": "California",
+        "mdb-only": "Nevada",
+    }
+
+
 def test_peer_context_renders_only_catalog_location() -> None:
     html = _peer_context(
         {
@@ -1857,7 +1926,7 @@ def test_peer_context_renders_only_catalog_location() -> None:
             "state": "New Mexico",
         }
     )
-    assert "Catalogued in <bdi>New Mexico</bdi>." in html
+    assert "Cataloged in <bdi>New Mexico</bdi>." in html
     assert "53%" not in html and "68%" not in html
     assert "percentile" not in html
 
@@ -2397,7 +2466,7 @@ def test_fix_rule_reference_names_canonical_alias_for_scorecard_code() -> None:
 
     html = _fix_rule_reference("scorecard_missing_feed_info_dates")
     assert "Authoritative rule" in html
-    # The reader sees the canonical validator notice they recognise.
+    # The reader sees the canonical validator notice they recognize.
     assert "missing_feed_info_date" in html
     assert "#missing_feed_info_date-rule" in html
 
@@ -2510,7 +2579,7 @@ def test_trend_section_shows_score_trend_and_category_deltas() -> None:
 
 def test_spark_svg_is_the_shared_accessible_sparkline() -> None:
     """The shared helper carries the three-part pattern: per-point hover titles,
-    the full series in the aria-label, and an emphasised last dot."""
+    the full series in the aria-label, and an emphasized last dot."""
     from scorecard_pipeline.render_site import _spark_svg
 
     svg = _spark_svg(
@@ -2521,7 +2590,7 @@ def test_spark_svg_is_the_shared_accessible_sparkline() -> None:
     assert 'role="img"' in svg
     assert 'aria-label="Overall score across 3 checks: ' in svg
     assert "2026-06-10 70.0; 2026-06-11 75.5; 2026-06-12 75.5" in svg
-    # Every check gets a hover/long-press readout; the last dot is emphasised.
+    # Every check gets a hover/long-press readout; the last dot is emphasized.
     assert svg.count("<title>") == 3
     assert "<title>2026-06-11: 75.5</title>" in svg
     assert svg.count('r="2.5"') == 2 and svg.count('r="4"') == 1
@@ -2852,33 +2921,34 @@ def test_history_section_leads_with_a_dated_grade_story_paragraph() -> None:
     assert html.index('class="grade-story"') < html.index("newest first")
 
 
-def test_embed_section_offers_a_live_badge_and_copyable_markdown() -> None:
+def test_embed_section_offers_a_live_badge_and_copyable_snippets() -> None:
     from scorecard_pipeline.render_site import _embed_section
 
-    html = _embed_section("demo-transit", "Demo Transit", "B")
+    html = _embed_section("demo-transit", "Demo Transit")
     assert "Show your grade" in html
-    # A live badge preview and a copyable Markdown snippet pointing at the
-    # published badge.svg and the agency page.
-    assert "/data/artifacts/demo-transit/badge.svg" in html
+    # A live badge preview and copyable HTML and Markdown snippets pointing at
+    # the badge served beside the agency page, and at the page itself.
+    assert 'src="/agency/demo-transit/badge.svg"' in html
+    assert "https://gtfsscorecard.org/agency/demo-transit/badge.svg" in html
     assert "https://gtfsscorecard.org/agency/demo-transit/" in html
-    assert 'class="copy-btn"' in html and 'data-copy="embed-md"' in html
+    assert 'data-copy="embed-html"' in html and 'data-copy="embed-md"' in html
     # The shields.io endpoint alternative points at badge.json.
     assert "img.shields.io/endpoint" in html and "badge.json" in html
     assert "Demo Transit" in html  # alt text names the agency
 
 
-def test_embed_section_markdown_alt_text_names_the_agency_and_grade() -> None:
+def test_embed_section_copied_alt_text_names_the_agency_but_no_grade() -> None:
     from scorecard_pipeline.render_site import _embed_section
 
-    html = _embed_section("demo-transit", "Demo Transit", "B")
-    # The copied Markdown's own alt text (inside the textarea, HTML-escaped)
-    # names the agency and its grade, not a generic "GTFS data quality" with
-    # no link context -- so a screen reader or a stripped-image client still
-    # gets the badge's content, and a README gets a real anchor.
-    assert "[![Demo Transit GTFS data quality grade: B]" in html
+    html = _embed_section("demo-transit", "Demo Transit")
+    # The copied snippets' alt text names the agency, so a screen reader or a
+    # stripped-image client still gets a real anchor. It carries no grade:
+    # pasted markup never updates, so a grade there would outlive the badge's
+    # own and become a stale number on the agency's site (#24 put one in).
+    alt = "Demo Transit: current GTFS data quality score from GTFS Scorecard"
+    assert f"[![{alt}]" in html
+    assert "grade: B" not in html
     assert "![GTFS data quality]" not in html
-    # The live preview's own alt attribute matches.
-    assert 'alt="Demo Transit GTFS data quality grade: B"' in html
 
 
 def test_recommendations_section_lists_items_and_is_empty_without_any() -> None:
@@ -3015,6 +3085,135 @@ def test_brief_carries_outreach_standards_and_portfolio_link() -> None:
     assert '<meta name="robots" content="noindex,follow">' in html
 
 
+def test_the_program_index_prints_an_average_only_when_the_cohort_supports_one() -> None:
+    """A one-line-per-rollup index is where a missing measurement turns into a
+    number: reading ``average_score`` straight out of the artifact would print
+    one for every rollup, including the ones whose own page says the average is
+    unavailable.
+
+    The committed fixture has no rollup with a comparison cohort, so the
+    publishable branch is unreachable from the goldens. Both branches are
+    exercised here instead, with literal values rather than values derived from
+    the guard.
+    """
+    from scorecard_pipeline.render_site import _render_program_index
+
+    publishable = {
+        "rollup": {"id": "yolo-county", "name": "Yolo County"},
+        "agency_count": 2,
+        "average_score": 81.7,
+        "needs_attention": 0,
+        "comparison": {"eligible_count": 2},
+        "grade_distribution": {"B": 2},
+    }
+    # Same numbers, no comparison cohort: the average is not publishable.
+    withheld = {
+        "rollup": {"id": "california", "name": "California agencies"},
+        "agency_count": 1,
+        "average_score": 81.7,
+        "needs_attention": 3,
+    }
+    html = _render_program_index([publishable, withheld])
+
+    assert "81.7 out of 100 average over 2 comparable" in html
+    assert "2 feed scorecards" in html
+    assert "1 feed scorecard ·" in html  # singular, not "1 feed scorecards"
+    assert "average unavailable" in html
+    assert html.count("81.7") == 1, "the withheld average was printed anyway"
+    assert "3 need attention" in html
+    assert "none flagged for attention" in html
+    # Alphabetical by name, so a reader can find a state without scanning 67 rows.
+    assert html.index("California agencies") < html.index("Yolo County")
+    # The offer sits above the list: this page shows no agency's grade at all,
+    # which is what lets it sit there without breaking the placement rule.
+    assert html.index('href="/bundle/"') < html.index('href="/program/california/"')
+
+
+def test_the_portfolio_route_falls_back_to_the_country_rollup() -> None:
+    """The state-only gate dropped every agency outside the United States.
+
+    Measured on the deployed site 2026-09-12: 15 of 30 sampled call briefs
+    carried the portfolio backlink, because the gate required ``country == "US"``
+    and a state whose slug had a page. Eighteen ``country-*`` rollups were
+    published at the time and were never used as the fallback, so a Canadian or
+    French agency's brief linked nothing while the page it should have linked
+    sat in the sitemap.
+
+    Every id here is an argument rather than a read of rollups.yaml, so a rollup
+    disappearing from the config cannot make this test pass by accident.
+    """
+    from scorecard_pipeline.render_site import _portfolio_route
+
+    us = {"agency": {"id": "unitrans", "country": "US"}}
+    canadian = {"agency": {"id": "barrie-transit", "country": "CA"}}
+
+    # A US agency prefers its own state.
+    assert _portfolio_route(
+        {"state": "California", "country": "US"}, us, {"california", "country-us"}
+    ) == ("california", "California")
+    # Multi-word states slug the way the rollup ids do.
+    assert _portfolio_route({"state": "New York", "country": "US"}, us, {"new-york"}) == (
+        "new-york",
+        "New York",
+    )
+    # The fallback: no state page, or no state at all.
+    assert _portfolio_route({"country": "CA"}, canadian, {"country-ca"}) == ("country-ca", "Canada")
+    assert _portfolio_route({"state": "Ontario", "country": "CA"}, canadian, {"country-ca"}) == (
+        "country-ca",
+        "Canada",
+    )
+    # Country read off the artifact when the directory record predates the field.
+    assert _portfolio_route({}, canadian, {"country-ca"}) == ("country-ca", "Canada")
+
+    # And never a link to a page that was not rendered.
+    assert _portfolio_route({"state": "California", "country": "US"}, us, set()) is None
+    assert _portfolio_route({"country": "CA"}, canadian, {"california"}) is None
+    assert _portfolio_route({"country": "ZZ"}, {"agency": {}}, {"country-zz"}) == (
+        "country-zz",
+        "ZZ",
+    )
+
+
+def test_the_agency_page_points_at_its_free_group_view_and_sells_nothing() -> None:
+    """R2b: the agency page carries the same portfolio pointer as its brief.
+
+    The scorecard is the site's dominant surface and the one a program liaison
+    usually lands on from search. It linked no group view at all: that link
+    lived one level deeper on the call brief, which is noindex and reached in
+    two clicks.
+
+    The line names a free page. It must not name the paid tier -- this is the
+    one agency-facing surface where the placement rule is easiest to break by
+    adding "and you can buy these" to a sentence that is already there.
+    """
+    from scorecard_pipeline.render_site import _render_agency
+
+    artifact = json.loads(
+        (
+            Path(__file__).parent
+            / "fixtures"
+            / "golden_site"
+            / "data"
+            / "artifacts"
+            / "unitrans"
+            / "latest.json"
+        ).read_text()
+    )
+    html = _render_agency(
+        artifact,
+        dir_record={"state": "California", "country": "US"},
+        program_ids={"california"},
+    )
+    head, separator, _footer = html.partition('<footer class="site-footer">')
+    assert separator, "no shared footer found; the split below proves nothing"
+    assert 'href="/program/california/"' in head
+    assert "California portfolio" in head
+    assert "/bundle/" not in head, "the agency page named the paid tier in its own content"
+
+    without = _render_agency(artifact, dir_record={"state": "California"}, program_ids=set())
+    assert "/program/california/" not in without
+
+
 def test_canadian_brief_omits_us_ntd_language() -> None:
     from scorecard_pipeline.render_site import _render_brief
 
@@ -3108,7 +3307,7 @@ def test_ntd_section_renders_id_alignment_when_present() -> None:
     assert "Needs attention" not in html
     # The wording is recomputed at render time from the stored inputs, so a
     # stale artifact can never resurface pre-final-rule prescriptive copy: the
-    # fixture's baked-in strings are ignored in favour of the current ones.
+    # fixture's baked-in strings are ignored in favor of the current ones.
     assert "Confirm that P-50 crosswalks agency_id UNITRANS to NTD ID 90142" in html
     assert "Your feed uses agency_id UNITRANS." not in html
     # The fineprint states the P-50 crosswalk and rejects an equality mandate.
@@ -3388,6 +3587,70 @@ def test_rollup_common_fixes_section_omits_the_guide_link_without_a_page() -> No
     assert "fix-guide" not in html
 
 
+def test_fix_guide_link_text_names_the_finding_the_guide_is_about() -> None:
+    """A fix-guide link has to say which guide it opens, in its own text.
+
+    Measured on the rendered site on 2026-09-13: 23,304 of the 23,360 internal
+    links into /fix/ read "Read the fix guide", across 2,052 pages and 40
+    destinations. That is a WCAG 2.2 AAA 2.4.9 failure on a criterion
+    docs/accessibility.md records as MET, and it spends the site's only
+    internal anchor text on its only pages written for a practitioner whose
+    feed is failing.
+    """
+    from scorecard_pipeline.render_site import FIX_CODES_WITH_PAGES, _fix_guide_link
+
+    codes = ("expired_calendar", "unused_shape")
+    FIX_CODES_WITH_PAGES.update(codes)
+    try:
+        texts = {}
+        for code in codes:
+            markup = _fix_guide_link(code)
+            assert f'href="/fix/{code}/"' in markup
+            text = re.sub(r"<[^>]+>", "", markup).strip().lstrip("\u00b7").strip()
+            assert code in text, f"link text {text!r} does not name {code}"
+            texts[code] = text
+        assert len(set(texts.values())) == len(codes), f"two guides share link text: {texts}"
+    finally:
+        for code in codes:
+            FIX_CODES_WITH_PAGES.discard(code)
+
+
+def test_rollup_common_fixes_links_are_told_apart_by_their_text_alone() -> None:
+    """The rollup's shared-findings list prints no code beside the link.
+
+    This caller and the agency fix-loop list are the two that offer no adjacent
+    context, so identical link text there leaves nothing at all to tell two
+    destinations apart.
+    """
+    from scorecard_pipeline.render_site import FIX_CODES_WITH_PAGES, _rollup_common_fixes_section
+
+    codes = ("scorecard_no_feed_contact", "unused_shape")
+    FIX_CODES_WITH_PAGES.update(codes)
+    try:
+        rollup = {
+            "rollup": {"id": "test-state", "name": "Test State"},
+            "common_fixes": [
+                {
+                    "code": codes[0],
+                    "fix": "Add feed_contact_email to feed_info.txt.",
+                    "agencies": 5,
+                },
+                {"code": codes[1], "fix": "Remove route shapes no trip uses.", "agencies": 3},
+            ],
+        }
+        html = _rollup_common_fixes_section(rollup)
+        links = re.findall(r'<a class="fix-guide" href="(/fix/[a-z0-9_]+/)">([^<]*)</a>', html)
+        assert len(links) == len(codes), links
+        by_text: dict[str, set[str]] = {}
+        for href, text in links:
+            by_text.setdefault(text, set()).add(href)
+        collisions = {text: sorted(hrefs) for text, hrefs in by_text.items() if len(hrefs) > 1}
+        assert not collisions, f"one link text points at several guides: {collisions}"
+    finally:
+        for code in codes:
+            FIX_CODES_WITH_PAGES.discard(code)
+
+
 def test_rollup_common_fixes_section_empty_when_nothing_shared() -> None:
     from scorecard_pipeline.render_site import _rollup_common_fixes_section
 
@@ -3426,6 +3689,27 @@ def test_liveness_note_shows_checked_and_changed_freshness() -> None:
     # An outage status is surfaced.
     down = _liveness_note({"checked_at": "2026-06-20T11:30:00+00:00", "status": 403}, now)
     assert "HTTP 403" in down
+    # A failure with no HTTP status (an expired certificate) is surfaced too,
+    # not left reading as a clean check.
+    tls = _liveness_note(
+        {
+            "checked_at": "2026-06-20T11:30:00+00:00",
+            "changed_at": "2026-06-18T12:00:00+00:00",
+            "status": None,
+            "consecutive_failures": 41,
+        },
+        now,
+    )
+    assert "the last 41 checks could not download the feed" in tls
+    one = _liveness_note(
+        {"checked_at": "2026-06-20T11:30:00+00:00", "status": None, "consecutive_failures": 1},
+        now,
+    )
+    assert "the last check could not download the feed" in one
+    assert "could not download" not in _liveness_note(
+        {"checked_at": "2026-06-20T11:30:00+00:00", "status": None, "consecutive_failures": 0},
+        now,
+    )
     # Not yet checked: nothing rather than a blank claim.
     assert _liveness_note(None, now) == ""
     assert _liveness_note({"status": 200}, now) == ""
@@ -3472,7 +3756,7 @@ def test_map_feature_carries_grade_state_and_letter_color() -> None:
     assert props["state"] == "Iowa"
     assert props["score"] == 71.5
     assert props["url"] == "/agency/test-transit/"
-    # Colour is reinforcement only; the grade letter itself rides in the feature.
+    # Color is reinforcement only; the grade letter itself rides in the feature.
     assert props["color"].startswith("#")
 
 
@@ -3743,7 +4027,7 @@ def test_render_compare_page_form_is_shareable_and_neutral() -> None:
     # Loading and errors are announced, and the no-JS path is honest.
     assert 'role="status"' in html
     assert "<noscript>" in html
-    # The result table is emphasised in text, never colour alone.
+    # The result table is emphasized in text, never color alone.
     assert "visually-hidden" in html and "(higher)" in html
     assert "These scorecards are not like-for-like" in html
     assert "scoring profile" in html and "validator" in html
@@ -3854,7 +4138,7 @@ def test_render_map_page_marker_shows_grade_not_color_only() -> None:
     html = _render_map_page(_map_features())
     # A symbol layer draws the grade letter on every point (WCAG 1.4.1).
     assert '"text-field": ["get", "grade"]' in html
-    # Clustering at low zoom, and reduced-motion is honoured for the cluster zoom.
+    # Clustering at low zoom, and reduced-motion is honored for the cluster zoom.
     assert "cluster: true" in html
     assert "prefers-reduced-motion" in html
     # The canvas is an enhancement: aria-hidden, no on-canvas controls.
@@ -3924,7 +4208,7 @@ _GEO: dict[str, Any] = {
 def test_equity_choropleth_encodes_tier_with_text_and_pattern() -> None:
     by_state: dict[str, dict[str, Any]] = {s["state"]: s for s in _EQUITY["states"]}
     svg = _equity_choropleth(_GEO, by_state)
-    # High tier gets its colour class and a hatch pattern overlay (not colour only).
+    # High tier gets its color class and a hatch pattern overlay (not color only).
     assert "need-high" in svg and 'fill="url(#needHatchDense)"' in svg
     # Each state names its tier and numbers in title text for AT and hover.
     assert (
@@ -3933,7 +4217,7 @@ def test_equity_choropleth_encodes_tier_with_text_and_pattern() -> None:
     ) in svg
     # A state with no overlay row renders faint and inert.
     assert 'class="need-state need-empty" aria-hidden="true"' in svg
-    # The legend reinforces colour with words.
+    # The legend reinforces color with words.
     assert "High need" in svg and "Lower need" in svg
 
 
@@ -4327,7 +4611,7 @@ def test_check_page_is_private_accessible_and_defers_to_validator() -> None:
         "stop names readable",
     ):
         assert q in html, q
-    # Status is announced, statuses are text (never colour), no-JS path exists.
+    # Status is announced, statuses are text (never color), no-JS path exists.
     assert 'role="status"' in html
     assert "Needs attention" in html and "Looks good" in html
     assert "<noscript>" in html
@@ -4366,6 +4650,24 @@ def test_page_shell_describes_the_shared_social_image() -> None:
     alt = "GTFS Scorecard: transit data quality for small agencies."
     assert html.count(f'<meta property="og:image:alt" content="{alt}">') == 1
     assert html.count(f'<meta name="twitter:image:alt" content="{alt}">') == 1
+
+
+def test_page_shell_links_the_real_mark_not_the_old_inline_favicon() -> None:
+    from scorecard_pipeline.site_shell import _page
+
+    html = _page(
+        title="t",
+        description="d",
+        canonical="https://gtfsscorecard.org/x/",
+        body="<p>hi</p>",
+    )
+
+    assert '<link rel="icon" type="image/svg+xml" href="/favicon.svg">' in html
+    assert '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">' in html
+    assert '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">' in html
+    assert '<link rel="shortcut icon" href="/favicon.ico">' in html
+    assert '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">' in html
+    assert "data:image/svg+xml" not in html
 
 
 def test_page_shell_uses_local_system_font_fallbacks() -> None:
@@ -4934,6 +5236,50 @@ def test_problem_page_zero_comparison_is_unavailable_not_clean() -> None:
     assert "No findings have been aggregated" not in html
 
 
+def test_problem_page_fix_guide_links_name_their_guides() -> None:
+    """/problems/ builds its own guide link, outside _fix_guide_link.
+
+    Measured live on 2026-09-13: the page carried 23 links reading "Read the
+    fix guide", each to a different guide. The same text rule applies here:
+    the link names the code it opens, and no two guides share a text.
+    """
+    from scorecard_pipeline.render_site import FIX_CODES_WITH_PAGES, _render_problems_page
+
+    codes = ("expired_calendar", "unused_shape")
+    FIX_CODES_WITH_PAGES.update(codes)
+    try:
+        html = _render_problems_page(
+            {
+                "feed_record_count": 10,
+                "comparison_eligible_count": 10,
+                "comparison": {"eligible_count": 10},
+                "comparison_feed_record_count": 10,
+                "total_agencies": 10,
+                "problems": [
+                    {
+                        "code": code,
+                        "what": f"What {code} says.",
+                        "why": "Trips can disappear.",
+                        "fix": "Fix it.",
+                        "severity": "WARNING",
+                        "prevalence_pct": 70.0,
+                        "agencies": 7,
+                        "instances": 14,
+                    }
+                    for code in codes
+                ],
+            }
+        )
+    finally:
+        for code in codes:
+            FIX_CODES_WITH_PAGES.discard(code)
+    links = re.findall(r'<a class="fix-guide" href="(/fix/[a-z0-9_]+/)">([^<]*)</a>', html)
+    assert [href for href, _ in links] == [f"/fix/{code}/" for code in codes], links
+    for (href, text), code in zip(links, codes, strict=True):
+        assert code in text, f"{href} link text {text!r} does not name {code}"
+    assert len({text for _, text in links}) == len(codes), f"two guides share link text: {links}"
+
+
 def test_ridership_impact_line_states_coverage_and_never_ranks() -> None:
     from scorecard_pipeline.render_site import _ridership_impact_line
 
@@ -5138,7 +5484,7 @@ def test_agency_page_carries_the_confidence_line() -> None:
     assert "How we measured this" in html
     title = html.split("<title>", 1)[1].split("</title>", 1)[0]
     description = html.split('<meta name="description" content="', 1)[1].split('">', 1)[0]
-    assert title == "Demo Transit GTFS quality report"
+    assert title == "Demo Transit GTFS feed: quality report and fixes"
     assert "grade" not in title.lower()
     assert len(title) <= 60
     assert len(description) <= 155
@@ -5149,7 +5495,7 @@ def test_agency_page_carries_the_confidence_line() -> None:
     assert html.index('id="fixes-h"') < html.index('id="rider-impact"') < html.index('id="cats-h"')
 
 
-def test_agency_page_title_truncates_long_names_and_uses_state() -> None:
+def test_agency_page_title_keeps_a_long_name_ahead_of_its_state() -> None:
     import datetime as dt
     from pathlib import Path
 
@@ -5181,8 +5527,9 @@ def test_agency_page_title_truncates_long_names_and_uses_state() -> None:
     title = html.split("<title>", 1)[1].split("</title>", 1)[0]
 
     assert len(title) <= 60
-    assert "(California) GTFS quality report" in title
-    assert "…" in title
+    # The name matters more to a searcher than the state, so the state goes
+    # first and the name is cut only after that, on a word boundary.
+    assert title == "A Very Long Regional Transportation… GTFS feed quality"
 
 
 def test_agency_metadata_planner_disambiguates_truncated_feed_variants() -> None:
@@ -5244,7 +5591,8 @@ def test_agency_metadata_bounds_long_subdivision_labels() -> None:
     )
 
     assert len(metadata.title) <= 60
-    assert "(United Kingdom) GTFS quality report" in metadata.title
+    # The whole name fits only without the location, and the name wins.
+    assert metadata.title == "Cardiff Bus (Bws Caerdydd) GTFS feed quality report"
     assert len(metadata.description) <= 155
     assert "United Kingdom" in metadata.description
 
@@ -5291,8 +5639,8 @@ def test_non_us_agency_title_and_peer_context_include_country() -> None:
     html = _render_agency(artifact, dir_record=record)
     title = html.split("<title>", 1)[1].split("</title>", 1)[0]
 
-    assert "(England, United Kingdom) GTFS quality report" in title
-    assert "Catalogued in <bdi>England, United Kingdom</bdi>." in _peer_context(record)
+    assert title == "Demo Transit (England, United Kingdom) GTFS feed quality"
+    assert "Cataloged in <bdi>England, United Kingdom</bdi>." in _peer_context(record)
     assert "60%" not in _peer_context(record) and "55%" not in _peer_context(record)
     assert "Comparisons use agencies currently tracked worldwide." not in html
     assert "United States tools" not in html
@@ -5393,8 +5741,10 @@ def test_guided_fix_flow_stitches_three_steps_and_links(monkeypatch: pytest.Monk
     finally:
         render_site.FIX_CODES_WITH_PAGES.discard("expired_calendar")
 
-    # (1) the plain-language finding with its /fix/<code>/ guide.
-    assert "Re-export with a longer calendar." in html
+    # (1) the finding, named by its card above (the card states the change, so
+    # the flow does not print it again), with its /fix/<code>/ guide.
+    assert '<a href="#finding-expired_calendar">Fix 01</a>' in html
+    assert "Re-export with a longer calendar." not in html
     assert 'href="/fix/expired_calendar/"' in html
     # (2) "Make the change": the tool-specific fix path (Trillium, hosted). A
     # legacy artifact URL is deliberately ignored; the service does not publish
@@ -6312,6 +6662,97 @@ def test_rt_health_section_survives_a_corrupt_record_file(isolated_repo_root: Pa
     assert _rt_health_section("demo") == ""
 
 
+def _write_rt_record(root: Path, agency_id: str, timestamps: list[int]) -> None:
+    """Write a record whose observations sit at the given capture times."""
+    import json
+
+    rt_dir = root / "data" / "rt-health"
+    rt_dir.mkdir(parents=True, exist_ok=True)
+    (rt_dir / f"{agency_id}.json").write_text(
+        json.dumps(
+            {
+                "agency_id": agency_id,
+                "observations": [
+                    {
+                        "ts": ts,
+                        "kinds_reachable": 1,
+                        "kinds_total": 1,
+                        "worst_lag_seconds": 10,
+                        "coverage_pct": None,
+                    }
+                    for ts in timestamps
+                ],
+            }
+        )
+    )
+
+
+def test_the_reliability_window_names_the_day_it_ends_not_today(
+    isolated_repo_root: Path,
+) -> None:
+    """ "over the last N days" was a claim about now, from a span that is not.
+
+    ``summarize`` reports the first and last capture times of whatever the
+    monitor recorded; the page is rebuilt on the intraday cadence regardless.
+    So the moment the monitor stops -- as it did between 2026-09-05 and
+    2026-09-08, when every scheduled run was killed by a timeout below its own
+    runtime -- every agency page went on saying "the last N days" about a
+    window that had already closed. The repository's own golden fixture is the
+    unarranged demonstration: its newest yolobus observation is 2026-07-01 and
+    the committed golden page reads "over the last 9 days".
+
+    Naming the end date needs no threshold and reads no clock, so it cannot
+    drift and it cannot be wrong.
+    """
+    # 2026-06-23T03:35:07Z to 2026-07-01T23:00:18Z: the golden fixture's own
+    # window, nine days wide and long past.
+    _write_rt_record(isolated_repo_root, "demo", [1782185707, 1782946818])
+
+    html = _rt_health_section("demo")
+
+    assert "in the 9 days to 2026-07-01" in html
+    assert "over the last" not in html, (
+        "the window must not be described relative to the reader's today"
+    )
+    # Paired with a presence assertion, so the absence above cannot be
+    # satisfied by a fixture that renders no window at all.
+    assert "checks in the" in html
+
+
+def test_a_single_observation_is_dated_rather_than_given_a_span(
+    isolated_repo_root: Path,
+) -> None:
+    """One capture has no span, and the old code printed no date either.
+
+    The section then read "responded on 100.0% of 1 checks, with 10s median
+    lag" -- a reliability figure with nothing at all to place it in time.
+    """
+    _write_rt_record(isolated_repo_root, "demo", [1782946818])
+
+    html = _rt_health_section("demo")
+
+    assert "1 checks on 2026-07-01" in html
+    assert " day" not in html.split("</p>")[0], "one observation spans no days"
+
+
+def test_the_fineprint_says_the_window_does_not_follow_the_page(
+    isolated_repo_root: Path,
+) -> None:
+    """The date alone is only half of it.
+
+    A reader who does not already know the monitor exists has no reason to
+    read an end date as anything but a formatting choice. The fineprint is
+    where the page says that this window is the record's and not the build's,
+    so a stopped monitor is legible rather than merely dated.
+    """
+    _write_rt_record(isolated_repo_root, "demo", [1782185707, 1782946818])
+
+    html = _rt_health_section("demo")
+
+    assert "The window ends at the newest observation" in html
+    assert "if the monitor stops, this window stops with it" in html
+
+
 def test_status_page_names_the_shard_denominator_when_the_run_recorded_one() -> None:
     """ "across 31 shards" reads as a fact about the size of the run. It is only
     a fact about how many shards came back. A reader cannot see that 31 is short
@@ -6381,3 +6822,272 @@ def test_status_page_omits_the_denominator_when_the_run_did_not_record_one() -> 
     assert "of 0 shards" not in html
     assert "Run completed" in html
     assert "with warnings" not in html
+
+
+def test_rt_page_states_when_its_observations_were_taken() -> None:
+    """The page says the readings' dates, not only the build's (#389)."""
+    from scorecard_pipeline.render_site import _render_rt_page
+
+    html = _render_rt_page(
+        {
+            "feed_record_count": 4,
+            "comparison_eligible_count": 4,
+            "comparison": {"eligible_count": 4},
+            "monitored_feed_record_count": 3,
+            "raw_monitored_feed_record_count": 4,
+            "monitored_count": 3,
+            "median_uptime_pct": 99.0,
+            "median_lag_seconds": 12,
+            "bands": {"reliable": 2, "mostly": 1, "spotty": 0},
+            "most_reliable": [],
+            "states": [],
+            "observed": {
+                "feed_records_dated": 3,
+                "feed_records_undated": 1,
+                "oldest_last_observation": "2026-06-30",
+                "median_last_observation": "2026-09-05",
+                "newest_last_observation": "2026-09-12",
+            },
+        }
+    )
+    assert "last observed on 2026-09-12" in html
+    assert "the median on 2026-09-05" in html
+    assert "least recently observed on 2026-06-30" in html
+    # The undated member is named, not folded into the three dates.
+    assert "One further monitored feed record carries no observation date" in html
+    assert "not the date this page was built" in html
+
+
+def test_rt_page_says_so_when_no_observation_carries_a_date() -> None:
+    """No date is stated as no date -- never as the build date, never as a zero."""
+    from scorecard_pipeline.render_site import _render_rt_page
+
+    nat = {
+        "feed_record_count": 2,
+        "comparison_eligible_count": 2,
+        "comparison": {"eligible_count": 2},
+        "monitored_feed_record_count": 2,
+        "raw_monitored_feed_record_count": 2,
+        "monitored_count": 2,
+        "median_uptime_pct": 99.0,
+        "median_lag_seconds": 12,
+        "bands": {"reliable": 2, "mostly": 0, "spotty": 0},
+        "most_reliable": [],
+        "states": [],
+        "observed": {
+            "feed_records_dated": 0,
+            "feed_records_undated": 2,
+            "oldest_last_observation": None,
+            "median_last_observation": None,
+            "newest_last_observation": None,
+        },
+    }
+    html = _render_rt_page(nat)
+    assert "carry no observation date" in html
+    assert "None of the 2 feed records here records one." in html
+
+    # A payload with no vintage block at all is the same failure one step back,
+    # and must not read as a page that simply had nothing to say.
+    without = {key: value for key, value in nat.items() if key != "observed"}
+    assert "does not record when its readings were taken" in _render_rt_page(without)
+
+
+def test_rt_page_dates_nothing_when_it_publishes_no_readings() -> None:
+    """No aggregate on the page, so no vintage line describing one."""
+    from scorecard_pipeline.render_site import _render_rt_page
+
+    html = _render_rt_page(
+        {
+            "feed_record_count": 100,
+            "comparison_eligible_count": 0,
+            "comparison": {"eligible_count": 0},
+            "raw_monitored_feed_record_count": 8,
+            "monitored_feed_record_count": 0,
+            "monitored_count": 0,
+            "observed": {
+                "feed_records_dated": 0,
+                "feed_records_undated": 0,
+                "oldest_last_observation": None,
+                "median_last_observation": None,
+                "newest_last_observation": None,
+            },
+        }
+    )
+    assert "unavailable until current-contract checks" in html
+    assert "observation date" not in html
+    assert "readings were taken" not in html
+
+
+def _rescored_block(*, exact: int, checked: int, points: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "rubric_version": "1.4",
+        "coverage": {"records_rescored": 120, "records_not_rescored": 7},
+        "reproduction": {
+            "native_records_checked": checked,
+            "native_records_exact": exact,
+            "max_overall_difference": 0.1 if exact < checked else 0.0,
+            "native_average_by_date": {
+                "2026-10-02": {"rescored_average": 70.0, "published_average": 70.0}
+            },
+        },
+        "reproduces_native_exactly": exact == checked,
+        "native_points_since": "2026-10-02",
+        "points": points,
+        "summary": {
+            "score_delta": -1.0,
+            "first": {"date": points[0]["date"], "average_score": 71.0},
+            "last": {"date": points[-1]["date"], "average_score": 70.0},
+        },
+    }
+
+
+_NATIVE_POINTS = [
+    {"date": "2026-10-02", "average_score": 70.0, "agency_count": 10, "expired_pct": 5},
+    {"date": "2026-10-03", "average_score": 70.0, "agency_count": 10, "expired_pct": 5},
+]
+_NATIVE_SUMMARY = {
+    "score_delta": 0.0,
+    "first": {"date": "2026-10-02"},
+    "last": {"date": "2026-10-03", "average_score": 70.0},
+}
+_RESCORED_POINTS = [
+    {
+        "date": "2026-09-05",
+        "average_score": 71.0,
+        "agency_count": 9,
+        "expired_pct": 6,
+        "rescored_agency_count": 9,
+    },
+    {
+        "date": "2026-10-03",
+        "average_score": 70.0,
+        "agency_count": 10,
+        "expired_pct": 5,
+        "rescored_agency_count": 0,
+    },
+    {
+        "date": "2026-10-04",
+        "average_score": 70.0,
+        "agency_count": 10,
+        "expired_pct": 5,
+        "rescored_agency_count": 0,
+    },
+]
+
+
+def test_rescored_series_is_shown_apart_when_reproduction_is_not_exact() -> None:
+    from scorecard_pipeline.render_site import _trend_sections
+
+    rescored = _rescored_block(exact=95, checked=100, points=_RESCORED_POINTS)
+    html = _trend_sections(_NATIVE_POINTS, _NATIVE_SUMMARY, [], rescored)
+    # The headline stays on records the current rubric produced.
+    assert "between 2026-10-02 and 2026-10-03" in html
+    assert "Earlier records rescored under rubric 1.4" in html
+    assert "shown apart" in html
+    assert "95 come out exactly as published" in html
+    assert "at most 0.1 point" in html
+    assert "No feed was downloaded again" in html
+    assert "120 earlier records were rescored" in html and "7 could not be" in html
+    # The native table carries no rescored column.
+    assert "Of which rescored" not in html
+
+
+def test_rescored_series_becomes_the_chart_only_when_reproduction_is_exact() -> None:
+    from scorecard_pipeline.render_site import _trend_sections
+
+    rescored = _rescored_block(exact=100, checked=100, points=_RESCORED_POINTS)
+    html = _trend_sections(_NATIVE_POINTS, _NATIVE_SUMMARY, [], rescored)
+    assert "between 2026-09-05 and 2026-10-04" in html
+    assert "Of which rescored" in html
+    assert "Points before 2026-10-02 use records from earlier rubric versions" in html
+    assert "shown apart" not in html
+
+
+def test_trend_without_rescored_file_is_unchanged() -> None:
+    from scorecard_pipeline.render_site import _trend_sections
+
+    html = _trend_sections(_NATIVE_POINTS, _NATIVE_SUMMARY, [])
+    assert "rescored" not in html.lower()
+
+
+def _compact_rollup(count: int) -> dict[str, Any]:
+    grades = ["A", "B", "C", "D", "F"]
+    members = []
+    for i in range(count):
+        m = _member(f"agency{i}", "ready", grade=grades[i % 5])
+        m["top_fix_code"] = "stop_times_future_date"
+        m["needs_attention"] = i % 7 == 0
+        m["attention_reason"] = "feed expired" if i % 7 == 0 else None
+        members.append(m)
+    return {
+        "rollup": {"id": "all", "name": "All tracked agencies"},
+        "agency_count": count,
+        "average_score": 75.0,
+        "grade_distribution": {"A": 1},
+        "comparison": {"eligible_count": 0},
+        "needs_attention": sum(1 for m in members if m["needs_attention"]),
+        "expired": {"lapsed": 0, "stale": 0, "total": 0},
+        "members": members,
+    }
+
+
+def test_large_rollup_lists_each_agency_once_under_grade_headings() -> None:
+    import re
+
+    from scorecard_pipeline import render_site
+
+    count = render_site.COMPACT_ROLLUP_MIN_MEMBERS + 5
+    html = render_site._render_rollup(_compact_rollup(count))
+
+    # One link per agency, no handoff links, no per-row heading or hidden chip.
+    assert len(re.findall(r'href="/agency/agency\d+/"', html)) == count
+    assert "?finding=" not in html
+    assert "Open next finding" not in html
+    assert "program-row" not in html
+    assert "checked 2026-06-12" not in html
+    # Five grade headings replace the per-row headings.
+    grade_headings = re.findall(r'<h3 class="section-sub" id="members-grade-[a-f]">', html)
+    assert len(grade_headings) == 5
+    # The needs-attention pill text and the score survive.
+    assert 'pill-warn">feed expired</span>' in html
+    assert "75.0 out of 100" in html
+
+
+def test_small_rollup_keeps_the_full_rows_and_handoff_links() -> None:
+    from scorecard_pipeline import render_site
+
+    html = render_site._render_rollup(_compact_rollup(12))
+
+    assert html.count('class="program-row"') == 12
+    assert "Open next finding" in html
+    assert "?finding=stop_times_future_date#finding-handoff" in html
+    assert "members-grade-" not in html
+
+
+def test_large_rollup_expired_rows_are_compact_too() -> None:
+    from scorecard_pipeline import render_site
+
+    rollup = _compact_rollup(render_site.COMPACT_ROLLUP_MIN_MEMBERS + 1)
+    for m in rollup["members"][:3]:
+        m["expiry_status"] = "lapsed"
+        m["days_until_expiry"] = -40
+    html = render_site._rollup_expired_section(rollup)
+
+    assert "Recently lapsed" in html
+    assert "program-row" not in html
+    assert "?finding=" not in html
+
+
+def test_compact_rollup_negative_control_threshold_sabotage_is_detected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Raising the threshold must bring back the old rows, proving the checks
+    above can fail: the sabotage is asserted to have taken effect first."""
+    from scorecard_pipeline import render_site
+
+    rollup = _compact_rollup(render_site.COMPACT_ROLLUP_MIN_MEMBERS + 5)
+    monkeypatch.setattr(render_site, "COMPACT_ROLLUP_MIN_MEMBERS", 10**6)
+    assert render_site._is_large_rollup(rollup) is False  # the sabotage applied
+    html = render_site._render_rollup(rollup)
+    assert "?finding=" in html
+    assert "program-row" in html

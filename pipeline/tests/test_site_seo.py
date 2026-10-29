@@ -13,6 +13,15 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "pipeline" / "scripts" / "check_site_seo.py"
 ORIGIN = "https://example.test"
+# The site-measurement contract (ADR 0055): one declared script on every page,
+# one destination host, nothing else naming a telemetry host.
+MEASURE_HOST = "https://measure.example.test"
+MEASURE_TAG = '<script src="/src/measure.js" defer></script>'
+# ADR 0056: every measured page carries the footer opt-out control.
+OPT_OUT = "<span data-analytics-toggle>Opt out of analytics</span>"
+MEASURE_SHIM = f'/* fixture shim */\nvar HOST = "{MEASURE_HOST}";\n'
+# ADR 0056: the one other host the declared script may name.
+GA4_LOADER_HOST = "https://www.googletagmanager.com"
 
 
 def _page(
@@ -27,11 +36,13 @@ def _page(
     language: str = "en",
     noindex: bool = False,
     og_url: str | None = None,
+    measured: bool = True,
 ) -> str:
     canonical = f"{ORIGIN}{canonical_path or public_path}"
     social_url = og_url or canonical
     robots = '<meta name="robots" content="noindex,follow">' if noindex else ""
     heading = f"<h1>{h1}</h1>" if h1 is not None else ""
+    measure = MEASURE_TAG if measured else ""
     return f"""<!doctype html>
 <html lang="{language}">
 <head>
@@ -45,9 +56,10 @@ def _page(
   <meta property="og:url" content="{social_url}">
   <meta property="og:image" content="{ORIGIN}/og.png">
   {robots}
+  {measure}
   {extra_head}
 </head>
-<body>{heading}{body}</body>
+<body>{heading}{body}{OPT_OUT if measured else ""}</body>
 </html>
 """
 
@@ -78,6 +90,10 @@ def _config() -> dict[str, Any]:
         "redirect_aliases": {
             "/old/": "/target/?view=all#section",
         },
+        "measurement_script": "/src/measure.js",
+        "measurement_host": MEASURE_HOST,
+        "measurement_ga4_host": GA4_LOADER_HOST,
+        "measurement_ga4_id": "",
     }
 
 
@@ -165,8 +181,10 @@ def _write_fixture(tmp_path: Path) -> tuple[Path, Path]:
                     else (
                         '<script type="application/ld+json">'
                         '{"@context":"https://schema.org","@type":"Dataset",'
-                        f'"url":"{ORIGIN}/agency/demo/"'
-                        "}</script>"
+                        f'"url":"{ORIGIN}/agency/demo/",'
+                        '"distribution":{"@type":"DataDownload",'
+                        f'"contentUrl":"{ORIGIN}/data/demo.json"'
+                        "}}</script>"
                     )
                 ),
                 body='<a href="/agencies/">Directory</a>',
@@ -197,7 +215,13 @@ def _write_fixture(tmp_path: Path) -> tuple[Path, Path]:
 """,
     )
     (site / "app.js").write_text("/* fixture */\n", encoding="utf-8")
+    _write_text(site, "src/measure.js", MEASURE_SHIM)
     (site / "og.png").write_bytes(b"png")
+    # The file the agency Dataset advertises as its download. A structured
+    # block is the one place a URL appears that no link or asset check reads,
+    # so the valid fixture has to carry one for the checks below to mean
+    # anything.
+    _write_text(site, "data/demo.json", '{"demo": true}\n')
     sitemap_urls = (
         "/",
         "/agencies/",
@@ -311,6 +335,7 @@ def test_valid_site_passes_with_deterministic_report_and_canonical_alias(
         "findings": 0,
         "html_files": 9,
         "indexable_pages": 5,
+        "measured_pages": 8,
         "noindex_pages": 2,
         "redirect_aliases": 1,
     }
@@ -338,6 +363,7 @@ def test_manifest_authorized_agency_redirect_is_excluded_from_sitemap(
         "findings": 0,
         "html_files": 10,
         "indexable_pages": 5,
+        "measured_pages": 8,
         "noindex_pages": 2,
         "redirect_aliases": 2,
     }
@@ -603,25 +629,180 @@ def test_srcset_still_checks_non_data_candidates(tmp_path: Path) -> None:
     assert "asset.missing_target" in _codes(report)
 
 
-def test_no_tracking_contract_rejects_analytics_loader_asset_and_file(
+def test_measurement_contract_requires_exactly_one_script_on_every_page(
     tmp_path: Path,
 ) -> None:
+    """A page without the script is one the disclosure does not describe; a
+    page with two reports every view twice; a redirect stub is not a page a
+    reader is on. Each is its own finding so the report says which."""
     site, config = _write_fixture(tmp_path)
-    _replace(
-        site / "index.html",
-        "</head>",
-        '<script src="/analytics.js"></script></head>',
-    )
-    _write_text(site, "analytics.js", "/* tracking loader placeholder */\n")
+    _replace(site / "agencies/index.html", MEASURE_TAG, "")
+    _replace(site / "index.html", MEASURE_TAG, MEASURE_TAG + MEASURE_TAG)
+    _replace(site / "old/index.html", "</head>", MEASURE_TAG + "</head>")
     report = tmp_path / "report.json"
 
     result = _run(site, config, report)
 
     assert result.returncode == 1
-    assert {
-        "privacy.telemetry_asset",
-        "privacy.telemetry_file",
-    } <= _codes(report)
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    by_code = {(item["code"], item["path"]) for item in payload["findings"]}
+    assert ("measurement.missing", "agencies/index.html") in by_code
+    assert ("measurement.duplicate", "index.html") in by_code
+    assert ("measurement.on_redirect", "old/index.html") in by_code
+    # The count beside html_files is of pages that hold the contract, so it
+    # excludes all three and is printed even when the run fails.
+    assert payload["summary"]["measured_pages"] == 6
+
+
+def test_measurement_contract_requires_the_opt_out_on_every_measured_page(
+    tmp_path: Path,
+) -> None:
+    site, config = _write_fixture(tmp_path)
+    report = tmp_path / "report.json"
+    assert _run(site, config, report).returncode == 0, report.read_text(encoding="utf-8")
+
+    # Negative control: strip the control from one page, assert it is gone,
+    # and the gate names that page.
+    _replace(site / "agencies/index.html", OPT_OUT, "")
+    assert "data-analytics-toggle" not in (site / "agencies/index.html").read_text(encoding="utf-8")
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    missing = [i["path"] for i in payload["findings"] if i["code"] == "measurement.opt_out_missing"]
+    assert missing == ["agencies/index.html"]
+
+
+def test_measurement_contract_holds_the_script_to_its_one_declared_host(
+    tmp_path: Path,
+) -> None:
+    site, config = _write_fixture(tmp_path)
+    _write_text(
+        site,
+        "src/measure.js",
+        MEASURE_SHIM + 'var MIRROR = "https://collector.example.org/e";\n',
+    )
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    findings = [
+        item for item in payload["findings"] if item["code"] == "measurement.undeclared_host"
+    ]
+    assert [item["path"] for item in findings] == ["src/measure.js"]
+    assert findings[0]["message"] == (
+        "the measurement script names 'collector.example.org'; only "
+        "'measure.example.test' and 'www.googletagmanager.com' are declared for it"
+    )
+
+
+def test_the_declared_script_may_load_ga4_and_nothing_else_may(tmp_path: Path) -> None:
+    """ADR 0056: GA4 reaches a page only through the declared script. The
+    same loader URL that passes inside it is a finding on a page, in an inline
+    script, or in any other JavaScript file, and so is a GA4 collection host."""
+    site, config = _write_fixture(tmp_path)
+    loader = f'var LOADER = "{GA4_LOADER_HOST}/gtag/js?id=";\n'
+    _write_text(site, "src/measure.js", MEASURE_SHIM + loader)
+    report = tmp_path / "report.json"
+
+    assert _run(site, config, report).returncode == 0, report.read_text(encoding="utf-8")
+
+    # Negative control: the same loader anywhere else fails, and the sabotage
+    # is asserted to have landed before the verdict is read.
+    _replace(
+        site / "index.html",
+        "</head>",
+        f'<script async src="{GA4_LOADER_HOST}/gtag/js?id=G-TEST1234"></script></head>',
+    )
+    _write_text(site, "other.js", "fetch('https://region1.analytics.google.com/g/collect');\n")
+    assert f"{GA4_LOADER_HOST}/gtag/js" in (site / "index.html").read_text(encoding="utf-8")
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    by_code = {(item["code"], item["path"]) for item in payload["findings"]}
+    assert ("privacy.telemetry_asset", "index.html") in by_code
+    assert ("privacy.telemetry_script", "other.js") in by_code
+    assert not any(item["path"] == "src/measure.js" for item in payload["findings"])
+
+
+def test_measurement_contract_fails_when_the_declared_script_is_absent(
+    tmp_path: Path,
+) -> None:
+    site, config = _write_fixture(tmp_path)
+    (site / "src" / "measure.js").unlink()
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    codes = _codes(report)
+    assert "measurement.script_missing" in codes
+    # The pages still reference it, so the existing asset check fires too.
+    assert "asset.missing_target" in codes
+
+
+def test_measurement_may_come_only_from_the_declared_script(tmp_path: Path) -> None:
+    """The host is allowed in one file. An inline script naming it, a second
+    script naming it, or the vendor SDK loader itself is each a finding."""
+    site, config = _write_fixture(tmp_path)
+    _replace(
+        site / "index.html",
+        "</head>",
+        (
+            f"<script>fetch('{MEASURE_HOST}/i/v0/e/')</script>"
+            '<script src="https://us-assets.i.posthog.com/static/array.js"></script>'
+            "</head>"
+        ),
+    )
+    _write_text(site, "app.js", f'fetch("{MEASURE_HOST}/i/v0/e/");\n')
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    by_code = {(item["code"], item["path"]) for item in payload["findings"]}
+    assert ("privacy.telemetry_script", "index.html") in by_code
+    assert ("privacy.telemetry_script", "app.js") in by_code
+    assert ("privacy.telemetry_asset", "index.html") in by_code
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("measurement_script", "src/measure.js"),
+        ("measurement_script", "/src/measure.css"),
+        ("measurement_script", "//evil.example/measure.js"),
+        ("measurement_host", "http://measure.example.test"),
+        ("measurement_host", "https://measure.example.test/collect"),
+        ("measurement_host", "https://user@measure.example.test"),
+        ("measurement_host", 7),
+        ("measurement_ga4_host", "http://www.googletagmanager.com"),
+        ("measurement_ga4_host", "https://www.googletagmanager.com/gtag/js"),
+        ("measurement_ga4_id", "UA-12345-1"),
+        ("measurement_ga4_id", 'G-ABC123"; alert(1); //'),
+        ("measurement_ga4_id", "g-abc123"),
+        ("measurement_ga4_id", None),
+    ],
+)
+def test_measurement_settings_are_validated_strictly(
+    tmp_path: Path, key: str, value: object
+) -> None:
+    site, config = _write_fixture(tmp_path)
+    payload = json.loads(config.read_text(encoding="utf-8"))
+    payload[key] = value
+    config.write_text(json.dumps(payload), encoding="utf-8")
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 2
+    assert json.loads(report.read_text(encoding="utf-8"))["errors"][0]["code"] == "config.invalid"
 
 
 def test_no_tracking_contract_rejects_known_telemetry_hosts(tmp_path: Path) -> None:
@@ -939,8 +1120,10 @@ def test_configured_hreflang_cluster_is_exact(
             (
                 '<script type="application/ld+json">'
                 '{"@context":"https://schema.org","@type":"Dataset",'
-                f'"url":"{ORIGIN}/agency/demo/"'
-                "}</script>"
+                f'"url":"{ORIGIN}/agency/demo/",'
+                '"distribution":{"@type":"DataDownload",'
+                f'"contentUrl":"{ORIGIN}/data/demo.json"'
+                "}}</script>"
             ),
             "",
             "jsonld.required_type_missing",
@@ -971,6 +1154,130 @@ def test_required_agency_dataset_has_schema_identity(
 
     assert result.returncode == 1
     assert expected_code in _codes(report)
+
+
+def test_a_required_type_must_be_the_page_own_top_level_node(tmp_path: Path) -> None:
+    """Mentioning an entity of the required type is not declaring one.
+
+    The Dataset moved inside another node's ``isBasedOn``: the page now refers
+    to a dataset instead of being one, which is exactly the state the
+    requirement exists to catch, and the old whole-document walk accepted it.
+    """
+    site, config = _write_fixture(tmp_path)
+    _replace(
+        site / "agency/demo/index.html",
+        '{"@context":"https://schema.org","@type":"Dataset",',
+        '{"@context":"https://schema.org","@type":"WebPage",'
+        f'"url":"{ORIGIN}/agency/demo/","isBasedOn":{{"@type":"Dataset",',
+    )
+    _replace(site / "agency/demo/index.html", "}}</script>", "}}}</script>")
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    assert "jsonld.required_type_missing" in _codes(report)
+
+
+def test_a_nested_node_of_a_required_type_is_not_asked_for_this_page_url(
+    tmp_path: Path,
+) -> None:
+    """A reference to another entity keeps that entity's URL, not this page's.
+
+    /bundle/ names the site Organization and the free single-agency scorecard
+    inside its own Service node so a crawler reading only that page knows who
+    the provider is. Both are Services or Organizations that live elsewhere,
+    and demanding they carry /bundle/'s canonical would make naming them
+    impossible.
+    """
+    site, config = _write_fixture(tmp_path)
+    _replace(
+        site / "agency/demo/index.html",
+        '"distribution":{"@type":"DataDownload",',
+        '"isBasedOn":{"@type":"Dataset","url":"https://example.org/upstream/"},'
+        '"distribution":{"@type":"DataDownload",',
+    )
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _codes(report) == set()
+
+
+@pytest.mark.parametrize(
+    ("new_url", "expected_code"),
+    [
+        (f"{ORIGIN}/data/gone.json", "jsonld.missing_distribution"),
+        (f"{ORIGIN.replace('https://', 'http://')}/data/demo.json", "jsonld.insecure_distribution"),
+    ],
+)
+def test_a_same_site_jsonld_download_must_exist_and_be_secure(
+    tmp_path: Path,
+    new_url: str,
+    expected_code: str,
+) -> None:
+    """A DataDownload is a promise about a file, and nothing else checks it.
+
+    ``<a href>`` and ``<img src>`` are resolved against the rendered tree; a URL
+    that appears only inside a JSON-LD block is invisible to those collectors,
+    so a dataset could advertise a 404 on every page of a family with the whole
+    SEO contract green.
+    """
+    site, config = _write_fixture(tmp_path)
+    _replace(
+        site / "agency/demo/index.html",
+        f'"contentUrl":"{ORIGIN}/data/demo.json"',
+        f'"contentUrl":"{new_url}"',
+    )
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    assert expected_code in _codes(report)
+
+
+def test_a_malformed_jsonld_download_url_is_reported_not_swallowed(tmp_path: Path) -> None:
+    """A URL the parser cannot split is a finding, not a silent skip.
+
+    The resolver returns None for anything off-origin, so a URL that raises on
+    parse would otherwise take the same quiet path as a legitimate external
+    mirror and never be reported.
+    """
+    site, config = _write_fixture(tmp_path)
+    _replace(
+        site / "agency/demo/index.html",
+        f'"contentUrl":"{ORIGIN}/data/demo.json"',
+        '"contentUrl":"https://[invalid"',
+    )
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    assert "jsonld.malformed_distribution" in _codes(report)
+
+
+def test_an_offsite_jsonld_download_is_left_alone(tmp_path: Path) -> None:
+    """This check resolves files; it does not reach the network.
+
+    An upstream feed or a mirror on another host is a legitimate ``contentUrl``
+    and cannot be resolved here, so it is not a finding. Paired with the test
+    above so the same fixture proves the check fires on one and not the other.
+    """
+    site, config = _write_fixture(tmp_path)
+    _replace(
+        site / "agency/demo/index.html",
+        f'"contentUrl":"{ORIGIN}/data/demo.json"',
+        '"contentUrl":"https://data.example.org/feed.zip"',
+    )
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _codes(report) == set()
 
 
 def test_required_json_ld_pattern_must_match_a_page(tmp_path: Path) -> None:
@@ -1206,9 +1513,35 @@ def test_repository_config_keeps_aliases_and_exemptions_narrow() -> None:
     assert config["retained_redirects_path"] == "_meta/retained-agency-redirects.json"
     assert config["canonical_aliases"] == {"/app/": "/agencies/"}
     assert config["hreflang_groups"] == [{"en": "/", "es": "/es/"}]
-    assert config["required_json_ld_types"] == {"/agency/*/": ["Dataset"]}
+    # Every page family whose structured data is load-bearing, and no other.
+    # Widened deliberately: a rollup publishes a Dataset and the page it lists
+    # from, /bundle/ a Service and also a Product -- Google's Product
+    # structured data, which a pure Service node is not eligible for -- and
+    # each of those could stop being published with no code change and no
+    # other test noticing. The full reasoning, and the check that each entry
+    # is still required, is in tests/test_program_discoverability.py.
+    # /data/history/ (ADR 0063) sells one thing the same way /bundle/ does. Its
+    # Product node is the offers block `make sync-bundle-offers` writes from
+    # its plan file, emitted only while the plan says payments are available.
+    # The plan is on, so the page carries a Service and a Product and the
+    # deploy gate requires both, as it does for /bundle/.
+    # tests/test_history_plan_contract.py derives this entry from the plan
+    # file, so turning the plan off again means dropping "Product" here too.
+    assert config["required_json_ld_types"] == {
+        "/agency/*/": ["Dataset"],
+        "/bundle/": ["Service", "Product"],
+        "/data/history/": ["Service", "Product"],
+        "/program/": ["CollectionPage"],
+        "/program/*/": ["CollectionPage", "Dataset"],
+    }
+    # /api/ is not a retired URL but a guessed one: the read API lives under
+    # /api/v1/ and the open-data page's "Get the data" section is the only
+    # page listing its endpoints, so the directory answers with the same
+    # meta-refresh stub the retired URLs use. tests/test_program_discoverability.py
+    # holds the stub, its target's fragment, and its absence from the sitemap.
     assert config["redirect_aliases"] == {
         "/access/": "/adoption/#access",
+        "/api/": "/data/#get-h",
         "/changes/": "/pulse/#changes",
         "/concept/": "/how-to-read/",
         "/leaderboard/": "/pulse/#changes",
@@ -1354,3 +1687,199 @@ def test_repository_config_publishes_the_length_bounds_the_renderer_targets() ->
     assert config["title_length"] == [15, 60]
     assert config["description_length"] == [50, 155]
     assert config["title_length"][1] == SEO_TITLE_MAX_LENGTH
+
+
+def _write_clearance_logs(site: Path, config: Path) -> None:
+    """Two clearance logs under a conditional noindex path: one full (indexable,
+    in the sitemap) and one thin (noindex,follow, out of the sitemap)."""
+    _write_text(
+        site,
+        "agency/demo/fixes/index.html",
+        _page(
+            "/agency/demo/fixes/",
+            "Demo clearance log",
+            "Demo clearance log description",
+            body='<a href="/agency/demo/">Scorecard</a>',
+        ),
+    )
+    _write_text(
+        site,
+        "agency/other/fixes/index.html",
+        _page(
+            "/agency/other/fixes/",
+            "Other clearance log",
+            "Other clearance log description",
+            noindex=True,
+            body='<a href="/agency/demo/">Scorecard</a>',
+        ),
+    )
+    _replace(
+        site / "sitemap.xml",
+        f"<url><loc>{ORIGIN}/target/</loc>",
+        f"<url><loc>{ORIGIN}/agency/demo/fixes/</loc><lastmod>2026-07-29</lastmod></url>"
+        f"<url><loc>{ORIGIN}/target/</loc>",
+    )
+    raw = json.loads(config.read_text(encoding="utf-8"))
+    raw["conditional_noindex_path_patterns"] = ["/agency/*/fixes/"]
+    config.write_text(json.dumps(raw), encoding="utf-8")
+
+
+def test_conditional_noindex_pages_follow_their_own_robots_meta(tmp_path: Path) -> None:
+    """A thin clearance log is noindex and out of the sitemap; a full one is
+    indexable and in it. Neither is an unconfigured robots meta."""
+    site, config = _write_fixture(tmp_path)
+    _write_clearance_logs(site, config)
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 0, report.read_text(encoding="utf-8")
+    assert _codes(report) == set()
+    assert json.loads(report.read_text(encoding="utf-8"))["summary"]["noindex_pages"] == 3
+
+
+def test_conditional_noindex_pages_must_still_agree_with_the_sitemap(tmp_path: Path) -> None:
+    """The conditional pattern is not a free pass: the sitemap has to match
+    what each page says, and the robots meta has to be exactly noindex,follow."""
+    site, config = _write_fixture(tmp_path)
+    _write_clearance_logs(site, config)
+    # Swap the two logs in the sitemap: the thin one listed, the full one missing.
+    _replace(
+        site / "sitemap.xml",
+        f"<loc>{ORIGIN}/agency/demo/fixes/</loc>",
+        f"<loc>{ORIGIN}/agency/other/fixes/</loc>",
+    )
+    _replace(
+        site / "agency/other/fixes/index.html",
+        '<meta name="robots" content="noindex,follow">',
+        '<meta name="robots" content="noindex">',
+    )
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    assert {
+        "noindex.directives",
+        "sitemap.missing_url",
+        "sitemap.unexpected_url",
+    } <= _codes(report)
+    assert "noindex.unexpected" not in _codes(report)
+
+
+def test_robots_meta_outside_any_pattern_is_still_unexpected(tmp_path: Path) -> None:
+    """The conditional pattern covers only its own paths."""
+    site, config = _write_fixture(tmp_path)
+    _write_clearance_logs(site, config)
+    _replace(
+        site / "target/index.html",
+        "</head>",
+        '<meta name="robots" content="noindex,follow"></head>',
+    )
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    assert "noindex.unexpected" in _codes(report)
+
+
+def test_conditional_noindex_pattern_cannot_also_be_a_noindex_pattern(tmp_path: Path) -> None:
+    site, config = _write_fixture(tmp_path)
+    raw = json.loads(config.read_text(encoding="utf-8"))
+    raw["conditional_noindex_path_patterns"] = ["/agency/*/board/"]
+    config.write_text(json.dumps(raw), encoding="utf-8")
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode != 0
+    assert "conditional_noindex_path_patterns" in (result.stderr + result.stdout)
+
+
+def _write_moved_brief(site: Path, *, robots: str = "") -> None:
+    """A retired id's scorecard and call-prep brief, both redirected to the
+    successor's scorecard."""
+    _write_redirect_page(site, "agency/demo-retired/index.html", "/agency/demo/")
+    _write_text(
+        site,
+        "agency/demo-retired/brief/index.html",
+        f"""<!doctype html>
+<html lang="en"><head>
+<title>Demo call-prep brief moved</title>
+{robots}
+<meta http-equiv="refresh" content="0; url=/agency/demo/">
+<link rel="canonical" href="{ORIGIN}/agency/demo/">
+</head><body><h1>Moved</h1><a href="/agency/demo/">Continue</a></body></html>
+""",
+    )
+    _set_retained_redirects(
+        site,
+        {
+            "/agency/demo-retired/": "/agency/demo/",
+            "/agency/demo-retired/brief/": "/agency/demo/",
+        },
+    )
+
+
+def test_moved_scorecard_companion_page_redirect_passes_under_a_noindex_path(
+    tmp_path: Path,
+) -> None:
+    # The brief path is configured noindex, but a redirect stub there carries
+    # no robots meta: it is a redirect, not a page out of the index.
+    site, config = _write_fixture(tmp_path)
+    _write_moved_brief(site)
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    assert payload["summary"]["findings"] == 0
+    # The fixture's own configured redirect, plus the two moved pages.
+    assert payload["summary"]["redirect_aliases"] == 3
+    # Counted once, as a redirect, not again as a noindex page.
+    assert payload["summary"]["noindex_pages"] == 2
+
+
+def test_moved_companion_page_redirect_with_robots_meta_fails(tmp_path: Path) -> None:
+    # Negative control: the same stub with a robots meta is still reported.
+    site, config = _write_fixture(tmp_path)
+    _write_moved_brief(site, robots='<meta name="robots" content="noindex,follow">')
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    assert "redirect.unexpected_noindex" in _codes(report)
+
+
+def test_moved_companion_page_redirect_must_be_in_the_manifest(tmp_path: Path) -> None:
+    # A brief stub the manifest does not authorize is a noindex page that lost
+    # its robots meta, and is reported as one.
+    site, config = _write_fixture(tmp_path)
+    _write_moved_brief(site)
+    _set_retained_redirects(site, {"/agency/demo-retired/": "/agency/demo/"})
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    assert "noindex.missing" in _codes(report)
+
+
+@pytest.mark.parametrize(
+    "source",
+    ["/agency/demo-retired/feed/", "/agency/demo-retired/brief/extra/", "/agency/demo-retired"],
+)
+def test_retained_redirect_manifest_accepts_only_scorecards_and_companion_pages(
+    tmp_path: Path, source: str
+) -> None:
+    site, config = _write_fixture(tmp_path)
+    _set_retained_redirects(site, {source: "/agency/demo/"})
+    report = tmp_path / "report.json"
+
+    result = _run(site, config, report)
+
+    assert result.returncode == 1
+    assert "redirect.manifest_invalid" in _codes(report)

@@ -13,5 +13,16 @@
 /pipeline/* export-ignore
 /pipeline/.python-version -export-ignore
 /pipeline/pyproject.toml -export-ignore
+# pyproject.toml names README.md as the package readme, so the Action cannot
+# build the project without it.
+/pipeline/README.md -export-ignore
 /pipeline/src -export-ignore
 /pipeline/uv.lock -export-ignore
+
+# Typed clients (#370): everything `make clients` writes is generated, so GitHub
+# collapses it in a diff. A reviewer verifies it by regenerating
+# (`make clients-check`), not by reading it.
+/clients/openapi.bundled.json linguist-generated=true
+/clients/GENERATED.json linguist-generated=true
+/clients/python/src/gtfs_scorecard_client/generated/** linguist-generated=true
+/clients/typescript/src/generated/** linguist-generated=true

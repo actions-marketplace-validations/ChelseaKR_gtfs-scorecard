@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 import yaml
@@ -68,6 +69,39 @@ def test_shard_plan_excludes_retired_alias(
 
     assert cli._cmd_shards(argparse.Namespace(count=1), argparse.ArgumentParser()) == 0
     assert json.loads(capsys.readouterr().out) == [[live.id]]
+
+
+def test_shards_gives_a_large_feed_and_an_own_shard_record_a_shard_each(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`own_shard` isolates a slow source the way `large_feed` isolates a big
+    one, and does not need the large-feed ceilings to do it."""
+    from scorecard_pipeline import cli
+    from scorecard_pipeline.config import Agency
+
+    def make(agency_id: str, *, large_feed: bool = False, own_shard: bool = False) -> Agency:
+        return Agency(
+            id=agency_id,
+            name=agency_id,
+            static_gtfs_url=f"https://{agency_id}.example/gtfs.zip",
+            large_feed=large_feed,
+            own_shard=own_shard,
+        )
+
+    agencies = [
+        make("a"),
+        make("b"),
+        make("c"),
+        make("big", large_feed=True),
+        make("slow", own_shard=True),
+    ]
+    monkeypatch.setattr(cli, "AGENCIES", {a.id: a for a in agencies})
+
+    assert cli._cmd_shards(argparse.Namespace(count=2), argparse.ArgumentParser()) == 0
+    plan = json.loads(capsys.readouterr().out)
+    assert plan == [["a", "c"], ["b"], ["big"], ["slow"]]
+    assert agencies[-1].large_feed is False
 
 
 def test_run_all_excludes_retired_alias_but_keeps_explicit_reproduction(
@@ -1222,10 +1256,11 @@ def test_sync_source_reference_redacts_credentials_and_sensitive_query_values() 
     assert reference["location_redacted"] is True
 
 
-def test_sync_defaults_only_proposals_to_mobility_database_v2(
+def test_sync_defaults_to_the_allowed_export_not_the_disallowed_v2_host(
     isolated_repo_root: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """ADR 0070: files.mobilitydatabase.org disallows every path."""
     from scorecard_pipeline import mobilitydb
     from scorecard_pipeline.cli import main
 
@@ -1234,13 +1269,16 @@ def test_sync_defaults_only_proposals_to_mobility_database_v2(
 
     def fake_fetch(url: str) -> bytes:
         fetched.append(url)
-        return _SYNC_PROVENANCE_CATALOG.partition(b"\n")[0] + b"\n"
+        return (
+            b"mdb_source_id,data_type,provider,status,is_official,"
+            b"urls.direct_download,urls.authentication_type\n"
+        )
 
     monkeypatch.setattr(mobilitydb, "fetch_catalog_bytes", fake_fetch)
 
     assert main(["sync"]) == 0
-    assert fetched == [mobilitydb.DEFAULT_PROPOSAL_CATALOG_URL]
-    assert mobilitydb.DEFAULT_PROPOSAL_CATALOG_URL == mobilitydb.MOBILITY_DATABASE_FEEDS_V2_URL
+    assert fetched == [mobilitydb.LEGACY_MOBILITY_DATABASE_CATALOG_URL]
+    assert urlsplit(fetched[0]).hostname != "files.mobilitydatabase.org"
     assert mobilitydb.DEFAULT_CATALOG_URL == mobilitydb.LEGACY_MOBILITY_DATABASE_CATALOG_URL
 
 
@@ -1431,6 +1469,103 @@ def test_lint_strict_rejects_each_duplicate_canonical_identity(
 
     assert main(["lint"]) == 0
     assert main(["lint", "--strict"]) == 1
+
+
+def _lint_registry_file(root: Path, body: str) -> None:
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "agencies.yaml").write_text("agencies:\n" + body)
+
+
+ADVISORY_ONLY = (
+    "  - id: first\n    name: First Transit\n    static_gtfs_url: http://first.example/feed.zip\n"
+)
+BLOCKING = (
+    "  - id: first\n"
+    "    name: First Transit\n"
+    "    static_gtfs_url: https://first.example/feed.zip\n"
+    "    mdb_id: same\n"
+    "  - id: second\n"
+    "    name: Second Transit\n"
+    "    static_gtfs_url: https://second.example/feed.zip\n"
+    "    mdb_id: same\n"
+)
+
+
+def test_lint_says_on_stderr_whether_strict_passed(
+    isolated_repo_root: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A report is not a verdict, and the contributor needs the verdict.
+
+    docs/add-your-agency.md sends a first-time contributor to
+    `scorecard lint --strict` and tells them a green result here means a green
+    check on their pull request. The advisory kinds stand at over a thousand
+    rows across the whole registry, so a correct new entry printed a screenful
+    of tab-separated lines about other people's agencies and then exited 0
+    without a word. The summary that would have explained it went to log.info,
+    which the CLI does not show, so the only signal was an exit status.
+    """
+    from scorecard_pipeline.cli import main
+
+    _lint_registry_file(isolated_repo_root, ADVISORY_ONLY)
+    assert main(["lint", "--strict"]) == 0
+    captured = capsys.readouterr()
+
+    assert "PASSED --strict" in captured.err
+    assert "non_https_url 1" in captured.err
+    # The report is the contract stdout carries; the verdict must not join it.
+    assert captured.out == (
+        "non_https_url\tfirst\thttp://first.example/feed.zip\nmissing_mdb_id\tfirst\t\n"
+    )
+
+
+def test_lint_names_the_kind_that_blocks_the_merge(
+    isolated_repo_root: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Failing is only useful if it says which of the kinds did it."""
+    from scorecard_pipeline.cli import main
+
+    _lint_registry_file(isolated_repo_root, BLOCKING)
+    assert main(["lint", "--strict"]) == 1
+    err = capsys.readouterr().err
+
+    assert "FAILED" in err
+    assert "duplicate_mdb_id" in err
+    assert "PASSED" not in err
+
+
+def test_lint_without_strict_says_it_is_not_the_gate(
+    isolated_repo_root: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The same rows, a blocking kind among them, and exit 0. Say why."""
+    from scorecard_pipeline.cli import main
+
+    _lint_registry_file(isolated_repo_root, BLOCKING)
+    assert main(["lint"]) == 0
+    err = capsys.readouterr().err
+
+    assert "advisory only" in err
+    assert "--strict is what the merge gate runs" in err
+    assert "PASSED" not in err and "FAILED" not in err
+
+
+def test_lint_on_a_clean_registry_still_says_so(
+    isolated_repo_root: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Silence and success looked identical; only one of them is a result."""
+    from scorecard_pipeline.cli import main
+
+    _lint_registry_file(
+        isolated_repo_root,
+        "  - id: first\n"
+        "    name: First Transit\n"
+        "    static_gtfs_url: https://first.example/feed.zip\n"
+        "    mdb_id: one\n",
+    )
+    assert main(["lint", "--strict"]) == 0
+    captured = capsys.readouterr()
+
+    assert "clean" in captured.err
+    assert captured.out == ""
 
 
 def test_ntd_crosswalk_applies_only_to_the_owning_manifest_shard(
@@ -1647,3 +1782,8 @@ def test_canada_equity_writes_when_every_published_agency_reports(
     written = json.loads(out_path.read_text())
     assert set(written["agencies"]) == {"barrie-transit", "london-transit"}
     assert written["agencies"]["barrie-transit"]["need_tier"] == "moderate"
+    # The stamp a page cites when it joins these tiers (issue #367).
+    assert written["source"] == "Canadian Index of Multiple Deprivation 2021"
+    import datetime
+
+    assert datetime.date.fromisoformat(written["generated_on"])

@@ -7,9 +7,8 @@ on:
     # (ADR 0012). Each push used to trigger a whole extra site build, which
     # re-hydrates the published corpus from S3 for data the `refresh.yml` deploy
     # republishes anyway. Ignoring the path drops eight redundant builds a day;
-    # the observations still reach the site at the next intraday refresh (at
-    # most three hours later), which matches the three-hour sampling cadence
-    # they are recorded at.
+    # the observations still reach the site at the next intraday refresh that
+    # redeploys (every other cycle, so at most about six hours later).
     paths-ignore:
       - "data/rt-health/**"
   workflow_call:
@@ -25,6 +24,12 @@ on:
         default: block
     secrets:
       PAGES_AWS_ROLE_ARN:
+        required: false
+      # Site measurement (docs/decisions/0055-cookieless-site-measurement.md).
+      # Optional: unset leaves the deployed shim a no-op that sends nothing.
+      # Every caller passes it through, so a data-refresh deploy carries the
+      # same key a code push does and measurement never flickers off.
+      POSTHOG_KEY:
         required: false
   workflow_dispatch:
 
@@ -49,6 +54,7 @@ jobs:
   # 2026-07-11 dispatch run showed the failure mode).
   lighthouse:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       id-token: write
@@ -64,6 +70,12 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
+          # Every other workflow in this repo that calls setup-uv enables its
+          # cache (ci.yml, e2e.yml, a11y.yml, ...); this one was the one
+          # holdout, paying a full dependency resolve on every deploy — code
+          # pushes, three-hourly intraday refreshes, and the daily scorecard
+          # run alike.
+          enable-cache: true
           python-version: "3.12"
       - name: Install the pipeline
         working-directory: pipeline
@@ -74,6 +86,18 @@ jobs:
         with:
           role-to-assume: ${{ env.PAGES_AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
+      - name: Name the mirror day
+        id: mirror-day
+        run: echo "today=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+      - name: Restore the public-artifact mirror
+        id: public-mirror
+        if: ${{ vars.ARTIFACTS_BUCKET != '' && env.PAGES_AWS_ROLE_ARN != '' }}
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/public-artifact-mirror
+          key: public-artifact-mirror-v1-pages-${{ steps.mirror-day.outputs.today }}
+          restore-keys: |
+            public-artifact-mirror-v1-pages-
       - name: Sync published artifacts from S3
         if: ${{ vars.ARTIFACTS_BUCKET != '' && env.PAGES_AWS_ROLE_ARN != '' }}
         run: |
@@ -104,22 +128,48 @@ jobs:
               sleep $((attempt * 5))
             done
           }
+          # The per-agency half of this set (latest.json, the badges and
+          # conformance files, today's and yesterday's dated snapshots) is
+          # ~400 MB that barely moves between builds, and this workflow runs on
+          # every intraday refresh and every code push. It is kept in the
+          # Actions cache and refreshed with `--exact-timestamps --delete`, so
+          # only objects S3 changed are transferred; the overlay script then
+          # puts the mirror over the working tree. All of it is public data.
+          # index.json is fetched first and on its own: it is the commit
+          # pointer, it changes every cycle, and reading it before the
+          # agency files keeps the generation order the guard below expects.
+          mirror="$RUNNER_TEMP/public-artifact-mirror"
+          log="$RUNNER_TEMP/mirror-sync.log"
+          mkdir -p "$mirror"
+          retry_s3_sync "index.json" scripts/s3-index.sh get \
+            "${{ vars.ARTIFACTS_BUCKET }}" data/artifacts/index.json
           retry_s3_sync "published artifacts" aws s3 sync \
-            "s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts" data/artifacts \
+            "s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts" "$mirror" \
             --exclude "*" \
-            --include "directory.json" --include "index.json" \
+            --include "directory.json" \
             --include "scoring.json" --include "sensitivity.json" \
-            --include "canada-equity.json" \
+            --include "canada-equity.json" --include "rescored-history.json" \
             --include "changes/*" --include "rollups/*" --include "run/*" \
             --include "*/latest.json" --include "*/badge.json" --include "*/badge.svg" \
             --include "*/conformance.json" --include "*/mark.svg" \
             --include "*/${today}.json" --include "*/${yesterday}.json" \
-            --only-show-errors
+            --delete --exact-timestamps --no-progress > "$log"
+          echo "::notice title=public-artifact mirror::$(grep -c '^download:' "$log" || true) objects downloaded, $(grep -c '^delete:' "$log" || true) removed"
+          scripts/overlay-s3-mirror.sh "$mirror" data/artifacts "$today" "$yesterday"
           retry_s3_sync "fix-log cache" aws s3 sync \
             "s3://${{ vars.ARTIFACTS_BUCKET }}/cache/fixlog" data/artifacts \
             --only-show-errors
           aws s3 cp "s3://${{ vars.ARTIFACTS_BUCKET }}/data/liveness.json" \
             data/liveness.json --only-show-errors || true
+
+      # Saved once per UTC day, not per run: the sync makes the mirror equal to
+      # S3 on every run, so a day-old entry only costs what changed since.
+      - name: Save the public-artifact mirror
+        if: ${{ vars.ARTIFACTS_BUCKET != '' && env.PAGES_AWS_ROLE_ARN != '' && steps.public-mirror.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/public-artifact-mirror
+          key: public-artifact-mirror-v1-pages-${{ steps.mirror-day.outputs.today }}
 
       # Route geometry is the heaviest thing the renderer reads: ~2,300 objects
       # and ~380 MB, against ~190 MB for everything else in the bounded set
@@ -180,11 +230,92 @@ jobs:
         with:
           path: data/artifacts/*/geometry.geojson
           key: route-geometry-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      # The syncs above are a plain read of a store that two other workflows
+      # write non-atomically. `refresh.yml` (every three hours) and
+      # `scorecard.yml` (daily) publish under the `artifacts-publish`
+      # concurrency group; this workflow is in the `pages` group, so nothing
+      # serializes a deploy against a publish in flight. Both publishers commit
+      # in two phases — every changed agency's latest.json first, then
+      # index.json last as the commit pointer — and the bounded sync above
+      # takes about three minutes against a commit window of seconds.
+      #
+      # A read that straddles that window pairs one generation's index.json
+      # with another's latest.json. The guard below compares exactly those two
+      # and refuses the corpus, which is right: it will not publish a summary
+      # it cannot derive from the artifact sitting beside it. But the deploy
+      # then fails for a reason that has nothing to do with the commit being
+      # deployed. Run 34768926069 failed this way on 2026-09-13 and took the
+      # site deploy down with it. The index.json it read named feed_sha256
+      # b2010db2 for move-vendome; the latest.json it read alongside carried
+      # f8f03368, the same feed re-scored two hours later. Identical date,
+      # score, grade and category scores — the two generations were one field
+      # apart, which is why the date check passed and only the summary check
+      # fired.
+      #
+      # The store is consistent at rest, so the repair is to read it again,
+      # not to accept the contradiction. Re-read the objects the guard compares
+      # and revalidate. The guard itself is unchanged and still decides every
+      # attempt; when the corpus never converges this step fails exactly as it
+      # did before. The re-read escalates because the cheap repair covers the
+      # common case: index.json sorts before every agency directory, so a
+      # straddling sync almost always carries the stale index and the current
+      # latest.json, and re-reading the pointer alone resolves it. Only if that
+      # is not enough is every latest.json re-read. `--exact-timestamps` is
+      # required for that second pass: a re-scored latest.json is routinely the
+      # same size as the copy already on disk, and the default comparison would
+      # skip it.
+      #
+      # Joining the `artifacts-publish` group instead was considered and
+      # rejected: `refresh.yml` is bounded at 240 minutes, so a deploy would
+      # queue behind it, and a queued run is evicted from the pending slot by
+      # the next arrival (see this repo's concurrency comments) — which trades
+      # a rare retry for routinely losing deploys altogether.
       - name: Materialize validated current dated records
-        working-directory: pipeline
-        run: >-
-          uv run python scripts/materialize_current_artifacts.py
-          --artifacts-root ../data/artifacts
+        env:
+          ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+        run: |
+          set -euo pipefail
+          bucket="${ARTIFACTS_BUCKET:-}"
+          role="${PAGES_AWS_ROLE_ARN:-}"
+
+          materialize() {
+            (cd pipeline && uv run python scripts/materialize_current_artifacts.py \
+              --artifacts-root ../data/artifacts)
+          }
+          reread_index() {
+            scripts/s3-index.sh get "$bucket" data/artifacts/index.json
+          }
+          reread_every_latest() {
+            reread_index
+            aws s3 sync "s3://${bucket}/data/artifacts" data/artifacts \
+              --exclude "*" --include "*/latest.json" \
+              --exact-timestamps --only-show-errors
+          }
+
+          for attempt in 1 2 3; do
+            if materialize; then
+              exit 0
+            fi
+            # Nothing was hydrated from S3, so the corpus under test is the one
+            # committed to the repo and re-reading cannot change it. A guard
+            # failure there is a real defect in the checkout, not a race.
+            if [ -z "$bucket" ] || [ -z "$role" ]; then
+              echo "::error title=committed artifact corpus is inconsistent::index.json and latest.json disagree in the checkout itself; no S3 read was configured to re-read." >&2
+              exit 1
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error title=artifact corpus never converged::index.json and latest.json still disagree after ${attempt} reads. That is no longer a publish in flight; inspect the bucket before deploying." >&2
+              exit 1
+            fi
+            echo "::warning title=artifact corpus read during a publish::index.json and latest.json disagree, which a deploy that reads the bucket mid-commit produces. Re-reading and revalidating (attempt ${attempt} of 3)."
+            sleep $((attempt * 20))
+            if [ "$attempt" -eq 1 ]; then
+              reread_index
+            else
+              reread_every_latest
+            fi
+          done
+          exit 1
       - name: Render and assemble the Pages site
         id: assemble
         run: |
@@ -195,6 +326,11 @@ jobs:
           # pages cross into the deployed site.
           uv run scorecard rollups
           uv run scorecard render-site
+          # /bundle/'s sample cover (bundle_sample.py): rendered fresh on every
+          # deploy from the same published artifact render-site just read, so
+          # it never drifts from the real scoring methodology or the pilot
+          # agency's real, current grade.
+          uv run scorecard bundle-sample
           cd ..
           mkdir -p _site/data
           cp -r web/. _site/
@@ -228,6 +364,22 @@ jobs:
               release_manifest_sha256: $release_manifest_sha256}' \
             > _site/deployment.json
           echo "deployed_sha=$deployed_sha" >> "$GITHUB_OUTPUT"
+      # Site measurement (docs/decisions/0055-cookieless-site-measurement.md).
+      # POSTHOG_KEY is a PostHog project key: write-only and shipped in every
+      # page by design, held as a secret only so it can be set without a
+      # commit. Unset, this writes the committed no-op shim and nothing is
+      # sent; malformed, it fails the deploy with the reason rather than ship
+      # a broken file. The same command writes the GA4 measurement id, which
+      # is committed as measurement_ga4_id in site-seo.json, not a secret
+      # (docs/decisions/0056-google-analytics-4.md). It runs after the copy of
+      # web/ above and before the structural gate, which then checks the file
+      # it wrote: exactly one load on every page, none on a redirect stub, and
+      # no host but the declared ones.
+      - name: Write the measurement key into the assembled site
+        working-directory: pipeline
+        env:
+          POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+        run: uv run scorecard render-measure --out ../_site/src/measure.js
       - name: Enforce the structural SEO contract
         working-directory: pipeline
         run: >-
@@ -329,13 +481,38 @@ jobs:
             lhci-*.log
           if-no-files-found: warn
           retention-days: 14
-      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      # RELIABILITY: this upload is the last thing between a finished render and
+      # a published site, and it fails on the platform rather than on anything
+      # in this repository. Run 34245244731 (2026-09-08, an Intraday refresh
+      # deploy) uploaded all 204,351,632 bytes and then died on
+      # `Failed to FinalizeArtifact: ... (403) Forbidden`, which took the deploy
+      # and that refresh cycle's publish with it: the data reached S3 and the
+      # site kept serving the previous generation until the next cycle three
+      # hours later.
+      #
+      # One retry, and only one. The first attempt tolerates its own failure so
+      # the second can run; the second carries no `continue-on-error`, so two
+      # failures still fail the job — a transient 403 is worth a second attempt,
+      # a real one is not worth hiding. Nothing is lost by retrying a finalize
+      # that never finished: the artifact name is only claimed on a successful
+      # finalize, and a second conflict fails loudly rather than deploying
+      # something unnamed.
+      - name: Upload the Pages artifact
+        id: upload
+        continue-on-error: true
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+      - name: Upload the Pages artifact (second attempt)
+        if: ${{ steps.upload.outcome == 'failure' }}
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site
 
   deploy:
     needs: lighthouse
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       pages: write
@@ -344,8 +521,24 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # RELIABILITY: the action's own bound is 10 minutes, and when it expires
+      # the action does not just stop waiting — it CANCELS the deployment it
+      # started. Run 34461157937 (2026-09-10, an Intraday refresh deploy) spent
+      # all 600 seconds reading `Current status: updating_pages` from a healthy
+      # backend and then printed `Timeout reached, aborting!` and
+      # `Canceled deployment with ID ea066b0c…`, so a slow publish became no
+      # publish and the site served the previous generation for another cycle.
+      #
+      # 20 minutes is a bound on GitHub's Pages backend, not on this repo's
+      # work: the artifact is already uploaded by the time this step starts,
+      # and the job's own 30-minute `timeout-minutes` still contains it. A
+      # retry is deliberately not added here — a second `deploy-pages` after a
+      # cancel starts the same publish again against the same slow backend,
+      # where waiting longer is what the evidence says was needed.
       - uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
         id: deployment
+        with:
+          timeout: "1200000"
 
   production-smoke:
     needs: [lighthouse, deploy]

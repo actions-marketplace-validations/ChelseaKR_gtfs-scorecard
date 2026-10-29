@@ -21,6 +21,21 @@ outputs:
   result-json:
     description: "Path to the complete scorecard JSON artifact for later workflow steps."
     value: ${{ steps.gate.outputs.result-json }}
+  comparable:
+    description: "true when a baseline was supplied and the two runs are the same measurement; false when they are not; blank when no baseline was supplied."
+    value: ${{ steps.gate.outputs.comparable }}
+  regressed:
+    description: "true when the comparison against baseline shows a regression; blank when no comparable baseline was available."
+    value: ${{ steps.gate.outputs.regressed }}
+  sarif:
+    description: "Path to the SARIF file, when the sarif input was set. Blank otherwise."
+    value: ${{ steps.gate.outputs.sarif }}
+  retest-outcome:
+    description: "all_cleared, still_present, or non_comparable when evidence-packet was set and the retest wrote a record; blank when the packet could not be retested or evidence-packet was not set."
+    value: ${{ steps.gate.outputs.retest-outcome }}
+  retest-json:
+    description: "Path to the retest record JSON when evidence-packet was set and the retest wrote one. Blank otherwise."
+    value: ${{ steps.gate.outputs.retest-json }}
 
 inputs:
   feed-url:
@@ -54,6 +69,30 @@ inputs:
     description: "Write a plain-language scorecard to the GitHub job summary (true or false)."
     required: false
     default: "true"
+  baseline:
+    description: "Prior scorecard artifact to compare this run against: a file path, an http(s) URL, or agency@YYYY-MM-DD / agency@latest. Leave blank to skip the comparison."
+    required: false
+    default: ""
+  fail-on-regression:
+    description: "Fail the build when the comparison against baseline shows a regression, or cannot be made because the two runs are different measurements (true or false)."
+    required: false
+    default: "false"
+  sarif:
+    description: "Path to also write validator notices as a SARIF 2.1.0 file, relative to the workspace. Upload it with github/codeql-action/upload-sarif to see findings in the Security tab. Leave blank to skip."
+    required: false
+    default: ""
+  sarif-base:
+    description: "Directory the feed's files sit in inside the repository being annotated (for example gtfs/). Leave blank when the feed is a zip or sits at the repository root."
+    required: false
+    default: ""
+  history-path:
+    description: "Directory for a private run history. Each run appends one record for the feed, counts and codes only, and nothing is published; read it back with scorecard trend. Keep the directory between runs with actions/cache or by committing it. Leave blank to skip."
+    required: false
+    default: ""
+  evidence-packet:
+    description: "Path to an evidence packet JSON written by scorecard evidence-packet --format json. When set, the feed this run scored is checked against the packet's acceptance tests with scorecard retest, reading this run's result rather than validating the feed again, and the build fails unless every finding in the packet is cleared. A packet that cannot be read or retested fails the build with the reason. Leave blank to skip."
+    required: false
+    default: ""
   ref:
     description: "Deprecated compatibility input. The scorer is bundled with the Action release, so its version always matches the Action ref."
     required: false
@@ -85,6 +124,12 @@ runs:
         HTML_OUT: ${{ inputs.html }}
         JSON_OUT: ${{ inputs.json }}
         WRITE_SUMMARY: ${{ inputs.summary }}
+        BASELINE: ${{ inputs.baseline }}
+        FAIL_ON_REGRESSION: ${{ inputs.fail-on-regression }}
+        SARIF_OUT: ${{ inputs.sarif }}
+        SARIF_BASE: ${{ inputs.sarif-base }}
+        HISTORY_PATH: ${{ inputs.history-path }}
+        EVIDENCE_PACKET: ${{ inputs.evidence-packet }}
         # Keep the downloaded Action tree immutable and all feed/validator
         # scratch data under the runner's temporary directory.
         SCORECARD_ROOT: ${{ runner.temp }}/gtfs-scorecard-work
@@ -92,22 +137,99 @@ runs:
       run: |
         set -euo pipefail
         result_json="${JSON_OUT:-${RUNNER_TEMP}/gtfs-scorecard-result.json}"
+        # The evidence-packet retest reads the result this run writes. A result
+        # left at the same path by an earlier step in the job must not outlive a
+        # run that could not score the feed, or the packet would be judged
+        # against another run's bytes.
+        if [[ -n "$EVIDENCE_PACKET" ]]; then rm -f -- "$result_json"; fi
         args=("$FEED_URL")
         args+=(--country "$FEED_COUNTRY")
         if [[ -n "$FEED_NAME" ]]; then args+=(--name "$FEED_NAME"); fi
         if [[ -n "$HTML_OUT" ]]; then args+=(--html "$HTML_OUT"); fi
         if [[ -n "$MIN_GRADE" ]]; then args+=(--min-grade "$MIN_GRADE"); fi
         if [[ -n "$MIN_DAYS" ]]; then args+=(--min-days-to-expiry "$MIN_DAYS"); fi
+        # Passed even when the scorer refuses the feed: a refused run writes a
+        # SARIF whose invocation is unsuccessful, because an empty results array
+        # is indistinguishable from a clean feed in the Security tab.
+        if [[ -n "$SARIF_OUT" ]]; then args+=(--sarif "$SARIF_OUT"); fi
+        if [[ -n "$SARIF_BASE" ]]; then args+=(--sarif-base "$SARIF_BASE"); fi
+        if [[ -n "$HISTORY_PATH" ]]; then args+=(--history "$HISTORY_PATH"); fi
         args+=(--json-out "$result_json")
         set +e
         uv run --project "${GITHUB_ACTION_PATH}/pipeline" --locked --no-dev \
           scorecard try "${args[@]}"
         gate_rc=$?
         set -e
+
+        # The baseline comparison. `scorecard diff` decides comparability before
+        # it reports any change, so a baseline scored under a different rubric,
+        # validator, scoring profile, reader profile, or measured-category set
+        # produces "not comparable" and never a change claim. Exit codes: 0 no
+        # regression, 1 regressed, 2 not comparable, 3 the baseline could not be
+        # read at all. 3 is kept apart because a missing baseline is a broken
+        # configuration, not a fact about the feed -- and a gate that treats it
+        # as one is a gate that cannot fail.
+        diff_rc=""
+        diff_md=""
+        if [[ -n "$BASELINE" && "$gate_rc" -eq 0 ]]; then
+          diff_md="${RUNNER_TEMP}/gtfs-scorecard-diff.md"
+          set +e
+          uv run --project "${GITHUB_ACTION_PATH}/pipeline" --locked --no-dev \
+            scorecard diff "$BASELINE" "$result_json" --format markdown --out "$diff_md"
+          diff_rc=$?
+          set -e
+        fi
+
+        # The evidence-packet retest (#366). `scorecard retest --artifact` reads
+        # the result scored above, so the validator runs once. Exit codes: 0
+        # every finding cleared, 1 any still present, 2 it could not judge (a
+        # refused packet, an unreadable result, or a finding not comparable).
+        # It runs whatever the gate said: a threshold failure still leaves a
+        # scored result to retest, and when there is none the retest refuses
+        # with the reason rather than being skipped, because a skipped retest
+        # looks exactly like one that found nothing still present. Its stderr
+        # is kept so render_result.py can put that reason in the annotation.
+        retest_rc=""
+        retest_json=""
+        retest_md=""
+        retest_log=""
+        retest_args=()
+        if [[ -n "$EVIDENCE_PACKET" ]]; then
+          retest_json="${RUNNER_TEMP}/gtfs-scorecard-retest.json"
+          retest_md="${RUNNER_TEMP}/gtfs-scorecard-retest.md"
+          retest_log="${RUNNER_TEMP}/gtfs-scorecard-retest.log"
+          rm -f -- "$retest_json" "$retest_md" "$retest_log"
+          set +e
+          uv run --project "${GITHUB_ACTION_PATH}/pipeline" --locked --no-dev \
+            scorecard retest "$EVIDENCE_PACKET" --artifact "$result_json" \
+            --country "$FEED_COUNTRY" --json-out "$retest_json" --markdown-out "$retest_md" \
+            2>"$retest_log"
+          retest_rc=$?
+          set -e
+          cat "$retest_log" >&2
+          retest_args=(
+            --evidence-packet "$EVIDENCE_PACKET"
+            --retest-rc "$retest_rc"
+            --retest-json "$retest_json"
+            --retest-markdown "$retest_md"
+            --retest-log "$retest_log"
+          )
+        fi
+
+        set +e
         python "${GITHUB_ACTION_PATH}/action/render_result.py" \
           --json "$result_json" \
           --gate-rc "$gate_rc" \
           --min-grade "$MIN_GRADE" \
           --min-days "$MIN_DAYS" \
-          --write-summary "$WRITE_SUMMARY"
-        exit "$gate_rc"
+          --write-summary "$WRITE_SUMMARY" \
+          --baseline "$BASELINE" \
+          --diff-rc "$diff_rc" \
+          --diff-markdown "$diff_md" \
+          --fail-on-regression "$FAIL_ON_REGRESSION" \
+          --sarif "$SARIF_OUT" \
+          ${retest_args[@]+"${retest_args[@]}"}
+        render_rc=$?
+        set -e
+        if [[ "$gate_rc" -ne 0 ]]; then exit "$gate_rc"; fi
+        exit "$render_rc"

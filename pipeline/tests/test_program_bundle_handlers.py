@@ -1,20 +1,30 @@
 """Unit tests for the program-bundle Lambdas (infra/program-bundle): the
-Stripe signature check, the post-checkout setup route (paid gate, idempotent
-session claim, dispatch), the download route, the webhook's event handling,
-and the weekly refresh. Same harness as test_infra_handlers.py: the modules
-load from their files, boto3 stays lazy, tables are fakes, and the two
-network calls (GitHub dispatch, Stripe session read) are monkeypatched.
+Stripe signature check, the post-checkout setup route (paid gate, what was
+actually bought, the plan's agency cap, idempotent session claim, dispatch),
+the download route, the webhook's event handling, the weekly refresh, and
+the daily reconciler that looks for orders which bought nothing.
+Same harness as test_infra_handlers.py: the modules load from their files,
+boto3 stays lazy, tables are fakes, and the two network calls (GitHub
+dispatch, Stripe session read) are monkeypatched.
 
 The Stripe event fixtures are shaped like Stripe's, with ids that follow
-its prefixes but are not real objects, and no key-shaped strings anywhere."""
+its prefixes but are not real objects, and no key-shaped strings anywhere.
+
+The price ids below stand in for the four in `terraform.tfvars`. A session is
+only ever served through `_stripe` so that the session object and its line
+items come from one fixture: a test that paid for `bundle_25` cannot
+accidentally describe itself as `bundle_100` on one of the two reads."""
 
 from __future__ import annotations
 
 import datetime as dt
+import decimal
 import hashlib
 import hmac
 import importlib.util
 import json
+import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -25,6 +35,22 @@ import pytest
 REPO = Path(__file__).resolve().parents[2]
 MODULE_DIR = REPO / "infra" / "program-bundle"
 SIGNING_SECRET = "test-signing-secret"
+
+# The four configured prices, and one that belongs to something else on the
+# same Stripe account (the family-greenhouse case the setup route must refuse).
+PRICE_BUNDLE_25 = "price_bundle25example"
+PRICE_BUNDLE_100 = "price_bundle100example"
+PRICE_REFRESH_MO = "price_refreshmoexample"
+PRICE_REFRESH_YR = "price_refreshyrexample"
+PRICE_FOREIGN = "price_somethingelseexample"
+CONFIGURED_PRICES = json.dumps(
+    {
+        "bundle_25": PRICE_BUNDLE_25,
+        "bundle_100": PRICE_BUNDLE_100,
+        "refresh_mo": PRICE_REFRESH_MO,
+        "refresh_yr": PRICE_REFRESH_YR,
+    }
+)
 
 
 def _load(name: str) -> Any:
@@ -37,23 +63,167 @@ def _load(name: str) -> Any:
 
 
 common = _load("common")
+conversion_tracking = _load("conversion_tracking")
 setup_handler = _load("setup_handler")
 webhook_handler = _load("webhook_handler")
 refresh_handler = _load("refresh_handler")
+reconcile_handler = _load("reconcile_handler")
+ads_conversion_upload_handler = _load("ads_conversion_upload_handler")
+
+
+class _ConditionExpression:
+    """Evaluate one DynamoDB condition expression against the existing item.
+
+    The handlers' idempotency is a condition expression, so a fake that
+    ignores the expression and answers "the key is present" proves nothing
+    about it: the whole `_claim_session` argument would pass with the
+    condition deleted. This reads the real string instead.
+
+    The grammar is exactly what these handlers write and no more:
+    ``attribute_exists(a)``, ``attribute_not_exists(a)``,
+    ``begins_with(a, :v)``, ``a = :v``, ``a <> :v``, ``AND``, ``OR`` and
+    parentheses, with ``#n`` names resolved through ExpressionAttributeNames.
+    ``item`` is None when the row does not exist. A comparison against an
+    absent attribute is false, as DynamoDB evaluates it -- which is why a
+    `session#` row written before `dispatched` existed refuses a retry rather
+    than allowing one.
+
+    ``begins_with`` is here for the other side of this class. The same
+    expression language is also how ``_purchase_rows`` asks DynamoDB for the
+    two prefixes a refresh's entitlement is read from, and a fake whose
+    ``scan`` ignored ``FilterExpression`` made that request parameter
+    unexaminable: narrowing the filter to ``session#`` alone -- which in
+    production stops a refresh ever finding a bundle recorded only by the
+    webhook -- left every test green.
+    """
+
+    def __init__(
+        self,
+        expression: str,
+        item: dict[str, Any] | None,
+        values: dict[str, Any] | None,
+        names: dict[str, str] | None,
+    ) -> None:
+        self.tokens = expression.replace("(", " ( ").replace(")", " ) ").replace(",", " ").split()
+        self.at = 0
+        self.item = item
+        self.values = values or {}
+        self.names = names or {}
+
+    def evaluate(self) -> bool:
+        result = self._or()
+        assert self.at == len(self.tokens), f"unparsed tokens: {self.tokens[self.at :]}"
+        return result
+
+    def _next(self) -> str:
+        token = self.tokens[self.at]
+        self.at += 1
+        return token
+
+    def _peek(self) -> str:
+        return self.tokens[self.at] if self.at < len(self.tokens) else ""
+
+    def _or(self) -> bool:
+        value = self._and()
+        while self._peek() == "OR":
+            self.at += 1
+            # Both sides are always evaluated: the right side has to consume
+            # its tokens whatever the left side answered.
+            value = self._and() or value
+        return value
+
+    def _and(self) -> bool:
+        value = self._term()
+        while self._peek() == "AND":
+            self.at += 1
+            value = self._term() and value
+        return value
+
+    def _term(self) -> bool:
+        token = self._next()
+        if token == "(":
+            value = self._or()
+            assert self._next() == ")"
+            return value
+        if token in ("attribute_exists", "attribute_not_exists"):
+            assert self._next() == "("
+            attribute = self.names.get(self._next(), self.tokens[self.at - 1])
+            assert self._next() == ")"
+            present = self.item is not None and attribute in self.item
+            return present if token == "attribute_exists" else not present
+        if token == "begins_with":
+            assert self._next() == "("
+            raw = self._next()
+            attribute = self.names.get(raw, raw)
+            placeholder = self._next()
+            assert self._next() == ")"
+            assert placeholder in self.values, f"no value for {placeholder}"
+            if self.item is None or attribute not in self.item:
+                return False
+            return str(self.item[attribute]).startswith(str(self.values[placeholder]))
+        attribute = self.names.get(token, token)
+        operator = self._next()
+        placeholder = self._next()
+        assert placeholder in self.values, f"no value for {placeholder}"
+        if self.item is None or attribute not in self.item:
+            return False
+        actual, expected = self.item[attribute], self.values[placeholder]
+        if operator == "=":
+            return bool(actual == expected)
+        if operator == "<>":
+            return bool(actual != expected)
+        raise AssertionError(f"unsupported operator {operator}")
 
 
 class FakeTable:
     """Enough of a DynamoDB Table for these handlers: a dict with the
-    conditional-put and update shapes they use."""
+    conditional-put, update and scan shapes they use.
 
-    def __init__(self, items: dict[str, dict[str, Any]] | None = None, key: str = "bundle_id"):
+    ``scan`` is deliberately not a dict dump. Two things about a real scan
+    decide whether a paid order is seen at all, and a fake that returns
+    everything in one unfiltered list makes both unexaminable:
+
+    ``page_size``
+        DynamoDB answers a scan with at most 1 MB and a ``LastEvaluatedKey``,
+        and every caller here has its own loop to follow it. A caller that
+        reads only the first page sees a prefix of the table and cannot tell
+        that it did -- the reconciler would stop reporting undelivered orders
+        past the first page, the entitlement read would refuse a real buyer,
+        and the weekly refresh would stop refreshing paying subscribers. Set
+        it to make the fake page.
+
+    ``FilterExpression``
+        Evaluated, not ignored. It is how ``_purchase_rows`` asks for the two
+        prefixes a refresh inherits its cap from, and a fake that dropped it
+        answered a narrowed filter with the whole table.
+    """
+
+    def __init__(
+        self,
+        items: dict[str, dict[str, Any]] | None = None,
+        key: str = "bundle_id",
+        page_size: int | None = None,
+    ):
         self.key = key
         self.items: dict[str, dict[str, Any]] = dict(items or {})
         self.updates: list[dict[str, Any]] = []
+        self.page_size = page_size
+        self.scans: list[dict[str, Any]] = []
 
-    def put_item(self, Item: dict[str, Any], ConditionExpression: str | None = None) -> None:
-        if ConditionExpression and Item[self.key] in self.items:
-            raise ConditionalCheckFailedException("exists")
+    def _allows(self, key_value: str, kwargs: dict[str, Any]) -> bool:
+        condition = kwargs.get("ConditionExpression")
+        if not condition:
+            return True
+        return _ConditionExpression(
+            condition,
+            self.items.get(key_value),
+            kwargs.get("ExpressionAttributeValues"),
+            kwargs.get("ExpressionAttributeNames"),
+        ).evaluate()
+
+    def put_item(self, Item: dict[str, Any], **kwargs: Any) -> None:
+        if not self._allows(Item[self.key], kwargs):
+            raise ConditionalCheckFailedException(kwargs.get("ConditionExpression", ""))
         self.items[Item[self.key]] = dict(Item)
 
     def get_item(self, Key: dict[str, Any]) -> dict[str, Any]:
@@ -62,15 +232,46 @@ class FakeTable:
 
     def update_item(self, **kwargs: Any) -> None:
         self.updates.append(kwargs)
-        row = self.items.setdefault(kwargs["Key"][self.key], {self.key: kwargs["Key"][self.key]})
+        key_value = kwargs["Key"][self.key]
+        # Honoring the condition here is the difference between a test that
+        # proves a foreign subscription creates no row and one that would
+        # pass either way.
+        if not self._allows(key_value, kwargs):
+            raise ConditionalCheckFailedException(kwargs.get("ConditionExpression", ""))
+        row = self.items.setdefault(key_value, {self.key: key_value})
         values = kwargs.get("ExpressionAttributeValues", {})
         names = kwargs.get("ExpressionAttributeNames", {})
         for clause in kwargs["UpdateExpression"].removeprefix("SET ").split(","):
             target, _, placeholder = clause.strip().partition(" = ")
             row[names.get(target, target)] = values[placeholder]
 
-    def scan(self, **_: Any) -> dict[str, Any]:
-        return {"Items": list(self.items.values())}
+    def scan(self, **kwargs: Any) -> dict[str, Any]:
+        self.scans.append(dict(kwargs))
+        keys = list(self.items)
+        start = kwargs.get("ExclusiveStartKey")
+        if start is not None:
+            keys = keys[keys.index(start[self.key]) + 1 :]
+        last: dict[str, Any] | None = None
+        if self.page_size is not None and len(keys) > self.page_size:
+            keys = keys[: self.page_size]
+            last = {self.key: keys[-1]}
+        # DynamoDB applies a filter AFTER reading the page, so a filtered
+        # scan can return an empty page and still have more to come. Filtering
+        # before paging here would hide that from every caller.
+        condition = kwargs.get("FilterExpression")
+        rows = [self.items[k] for k in keys]
+        if condition:
+            rows = [
+                row
+                for row in rows
+                if _ConditionExpression(
+                    condition,
+                    row,
+                    kwargs.get("ExpressionAttributeValues"),
+                    kwargs.get("ExpressionAttributeNames"),
+                ).evaluate()
+            ]
+        return {"Items": rows} if last is None else {"Items": rows, "LastEvaluatedKey": last}
 
 
 class ConditionalCheckFailedException(Exception):
@@ -92,12 +293,47 @@ def _env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ARTIFACTS_BUCKET", "example-artifacts")
     monkeypatch.setenv("SUBSCRIPTIONS_TABLE", "subs")
     monkeypatch.setenv("BUNDLES_TABLE", "bundles")
+    # The deployed shape while the gate is open: the four price ids reach the
+    # Lambdas, so they can tell what was bought. Tests that need the gate shut
+    # or the prices missing take them away again.
+    monkeypatch.setenv("PAYMENTS_ENABLED", "1")
+    monkeypatch.setenv("STRIPE_PRICE_IDS", CONFIGURED_PRICES)
+    monkeypatch.delenv("DRY_RUN", raising=False)
+
+
+# Orders the handlers stored for report-bundle.yml, by reference. The
+# dispatch carries only the reference, so what a test used to read off the
+# dispatch inputs it now reads here -- the same object the workflow collects.
+_STORED: dict[str, dict[str, Any]] = {}
+
+
+@pytest.fixture(autouse=True)
+def _stored_orders(monkeypatch: pytest.MonkeyPatch) -> dict[str, dict[str, Any]]:
+    _STORED.clear()
+
+    def store(order_ref: str, request: dict[str, Any]) -> None:
+        common.request_key(order_ref)  # the real handler refuses a malformed reference
+        _STORED[order_ref] = json.loads(json.dumps(request))
+
+    for mod in (setup_handler, refresh_handler):
+        monkeypatch.setattr(mod, "store_request", store)
+    return _STORED
+
+
+def _sent(order_ref: str) -> dict[str, Any]:
+    """The order a dispatch named, with the agency list flattened the way the
+    old dispatch inputs carried it, so a count reads the same either way."""
+    assert isinstance(order_ref, str), "the dispatch must carry a reference, not the order"
+    order = dict(_STORED[order_ref])
+    ids = order.get("agency_ids") or []
+    order["agency_ids"] = ",".join(ids) if isinstance(ids, list) else str(ids)
+    return order
 
 
 @pytest.fixture
 def tables(monkeypatch: pytest.MonkeyPatch) -> dict[str, FakeTable]:
     fakes = {"SUBSCRIPTIONS_TABLE": FakeTable(key="id"), "BUNDLES_TABLE": FakeTable()}
-    for mod in (common, setup_handler, webhook_handler, refresh_handler):
+    for mod in (common, setup_handler, webhook_handler, refresh_handler, reconcile_handler):
         monkeypatch.setattr(mod, "table", lambda env, fakes=fakes: fakes[env])
     return fakes
 
@@ -130,24 +366,48 @@ def test_signature_accepts_any_matching_v1_among_several() -> None:
     assert common.verify_stripe_signature(body, header, SIGNING_SECRET)
 
 
-def test_workflow_inputs_flatten_ids_and_default_the_optional_fields() -> None:
-    inputs = common.workflow_inputs(
-        {
-            "bundle_id": "a" * 32,
-            "program_name": "P",
-            "agency_ids": ["x", "y"],
-            "deliver_to": "p@example.org",
-        }
+def test_an_order_reference_is_fresh_random_and_not_the_bundle_id() -> None:
+    """report-bundle.yml's concurrency group and failure summary print the
+    order reference on a public run page, and the bundle id is the download
+    credential. The reference is therefore minted on its own, never derived
+    from the id, so nothing printed can lead back to it."""
+    first, second = common.new_order_ref(), common.new_order_ref()
+    assert first != second
+    for ref in (first, second):
+        assert common.ORDER_REF_RE.fullmatch(ref)
+        assert common.request_key(ref) == f"program-requests/{ref}.json"
+    for bad in ("", "A" * 32, "a" * 31, "../" + "a" * 29, "a" * 32 + "/x"):
+        with pytest.raises(ValueError):
+            common.request_key(bad)
+
+
+def test_store_request_writes_the_order_privately_and_fails_as_upstream(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    puts: list[dict[str, Any]] = []
+
+    class _S3:
+        def put_object(self, **kwargs: Any) -> None:
+            puts.append(kwargs)
+
+    fake = type("boto3", (), {"client": staticmethod(lambda *a, **k: _S3())})
+    monkeypatch.setitem(sys.modules, "boto3", fake)
+    ref = "c" * 32
+    common.store_request(ref, {"bundle_id": "a" * 32, "agency_ids": ["x"]})
+    assert puts[0]["Bucket"] == "example-artifacts"
+    assert puts[0]["Key"] == f"program-requests/{ref}.json"
+    assert puts[0]["ServerSideEncryption"] == "AES256"
+    assert json.loads(puts[0]["Body"]) == {"bundle_id": "a" * 32, "agency_ids": ["x"]}
+
+    class _Down:
+        def put_object(self, **kwargs: Any) -> None:
+            raise RuntimeError("endpoint unreachable")
+
+    monkeypatch.setitem(
+        sys.modules, "boto3", type("boto3", (), {"client": staticmethod(lambda *a, **k: _Down())})
     )
-    assert inputs == {
-        "bundle_id": "a" * 32,
-        "program_name": "P",
-        "accent": "",
-        "logo": "",
-        "agency_ids": "x,y",
-        "deliver_to": "p@example.org",
-        "cadence": "one_time",
-    }
+    with pytest.raises(common.UpstreamError, match="storing the order request failed"):
+        common.store_request(ref, {})
 
 
 def test_dispatch_posts_to_the_workflow_dispatch_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -158,14 +418,20 @@ def test_dispatch_posts_to_the_workflow_dispatch_endpoint(monkeypatch: pytest.Mo
         return {}
 
     monkeypatch.setattr(common, "_request", fake_request)
-    common.dispatch_bundle_workflow({"bundle_id": "b"})
+    ref = "d" * 32
+    common.dispatch_bundle_workflow(ref)
+    # The reference and nothing else: a run log on a public repository prints
+    # every workflow_dispatch input.
     assert calls == [
         (
             "POST",
             "https://api.github.com/repos/example/scorecard/actions/workflows/report-bundle.yml/dispatches",
-            {"ref": "main", "inputs": {"bundle_id": "b"}},
+            {"ref": "main", "inputs": {"order_ref": ref}},
         )
     ]
+    with pytest.raises(ValueError):
+        common.dispatch_bundle_workflow("not-a-reference")
+    assert len(calls) == 1, "a malformed reference must be refused before anything is sent"
 
 
 def test_request_wraps_http_errors_as_upstream(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -201,6 +467,47 @@ def _paid_session(**overrides: Any) -> dict[str, Any]:
     return base
 
 
+def _line_items(*prices: str, has_more: bool = False) -> dict[str, Any]:
+    """The shape of GET /v1/checkout/sessions/{id}/line_items."""
+    return {
+        "object": "list",
+        "has_more": has_more,
+        "data": [
+            {"id": f"li_example{n}", "object": "item", "quantity": 1, "price": {"id": price}}
+            for n, price in enumerate(prices)
+        ],
+    }
+
+
+def _stripe(
+    monkeypatch: pytest.MonkeyPatch,
+    session: dict[str, Any] | None = None,
+    *,
+    price: str = PRICE_BUNDLE_25,
+    line_items: dict[str, Any] | None = None,
+) -> list[str]:
+    """Serve one Checkout Session and its line items from a single fixture.
+
+    ``common.stripe_get`` is patched, not ``setup_handler.stripe_get``: the
+    line-items read happens inside ``common.checkout_plan``, so patching only
+    the name the handler imported would leave the real network call in place
+    for half the reads. Returns the list of paths asked for.
+    """
+    served = session if session is not None else _paid_session()
+    items = line_items if line_items is not None else _line_items(price)
+    paths: list[str] = []
+
+    def fake_get(path: str) -> dict[str, Any]:
+        paths.append(path)
+        # The real path carries a query string ("/line_items?limit=10"), so
+        # this matches on the segment, not on the end of the string.
+        return items if "/line_items" in path else served
+
+    monkeypatch.setattr(common, "stripe_get", fake_get)
+    monkeypatch.setattr(setup_handler, "stripe_get", fake_get)
+    return paths
+
+
 def _setup_event(form: dict[str, Any]) -> dict[str, Any]:
     return {
         "rawPath": "/setup",
@@ -221,11 +528,35 @@ def _form(**overrides: Any) -> dict[str, Any]:
     return base
 
 
+def _bought_earlier(
+    tables: dict[str, FakeTable],
+    plan: str,
+    *,
+    email: str = "buyer@example.org",
+    session_id: str = "cs_test_earlier",
+    prefix: str = "checkout#",
+) -> None:
+    """Record an earlier checkout by ``email``, the way the live tables hold one.
+
+    ``checkout#`` is the webhook's note of a completed checkout and ``session#``
+    is the setup route's own claim on one; a refresh reads both, because a
+    bundle can be paid for and never set up, and because only one of the two is
+    written by the route that grants a bundle. Neither carries ``expires_at``,
+    which is the whole reason a refresh can find a bundle bought months ago.
+    """
+    row: dict[str, Any] = {"bundle_id": f"{prefix}{session_id}", "email": email, "plan": plan}
+    if prefix == "checkout#":
+        row["seen_at"] = "2026-01-05T00:00:00+00:00"
+    else:
+        row |= {"consumed_by": "e" * 32, "dispatched": True}
+    tables["BUNDLES_TABLE"].items[row["bundle_id"]] = row
+
+
 def test_setup_paid_one_time_dispatches_and_records_the_capability(
     monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
 ) -> None:
-    dispatched: list[dict[str, str]] = []
-    monkeypatch.setattr(setup_handler, "stripe_get", lambda path: _paid_session())
+    dispatched: list[str] = []
+    paths = _stripe(monkeypatch, price=PRICE_BUNDLE_100)
     monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
 
     resp = setup_handler.handler(_setup_event(_form()))
@@ -233,43 +564,678 @@ def test_setup_paid_one_time_dispatches_and_records_the_capability(
     assert resp["statusCode"] == 200, body
     bundle_id = body["bundle_id"]
     assert len(bundle_id) == 32
-    assert dispatched[0]["bundle_id"] == bundle_id
-    assert dispatched[0]["agency_ids"] == "unitrans,yolobus"
-    assert dispatched[0]["cadence"] == "one_time"
+    assert _sent(dispatched[0])["bundle_id"] == bundle_id
+    assert _sent(dispatched[0])["agency_ids"] == "unitrans,yolobus"
+    assert _sent(dispatched[0])["cadence"] == "one_time"
     rows = tables["BUNDLES_TABLE"].items
     assert rows[bundle_id]["deliver_to"] == "liaison@example.org"
     assert rows[bundle_id]["source"] == "checkout"
     assert rows[bundle_id]["expires_at"] > int(time.time())
     assert rows["session#cs_test_example"]["consumed_by"] == bundle_id
+    # The claim records the plan, so a support question about one session can
+    # be answered from the row rather than from Stripe.
+    assert rows["session#cs_test_example"]["plan"] == "bundle_100"
     assert tables["SUBSCRIPTIONS_TABLE"].items == {}
+    # The line items were actually read, not assumed.
+    assert paths == [
+        "/v1/checkout/sessions/cs_test_example",
+        "/v1/checkout/sessions/cs_test_example/line_items?limit=10",
+    ]
 
 
-def test_setup_subscription_stores_the_request_for_the_refresh(
+def test_setup_dispatches_a_reference_and_keeps_the_order_off_the_dispatch(
+    monkeypatch: pytest.MonkeyPatch,
+    tables: dict[str, FakeTable],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The fulfillment workflow's run log is public, and it prints every
+    workflow_dispatch input. So the dispatch carries a random reference, the
+    order behind it is stored where only the workflow's role can read it, and
+    the capability row keeps the reference so a make-good re-run has it.
+
+    The failure log is CloudWatch, which is private, but it still names the
+    order by reference only: the address and the bundle id are in the table.
+    """
+    dispatched: list[str] = []
+    _stripe(monkeypatch, price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 200, resp["body"]
+    bundle_id = json.loads(resp["body"])["bundle_id"]
+    [ref] = dispatched
+    assert common.ORDER_REF_RE.fullmatch(ref)
+    assert ref != bundle_id and bundle_id not in ref
+    assert tables["BUNDLES_TABLE"].items[bundle_id]["order_ref"] == ref
+    order = _STORED[ref]
+    assert order["bundle_id"] == bundle_id
+    assert order["deliver_to"] == "liaison@example.org"
+    # The plan's cap and the promise travel inside the order, not the dispatch.
+    assert order["max_agencies"] == 25
+    assert order["promised_by"]
+
+    def github_down(order_ref: str) -> None:
+        raise common.UpstreamError("github 500")
+
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", github_down)
+    capsys.readouterr()
+    failed = setup_handler.handler(_setup_event(_form(session_id="cs_test_other")))
+    assert failed["statusCode"] == 502
+    logged = capsys.readouterr().out
+    event = json.loads(logged.strip().splitlines()[-1])
+    assert event["event"] == "dispatch_failed" and common.ORDER_REF_RE.fullmatch(event["order_ref"])
+    assert "liaison@example.org" not in logged
+    assert json.loads(failed["body"])["bundle_id"] not in logged
+
+
+def test_setup_subscription_stores_the_request_and_price_for_the_refresh(
     monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
 ) -> None:
     session = _paid_session(mode="subscription", subscription="sub_example")
-    monkeypatch.setattr(setup_handler, "stripe_get", lambda path: session)
+    _stripe(monkeypatch, session, price=PRICE_REFRESH_MO)
     monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", lambda inputs: None)
+    _bought_earlier(tables, "bundle_100")
 
     resp = setup_handler.handler(_setup_event(_form(deliver_to="")))
     assert resp["statusCode"] == 200
     sub = tables["SUBSCRIPTIONS_TABLE"].items["sub_example"]
     assert sub["status"] == "active"
+    # The refresh re-checks the price before it dispatches anything.
+    assert sub["price"] == PRICE_REFRESH_MO
+    assert sub["plan"] == "refresh_mo"
+    # And what it renews, recorded at purchase time rather than re-derived
+    # every month from whatever the plan caps say then.
+    assert sub["agency_cap"] == 100
+    assert sub["renews_plan"] == "bundle_100"
+    assert sub["renews_session"] == "cs_test_earlier"
     stored = json.loads(sub["request"])
     assert stored["cadence"] == "monthly"
     # No deliver_to in the form: the payer's email from the session is used.
     assert stored["deliver_to"] == "buyer@example.org"
 
 
+def test_the_setup_form_does_not_reactivate_a_subscription_stripe_has_ended(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """Stripe decides whether a subscription is live; this route does not.
+
+    The setup form is submitted *after* checkout, so a buyer who cancels from
+    the Stripe receipt in the minutes before filling it in produces exactly
+    this order of events: `customer.subscription.deleted` marks the row
+    canceled, and then the setup route writes the row. Written with put_item
+    it wrote `status: "active"` over the cancellation, and the weekly refresh
+    then sent a fresh archive every 28 days for ever, to somebody who was
+    paying for none of them. A failed first payment (`past_due`, `unpaid`)
+    was erased the same way.
+    """
+    session = _paid_session(mode="subscription", subscription="sub_example")
+    _stripe(monkeypatch, session, price=PRICE_REFRESH_MO)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", lambda inputs: None)
+    _bought_earlier(tables, "bundle_100")
+    tables["SUBSCRIPTIONS_TABLE"].items["sub_example"] = {
+        "id": "sub_example",
+        "status": "canceled",
+        "canceled_at": "2026-09-13T00:00:00+00:00",
+        "price": PRICE_REFRESH_MO,
+        "plan": "refresh_mo",
+    }
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 200
+
+    sub = tables["SUBSCRIPTIONS_TABLE"].items["sub_example"]
+    assert sub["status"] == "canceled", "the setup form overwrote Stripe's answer"
+    assert sub["canceled_at"] == "2026-09-13T00:00:00+00:00"
+    # The fields this route does own are still written: the buyer paid for one
+    # archive and gets it, and the row says what it was for.
+    assert sub["agency_cap"] == 100
+    assert json.loads(sub["request"])["cadence"] == "monthly"
+
+    # And the consequence the buyer would have been billed nothing for.
+    dispatched: list[str] = []
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", dispatched.append)
+    counts = refresh_handler.refresh(
+        subscriptions=tables["SUBSCRIPTIONS_TABLE"],
+        bundles=tables["BUNDLES_TABLE"],
+        now=dt.datetime(2027, 1, 1, tzinfo=dt.UTC),
+    )
+    assert counts["dispatched"] == 0 and dispatched == []
+
+
+def test_a_subscription_purchase_does_not_refresh_itself_days_later(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The setup route dispatches the first archive itself.
+
+    `refresh_handler._due` reads a row with no `last_refresh` as "never
+    refreshed, so due now", so the first weekly tick after a purchase sent a
+    second archive within days of the first -- on a plan sold as monthly, to a
+    buyer who was told each refresh arrives monthly. The purchase stamps the
+    clock it started.
+    """
+    session = _paid_session(mode="subscription", subscription="sub_example")
+    _stripe(monkeypatch, session, price=PRICE_REFRESH_MO)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", lambda inputs: None)
+    _bought_earlier(tables, "bundle_100")
+
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 200
+    stamped = tables["SUBSCRIPTIONS_TABLE"].items["sub_example"]["last_refresh"]
+    assert stamped, "the purchase left no record that an archive had just been sent"
+
+    dispatched: list[str] = []
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", dispatched.append)
+    started = dt.datetime.fromisoformat(stamped)
+
+    a_week = refresh_handler.refresh(
+        subscriptions=tables["SUBSCRIPTIONS_TABLE"],
+        bundles=tables["BUNDLES_TABLE"],
+        now=started + dt.timedelta(days=7),
+    )
+    assert a_week["dispatched"] == 0, "a second archive a week after the purchase"
+
+    a_month = refresh_handler.refresh(
+        subscriptions=tables["SUBSCRIPTIONS_TABLE"],
+        bundles=tables["BUNDLES_TABLE"],
+        now=started + dt.timedelta(days=refresh_handler.REFRESH_DAYS + 1),
+    )
+    assert a_month["dispatched"] == 1, "and the monthly refresh still happens"
+
+
+def test_setup_cadence_follows_the_price_not_the_session_mode(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A one-time price in a session that claims `mode: subscription` buys a
+    one-time bundle. The price is the thing that was paid for; `mode` is a
+    field on an object the buyer's own checkout produced."""
+    session = _paid_session(mode="subscription", subscription="sub_example")
+    _stripe(monkeypatch, session, price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", lambda inputs: None)
+
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 200
+    assert tables["SUBSCRIPTIONS_TABLE"].items == {}
+
+
+def test_setup_refuses_a_paid_checkout_for_a_price_that_is_not_ours(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The family-greenhouse case: a real, paid Checkout Session on the same
+    Stripe account, for something that is not a report bundle."""
+    dispatched: list[str] = []
+    _stripe(monkeypatch, price=PRICE_FOREIGN)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 403
+    assert "not for a GTFS Scorecard report bundle" in resp["body"]
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+    assert tables["SUBSCRIPTIONS_TABLE"].items == {}
+
+
+def test_setup_refuses_a_session_whose_line_items_are_not_one_known_price(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    dispatched: list[str] = []
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    for items in (
+        _line_items(),  # nothing bought
+        _line_items(PRICE_BUNDLE_25, PRICE_BUNDLE_100),  # two prices in one checkout
+        _line_items(PRICE_BUNDLE_25, has_more=True),  # a longer list, refused unread
+        {"object": "list", "data": "not-a-list"},  # a shape Stripe would not send
+    ):
+        _stripe(monkeypatch, line_items=items)
+        assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 403
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+
+
+def test_setup_refuses_everything_when_no_prices_are_configured(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A half-configured deploy sells nothing rather than selling anything.
+    Each of these leaves the Lambda unable to say what a price buys."""
+    dispatched: list[str] = []
+    _stripe(monkeypatch, price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    for value in (
+        "{}",
+        "not json",
+        "[]",
+        json.dumps({"bundle_25": ""}),
+        json.dumps({"mystery_plan": PRICE_BUNDLE_25}),
+        # The same price id on two plans: which cap would it be?
+        json.dumps({"bundle_25": PRICE_BUNDLE_25, "bundle_100": PRICE_BUNDLE_25}),
+    ):
+        monkeypatch.setenv("STRIPE_PRICE_IDS", value)
+        assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 403, value
+    monkeypatch.delenv("STRIPE_PRICE_IDS")
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 403
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+
+
+def test_setup_holds_a_bundle_25_purchase_to_twenty_five_agencies(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """`plan.json` sells bundle_25 as "One bundle, up to 25 agencies". The
+    26th id is refused with the reason, so the same checkout can be sent
+    again with a shorter list; it is not trimmed and not upgraded."""
+    dispatched: list[str] = []
+    _stripe(monkeypatch, price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    twenty_six = ",".join(f"agency-{n}" for n in range(26))
+    resp = setup_handler.handler(_setup_event(_form(agency_ids=twenty_six)))
+    assert resp["statusCode"] == 400
+    error = json.loads(resp["body"])["error"]
+    assert "your plan covers at most 25 agencies; 26 were given" in error
+    assert dispatched == []
+    # Nothing was claimed either, so the buyer can resend the same session.
+    assert tables["BUNDLES_TABLE"].items == {}
+
+    twenty_five = ",".join(f"agency-{n}" for n in range(25))
+    assert setup_handler.handler(_setup_event(_form(agency_ids=twenty_five)))["statusCode"] == 200
+    assert len(_sent(dispatched[0])["agency_ids"].split(",")) == 25
+
+
+def test_setup_lets_a_bundle_100_purchase_list_more_than_twenty_five(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    dispatched: list[str] = []
+    _stripe(monkeypatch, price=PRICE_BUNDLE_100)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    ids = ",".join(f"agency-{n}" for n in range(26))
+    assert setup_handler.handler(_setup_event(_form(agency_ids=ids)))["statusCode"] == 200
+    assert len(_sent(dispatched[0])["agency_ids"].split(",")) == 26
+
+    # 101 is over the product's own ceiling, whatever was paid for.
+    too_many = ",".join(f"agency-{n}" for n in range(101))
+    over = setup_handler.handler(_setup_event(_form(agency_ids=too_many)))
+    assert over["statusCode"] == 400
+    assert "at most 100 agencies" in over["body"]
+
+
+# ---------------------------------------------------------------------------
+# a refresh renews a bundle, and covers what that bundle covered
+# ---------------------------------------------------------------------------
+#
+# `refresh_mo` and `refresh_yr` carry a ceiling of 100 in PLAN_AGENCY_CAPS, the
+# same number as `bundle_100`. Read as an entitlement that made $49 a month a
+# cheaper path to the 100-agency archive than the $349 bundle that sells one,
+# so the cheapest product on a live page strictly dominated the most expensive
+# one. The rule now is that a refresh renews a bundle already bought and covers
+# that bundle's agencies. The numbers below are written as literals rather than
+# read from PLAN_AGENCY_CAPS: a fixture derived from the constant under test
+# moves with it, and would hold however wrong the constant became.
+
+
+def _no_claims_allowed(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Make `_claim_session` fail loudly instead of consuming the checkout.
+
+    A refusal that happens *after* the claim leaves a buyer who has paid with a
+    spent checkout and no archive, and the API answers 409 "this checkout
+    already produced a bundle" to every retry. That is a worse outcome than the
+    arbitrage this rule closes, so reaching the claim at all is the failure.
+    """
+    reached: list[str] = []
+
+    def _fail(bundles: Any, session_id: str, *args: Any, **kwargs: Any) -> bool:
+        reached.append(session_id)
+        raise AssertionError(f"the checkout {session_id} was claimed before it was refused")
+
+    monkeypatch.setattr(setup_handler, "_claim_session", _fail)
+    return reached
+
+
+def _refresh_setup(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    price: str = PRICE_REFRESH_MO,
+    session: dict[str, Any] | None = None,
+) -> list[str]:
+    dispatched: list[str] = []
+    served = (
+        session
+        if session is not None
+        else _paid_session(mode="subscription", subscription="sub_example")
+    )
+    _stripe(monkeypatch, served, price=price)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+    return dispatched
+
+
+def test_a_refresh_with_no_earlier_bundle_is_refused_before_the_checkout_is_claimed(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    dispatched = _refresh_setup(monkeypatch)
+    reached = _no_claims_allowed(monkeypatch)
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 403
+    error = json.loads(resp["body"])["error"]
+    # Actionable, and about the thing the buyer can do next. No promise that
+    # anybody will write to them: nothing in this system sends mail.
+    assert "renews a bundle you have already bought" in error
+    assert "gtfsscorecard.org/bundle/" in error
+    assert reached == []
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+    assert tables["SUBSCRIPTIONS_TABLE"].items == {}
+
+
+@pytest.mark.parametrize("price", [PRICE_REFRESH_MO, PRICE_REFRESH_YR])
+def test_neither_refresh_price_sells_an_archive_on_its_own(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable], price: str
+) -> None:
+    """The monthly plan is the cheap one, but the rule is about the product,
+    not about the price: both refresh prices renew something."""
+    dispatched = _refresh_setup(monkeypatch, price=price)
+    _no_claims_allowed(monkeypatch)
+
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 403
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+
+
+@pytest.mark.parametrize(
+    ("prior_plan", "covered", "one_too_many"),
+    [("bundle_25", 25, 26), ("bundle_100", 100, 101)],
+)
+def test_a_refresh_never_covers_more_agencies_than_the_bundle_it_renews(
+    monkeypatch: pytest.MonkeyPatch,
+    tables: dict[str, FakeTable],
+    prior_plan: str,
+    covered: int,
+    one_too_many: int,
+) -> None:
+    dispatched = _refresh_setup(monkeypatch)
+    _bought_earlier(tables, prior_plan)
+
+    over = setup_handler.handler(
+        _setup_event(_form(agency_ids=",".join(f"agency-{n}" for n in range(one_too_many))))
+    )
+    assert over["statusCode"] == 400
+    assert f"at most {covered} agencies" in json.loads(over["body"])["error"]
+    assert dispatched == []
+    # Refused before the claim, so the same checkout can be sent again shorter.
+    assert "session#cs_test_example" not in tables["BUNDLES_TABLE"].items
+
+    ok = setup_handler.handler(
+        _setup_event(_form(agency_ids=",".join(f"agency-{n}" for n in range(covered))))
+    )
+    assert ok["statusCode"] == 200, ok["body"]
+    assert len(_sent(dispatched[0])["agency_ids"].split(",")) == covered
+    assert tables["SUBSCRIPTIONS_TABLE"].items["sub_example"]["agency_cap"] == covered
+
+
+def test_the_cheapest_subscription_no_longer_buys_the_largest_bundles_archive(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The arbitrage itself, written out: $49 a month against a $149 bundle.
+
+    Before this rule a `refresh_mo` checkout stood alone and was held to 100
+    agencies, so the monthly plan delivered the 100-agency archive `bundle_100`
+    sells. A buyer who has only ever bought the 25-agency bundle is now held to
+    25 on the refresh as well.
+    """
+    dispatched = _refresh_setup(monkeypatch)
+    _bought_earlier(tables, "bundle_25")
+
+    hundred = ",".join(f"agency-{n}" for n in range(100))
+    resp = setup_handler.handler(_setup_event(_form(agency_ids=hundred)))
+    assert resp["statusCode"] == 400
+    assert "at most 25 agencies; 100 were given" in json.loads(resp["body"])["error"]
+    assert dispatched == []
+
+
+def test_a_refresh_finds_a_bundle_whose_capability_row_is_long_gone(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """Bought in January, subscribed in March.
+
+    The capability row carries a 30-day TTL and DynamoDB has deleted it by
+    then. The two rows this reads instead carry no `expires_at` at all, and the
+    table below holds nothing else -- so a buyer whose bundle predates the
+    refresh by months is told what they bought, not that they never bought.
+    """
+    for prefix in ("checkout#", "session#"):
+        tables["BUNDLES_TABLE"].items.clear()
+        tables["SUBSCRIPTIONS_TABLE"].items.clear()
+        dispatched = _refresh_setup(monkeypatch)
+        _bought_earlier(tables, "bundle_100", prefix=prefix, session_id=f"cs_old_{prefix[0]}")
+
+        resp = setup_handler.handler(
+            _setup_event(_form(agency_ids=",".join(f"agency-{n}" for n in range(100))))
+        )
+        assert resp["statusCode"] == 200, (prefix, resp["body"])
+        assert len(_sent(dispatched[0])["agency_ids"].split(",")) == 100
+        assert tables["SUBSCRIPTIONS_TABLE"].items["sub_example"]["agency_cap"] == 100
+
+
+def test_a_subscription_is_not_a_bundle_a_later_subscription_can_renew(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """Otherwise the first $49 bootstraps the second, and the rule buys nothing."""
+    dispatched = _refresh_setup(monkeypatch)
+    _no_claims_allowed(monkeypatch)
+    _bought_earlier(tables, "refresh_mo", session_id="cs_test_first_sub")
+    _bought_earlier(tables, "refresh_yr", session_id="cs_test_second_sub", prefix="session#")
+
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 403
+    assert dispatched == []
+
+
+def test_the_form_cannot_claim_somebody_elses_bundle(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """Entitlement reads the address Stripe collected, never the form's.
+
+    `deliver_to` is text the buyer typed. If it decided this, anybody who
+    guessed a program's address would inherit that program's cap for the price
+    of the cheapest subscription -- the same arbitrage in a different hat.
+    """
+    dispatched = _refresh_setup(monkeypatch)
+    _no_claims_allowed(monkeypatch)
+    _bought_earlier(tables, "bundle_100", email="someone.else@example.org")
+
+    resp = setup_handler.handler(_setup_event(_form(deliver_to="someone.else@example.org")))
+    assert resp["statusCode"] == 403
+    assert dispatched == []
+
+
+def test_the_address_is_matched_whatever_case_stripe_recorded_it_in(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A real buyer types their address twice, months apart. Refusing on the
+    shift key would be this rule failing the person it exists to serve."""
+    session = _paid_session(
+        mode="subscription",
+        subscription="sub_example",
+        customer_details={"email": "Buyer@Example.org "},
+    )
+    _refresh_setup(monkeypatch, session=session)
+    _bought_earlier(tables, "bundle_100", email="buyer@example.ORG")
+
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 200
+
+
+def test_a_checkout_stripe_collected_no_address_for_inherits_nothing(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    session = _paid_session(mode="subscription", subscription="sub_example", customer_details={})
+    _refresh_setup(monkeypatch, session=session)
+    _no_claims_allowed(monkeypatch)
+    _bought_earlier(tables, "bundle_100")
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 403
+    assert "no email address" in json.loads(resp["body"])["error"]
+    assert tables["BUNDLES_TABLE"].items.keys() == {"checkout#cs_test_earlier"}
+
+
+def test_an_earlier_checkout_the_webhook_could_not_read_is_settled_not_discounted(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """`plan: "unverified"` means Stripe was unreachable when the webhook ran.
+
+    It is not evidence that the buyer bought nothing, and counting it as such
+    is this portfolio's absence-rendered-as-a-value defect pointed at a paying
+    customer. Stripe still has the session, so it is asked.
+    """
+    session = _paid_session(mode="subscription", subscription="sub_example")
+    dispatched: list[str] = []
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+    asked: list[str] = []
+
+    def fake_get(path: str) -> dict[str, Any]:
+        if "/line_items" not in path:
+            return session
+        asked.append(path)
+        price = PRICE_REFRESH_MO if "cs_test_example" in path else PRICE_BUNDLE_100
+        return _line_items(price)
+
+    monkeypatch.setattr(common, "stripe_get", fake_get)
+    monkeypatch.setattr(setup_handler, "stripe_get", fake_get)
+    _bought_earlier(tables, "unverified", session_id="cs_test_unread")
+
+    resp = setup_handler.handler(
+        _setup_event(_form(agency_ids=",".join(f"agency-{n}" for n in range(100))))
+    )
+    assert resp["statusCode"] == 200, resp["body"]
+    assert any("cs_test_unread" in path for path in asked), "the unread checkout was never settled"
+    assert tables["SUBSCRIPTIONS_TABLE"].items["sub_example"]["agency_cap"] == 100
+
+
+def test_an_outage_while_settling_says_not_yet_rather_than_you_never_bought(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    session = _paid_session(mode="subscription", subscription="sub_example")
+    dispatched: list[str] = []
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+    _no_claims_allowed(monkeypatch)
+
+    def fake_get(path: str) -> dict[str, Any]:
+        if "/line_items" not in path:
+            return session
+        if "cs_test_unread" in path:
+            raise common.UpstreamError("GET line_items -> HTTP 503", status=503)
+        return _line_items(PRICE_REFRESH_MO)
+
+    monkeypatch.setattr(common, "stripe_get", fake_get)
+    monkeypatch.setattr(setup_handler, "stripe_get", fake_get)
+    _bought_earlier(tables, "unverified", session_id="cs_test_unread")
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 502
+    error = json.loads(resp["body"])["error"]
+    assert "Could not check which bundle this refresh renews" in error
+    assert "Do not pay again" in error
+    assert dispatched == []
+
+
+def test_a_stale_unread_row_stripe_has_never_heard_of_is_not_evidence_either_way(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """404 is Stripe saying the session does not exist on this account. That
+    row proves nothing, so it is skipped -- and with nothing else to go on the
+    answer is the ordinary refusal, not a 502 inviting a pointless retry."""
+    session = _paid_session(mode="subscription", subscription="sub_example")
+    _no_claims_allowed(monkeypatch)
+
+    def fake_get(path: str) -> dict[str, Any]:
+        if "/line_items" not in path:
+            return session
+        if "cs_test_unread" in path:
+            raise common.UpstreamError("GET line_items -> HTTP 404", status=404)
+        return _line_items(PRICE_REFRESH_MO)
+
+    monkeypatch.setattr(common, "stripe_get", fake_get)
+    monkeypatch.setattr(setup_handler, "stripe_get", fake_get)
+    _bought_earlier(tables, "unverified", session_id="cs_test_unread")
+
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 403
+
+
+def test_more_unread_checkouts_than_one_request_can_settle_answers_not_yet(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A bound on the Stripe reads one setup request will make. Past it the
+    answer has to be "not yet": "you never bought a bundle" would be a claim
+    this run never checked."""
+    dispatched = _refresh_setup(monkeypatch)
+    _no_claims_allowed(monkeypatch)
+    for n in range(setup_handler._UNSETTLED_CHECKOUT_READS + 1):
+        _bought_earlier(tables, "unverified", session_id=f"cs_test_unread_{n}")
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 502
+    assert dispatched == []
+
+
+def test_a_one_time_bundle_still_needs_nothing_before_it(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The rule is about refreshes. A first-time buyer of either bundle must
+    still be able to buy one, with an empty table behind them."""
+    for price, allowed in ((PRICE_BUNDLE_25, 25), (PRICE_BUNDLE_100, 100)):
+        tables["BUNDLES_TABLE"].items.clear()
+        dispatched: list[str] = []
+        _stripe(monkeypatch, price=price)
+        monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+        resp = setup_handler.handler(
+            _setup_event(_form(agency_ids=",".join(f"agency-{n}" for n in range(allowed))))
+        )
+        assert resp["statusCode"] == 200, (price, resp["body"])
+        assert len(_sent(dispatched[0])["agency_ids"].split(",")) == allowed
+
+
+def test_every_configured_plan_is_either_a_bundle_or_a_subscription() -> None:
+    """A fifth plan in PLAN_AGENCY_CAPS and in neither tuple would be sold with
+    no rule about what it covers: `_agency_cap` would hand it its own ceiling,
+    which is exactly the reading that made the refresh prices an arbitrage."""
+    assert set(common.ONE_TIME_PLANS) | set(common.SUBSCRIPTION_PLANS) == set(
+        common.PLAN_AGENCY_CAPS
+    )
+    assert not set(common.ONE_TIME_PLANS) & set(common.SUBSCRIPTION_PLANS)
+
+
+def test_setup_refuses_everything_while_payments_are_disabled(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """Defense in depth behind the Terraform gate that removes the route:
+    a stale route or a direct invoke still builds nothing, and the checkout
+    is not consumed, so the buyer can come back."""
+    dispatched: list[str] = []
+    paths = _stripe(monkeypatch, price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    for value in ("0", "", "true", "yes"):
+        monkeypatch.setenv("PAYMENTS_ENABLED", value)
+        resp = setup_handler.handler(_setup_event(_form()))
+        assert resp["statusCode"] == 503, value
+        assert "nothing was built" in json.loads(resp["body"])["error"]
+    monkeypatch.delenv("PAYMENTS_ENABLED")
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 503
+
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+    # Stripe was never even asked: the gate is read before the session is.
+    assert paths == []
+
+    monkeypatch.setenv("PAYMENTS_ENABLED", "1")
+    assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 200
+
+
 def test_setup_refuses_unpaid_sessions_and_replays(
     monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
 ) -> None:
-    monkeypatch.setattr(
-        setup_handler, "stripe_get", lambda path: _paid_session(payment_status="unpaid")
-    )
+    _stripe(monkeypatch, _paid_session(payment_status="unpaid"))
     assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 402
 
-    monkeypatch.setattr(setup_handler, "stripe_get", lambda path: _paid_session())
+    _stripe(monkeypatch)
     monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", lambda inputs: None)
     assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 200
     replay = setup_handler.handler(_setup_event(_form()))
@@ -284,7 +1250,7 @@ def test_setup_refuses_bad_bodies_bad_session_ids_and_invalid_requests(
     assert setup_handler.handler(bad_json)["statusCode"] == 400
     assert setup_handler.handler(_setup_event(_form(session_id="")))["statusCode"] == 400
     assert setup_handler.handler(_setup_event(_form(session_id="pi_x")))["statusCode"] == 400
-    monkeypatch.setattr(setup_handler, "stripe_get", lambda path: _paid_session())
+    _stripe(monkeypatch)
     resp = setup_handler.handler(_setup_event(_form(agency_ids="")))
     assert resp["statusCode"] == 400
     assert "at least one agency" in resp["body"]
@@ -295,21 +1261,114 @@ def test_setup_reports_upstream_failures_without_losing_the_order(
     monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
 ) -> None:
     def stripe_down(path: str) -> dict[str, Any]:
-        raise common.UpstreamError("stripe 500")
+        raise common.UpstreamError("stripe 500", status=500)
 
+    monkeypatch.setattr(common, "stripe_get", stripe_down)
     monkeypatch.setattr(setup_handler, "stripe_get", stripe_down)
     assert setup_handler.handler(_setup_event(_form()))["statusCode"] == 502
 
-    def github_down(inputs: dict[str, str]) -> None:
+    # The session reads fine but the line items do not: a Stripe outage, or a
+    # restricted key without permission to read them. Either way the answer is
+    # "not yet", never "build it anyway".
+    def line_items_down(path: str) -> dict[str, Any]:
+        if "/line_items" in path:
+            raise common.UpstreamError("stripe 403", status=403)
+        return _paid_session()
+
+    monkeypatch.setattr(common, "stripe_get", line_items_down)
+    monkeypatch.setattr(setup_handler, "stripe_get", line_items_down)
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 502
+    assert tables["BUNDLES_TABLE"].items == {}
+
+    def github_down(order_ref: str) -> None:
         raise common.UpstreamError("github 500")
 
-    monkeypatch.setattr(setup_handler, "stripe_get", lambda path: _paid_session())
+    _stripe(monkeypatch)
     monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", github_down)
     resp = setup_handler.handler(_setup_event(_form()))
     assert resp["statusCode"] == 502
     body = json.loads(resp["body"])
     assert body["bundle_id"] in tables["BUNDLES_TABLE"].items
     assert "recorded" in body["error"]
+
+
+def test_setup_lets_a_buyer_finish_an_order_whose_dispatch_never_started(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The dead end this closes: the first submission claimed the session and
+    then GitHub refused the dispatch, so no build exists and no email will
+    come. Answering the second submission "this checkout already produced a
+    bundle" is false and leaves a paying buyer with no move left. The retry
+    finishes the order instead, under the SAME bundle id, so one payment
+    still yields exactly one bundle and one download link."""
+    attempts: list[str] = []
+
+    def first_call_fails(order_ref: str) -> None:
+        attempts.append(order_ref)
+        if len(attempts) == 1:
+            raise common.UpstreamError("github 502")
+
+    _stripe(monkeypatch)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", first_call_fails)
+
+    failed = setup_handler.handler(_setup_event(_form()))
+    assert failed["statusCode"] == 502
+    bundle_id = json.loads(failed["body"])["bundle_id"]
+    claim = tables["BUNDLES_TABLE"].items["session#cs_test_example"]
+    assert claim["consumed_by"] == bundle_id
+    assert claim["dispatched"] is False
+
+    retried = setup_handler.handler(_setup_event(_form()))
+    assert retried["statusCode"] == 200, retried["body"]
+    assert json.loads(retried["body"])["bundle_id"] == bundle_id
+    assert [_sent(a)["bundle_id"] for a in attempts] == [bundle_id, bundle_id]
+    assert tables["BUNDLES_TABLE"].items["session#cs_test_example"]["dispatched"] is True
+
+    # And once a build really started, a third submission is refused again.
+    third = setup_handler.handler(_setup_event(_form()))
+    assert third["statusCode"] == 409
+    assert "already produced" in third["body"]
+    assert len(attempts) == 2
+
+
+def test_setup_will_not_rebuild_a_claim_that_predates_the_dispatched_flag(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """Absence of the flag is not evidence the dispatch failed. A claim
+    written before the field existed -- or by a Lambda that died after GitHub
+    accepted the dispatch -- must not be re-dispatched on a guess, or one
+    payment would buy two builds."""
+    _stripe(monkeypatch)
+    dispatched: list[str] = []
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+    tables["BUNDLES_TABLE"].items["session#cs_test_example"] = {
+        "bundle_id": "session#cs_test_example",
+        "consumed_by": "e" * 32,
+        "plan": "bundle_25",
+    }
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 409
+    assert dispatched == []
+
+
+def test_setup_separates_an_unknown_checkout_from_a_stripe_outage(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A 404 means this reference will never resolve -- a truncated address,
+    or a test-mode id read with the live key. Reporting it as "could not
+    confirm the payment yet" invites the buyer to retry it forever."""
+
+    def missing(path: str) -> dict[str, Any]:
+        raise common.UpstreamError("stripe 404", status=404)
+
+    monkeypatch.setattr(common, "stripe_get", missing)
+    monkeypatch.setattr(setup_handler, "stripe_get", missing)
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 404
+    assert "not one Stripe recognizes" in json.loads(resp["body"])["error"]
+    assert tables["BUNDLES_TABLE"].items == {}
 
 
 def test_setup_routes_options_and_unknown_paths() -> None:
@@ -380,6 +1439,40 @@ def test_download_answers_202_while_the_archive_is_missing_and_404_otherwise(
     assert setup_handler.handler(_download_event("not-hex"))["statusCode"] == 404
 
 
+def test_download_says_expired_rather_than_still_preparing_past_its_ttl(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The S3 lifecycle rule deletes the archive on day 30; DynamoDB's TTL
+    sweep can lag by two more. In that window the row is present and the
+    object is gone, which is the same evidence as a build still running. The
+    row's own expiry settles it, so nobody is told to keep waiting for a file
+    that was deleted."""
+    s3 = _FakeS3(exists=False)
+    fake_boto3 = type("boto3", (), {"client": staticmethod(lambda *a, **k: s3)})
+    monkeypatch.setitem(sys.modules, "boto3", fake_boto3)
+
+    expired = "e" * 32
+    tables["BUNDLES_TABLE"].items[expired] = {
+        "bundle_id": expired,
+        "expires_at": int(time.time()) - 60,
+    }
+    resp = setup_handler.handler(_download_event(expired))
+    assert resp["statusCode"] == 404
+    assert "expired" in resp["body"]
+    assert "still being generated" not in resp["body"]
+
+    # Inside its thirty days it still reads as in progress, and says what to
+    # do if it never finishes.
+    live = "f" * 32
+    tables["BUNDLES_TABLE"].items[live] = {
+        "bundle_id": live,
+        "expires_at": int(time.time()) + 600,
+    }
+    pending = setup_handler.handler(_download_event(live))
+    assert pending["statusCode"] == 202
+    assert "an hour from now" in pending["body"]
+
+
 # ---------------------------------------------------------------------------
 # webhook
 # ---------------------------------------------------------------------------
@@ -410,35 +1503,247 @@ def test_webhook_refuses_an_unsigned_or_missigned_request(tables: dict[str, Fake
     )
 
 
-def test_webhook_tracks_subscription_lifecycle(tables: dict[str, FakeTable]) -> None:
-    created = _event(
-        "customer.subscription.created", {"id": "sub_1", "status": "trialing", "customer": "cus_1"}
-    )
-    assert json.loads(webhook_handler.handler(_webhook(created))["body"])["outcome"] == "updated"
-    assert tables["SUBSCRIPTIONS_TABLE"].items["sub_1"]["status"] == "active"
+def _subscription(price: str = PRICE_REFRESH_MO, **overrides: Any) -> dict[str, Any]:
+    """A Stripe subscription object, with the one item the refresh prices sell."""
+    obj: dict[str, Any] = {
+        "id": "sub_1",
+        "object": "subscription",
+        "status": "active",
+        "customer": "cus_1",
+        "items": {"object": "list", "data": [{"id": "si_1", "price": {"id": price}}]},
+    }
+    obj.update(overrides)
+    return obj
 
-    past_due = _event("customer.subscription.updated", {"id": "sub_1", "status": "past_due"})
+
+def test_webhook_tracks_subscription_lifecycle(tables: dict[str, FakeTable]) -> None:
+    created = _event("customer.subscription.created", _subscription(status="trialing"))
+    assert json.loads(webhook_handler.handler(_webhook(created))["body"])["outcome"] == "updated"
+    row = tables["SUBSCRIPTIONS_TABLE"].items["sub_1"]
+    assert row["status"] == "active"
+    assert row["price"] == PRICE_REFRESH_MO
+    assert row["plan"] == "refresh_mo"
+
+    past_due = _event("customer.subscription.updated", _subscription(status="past_due"))
     webhook_handler.handler(_webhook(past_due))
     assert tables["SUBSCRIPTIONS_TABLE"].items["sub_1"]["status"] == "past_due"
 
-    deleted = _event("customer.subscription.deleted", {"id": "sub_1", "status": "canceled"})
+    deleted = _event("customer.subscription.deleted", _subscription(status="canceled"))
     assert json.loads(webhook_handler.handler(_webhook(deleted))["body"])["outcome"] == "canceled"
     row = tables["SUBSCRIPTIONS_TABLE"].items["sub_1"]
     assert row["status"] == "canceled"
     assert row["canceled_at"]
 
 
-def test_webhook_notes_checkouts_and_ignores_everything_else(tables: dict[str, FakeTable]) -> None:
+def test_webhook_never_creates_a_row_for_a_subscription_that_is_not_ours(
+    tables: dict[str, FakeTable],
+) -> None:
+    """Another product's subscription on the same Stripe account, and a
+    one-time bundle price used as a subscription: neither is a refresh plan,
+    so neither becomes a row the weekly refresh would scan."""
+    subs = tables["SUBSCRIPTIONS_TABLE"]
+    for price in (PRICE_FOREIGN, PRICE_BUNDLE_25):
+        created = _event("customer.subscription.created", _subscription(price))
+        body = json.loads(webhook_handler.handler(_webhook(created))["body"])
+        assert body["outcome"] == "ignored"
+        assert subs.items == {}
+    deleted = _event("customer.subscription.deleted", _subscription(PRICE_FOREIGN))
+    assert json.loads(webhook_handler.handler(_webhook(deleted))["body"])["outcome"] == "ignored"
+    assert subs.items == {}
+
+
+def test_webhook_still_records_a_tracked_subscription_that_left_the_plan(
+    tables: dict[str, FakeTable],
+) -> None:
+    """A subscription we already track that moved off the refresh prices is
+    still updated, so the refresh can see it stopped; it is just never
+    created from scratch."""
+    subs = tables["SUBSCRIPTIONS_TABLE"]
+    webhook_handler.handler(_webhook(_event("customer.subscription.created", _subscription())))
+    assert subs.items["sub_1"]["plan"] == "refresh_mo"
+
+    moved = _event("customer.subscription.updated", _subscription(PRICE_FOREIGN))
+    assert json.loads(webhook_handler.handler(_webhook(moved))["body"])["outcome"] == "updated"
+    assert subs.items["sub_1"]["price"] == ""
+    assert subs.items["sub_1"]["plan"] == ""
+
+    canceled = _event("customer.subscription.deleted", _subscription(PRICE_FOREIGN))
+    assert json.loads(webhook_handler.handler(_webhook(canceled))["body"])["outcome"] == "canceled"
+    assert subs.items["sub_1"]["status"] == "canceled"
+
+
+def test_webhook_notes_checkouts_and_ignores_everything_else(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    _stripe(monkeypatch, price=PRICE_BUNDLE_25)
     completed = _event(
         "checkout.session.completed",
         {"id": "cs_test_1", "mode": "payment", "customer_details": {"email": "b@example.org"}},
     )
     assert json.loads(webhook_handler.handler(_webhook(completed))["body"])["outcome"] == "noted"
-    assert tables["BUNDLES_TABLE"].items["checkout#cs_test_1"]["email"] == "b@example.org"
+    row = tables["BUNDLES_TABLE"].items["checkout#cs_test_1"]
+    assert row["email"] == "b@example.org"
+    assert row["plan"] == "bundle_25"
     other = _event("invoice.paid", {"id": "in_1"})
     assert json.loads(webhook_handler.handler(_webhook(other))["body"])["outcome"] == "ignored"
     bad = b"not json"
     assert webhook_handler.handler(_webhook(bad))["statusCode"] == 400
+
+
+def test_webhook_ignores_a_completed_checkout_for_someone_elses_product(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    _stripe(monkeypatch, price=PRICE_FOREIGN)
+    completed = _event("checkout.session.completed", {"id": "cs_test_2", "mode": "payment"})
+    assert json.loads(webhook_handler.handler(_webhook(completed))["body"])["outcome"] == "ignored"
+    assert tables["BUNDLES_TABLE"].items == {}
+
+
+def test_webhook_notes_a_checkout_it_could_not_verify_rather_than_failing(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A Stripe outage must not turn into 4xx replies that get the endpoint
+    disabled, so an unreadable session is noted as `unverified` and a human
+    can look it up. A 404 is different: Stripe is up and says there is no
+    such session, so there is nothing to note."""
+
+    def down(path: str) -> dict[str, Any]:
+        raise common.UpstreamError("stripe 500", status=500)
+
+    monkeypatch.setattr(common, "stripe_get", down)
+    completed = _event("checkout.session.completed", {"id": "cs_test_3", "mode": "payment"})
+    assert json.loads(webhook_handler.handler(_webhook(completed))["body"])["outcome"] == "noted"
+    assert tables["BUNDLES_TABLE"].items["checkout#cs_test_3"]["plan"] == "unverified"
+
+    def missing(path: str) -> dict[str, Any]:
+        raise common.UpstreamError("stripe 404", status=404)
+
+    monkeypatch.setattr(common, "stripe_get", missing)
+    gone = _event("checkout.session.completed", {"id": "cs_test_4", "mode": "payment"})
+    assert json.loads(webhook_handler.handler(_webhook(gone))["body"])["outcome"] == "ignored"
+    assert "checkout#cs_test_4" not in tables["BUNDLES_TABLE"].items
+
+    # An id that is not a Checkout Session id is never looked up at all.
+    odd = _event("checkout.session.completed", {"id": "not-a-session", "mode": "payment"})
+    assert json.loads(webhook_handler.handler(_webhook(odd))["body"])["outcome"] == "ignored"
+
+
+def _completed_checkout(session_id: str, **overrides: Any) -> bytes:
+    """A checkout.session.completed event body carrying the two fields Stripe
+    includes on the object itself (amount_total in cents, currency) that
+    conversion_tracking reads without a second Stripe call."""
+    obj: dict[str, Any] = {
+        "id": session_id,
+        "mode": "payment",
+        "customer_details": {"email": "buyer@example.org"},
+        "amount_total": 14900,
+        "currency": "usd",
+    }
+    obj.update(overrides)
+    return _event("checkout.session.completed", obj)
+
+
+def test_webhook_fires_no_conversion_event_while_unconfigured(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The default, every deploy today: GOOGLE_ADS_CONVERSION_ACTION is unset.
+    A negative control -- without it, a spy on the sink would pass trivially
+    whether or not the seam ever runs, so this proves the seam is reached
+    (the checkout is still noted) and still emits nothing."""
+    assert os.environ.get("GOOGLE_ADS_CONVERSION_ACTION", "") == ""
+    fired: list[dict[str, Any]] = []
+    monkeypatch.setattr(conversion_tracking, "emit", fired.append)
+    _stripe(monkeypatch, price=PRICE_BUNDLE_25)
+    body = _completed_checkout("cs_conv_1")
+    assert json.loads(webhook_handler.handler(_webhook(body))["body"])["outcome"] == "noted"
+    assert tables["BUNDLES_TABLE"].items["checkout#cs_conv_1"]["plan"] == "bundle_25"
+    assert fired == []
+
+
+def test_webhook_fires_a_conversion_event_once_a_conversion_action_is_configured(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The seam this whole module exists for: setting one env var (the
+    Terraform variable google_ads_conversion_action, once Chelsea has a real
+    one) is the entire difference between this test and the one above."""
+    monkeypatch.setenv("GOOGLE_ADS_CONVERSION_ACTION", "customers/123/conversionActions/456")
+    fired: list[dict[str, Any]] = []
+    monkeypatch.setattr(conversion_tracking, "emit", fired.append)
+    _stripe(monkeypatch, price=PRICE_BUNDLE_100)
+    body = _completed_checkout("cs_conv_2", amount_total=34900)
+    assert json.loads(webhook_handler.handler(_webhook(body))["body"])["outcome"] == "noted"
+    assert len(fired) == 1
+    event = fired[0]
+    assert event["conversion_action"] == "customers/123/conversionActions/456"
+    assert event["conversion_value"] == 349.0
+    assert event["currency_code"] == "USD"
+    assert event["plan"] == "bundle_100"
+    assert event["user_identifiers"] == [
+        {"hashed_email": conversion_tracking.hash_identifier("buyer@example.org")}
+    ]
+    # The email itself never appears in the emitted event, only its hash.
+    assert "buyer@example.org" not in json.dumps(event)
+
+
+def test_webhook_fires_no_conversion_event_for_an_unverified_checkout(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A Stripe outage means the webhook does not actually know this checkout
+    was this product's (it could be another product on the same account);
+    reporting a conversion on that guess would misreport to Google Ads
+    rather than just miss one, so it must not fire even though an action is
+    configured."""
+    monkeypatch.setenv("GOOGLE_ADS_CONVERSION_ACTION", "customers/123/conversionActions/456")
+    fired: list[dict[str, Any]] = []
+    monkeypatch.setattr(conversion_tracking, "emit", fired.append)
+
+    def down(path: str) -> dict[str, Any]:
+        raise common.UpstreamError("stripe 500", status=500)
+
+    monkeypatch.setattr(common, "stripe_get", down)
+    body = _completed_checkout("cs_conv_3")
+    assert json.loads(webhook_handler.handler(_webhook(body))["body"])["outcome"] == "noted"
+    assert tables["BUNDLES_TABLE"].items["checkout#cs_conv_3"]["plan"] == "unverified"
+    assert fired == []
+
+
+def test_conversion_event_is_none_with_no_email_even_when_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GOOGLE_ADS_CONVERSION_ACTION", "customers/123/conversionActions/456")
+    assert (
+        conversion_tracking.build_conversion_event(
+            plan="bundle_25",
+            email="",
+            amount_total=14900,
+            currency="usd",
+            occurred_at="2026-09-14T00:00:00+00:00",
+        )
+        is None
+    )
+
+
+def test_conversion_event_is_none_while_unconfigured() -> None:
+    assert os.environ.get("GOOGLE_ADS_CONVERSION_ACTION", "") == ""
+    assert (
+        conversion_tracking.build_conversion_event(
+            plan="bundle_25",
+            email="buyer@example.org",
+            amount_total=14900,
+            currency="usd",
+            occurred_at="2026-09-14T00:00:00+00:00",
+        )
+        is None
+    )
+
+
+def test_hash_identifier_normalizes_before_hashing() -> None:
+    assert conversion_tracking.hash_identifier(
+        "  Buyer@Example.ORG "
+    ) == conversion_tracking.hash_identifier("buyer@example.org")
+    assert conversion_tracking.hash_identifier(
+        "buyer@example.org"
+    ) != conversion_tracking.hash_identifier("other@example.org")
 
 
 def test_webhook_reads_a_base64_transport_body(tables: dict[str, FakeTable]) -> None:
@@ -466,7 +1771,12 @@ def _sub(**overrides: Any) -> dict[str, Any]:
         "deliver_to": "p@example.org",
         "cadence": "monthly",
     }
-    base: dict[str, Any] = {"id": "sub_1", "status": "active", "request": json.dumps(request)}
+    base: dict[str, Any] = {
+        "id": "sub_1",
+        "status": "active",
+        "price": PRICE_REFRESH_MO,
+        "request": json.dumps(request),
+    }
     base.update(overrides)
     return base
 
@@ -481,18 +1791,157 @@ def test_refresh_dispatches_only_active_due_subscriptions(
     subs.items["sub_recent"] = _sub(id="sub_recent", last_refresh="2026-09-20T00:00:00+00:00")
     subs.items["sub_canceled"] = _sub(id="sub_canceled", status="canceled")
     subs.items["sub_broken"] = _sub(id="sub_broken", request="{}")
-    dispatched: list[dict[str, str]] = []
+    dispatched: list[str] = []
     monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", dispatched.append)
 
     counts = refresh_handler.refresh(subscriptions=subs, bundles=tables["BUNDLES_TABLE"], now=now)
-    assert counts == {"scanned": 5, "due": 3, "dispatched": 2, "failed": 1}
-    assert {d["cadence"] for d in dispatched} == {"monthly"}
-    assert len({d["bundle_id"] for d in dispatched}) == 2
-    assert all(len(d["bundle_id"]) == 32 for d in dispatched)
+    assert counts == {
+        "scanned": 5,
+        "due": 3,
+        "not_on_plan": 0,
+        # sub_broken is billed with no stored request; that is its own count,
+        # not a dispatch failure.
+        "no_request": 1,
+        # None of these rows records an agency_cap, which is what a row written
+        # before the entitlement rule looks like. A missing cap is not a cap,
+        # so they are dispatched, not refused.
+        "over_cap": 0,
+        "dispatched": 2,
+        "would_dispatch": 0,
+        "failed": 0,
+    }
+    assert {_sent(d)["cadence"] for d in dispatched} == {"monthly"}
+    assert len({_sent(d)["bundle_id"] for d in dispatched}) == 2
+    assert all(len(_sent(d)["bundle_id"]) == 32 for d in dispatched)
     assert subs.items["sub_never"]["last_bundle_id"] in tables["BUNDLES_TABLE"].items
     assert subs.items["sub_old"]["last_refresh"]
     assert "last_refresh" not in subs.items["sub_broken"]
     assert subs.items["sub_recent"]["last_refresh"] == "2026-09-20T00:00:00+00:00"
+
+
+def test_refresh_skips_rows_that_are_not_on_a_configured_refresh_price(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """Three ways a due row can fail the price check: a price from another
+    product, a one-time bundle price, and a row written before the price was
+    recorded at all (or left over from test mode after the live ids are
+    configured). None of them bills anyone, and none of them builds."""
+    subs = tables["SUBSCRIPTIONS_TABLE"]
+    subs.items["sub_ok"] = _sub(id="sub_ok")
+    subs.items["sub_foreign"] = _sub(id="sub_foreign", price=PRICE_FOREIGN)
+    subs.items["sub_one_time"] = _sub(id="sub_one_time", price=PRICE_BUNDLE_25)
+    subs.items["sub_no_price"] = _sub(id="sub_no_price", price="")
+    dispatched: list[str] = []
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    counts = refresh_handler.refresh(subscriptions=subs, bundles=tables["BUNDLES_TABLE"])
+    assert counts["scanned"] == 4
+    assert counts["not_on_plan"] == 3
+    assert counts["dispatched"] == 1
+    assert len(dispatched) == 1
+    assert "last_refresh" not in subs.items["sub_foreign"]
+
+
+def test_refresh_refuses_the_whole_run_when_no_refresh_price_is_configured(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The live price ids replaced the test ones, and the one that was
+    mistyped is the refresh price. Every row would then be counted
+    ``not_on_plan`` -- a claim about the subscription -- and the tick would
+    answer ok while no paying subscriber was ever refreshed again. A
+    configuration failure has to fail, not be published as a per-row fact."""
+    subs = tables["SUBSCRIPTIONS_TABLE"]
+    subs.items["sub_a"] = _sub(id="sub_a")
+    dispatched: list[str] = []
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    for value in ("{}", "not json", "[]", json.dumps({"bundle_25": PRICE_BUNDLE_25})):
+        monkeypatch.setenv("STRIPE_PRICE_IDS", value)
+        with pytest.raises(refresh_handler.ConfigurationError):
+            refresh_handler.refresh(subscriptions=subs, bundles=tables["BUNDLES_TABLE"])
+        with pytest.raises(refresh_handler.ConfigurationError):
+            refresh_handler.handler({}, None)
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+    assert "last_refresh" not in subs.items["sub_a"]
+
+    # One refresh price is enough to make `not_on_plan` mean something again.
+    monkeypatch.setenv("STRIPE_PRICE_IDS", json.dumps({"refresh_mo": PRICE_REFRESH_MO}))
+    assert (
+        refresh_handler.refresh(subscriptions=subs, bundles=tables["BUNDLES_TABLE"])["dispatched"]
+        == 1
+    )
+
+
+def test_refresh_writes_the_capability_row_before_it_dispatches(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The workflow uploads the archive and emails the link on its own clock.
+    If this Lambda dies between the dispatch and the put, the emailed link
+    finds no row and reads "expired or never issued" for a bundle sitting in
+    the bucket. The row has to exist before anything can deliver against it."""
+    bundles = tables["BUNDLES_TABLE"]
+    tables["SUBSCRIPTIONS_TABLE"].items["sub_a"] = _sub(id="sub_a")
+    seen: list[list[str]] = []
+
+    def note_rows(order_ref: str) -> None:
+        seen.append(sorted(bundles.items))
+
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", note_rows)
+    counts = refresh_handler.refresh(subscriptions=tables["SUBSCRIPTIONS_TABLE"], bundles=bundles)
+    assert counts["dispatched"] == 1
+    assert len(seen[0]) == 1, "the capability row must already exist at dispatch time"
+
+
+def test_refresh_counts_a_billed_subscription_with_no_stored_request_apart(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A subscription the webhook created at checkout whose buyer never
+    finished the setup form is being billed for nothing. Rolling it into
+    ``failed`` hid a paying customer inside a retry statistic; it now has its
+    own count, and ``failed`` means only that GitHub refused the dispatch."""
+    subs = tables["SUBSCRIPTIONS_TABLE"]
+    subs.items["sub_never_set_up"] = _sub(id="sub_never_set_up", request="")
+    subs.items["sub_ok"] = _sub(id="sub_ok")
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", lambda inputs: None)
+
+    counts = refresh_handler.refresh(subscriptions=subs, bundles=tables["BUNDLES_TABLE"])
+    assert counts["no_request"] == 1
+    assert counts["failed"] == 0
+    assert counts["dispatched"] == 1
+
+
+def test_refresh_never_sends_more_agencies_than_the_subscription_was_sold(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The cap the subscription was sold under travels on its row, and the
+    weekly run checks the stored list against it every month.
+
+    The setup route already holds that list to the cap, so no path through the
+    product reaches this. What it stops is a row edited by hand quietly sending
+    more than was ever bought, every month, with nothing to notice. Refused
+    rather than trimmed: which agencies to drop is not this job's call.
+    """
+    subs = tables["SUBSCRIPTIONS_TABLE"]
+    inside = {**json.loads(_sub()["request"]), "agency_ids": [f"agency-{n}" for n in range(25)]}
+    outside = {**inside, "agency_ids": [f"agency-{n}" for n in range(26)]}
+    subs.items["sub_ok"] = _sub(id="sub_ok", agency_cap=25, request=json.dumps(inside))
+    subs.items["sub_over"] = _sub(id="sub_over", agency_cap=25, request=json.dumps(outside))
+    # No cap recorded: a row written before this rule. A missing field is not a
+    # cap of any size, and cutting off a paying subscriber over one would be an
+    # absence dressed up as a decision.
+    subs.items["sub_legacy"] = _sub(id="sub_legacy", request=json.dumps(outside))
+    dispatched: list[str] = []
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    counts = refresh_handler.refresh(subscriptions=subs, bundles=tables["BUNDLES_TABLE"])
+    assert counts["over_cap"] == 1
+    assert counts["dispatched"] == 2
+    sent = {len(_sent(d)["agency_ids"].split(",")) for d in dispatched}
+    assert sent == {25, 26}, "the over-cap row was dispatched"
+    assert "last_refresh" not in subs.items["sub_over"]
+    assert subs.items["sub_ok"]["last_refresh"]
+    assert subs.items["sub_legacy"]["last_refresh"]
 
 
 def test_refresh_keeps_going_past_a_failed_dispatch(
@@ -503,8 +1952,8 @@ def test_refresh_keeps_going_past_a_failed_dispatch(
     subs.items["sub_b"] = _sub(id="sub_b")
     seen: list[str] = []
 
-    def flaky(inputs: dict[str, str]) -> None:
-        seen.append(inputs["bundle_id"])
+    def flaky(order_ref: str) -> None:
+        seen.append(_sent(order_ref)["bundle_id"])
         if len(seen) == 1:
             raise common.UpstreamError("github 502")
 
@@ -516,6 +1965,72 @@ def test_refresh_keeps_going_past_a_failed_dispatch(
     assert sum("last_refresh" in row for row in subs.items.values()) == 1
 
 
+def test_refresh_dry_run_changes_nothing(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """DRY_RUN was reported in the response and never honored. It is honored
+    now, from the environment or from a hand invoke's payload, and the proof
+    is that nothing moved: no dispatch, no capability row, no last_refresh."""
+    dispatched: list[str] = []
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    def fresh_subs() -> FakeTable:
+        subs = tables["SUBSCRIPTIONS_TABLE"]
+        subs.items.clear()
+        subs.items["sub_a"] = _sub(id="sub_a")
+        subs.items["sub_b"] = _sub(id="sub_b")
+        return subs
+
+    subs = fresh_subs()
+    counts = refresh_handler.refresh(
+        subscriptions=subs, bundles=tables["BUNDLES_TABLE"], dry_run=True
+    )
+    assert counts["due"] == 2
+    assert counts["would_dispatch"] == 2
+    assert counts["dispatched"] == 0
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+    assert all("last_refresh" not in row for row in subs.items.values())
+
+    # From the environment, through the entrypoint.
+    fresh_subs()
+    monkeypatch.setenv("DRY_RUN", "1")
+    out = refresh_handler.handler({}, None)
+    assert out["dry_run"] is True
+    assert out["would_dispatch"] == 2 and out["dispatched"] == 0
+    assert dispatched == []
+
+    # And from a hand invoke's payload, with DRY_RUN unset.
+    fresh_subs()
+    monkeypatch.delenv("DRY_RUN")
+    out = refresh_handler.handler({"dry_run": True}, None)
+    assert out["dry_run"] is True
+    assert out["would_dispatch"] == 2 and out["dispatched"] == 0
+    assert dispatched == []
+
+    # The scheduled event carries no flag, so the real run still dispatches.
+    fresh_subs()
+    out = refresh_handler.handler({}, None)
+    assert out["dry_run"] is False
+    assert out["dispatched"] == 2
+    assert len(dispatched) == 2
+
+
+def test_refresh_does_nothing_while_payments_are_disabled(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    dispatched: list[str] = []
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", dispatched.append)
+    tables["SUBSCRIPTIONS_TABLE"].items["sub_a"] = _sub(id="sub_a")
+
+    monkeypatch.setenv("PAYMENTS_ENABLED", "0")
+    out = refresh_handler.handler({}, None)
+    assert out == {"ok": True, "payments_enabled": False, "dry_run": False}
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+    assert "last_refresh" not in tables["SUBSCRIPTIONS_TABLE"].items["sub_a"]
+
+
 def test_refresh_handler_entrypoint_reports_counts(
     monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
 ) -> None:
@@ -523,3 +2038,1326 @@ def test_refresh_handler_entrypoint_reports_counts(
     out = refresh_handler.handler({}, None)
     assert out["ok"] is True
     assert out["scanned"] == 0
+
+
+# ---------------------------------------------------------------------------
+# daily reconciler
+# ---------------------------------------------------------------------------
+
+
+class _ReconcileS3:
+    """head_object over a set of keys, with the three answers that matter:
+    the object is there, S3 says 404, or S3 did not answer."""
+
+    def __init__(self, present: set[str] | None = None, unreadable: set[str] | None = None):
+        self.present = set(present or ())
+        self.unreadable = set(unreadable or ())
+        self.asked: list[str] = []
+
+    def head_object(self, Bucket: str, Key: str) -> None:
+        self.asked.append(Key)
+        if Key in self.unreadable:
+            raise _ClientError({"Error": {"Code": "SlowDown"}})
+        if Key not in self.present:
+            raise _ClientError({"Error": {"Code": "404"}})
+
+
+class _ClientError(Exception):
+    """Shaped like botocore's: the code is read off `.response`, not the type."""
+
+    def __init__(self, response: dict[str, Any]) -> None:
+        super().__init__(str(response))
+        self.response = response
+
+
+class _FakeIssues:
+    """The issues half of this repository's API, as `github_request` uses it."""
+
+    def __init__(self, fail: bool = False) -> None:
+        self.open: list[dict[str, Any]] = []
+        self.calls: list[tuple[str, str]] = []
+        self.patches: list[dict[str, Any]] = []
+        self.fail = fail
+        self._next = 1
+
+    def request(self, method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
+        self.calls.append((method, path))
+        if self.fail:
+            raise common.UpstreamError(f"{method} {path} -> HTTP 403", status=403)
+        if method == "GET":
+            return list(self.open)
+        if method == "POST":
+            assert payload is not None
+            issue = {"number": self._next, **payload}
+            self._next += 1
+            self.open.append(issue)
+            return issue
+        if method == "PATCH":
+            assert payload is not None
+            number = int(path.rsplit("/", 1)[1])
+            self.patches.append({"number": number, **payload})
+            for issue in self.open:
+                if issue["number"] == number:
+                    issue.update(payload)
+            return {}
+        raise AssertionError(method)
+
+
+class _FakeBoto3:
+    def __init__(self, s3: _ReconcileS3) -> None:
+        self._s3 = s3
+
+    def client(self, service: str, **_: Any) -> Any:
+        return self._s3
+
+
+def _hours_ago(hours: float) -> str:
+    return (dt.datetime.now(dt.UTC) - dt.timedelta(hours=hours)).replace(microsecond=0).isoformat()
+
+
+def _capability(bundle_id: str, *, hours: float = 48, **overrides: Any) -> dict[str, Any]:
+    row = {
+        "bundle_id": bundle_id,
+        "deliver_to": "liaison@example.org",
+        "program_name": "Example Program",
+        "source": "checkout",
+        "created_at": _hours_ago(hours),
+        "expires_at": int(time.time()) + 86400,
+    }
+    row.update(overrides)
+    return row
+
+
+def _reconcile(tables: dict[str, FakeTable], s3: _ReconcileS3) -> dict[str, Any]:
+    result: dict[str, Any] = reconcile_handler.reconcile(
+        bundles=tables["BUNDLES_TABLE"], s3=s3, bucket="example-artifacts"
+    )
+    return result
+
+
+def test_reconcile_reports_a_paid_order_whose_archive_never_arrived(
+    tables: dict[str, FakeTable],
+) -> None:
+    """The dispatch dead-end and a fulfillment run that died look the same
+    from here, which is the point: the capability row is written before
+    report-bundle.yml is dispatched, so one question covers both."""
+    rows = tables["BUNDLES_TABLE"].items
+    rows["a" * 32] = _capability("a" * 32)  # paid, no archive
+    rows["b" * 32] = _capability("b" * 32)  # paid, delivered
+    rows["c" * 32] = _capability("c" * 32, hours=1)  # still rendering
+
+    s3 = _ReconcileS3(present={f"program-bundles/{'b' * 32}/bundle.zip"})
+    result = _reconcile(tables, s3)
+
+    assert result["scanned"] == 3
+    assert [(f["kind"], f["key"]) for f in result["findings"]] == [("undelivered", "a" * 32)]
+    found = result["findings"][0]
+    assert found["deliver_to"] == "liaison@example.org"
+    assert 47 < found["age_hours"] < 49
+    assert "Re-dispatch report-bundle.yml" in found["action"]
+    # A row inside the window is not headed at all; the check costs a request.
+    assert f"program-bundles/{'c' * 32}/bundle.zip" not in s3.asked
+
+
+def test_reconcile_reports_a_claim_that_never_dispatched_and_ignores_one_that_did(
+    tables: dict[str, FakeTable],
+) -> None:
+    """The claim the setup route leaves behind when GitHub refuses the
+    dispatch. It is deliberately left unfinished so the buyer can retry and
+    resume the same bundle; this is what notices when they never come back.
+
+    A claim written before `dispatched` existed says nothing either way, and
+    is not reported on a guess. Those orders still reach the digest through
+    their capability row, which asks S3 rather than a field nobody wrote.
+    """
+    rows = tables["BUNDLES_TABLE"].items
+    rows["d" * 32] = _capability("d" * 32, hours=30)
+    rows["session#cs_stuck"] = {
+        "bundle_id": "session#cs_stuck",
+        "consumed_by": "d" * 32,
+        "plan": "bundle_25",
+        "dispatched": False,
+    }
+    rows["e" * 32] = _capability("e" * 32, hours=30)
+    rows["session#cs_built"] = {
+        "bundle_id": "session#cs_built",
+        "consumed_by": "e" * 32,
+        "plan": "bundle_25",
+        "dispatched": True,
+    }
+    rows["f" * 32] = _capability("f" * 32, hours=0.2)
+    rows["session#cs_fresh"] = {
+        "bundle_id": "session#cs_fresh",
+        "consumed_by": "f" * 32,
+        "plan": "bundle_25",
+        "dispatched": False,
+    }
+    rows["session#cs_legacy"] = {
+        "bundle_id": "session#cs_legacy",
+        "consumed_by": "0" * 32,
+        "plan": "bundle_25",
+    }
+
+    s3 = _ReconcileS3(
+        present={
+            f"program-bundles/{'e' * 32}/bundle.zip",
+            f"program-bundles/{'f' * 32}/bundle.zip",
+        }
+    )
+    findings = _reconcile(tables, s3)["findings"]
+    claims = [f for f in findings if f["kind"] == "never_started"]
+    assert [f["key"] for f in claims] == ["session#cs_stuck"]
+    assert claims[0]["bundle_id"] == "d" * 32
+    assert "the claim is still open" in claims[0]["action"]
+    # The claim carries no timestamp of its own, so it borrowed the capability
+    # row's. Without that a claim caught mid-flight would read as abandoned.
+    assert 29 < claims[0]["age_hours"] < 31
+
+
+def test_reconcile_reports_a_checkout_that_never_reached_the_setup_form(
+    tables: dict[str, FakeTable],
+) -> None:
+    """The webhook notes every paid checkout; the setup route writes a
+    `session#` row when the buyer finishes the form. A `checkout#` with no
+    sibling is somebody who paid and closed the tab."""
+    rows = tables["BUNDLES_TABLE"].items
+    rows["checkout#cs_gone"] = {
+        "bundle_id": "checkout#cs_gone",
+        "plan": "bundle_100",
+        "email": "buyer@example.org",
+        "seen_at": _hours_ago(72),
+    }
+    rows["checkout#cs_done"] = {
+        "bundle_id": "checkout#cs_done",
+        "plan": "bundle_25",
+        "email": "other@example.org",
+        "seen_at": _hours_ago(72),
+    }
+    rows["session#cs_done"] = {
+        "bundle_id": "session#cs_done",
+        "consumed_by": "0" * 32,
+        "plan": "bundle_25",
+        "dispatch_state": "sent",
+        "claimed_at": _hours_ago(72),
+    }
+
+    findings = _reconcile(tables, _ReconcileS3())["findings"]
+    assert [(f["kind"], f["key"]) for f in findings] == [("abandoned_checkout", "checkout#cs_gone")]
+    assert findings[0]["email"] == "buyer@example.org"
+
+
+def test_reconcile_treats_what_it_could_not_read_as_a_finding_not_as_a_pass(
+    tables: dict[str, FakeTable],
+) -> None:
+    """Two ways this job could quietly report nothing while orders rot: a
+    row whose timestamp will not parse, and a bucket that will not answer.
+    Neither is allowed to read as "delivered"."""
+    rows = tables["BUNDLES_TABLE"].items
+    rows["a" * 32] = _capability("a" * 32, created_at="")  # no timestamp at all
+    rows["b" * 32] = _capability("b" * 32, created_at="whenever")  # unparseable
+    rows["c" * 32] = _capability("c" * 32)  # readable, and S3 will not answer
+
+    s3 = _ReconcileS3(unreadable={f"program-bundles/{'c' * 32}/bundle.zip"})
+    findings = _reconcile(tables, s3)["findings"]
+    by_key = {f["key"]: f for f in findings}
+
+    assert by_key["a" * 32]["kind"] == "undelivered"
+    assert by_key["a" * 32]["age_hours"] is None
+    assert by_key["b" * 32]["age_hours"] is None
+    assert by_key["c" * 32]["kind"] == "unreadable"
+    assert "cannot vouch" in by_key["c" * 32]["action"]
+
+
+def test_the_reconciler_names_the_order_a_failed_dispatch_left_behind(
+    tables: dict[str, FakeTable],
+) -> None:
+    """The two rows a failed dispatch leaves, read together.
+
+    This is the shape `setup` writes when it has claimed the checkout and
+    GitHub then refuses: a capability row with no archive behind it, and a
+    claim that never flipped to dispatched. Seeded here rather than driven
+    through the handler, so this test describes the reconciler's contract
+    with the table and not one particular version of the writer.
+    """
+    rows = tables["BUNDLES_TABLE"].items
+    bundle_id = "a" * 32
+    rows[bundle_id] = _capability(bundle_id, hours=24)
+    rows["session#cs_test_example"] = {
+        "bundle_id": "session#cs_test_example",
+        "consumed_by": bundle_id,
+        "plan": "bundle_25",
+        "dispatched": False,
+    }
+
+    findings = _reconcile(tables, _ReconcileS3())["findings"]
+    assert sorted(f["kind"] for f in findings) == ["never_started", "undelivered"]
+    counts = reconcile_handler.counts_by_kind(findings)
+    assert counts == {
+        "deadline_breached": 0,
+        "undelivered": 1,
+        "never_started": 1,
+        "abandoned_checkout": 0,
+        "unreadable": 0,
+    }
+
+
+def test_the_public_issue_carries_counts_and_nothing_that_identifies_anybody(
+    tables: dict[str, FakeTable],
+) -> None:
+    """The leak test. This repository is public and so are its issues.
+
+    Every identifying field the reconciler holds is either a credential or a
+    customer's own details: a bundle id IS the download capability, and
+    `deliver_to`, `program_name` and the agency list describe a paying buyer.
+    The findings below are stuffed with all of them, in every field the
+    walker produces, so this fails if any of it can reach the body.
+
+    The structural reason it cannot is that `issue_body` is given counts and
+    never sees a finding. This is the test that keeps that true: the artifact
+    name in report-bundle.yml was careful once too.
+    """
+    secrets = {
+        "bundle_id": "d4f1a9c7e2b06835a1c4d9e7f2b60853",
+        "deliver_to": "liaison@example.org",
+        "email": "buyer@example.org",
+        "program_name": "Yolo County Transportation District",
+        "key": "session#cs_test_51QexampleSessionReference",
+        "plan": "bundle_100",
+        "action": "agency_ids unitrans,yolobus; customer cus_example; price price_example",
+    }
+    # `source` is deliberately not in that list: it is one of two constants
+    # ("checkout" or "refresh"), identifies nobody, and "checkout" is a
+    # substring of the `abandoned_checkout` count label the body must print.
+    # A leak test that fires on a non-secret is one somebody weakens later.
+    findings = [
+        {"kind": kind, "age_hours": 42.0, "source": "checkout", **secrets}
+        for kind in reconcile_handler.KINDS
+    ]
+
+    counts = reconcile_handler.counts_by_kind(findings)
+    body = reconcile_handler.issue_body(counts)
+    title = reconcile_handler.issue_title(counts)
+    published = f"{title}\n{body}"
+
+    for field, value in secrets.items():
+        assert value not in published, f"{field} reached a public issue"
+    # And the shapes, not just these literals: a 32-hex capability, an email
+    # address, a Stripe reference.
+    assert not re.search(r"\b[0-9a-f]{32}\b", published), "a capability-shaped id reached the issue"
+    assert "@" not in published, "an address-shaped string reached the issue"
+    assert not re.search(r"\b(cs|cus|sub|price|pi|ch)_[A-Za-z0-9]{6,}", published), (
+        "a Stripe-shaped reference reached the issue"
+    )
+    # What it does carry. One of the kinds is a breach, so the title escalates.
+    assert title == "REFUND DUE: 1 program order past the promised delivery date"
+    for kind in reconcile_handler.KINDS:
+        assert f"{kind:<20}1" in body, kind
+    assert reconcile_handler.LOG_GROUP in body
+
+
+def test_the_reconciler_keeps_one_standing_issue_and_never_closes_it(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A daily schedule over a standing problem must not open an issue every
+    morning, and must not edit the same one every morning either: an issue
+    that churns daily stops being read. So the body is compared, and written
+    only when it differs. Nothing is ever closed; a human decides that."""
+    issues = _FakeIssues()
+    monkeypatch.setattr(reconcile_handler, "github_request", issues.request)
+
+    findings = [{"kind": "undelivered", "age_hours": 9.0}]
+    assert reconcile_handler.report_findings(findings) == "opened"
+    assert len(issues.open) == 1
+    assert issues.open[0]["labels"] == [reconcile_handler.ISSUE_LABEL]
+
+    # Same findings tomorrow: nothing is written at all.
+    assert reconcile_handler.report_findings(findings) == "unchanged"
+    assert len(issues.open) == 1 and issues.patches == []
+
+    # A changed count edits the one issue rather than opening a second.
+    assert reconcile_handler.report_findings(findings * 3) == "updated"
+    assert len(issues.open) == 1
+    assert issues.patches[0]["title"] == "3 program orders need attention"
+    assert [m for m, _ in issues.calls if m == "DELETE"] == []
+    assert not any("state" in patch for patch in issues.patches), "nothing closes an issue"
+
+    # An issue somebody else labeled is not ours to overwrite.
+    issues.open = [{"number": 99, "title": "unrelated", "body": "no marker here"}]
+    assert reconcile_handler.report_findings(findings) == "opened"
+    assert len(issues.open) == 2
+
+
+def test_the_reconciler_fails_loudly_when_it_cannot_file_the_report(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """Alerting that silently cannot reach anyone is the defect this module
+    exists to close, so it must not be reintroduced one layer up. A run that
+    found paid orders and could not report them fails, and says which
+    permission is the likely cause rather than making somebody guess."""
+    tables["BUNDLES_TABLE"].items["a" * 32] = _capability("a" * 32)
+    monkeypatch.setitem(sys.modules, "boto3", _FakeBoto3(_ReconcileS3()))
+    monkeypatch.setattr(reconcile_handler, "github_request", _FakeIssues(fail=True).request)
+
+    with pytest.raises(RuntimeError, match="Issues: Read and write"):
+        reconcile_handler.handler({}, None)
+
+
+def test_reconcile_handler_files_the_report_and_honors_the_gates(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    tables["BUNDLES_TABLE"].items["a" * 32] = _capability("a" * 32)
+    issues = _FakeIssues()
+    monkeypatch.setitem(sys.modules, "boto3", _FakeBoto3(_ReconcileS3()))
+    monkeypatch.setattr(reconcile_handler, "github_request", issues.request)
+
+    out = reconcile_handler.handler({}, None)
+    assert out == {
+        "ok": True,
+        "payments_enabled": True,
+        "scanned": 1,
+        "findings": 1,
+        "reported": "opened",
+        "dry_run": False,
+    }
+    assert len(issues.open) == 1
+
+    # A dry run looks and files nothing.
+    dry = reconcile_handler.handler({"dry_run": True}, None)
+    assert dry["reported"] == "dry_run" and dry["dry_run"] is True
+    assert len(issues.open) == 1
+
+    # And the commercial gate closes it entirely.
+    monkeypatch.setenv("PAYMENTS_ENABLED", "0")
+    assert reconcile_handler.handler({}, None) == {
+        "ok": True,
+        "payments_enabled": False,
+        "dry_run": False,
+    }
+    assert len(issues.open) == 1
+
+
+def test_reconcile_handler_raises_when_the_bucket_would_not_answer(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """An outage must not be filed as an all-clear, and it must not be filed
+    as a delivered order either. The run fails so somebody sees it."""
+    tables["BUNDLES_TABLE"].items["a" * 32] = _capability("a" * 32)
+    s3 = _ReconcileS3(unreadable={f"program-bundles/{'a' * 32}/bundle.zip"})
+    issues = _FakeIssues()
+    monkeypatch.setitem(sys.modules, "boto3", _FakeBoto3(s3))
+    monkeypatch.setattr(reconcile_handler, "github_request", issues.request)
+
+    with pytest.raises(RuntimeError, match="could not be read"):
+        reconcile_handler.handler({}, None)
+    # The report still went out: the orders it could read are still filed.
+    assert len(issues.open) == 1
+
+
+# ---------------------------------------------------------------------------
+# the reconciler's schedule, read from terraform
+# ---------------------------------------------------------------------------
+
+
+def test_the_reconcile_schedule_cannot_be_enabled_with_no_way_to_report() -> None:
+    """A job that finds paid orders and cannot tell anyone is the defect this
+    module exists to close, so the schedule must not be able to run in that
+    state.
+
+    The gate it replaced was `ses_from != ""`, a non-blank string that named
+    an address on a domain with no MX record. **Non-blank is not reachable**,
+    and that is the whole lesson: what gates the rule now is an explicit
+    readiness switch, defaulting off, whose description carries the two
+    things to confirm before it is flipped.
+    """
+    terraform = (MODULE_DIR / "main.tf").read_text(encoding="utf-8")
+    rule = terraform[terraform.index('resource "aws_cloudwatch_event_rule" "daily_reconcile"') :]
+    rule = rule[: rule.index("resource ", 1)]
+    state = next(line for line in rule.splitlines() if line.strip().startswith("state"))
+
+    assert "var.reconciler_reporting_ready" in state, (
+        "the schedule must be gated on a reporting channel confirmed reachable"
+    )
+    assert 'var.payments_enabled == "1"' in state, "the commercial gate still applies"
+    assert "ENABLED" in state and "DISABLED" in state
+
+    # Default off: a plain apply leaves it disabled, so switching it on is a
+    # deliberate act and not a surprise from an unrelated apply.
+    declaration = terraform[terraform.index('variable "reconciler_reporting_ready"') :]
+    declaration = declaration[: declaration.index("\n}")]
+    assert "default     = false" in declaration
+    assert "Issues: Read and write" in declaration, (
+        "the exact permission the design depends on belongs where the operator reads it"
+    )
+    assert "program-bundle-reconciler" in declaration, (
+        "the label has to exist before the first report, so say so here"
+    )
+
+    # And the dead email configuration is gone rather than left wired to
+    # nothing, so nobody sets it and expects an alert. The module does carry
+    # one SES grant since ADR 0063 phase 2, and it is not an alert: the setup
+    # route mails a history buyer their download link, from the one identity
+    # ses_identity_arn names, and nothing in the reconciler reads it.
+    assert "ses" not in rule and "ses" not in declaration
+    assert terraform.count("ses:SendEmail") == 1
+    grant = terraform[terraform.index('resource "aws_iam_role_policy" "lambda_ses"') :]
+    grant = grant[: grant.index("\n}")]
+    assert "SendHistoryDelivery" in grant and "Resource = var.ses_identity_arn" in grant
+    assert 'count = var.ses_identity_arn == "" ? 0 : 1' in grant, "no identity, no grant"
+    reconciler = terraform[terraform.index('resource "aws_lambda_function" "reconcile"') :]
+    reconciler = reconciler[: reconciler.index("\n}")]
+    assert "ses" not in reconciler.lower()
+
+
+# ---------------------------------------------------------------------------
+# the delivery promise, end to end through the handlers
+# ---------------------------------------------------------------------------
+
+
+def test_setup_records_the_promised_date_and_tells_the_buyer(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The date is computed once, stored on the order, returned to the page
+    and carried into the workflow. Four places, one computation: the page
+    does not work it out again, and neither does the email."""
+    from scorecard_pipeline import deadline as dl
+
+    dispatched: list[str] = []
+    # Monday 14 September 2026, 09:00 in the promise's own zone.
+    checkout = 1789401600
+    _stripe(monkeypatch, _paid_session(created=checkout), price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 200, resp["body"]
+    body = json.loads(resp["body"])
+
+    expected = dl.deadline_date(dl.from_epoch(checkout))
+    assert body["deliver_by"] == expected.isoformat() == "2026-09-16"
+    assert dl.spoken_date(expected) in body["promise"]
+    assert "refunded" in body["promise"]
+
+    row = tables["BUNDLES_TABLE"].items[body["bundle_id"]]
+    assert row["deliver_by_epoch"] == dl.deadline_epoch(dl.from_epoch(checkout))
+    assert row["deliver_by_anchor"] == "checkout"
+    assert _sent(dispatched[0])["promised_by"] == dl.spoken_date(expected)
+
+
+def test_the_promise_is_anchored_to_the_checkout_not_to_the_form(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A buyer who pays on Friday and fills the form in on Monday was
+    promised two business days from Friday. Anchoring on the form would hand
+    us the weekend, which is the direction that quietly favors us."""
+    from scorecard_pipeline import deadline as dl
+
+    # Friday 11 September 2026, 16:00 in the promise's own zone. Two business
+    # days on is Tuesday the 15th, and the weekend is not two of them.
+    friday = 1789167600
+    _stripe(monkeypatch, _paid_session(created=friday), price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", lambda inputs: None)
+
+    body = json.loads(setup_handler.handler(_setup_event(_form()))["body"])
+    assert body["deliver_by"] == dl.deadline_date(dl.from_epoch(friday)).isoformat()
+    assert body["deliver_by"] == "2026-09-15", "the weekend is not two business days"
+
+    # A session with no `created` is the only case that falls back to now, and
+    # the row says so rather than leaving it unanswerable.
+    session = _paid_session()
+    session.pop("created", None)
+    _stripe(monkeypatch, session, price=PRICE_BUNDLE_25)
+    tables["BUNDLES_TABLE"].items.clear()
+    second = json.loads(
+        setup_handler.handler(_setup_event(_form(session_id="cs_test_other")))["body"]
+    )
+    assert tables["BUNDLES_TABLE"].items[second["bundle_id"]]["deliver_by_anchor"] == "received"
+
+
+def _promised(offset_days: float) -> int:
+    return int((dt.datetime.now(dt.UTC) + dt.timedelta(days=offset_days)).timestamp())
+
+
+def test_a_breached_order_is_reported_apart_from_a_merely_late_one(
+    tables: dict[str, FakeTable],
+) -> None:
+    """One is a slow build, the other is a refund owed. They need different
+    actions from a person, so they must not arrive as one number.
+
+    The severity also has to survive into the notification: the issue body is
+    counts and counts are unranked, so the title is the only place the
+    difference can be carried, and it carries it."""
+    rows = tables["BUNDLES_TABLE"].items
+    rows["a" * 32] = _capability("a" * 32, hours=72, deliver_by_epoch=_promised(-1))
+    rows["b" * 32] = _capability("b" * 32, hours=72, deliver_by_epoch=_promised(+1))
+    rows["c" * 32] = _capability("c" * 32, hours=72)  # a refresh: no promise
+
+    findings = _reconcile(tables, _ReconcileS3())["findings"]
+    by_kind = {f["key"]: f["kind"] for f in findings}
+    assert by_kind["a" * 32] == "deadline_breached"
+    assert by_kind["b" * 32] == "undelivered"
+    assert by_kind["c" * 32] == "undelivered"
+
+    counts = reconcile_handler.counts_by_kind(findings)
+    assert counts["deadline_breached"] == 1
+    assert counts["undelivered"] == 2
+
+    title = reconcile_handler.issue_title(counts)
+    assert title.startswith("REFUND DUE"), title
+    assert "1 program order past the promised delivery date" in title
+    # And the breach says what to do, which is not what a late build says.
+    breach = next(f for f in findings if f["kind"] == "deadline_breached")
+    assert "PAST THE PROMISED DATE" in breach["action"]
+    assert "program-refunds" in breach["action"]
+
+
+def test_a_delivered_order_never_breaches_however_late_it_was(
+    tables: dict[str, FakeTable],
+) -> None:
+    """Late and delivered is not a refund by this machinery's reckoning. The
+    buyer may still be owed one; that is a judgment, and it is hers."""
+    rows = tables["BUNDLES_TABLE"].items
+    rows["a" * 32] = _capability("a" * 32, hours=72, deliver_by_epoch=_promised(-5))
+    s3 = _ReconcileS3(present={f"program-bundles/{'a' * 32}/bundle.zip"})
+    assert _reconcile(tables, s3)["findings"] == []
+
+
+def test_the_title_does_not_escalate_when_nothing_is_owed(
+    tables: dict[str, FakeTable],
+) -> None:
+    tables["BUNDLES_TABLE"].items["a" * 32] = _capability("a" * 32, hours=72)
+    findings = _reconcile(tables, _ReconcileS3())["findings"]
+    title = reconcile_handler.issue_title(reconcile_handler.counts_by_kind(findings))
+    assert title == "1 program order needs attention"
+    assert "REFUND" not in title
+
+
+def test_a_breach_is_still_a_breach_in_the_type_the_table_returns(
+    tables: dict[str, FakeTable],
+) -> None:
+    """The fakes above hold whatever Python object they were handed. The real
+    table does not.
+
+    ``deliver_by_epoch`` is put as an ``int`` and every scan answers it as a
+    ``decimal.Decimal`` (boto3's resource layer; measured against 1.43.93).
+    Nothing in this file could see the difference, so a breach rule that
+    accepted only ``int`` and ``float`` passed every test here while
+    reporting, in production, that no order had ever missed the promise.
+    Both types are put through the reconciler, and the answer has to match.
+    """
+    told_epoch = _promised(-1)
+    for stored in (told_epoch, decimal.Decimal(told_epoch)):
+        tables["BUNDLES_TABLE"].items.clear()
+        tables["BUNDLES_TABLE"].items["a" * 32] = _capability(
+            "a" * 32, hours=72, deliver_by_epoch=stored
+        )
+        findings = _reconcile(tables, _ReconcileS3())["findings"]
+        assert [f["kind"] for f in findings] == ["deadline_breached"], stored
+        counts = reconcile_handler.counts_by_kind(findings)
+        assert reconcile_handler.issue_title(counts).startswith("REFUND DUE"), stored
+
+
+def test_the_date_the_row_stores_is_the_date_the_buyer_was_told(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """One promise, written once and read back once, with the storage type
+    and the timezone both in the path.
+
+    The setup route tells the buyer a date and stores an epoch. The refund
+    report reads that epoch back and prints a date to the person deciding
+    whether money is owed. Those two dates are the same promise and have to
+    be the same string, so this drives the write through the handler rather
+    than asserting against a hand-built row.
+    """
+    from scorecard_pipeline import deadline as dl
+
+    checkout = 1789401600  # Monday 14 September 2026, 09:00 in the promise's zone
+    _stripe(monkeypatch, _paid_session(created=checkout), price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", lambda inputs: None)
+
+    body = json.loads(setup_handler.handler(_setup_event(_form()))["body"])
+    row = tables["BUNDLES_TABLE"].items[body["bundle_id"]]
+    # The round trip the table performs on the way back out.
+    stored = decimal.Decimal(int(row["deliver_by_epoch"]))
+    read_back = dl.promised_day(stored)
+
+    assert read_back is not None, "the stored promise must be readable at all"
+    assert read_back.isoformat() == body["deliver_by"] == "2026-09-16"
+    assert dl.spoken_date(read_back) in body["promise"]
+
+
+def test_a_refresh_makes_no_dated_promise_so_it_cannot_breach_one(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The two-business-day commitment is made at a purchase. A subscription's
+    monthly archive is a different promise, so the weekly refresh must write no
+    ``deliver_by_epoch`` -- a field it did write would make every subscriber a
+    refund liability on a date nobody quoted them.
+
+    Asserted on the row the refresh actually writes, not on ``bundle_row``'s
+    signature: the question is what reaches the table.
+    """
+    tables["SUBSCRIPTIONS_TABLE"].items["sub_a"] = _sub(id="sub_a")
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", lambda inputs: None)
+    refresh_handler.refresh(
+        subscriptions=tables["SUBSCRIPTIONS_TABLE"], bundles=tables["BUNDLES_TABLE"]
+    )
+
+    rows = [r for k, r in tables["BUNDLES_TABLE"].items.items() if "#" not in k]
+    assert len(rows) == 1 and rows[0]["source"] == "refresh"
+    assert "deliver_by_epoch" not in rows[0]
+
+    # And the reconciler reads that absence the way it is meant: still an
+    # order it will report, never one that owes a refund.
+    rows[0]["created_at"] = _hours_ago(72)
+    findings = _reconcile(tables, _ReconcileS3())["findings"]
+    assert [f["kind"] for f in findings] == ["undelivered"]
+
+
+def test_one_payment_leaves_one_bundle_when_a_dispatch_fails_after_github_took_it(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The ambiguous failure: the socket times out, so the Lambda raises, but
+    GitHub had already queued the run. The buyer retries and a second run
+    starts for an order that is already building.
+
+    What makes that safe is not the retry being clever -- it cannot know --
+    but every output of the two attempts being the same object: one capability
+    row, one archive key, one concurrency group, and one promised date. Then
+    the duplicate run overwrites its own bundle and the buyer's existing link
+    still points at it. Each of those four is asserted here, because each of
+    them is what would quietly stop being true.
+    """
+    from scorecard_pipeline.bundle import archive_key
+
+    attempts: list[str] = []
+
+    def timeout_then_succeed(order_ref: str) -> None:
+        attempts.append(order_ref)
+        if len(attempts) == 1:
+            # GitHub queued it; the answer never came back.
+            raise common.UpstreamError("POST .../dispatches failed: timed out")
+
+    _stripe(monkeypatch, _paid_session(created=1789401600), price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", timeout_then_succeed)
+
+    first = json.loads(setup_handler.handler(_setup_event(_form()))["body"])
+    second = json.loads(setup_handler.handler(_setup_event(_form()))["body"])
+    assert second["bundle_id"] == first["bundle_id"]
+
+    ids = {_sent(a)["bundle_id"] for a in attempts}
+    assert len(attempts) == 2 and ids == {first["bundle_id"]}
+    # The run group is keyed on the order reference and the S3 key on the
+    # bundle id inside the stored order. The retry reuses both, so two runs of
+    # one order queue behind each other and cannot collide with anything else.
+    assert len(set(attempts)) == 1, "the retry dispatched under a new run group"
+    assert len({archive_key(_sent(a)["bundle_id"]) for a in attempts}) == 1
+    # And the promise did not move: it is anchored to Stripe's `created`,
+    # which the retry did not change. A deadline that slipped on every retry
+    # would be a refund liability the buyer was never told about.
+    assert len({_sent(a)["promised_by"] for a in attempts}) == 1
+
+    rows = tables["BUNDLES_TABLE"].items
+    capabilities = [k for k in rows if "#" not in k]
+    claims = [k for k in rows if k.startswith("session#")]
+    assert capabilities == [first["bundle_id"]], "one payment, one download link"
+    assert claims == ["session#cs_test_example"], "one payment, one claim"
+    assert rows["session#cs_test_example"]["dispatched"] is True
+
+
+def test_an_entitlement_row_with_nobody_s_address_on_it_grants_nothing(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """A purchase row carrying no email cannot be attributed to anyone.
+
+    Both writers can produce one: the webhook records
+    ``customer_details.email`` and writes ``""`` when Stripe collected none,
+    and a `session#` claim written before that field existed has no ``email``
+    key at all. The address check runs before the plan check for that reason
+    -- an unattributable purchase must not reach the settle-against-Stripe
+    path either, because `checkout_plan` answers what a session bought and
+    never who bought it, so settling one would hand its cap to whoever asked.
+    """
+    session = _paid_session(mode="subscription", subscription="sub_example")
+    paths = _stripe(monkeypatch, session, price=PRICE_REFRESH_MO)
+    dispatched: list[str] = []
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+    _no_claims_allowed(monkeypatch)
+    rows = tables["BUNDLES_TABLE"].items
+    # Stripe collected no address at this checkout, and the webhook could not
+    # read what it bought. Reached, it would cost a Stripe call and could
+    # grant a cap; the address check runs first, so it costs neither.
+    rows["checkout#cs_no_email"] = {
+        "bundle_id": "checkout#cs_no_email",
+        "plan": "unverified",
+        "email": "",
+        "seen_at": "2026-01-05T00:00:00+00:00",
+    }
+    # A claim written before `_session_row` carried an address at all.
+    rows["session#cs_legacy"] = {
+        "bundle_id": "session#cs_legacy",
+        "consumed_by": "e" * 32,
+        "plan": "bundle_100",
+        "dispatched": True,
+    }
+
+    resp = setup_handler.handler(_setup_event(_form()))
+    assert resp["statusCode"] == 403
+    assert "renews a bundle you have already bought" in json.loads(resp["body"])["error"]
+    assert not any("cs_no_email" in p or "cs_legacy" in p for p in paths), (
+        "an unattributable purchase row must not be settled against Stripe"
+    )
+    assert dispatched == []
+
+
+def test_an_agency_id_the_form_rejects_is_named_and_consumes_nothing(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """The other half of "an id is never silently dropped".
+
+    A bundle names every requested id in its manifest, but an id that fails
+    the character rule never reaches a manifest at all: the whole request is
+    refused. That is right -- guessing what a mistyped id meant would be
+    worse -- and it only works if the buyer is told *which* id and can send
+    the same checkout again. So: the offending id is in the message, nothing
+    is built, and above all the checkout is not claimed, or the correction
+    would be answered "this checkout already produced a bundle".
+    """
+    dispatched: list[str] = []
+    _stripe(monkeypatch, price=PRICE_BUNDLE_25)
+    monkeypatch.setattr(setup_handler, "dispatch_bundle_workflow", dispatched.append)
+
+    bad = setup_handler.handler(_setup_event(_form(agency_ids="unitrans, Yolo Bus!,sactrans")))
+    assert bad["statusCode"] == 400
+    error = json.loads(bad["body"])["error"]
+    assert "yolo bus!" in error, error
+    assert "not a scorecard id" in error
+    assert dispatched == []
+    assert tables["BUNDLES_TABLE"].items == {}
+
+    # The same checkout, corrected, still works.
+    fixed = setup_handler.handler(_setup_event(_form(agency_ids="unitrans,yolobus,sactrans")))
+    assert fixed["statusCode"] == 200, fixed["body"]
+    assert _sent(dispatched[0])["agency_ids"] == "unitrans,yolobus,sactrans"
+
+
+def test_every_table_walk_reads_past_the_first_page(
+    monkeypatch: pytest.MonkeyPatch, tables: dict[str, FakeTable]
+) -> None:
+    """DynamoDB answers a scan with one page and a ``LastEvaluatedKey``, and
+    three separate loops here follow it. A caller that read only the first
+    page would see a prefix of the table and have no way to tell -- the
+    reconciler would stop reporting undelivered orders, a refresh's
+    entitlement read would refuse a real buyer, and the weekly run would stop
+    refreshing paying subscribers. All three failures are silent and all
+    three cost money, so the fake pages at one row and each loop is made to
+    walk it.
+    """
+    bundles = tables["BUNDLES_TABLE"]
+    subs = tables["SUBSCRIPTIONS_TABLE"]
+    bundles.page_size = 1
+    subs.page_size = 1
+
+    # 1. the reconciler: the order that needs reporting is on the last page.
+    bundles.items["a" * 32] = _capability("a" * 32, hours=1)  # inside the window
+    bundles.items["b" * 32] = _capability("b" * 32, hours=72)  # undelivered
+    result = _reconcile(tables, _ReconcileS3())
+    assert result["scanned"] == 2
+    assert [f["key"] for f in result["findings"]] == ["b" * 32]
+    assert len(bundles.scans) > 1, "the reconciler asked for one page and stopped"
+
+    # 2. the entitlement read: the bundle being renewed is on the last page.
+    bundles.items.clear()
+    bundles.items["checkout#cs_noise"] = {
+        "bundle_id": "checkout#cs_noise",
+        "plan": "bundle_25",
+        "email": "someone.else@example.org",
+        "seen_at": "2026-01-05T00:00:00+00:00",
+    }
+    _bought_earlier(tables, "bundle_100", session_id="cs_test_older")
+    dispatched = _refresh_setup(monkeypatch)
+    hundred = ",".join(f"agency-{n}" for n in range(100))
+    resp = setup_handler.handler(_setup_event(_form(agency_ids=hundred)))
+    assert resp["statusCode"] == 200, resp["body"]
+    assert len(_sent(dispatched[0])["agency_ids"].split(",")) == 100
+
+    # 3. the weekly refresh: the due subscription is on the last page.
+    subs.items.clear()
+    subs.items["sub_recent"] = _sub(id="sub_recent", last_refresh=_hours_ago(1))
+    subs.items["sub_due"] = _sub(id="sub_due")
+    monkeypatch.setattr(refresh_handler, "dispatch_bundle_workflow", lambda inputs: None)
+    counts = refresh_handler.refresh(subscriptions=subs, bundles=bundles)
+    assert counts["scanned"] == 2 and counts["dispatched"] == 1
+
+
+# ---------------------------------------------------------------------------
+# conversion_tracking: the AD_CONVERSIONS_TABLE sink (store_pending_upload)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def ad_table(monkeypatch: pytest.MonkeyPatch) -> FakeTable:
+    """A fake `ads_conversion_upload_handler.py` table, wired into both
+    modules that touch it. Not folded into the shared `tables` fixture:
+    every existing test above runs with AD_CONVERSIONS_TABLE unset, and
+    should keep doing so -- this fixture is opt-in per test."""
+    fake = FakeTable(key="conversion_id")
+    monkeypatch.setenv("AD_CONVERSIONS_TABLE", "ad-conversions")
+    monkeypatch.setattr(conversion_tracking, "table", lambda env, f=fake: f)
+    monkeypatch.setattr(ads_conversion_upload_handler, "table", lambda env, f=fake: f)
+    return fake
+
+
+def _pending_event(conversion_id: str = "cs_ad_1", **overrides: Any) -> dict[str, Any]:
+    hashed = conversion_tracking.hash_identifier("buyer@example.org")
+    event = {
+        "conversion_action": "customers/2688527650/conversionActions/7769927171",
+        "conversion_date_time": "2026-09-14T00:00:00+00:00",
+        "conversion_value": 349.0,
+        "currency_code": "USD",
+        "plan": "bundle_100",
+        "user_identifiers": [{"hashed_email": hashed}],
+        "conversion_id": conversion_id,
+    }
+    event.update(overrides)
+    return event
+
+
+def test_store_pending_upload_writes_a_pending_row_keyed_by_the_session_id(
+    ad_table: FakeTable,
+) -> None:
+    conversion_tracking.store_pending_upload(_pending_event("cs_store_1"))
+    row = ad_table.items["cs_store_1"]
+    assert row["status"] == "pending"
+    assert row["event"]["conversion_id"] == "cs_store_1"
+    # put through boto3's resource layer a Python float is refused outright;
+    # this is the type it has to leave here as.
+    assert isinstance(row["event"]["conversion_value"], decimal.Decimal)
+
+
+def test_store_pending_upload_does_nothing_without_the_table_configured() -> None:
+    """AD_CONVERSIONS_TABLE unset -- every deploy before main.tf's table is
+    applied. No fake table is even wired in: if this reached `table(...)`
+    it would try to build a real boto3 resource and fail the test, which is
+    exactly the negative control -- a spy that never got called proves
+    nothing about whether the guard runs before the table lookup."""
+    assert os.environ.get("AD_CONVERSIONS_TABLE", "") == ""
+    conversion_tracking.store_pending_upload(_pending_event())  # must not raise or touch boto3
+
+
+def test_store_pending_upload_skips_a_blank_conversion_id(ad_table: FakeTable) -> None:
+    conversion_tracking.store_pending_upload(_pending_event(conversion_id=""))
+    assert ad_table.items == {}
+
+
+def test_store_pending_upload_refuses_to_overwrite_an_uploaded_row(ad_table: FakeTable) -> None:
+    """The idempotency half that lives in conversion_tracking: a Stripe
+    webhook retry calls note_conversion (and so emit, and so this) again for
+    a checkout already reported. It must not reset an already-uploaded row
+    back to pending -- that would queue a second report for one sale."""
+    conversion_tracking.store_pending_upload(_pending_event("cs_retry_1"))
+    ad_table.items["cs_retry_1"]["status"] = "uploaded"
+    ad_table.items["cs_retry_1"]["detail"] = ""
+
+    conversion_tracking.store_pending_upload(_pending_event("cs_retry_1"))
+
+    assert ad_table.items["cs_retry_1"]["status"] == "uploaded"
+
+
+def test_emit_still_prints_the_cloudwatch_line_and_also_stores(
+    ad_table: FakeTable, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """emit()'s pre-existing behavior (a spy every earlier test in this
+    file relies on) is unchanged; storing is additive."""
+    event = _pending_event("cs_emit_1")
+    conversion_tracking.emit(event)
+    printed = json.loads(capsys.readouterr().out.strip().splitlines()[0])
+    assert printed == {"conversion_event": event}
+    assert ad_table.items["cs_emit_1"]["status"] == "pending"
+
+
+# ---------------------------------------------------------------------------
+# ads_conversion_upload_handler: a fake Google Ads client and its tests
+# ---------------------------------------------------------------------------
+
+
+class _FakeProto:
+    """Stands in for a proto-plus message instance: plain attribute
+    assignment, and the two repeated fields this module appends to."""
+
+    def __init__(self, name: str) -> None:
+        self._name = name
+        self.user_identifiers: list[Any] = []
+        self.conversions: list[Any] = []
+
+
+class _FakeFailure:
+    """Stands in for a deserialized GoogleAdsFailure. `deserialize` is an
+    identity function: the fake response below hands `_partial_failures`
+    the already-built failure object as `detail.value` directly, rather
+    than round-tripping it through real protobuf `Any` packing -- that
+    wire-format code belongs to `google-ads`/`proto-plus`, not to this
+    module, and is not what these tests are checking."""
+
+    def __init__(self, errors: list[Any]) -> None:
+        self.errors = errors
+
+    @classmethod
+    def deserialize(cls, value: Any) -> Any:
+        return value
+
+
+class _FakeFieldPathElement:
+    def __init__(self, field_name: str, index: int) -> None:
+        self.field_name = field_name
+        self.index = index
+
+
+class _FakeLocation:
+    def __init__(self, index: int | None) -> None:
+        elements = [] if index is None else [_FakeFieldPathElement("conversions", index)]
+        self.field_path_elements = elements
+
+
+class _FakeError:
+    def __init__(self, message: str, index: int | None) -> None:
+        self.message = message
+        self.location = _FakeLocation(index)
+
+
+class _FakeDetail:
+    def __init__(self, failure: _FakeFailure) -> None:
+        self.value = failure  # see _FakeFailure.deserialize
+
+
+class _FakeStatus:
+    def __init__(self, code: int = 0, details: list[_FakeDetail] | None = None) -> None:
+        self.code = code
+        self.details = details or []
+
+
+class _FakeUploadResponse:
+    def __init__(self, partial_failure_error: _FakeStatus | None = None) -> None:
+        self.partial_failure_error = partial_failure_error or _FakeStatus()
+
+
+class _FakeEnums:
+    class UserIdentifierSourceEnum:
+        FIRST_PARTY = "FIRST_PARTY"
+
+
+class _FakeGoogleAdsClient:
+    def __init__(self, response: _FakeUploadResponse | None = None) -> None:
+        self.enums = _FakeEnums()
+        self.requests: list[Any] = []
+        self._response = response or _FakeUploadResponse()
+
+    def get_type(self, name: str) -> Any:
+        if name == "GoogleAdsFailure":
+            return _FakeFailure(errors=[])
+        return _FakeProto(name)
+
+    def get_service(self, name: str) -> Any:
+        assert name == "ConversionUploadService"
+        return self
+
+    def upload_click_conversions(self, *, request: Any) -> _FakeUploadResponse:
+        self.requests.append(request)
+        return self._response
+
+
+def test_parse_event_reads_a_valid_row_including_the_type_the_table_returns() -> None:
+    """Decimal, the same "type the fake never introduces but the real table
+    does" check as test_a_breach_is_still_a_breach_in_the_type_the_table_returns
+    above -- store_pending_upload's own _for_dynamodb writes a Decimal, and a
+    reader that only accepted float would pass every test here and refuse
+    every real row."""
+    stored_event = _pending_event("cs_1")
+    stored_event["conversion_value"] = decimal.Decimal("349.00")
+    row = {"conversion_id": "cs_1", "status": "pending", "event": stored_event}
+    event = ads_conversion_upload_handler.parse_event(row)
+    assert event == {
+        "conversion_action": "customers/2688527650/conversionActions/7769927171",
+        "conversion_date_time": "2026-09-14 00:00:00+00:00",
+        "conversion_value": 349.0,
+        "currency_code": "USD",
+        "hashed_email": conversion_tracking.hash_identifier("buyer@example.org"),
+    }
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"conversion_action": ""},
+        {"conversion_date_time": ""},
+        {"conversion_value": 0},
+        {"currency_code": ""},
+        {"user_identifiers": []},
+        {"user_identifiers": [{"hashed_email": "a"}, {"hashed_email": "b"}]},
+        {"user_identifiers": [{"hashed_email": ""}]},
+        {"user_identifiers": [{}]},
+        {"user_identifiers": "not-a-list"},
+    ],
+)
+def test_parse_event_is_none_for_a_malformed_stored_event(overrides: dict[str, Any]) -> None:
+    event = _pending_event("cs_bad", **overrides)
+    row = {"conversion_id": "cs_bad", "status": "pending", "event": event}
+    assert ads_conversion_upload_handler.parse_event(row) is None
+
+
+def test_parse_event_is_none_when_the_row_has_no_event_map() -> None:
+    parse_event = ads_conversion_upload_handler.parse_event
+    assert parse_event({"conversion_id": "cs_bad"}) is None
+    assert parse_event({"conversion_id": "cs_bad", "event": "oops"}) is None
+
+
+def test_google_ads_datetime_swaps_the_separator_only() -> None:
+    out = ads_conversion_upload_handler._google_ads_datetime("2026-09-14T00:00:00+00:00")
+    assert out == "2026-09-14 00:00:00+00:00"
+
+
+def test_build_click_conversion_sets_every_field_and_never_a_gclid() -> None:
+    client = _FakeGoogleAdsClient()
+    event = {
+        "conversion_action": "customers/2688527650/conversionActions/7769927171",
+        "conversion_date_time": "2026-09-14 00:00:00+00:00",
+        "conversion_value": 349.0,
+        "currency_code": "USD",
+        "hashed_email": "deadbeef",
+    }
+    click_conversion = ads_conversion_upload_handler.build_click_conversion(client, event)
+    assert click_conversion.conversion_action == event["conversion_action"]
+    assert click_conversion.conversion_date_time == event["conversion_date_time"]
+    assert click_conversion.conversion_value == 349.0
+    assert click_conversion.currency_code == "USD"
+    assert len(click_conversion.user_identifiers) == 1
+    identifier = click_conversion.user_identifiers[0]
+    assert identifier.hashed_email == "deadbeef"
+    assert identifier.user_identifier_source == "FIRST_PARTY"
+    # This site is cookieless and captures no gclid (docs/decisions/0055);
+    # a real proto-plus ClickConversion defaults gclid to "", so the only
+    # way to prove this code never sets it is that this fake -- which sets
+    # nothing it is not told to -- never got told to.
+    assert not hasattr(click_conversion, "gclid")
+
+
+def test_upload_batch_reports_one_failure_without_losing_the_other_row() -> None:
+    client = _FakeGoogleAdsClient(
+        response=_FakeUploadResponse(
+            _FakeStatus(
+                code=3,
+                details=[_FakeDetail(_FakeFailure([_FakeError("bad currency code", index=1)]))],
+            )
+        )
+    )
+    rows = [
+        ("cs_ok", ads_conversion_upload_handler.parse_event({"event": _pending_event("cs_ok")})),
+        ("cs_bad", ads_conversion_upload_handler.parse_event({"event": _pending_event("cs_bad")})),
+    ]
+    outcome = ads_conversion_upload_handler.upload_batch(
+        client, login_customer_id="2688527650", rows=rows
+    )
+    assert outcome["cs_ok"] == ("uploaded", "")
+    assert outcome["cs_bad"] == ("failed", "bad currency code")
+    assert len(client.requests) == 1
+    request = client.requests[0]
+    assert request.customer_id == "2688527650"
+    assert request.partial_failure is True
+    assert len(request.conversions) == 2
+
+
+def test_upload_batch_reports_every_row_uploaded_when_the_batch_fully_succeeds() -> None:
+    client = _FakeGoogleAdsClient()
+    rows = [("cs_1", ads_conversion_upload_handler.parse_event({"event": _pending_event("cs_1")}))]
+    outcome = ads_conversion_upload_handler.upload_batch(client, login_customer_id="1", rows=rows)
+    assert outcome == {"cs_1": ("uploaded", "")}
+
+
+def test_mark_row_second_claim_of_an_already_claimed_row_is_refused(ad_table: FakeTable) -> None:
+    mark_row = ads_conversion_upload_handler.mark_row
+    ad_table.items["cs_1"] = {"conversion_id": "cs_1", "status": "pending"}
+    assert mark_row(ad_table, "cs_1", status="uploaded", detail="") is True
+    assert ad_table.items["cs_1"]["status"] == "uploaded"
+    # A second claim -- another overlapping run, or a retry of this one --
+    # must not be allowed to move an already-resolved row again.
+    again = mark_row(ad_table, "cs_1", status="failed", detail="late")
+    assert again is False
+    row_status = ad_table.items["cs_1"]["status"]
+    assert row_status == "uploaded", "a refused claim must not overwrite the row"
+
+
+def test_pending_rows_reads_only_status_pending(ad_table: FakeTable) -> None:
+    ad_table.items["cs_pending"] = {"conversion_id": "cs_pending", "status": "pending"}
+    ad_table.items["cs_uploaded"] = {"conversion_id": "cs_uploaded", "status": "uploaded"}
+    ad_table.items["cs_failed"] = {"conversion_id": "cs_failed", "status": "failed"}
+    rows = ads_conversion_upload_handler.pending_rows(ad_table)
+    assert [r["conversion_id"] for r in rows] == ["cs_pending"]
+
+
+def test_run_skips_and_marks_a_malformed_row_failed_without_crashing_the_batch(
+    ad_table: FakeTable,
+) -> None:
+    """Negative control for the "one bad row cannot sink the batch" claim in
+    the module docstring: a hand-edited or pre-contract row sits next to a
+    good one. Both get resolved in one run, and the good one uploads."""
+    ad_table.items["cs_good"] = {
+        "conversion_id": "cs_good",
+        "status": "pending",
+        "event": _pending_event("cs_good"),
+    }
+    ad_table.items["cs_bad"] = {
+        "conversion_id": "cs_bad",
+        "status": "pending",
+        "event": _pending_event("cs_bad", currency_code=""),
+    }
+    client = _FakeGoogleAdsClient()
+    counts = ads_conversion_upload_handler.run(
+        conversions=ad_table,
+        credentials={"login_customer_id": "2688527650"},
+        client_factory=lambda _creds: client,
+    )
+    assert counts["scanned"] == 2
+    assert counts["malformed"] == 1
+    assert counts["uploaded"] == 1
+    assert ad_table.items["cs_bad"]["status"] == "failed"
+    assert ad_table.items["cs_bad"]["detail"] == "malformed stored event"
+    assert ad_table.items["cs_good"]["status"] == "uploaded"
+    # The one row Google Ads actually saw was the good one.
+    assert len(client.requests[0].conversions) == 1
+
+
+def test_run_is_idempotent_a_second_run_uploads_nothing_more(ad_table: FakeTable) -> None:
+    """The required idempotency proof: store one event the way the webhook
+    does, run the upload once, then run it again. The second run must find
+    nothing pending and must not call Google Ads a second time for the same
+    sale."""
+    conversion_tracking.store_pending_upload(_pending_event("cs_twice"))
+    client = _FakeGoogleAdsClient()
+
+    first = ads_conversion_upload_handler.run(
+        conversions=ad_table,
+        credentials={"login_customer_id": "2688527650"},
+        client_factory=lambda _creds: client,
+    )
+    assert first["uploaded"] == 1
+    assert ad_table.items["cs_twice"]["status"] == "uploaded"
+
+    second = ads_conversion_upload_handler.run(
+        conversions=ad_table,
+        credentials={"login_customer_id": "2688527650"},
+        client_factory=lambda _creds: client,
+    )
+    assert second == {
+        "scanned": 0,
+        "malformed": 0,
+        "uploaded": 0,
+        "failed": 0,
+        "claimed_elsewhere": 0,
+        "would_upload": 0,
+    }
+    assert len(client.requests) == 1, "the second run must never call Google Ads again"
+
+
+def test_run_dry_run_calls_no_client_and_writes_no_row(ad_table: FakeTable) -> None:
+    ad_table.items["cs_1"] = {
+        "conversion_id": "cs_1",
+        "status": "pending",
+        "event": _pending_event("cs_1"),
+    }
+
+    def boom(_creds: Any) -> Any:
+        raise AssertionError("dry run must never build a Google Ads client")
+
+    counts = ads_conversion_upload_handler.run(
+        conversions=ad_table,
+        credentials={"login_customer_id": "2688527650"},
+        client_factory=boom,
+        dry_run=True,
+    )
+    assert counts["would_upload"] == 1
+    assert ad_table.items["cs_1"]["status"] == "pending", "dry run must not touch the row"
+
+
+def test_run_refuses_with_configuration_error_when_credentials_are_missing(
+    ad_table: FakeTable,
+) -> None:
+    ad_table.items["cs_1"] = {
+        "conversion_id": "cs_1",
+        "status": "pending",
+        "event": _pending_event("cs_1"),
+    }
+    with pytest.raises(ads_conversion_upload_handler.ConfigurationError):
+        ads_conversion_upload_handler.run(conversions=ad_table, credentials=None)
+    # Refused, not silently skipped -- the row is untouched, ready for a
+    # real run once docs/google-ads-upload-setup.md is finished.
+    assert ad_table.items["cs_1"]["status"] == "pending"
+
+
+def test_run_with_no_pending_rows_never_raises_configuration_error_either(
+    ad_table: FakeTable,
+) -> None:
+    """No rows means nothing to configure a client for -- refusing here
+    would fail the daily schedule forever on an empty table, which is the
+    default state until the first sale."""
+    counts = ads_conversion_upload_handler.run(conversions=ad_table, credentials=None)
+    assert counts["scanned"] == 0
+
+
+def test_credentials_is_none_unless_the_four_required_ones_are_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    required = [
+        "GOOGLE_ADS_CLIENT_ID",
+        "GOOGLE_ADS_CLIENT_SECRET",
+        "GOOGLE_ADS_REFRESH_TOKEN",
+        "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+    ]
+    for name in [*required, "GOOGLE_ADS_DEVELOPER_TOKEN"]:
+        monkeypatch.delenv(name, raising=False)
+    assert ads_conversion_upload_handler._credentials() is None
+    for name in required:
+        monkeypatch.setenv(name, f"{name}-value")
+    # developer_token stays blank: it is not required (see the module's own
+    # comment on _CREDENTIAL_ENV_VARS -- Google sunset it 2026-09-09), and
+    # this is the proof a real deploy can flip google_ads_upload_ready
+    # without ever generating one.
+    creds = ads_conversion_upload_handler._credentials()
+    assert creds == {
+        "developer_token": "",
+        "client_id": "GOOGLE_ADS_CLIENT_ID-value",
+        "client_secret": "GOOGLE_ADS_CLIENT_SECRET-value",
+        "refresh_token": "GOOGLE_ADS_REFRESH_TOKEN-value",
+        "login_customer_id": "GOOGLE_ADS_LOGIN_CUSTOMER_ID-value",
+    }
+    monkeypatch.setenv("GOOGLE_ADS_CLIENT_ID", "")
+    assert ads_conversion_upload_handler._credentials() is None
+
+
+def test_handler_skips_cleanly_when_the_table_is_not_configured() -> None:
+    assert os.environ.get("AD_CONVERSIONS_TABLE", "") == ""
+    result = ads_conversion_upload_handler.handler({})
+    assert result == {"ok": True, "configured": False, "dry_run": False}
+
+
+def test_handler_raises_when_a_row_ends_up_failed_so_it_is_not_silently_dropped(
+    ad_table: FakeTable,
+) -> None:
+    ad_table.items["cs_bad"] = {
+        "conversion_id": "cs_bad",
+        "status": "pending",
+        "event": _pending_event("cs_bad", currency_code=""),
+    }
+    with pytest.raises(RuntimeError, match="need attention"):
+        ads_conversion_upload_handler.handler({})
+    assert ad_table.items["cs_bad"]["status"] == "failed"
+
+
+def test_handler_dry_run_reports_ok_and_touches_nothing(ad_table: FakeTable) -> None:
+    ad_table.items["cs_1"] = {
+        "conversion_id": "cs_1",
+        "status": "pending",
+        "event": _pending_event("cs_1"),
+    }
+    result = ads_conversion_upload_handler.handler({"dry_run": True})
+    assert result["ok"] is True
+    assert result["dry_run"] is True
+    assert result["would_upload"] == 1
+    assert ad_table.items["cs_1"]["status"] == "pending"

@@ -10,7 +10,8 @@ file is the start of that.
 
 On the deployed site, artifacts are served under `data/artifacts/`. When the
 CloudFront origin is configured (ADR 0002), the same paths sit under the CDN
-domain. Every path below is relative to that base.
+domain. A path below without a leading slash is relative to that base; a path
+with one is served from the site root.
 
 | Path | What it is |
 | --- | --- |
@@ -24,11 +25,11 @@ domain. Every path below is relative to that base.
 | `rollups/index.json` | Every published program rollup, summarized. |
 | `rollups/<id>.json` | One rollup across many agencies. |
 | `rollups/<id>.csv` | The same rollup's members as a spreadsheet (grade, score, expiry status, top fix) for a liaison's report. |
-| `catalog.json` | Flat list of every agency with grade, feed URL, freshness, identity, and provenance, in one request. |
-| `catalog.csv` | The same catalog as CSV. |
+| `/catalog.json` | Flat list of every agency with grade, feed URL, freshness, identity, and provenance, in one request. |
+| `/catalog.csv` | The same catalog as CSV. |
 | `scoring.json` | Machine-readable methodology: category weights, grade bands, and the correctness severity deductions. |
 | `/api/v1/coverage.json` | Separately named registry, organization-key, published-page, and scored-row counts. |
-| `/schemas/artifact.schema.json`, `/schemas/catalog.schema.json`, `/schemas/directory.schema.json`, `/schemas/coverage.schema.json` | JSON Schemas (Draft 2020-12) for validating the per-agency artifact, catalog, directory, and coverage counts in CI. |
+| `/schemas/artifact.schema.json`, `/schemas/catalog.schema.json`, `/schemas/directory.schema.json`, `/schemas/coverage.schema.json`, `/schemas/rollup.schema.json`, `/schemas/rollup-index.schema.json`, `/schemas/by-location.schema.json`, `/schemas/global-coverage.schema.json` | JSON Schemas (Draft 2020-12) for validating, in CI, the per-agency artifact, the catalog, the directory, the coverage counts, one rollup, the rollup index, the location rollups, and the global-coverage gate. |
 | `/schemas/sync-source-metadata-1.1.schema.json`, `/schemas/sync-source-metadata-1.2.schema.json` | Immutable contracts for catalog-sync provenance sidecars. The original unversioned path remains the frozen 1.1 compatibility schema; new sidecars carry their exact versioned URL and schema digest. |
 
 ## License and attribution
@@ -39,6 +40,11 @@ top of the MobilityData gtfs-validator." The `catalog.json` and `directory.json`
 documents carry `license` and `attribution` fields so the grant travels with the
 data. The grade is a derived data-quality signal, not a compliance
 determination.
+
+A packaged export of the corpus's check-level and finding-level history, built
+by `scorecard history-export` and licensed separately to the organization that
+buys it, is described in [history-tables.md](history-tables.md). It is not yet
+on sale, and nothing listed on this page changes because of it.
 
 ## Coverage and sampling frame
 
@@ -64,7 +70,7 @@ page counts.
 
 ## Versioning
 
-Every artifact carries a `schema_version` (currently `1.18`). The rule for
+Every artifact carries a `schema_version` (currently `1.19`). The rule for
 consumers: tolerate added fields, and treat a change in the major version as a
 breaking change worth pinning against. New fields are additive within a major
 version. When a field's meaning changes or a field is removed, the major
@@ -109,15 +115,43 @@ resolve to `raw-v1`. Rows scored through `flat-single-root-v1` remain public
 and filterable, but the default cross-feed aggregate cohort requires `raw-v1`
 so a reader-view change cannot manufacture a trend or clearance claim.
 
+Flat export schema `1.5` adds `expiry_status`, right after
+`service_horizon_status`: the same bucket `catalog.json` publishes, derived from
+the row's `days_until_expiry` (see Freshness fields below). It reaches
+`dataset.json`, `dataset.csv`, `api/v1/agencies.json`, and
+`api/v1/agencies.parquet`. Schema `1.6` is `1.5` plus `license_notice`, in the
+same way `1.4` was `1.3` plus `license_notice`, so the version alone names the
+column set.
+
+Flat export schema `1.4` adds `license_notice`, the last column. It appears only
+in a build where at least one record's recorded license requires share-alike;
+until then the exports have no such column. From flat export `1.5`, a build
+with the column is schema `1.6` and one without it is schema `1.5`. On an affected
+record it holds a short, plain-language reuse notice: it names the license and
+says what share-alike asks of anyone who copies, adapts, or builds on the data
+and shares the result (share it under the same license and credit the source).
+An empty value means only that no share-alike license is recorded for that
+record. It does not mean the license is known, and it does not mean the data is
+free of conditions: a record whose license is unknown or unrecorded has an empty
+`license_notice` too. Read the publisher's terms before reusing any feed's data.
+The same notice appears on that record's scorecard page.
+
 For citation, do not cite the live site: it changes daily. A monthly
 `dataset-YYYY-MM` release (the `Dataset release` workflow) pins the flat
 exports, the parquet file, the NTD rollup, this data dictionary, and
 `CITATION.cff` to an immutable tag, so a paper's reference resolves to exactly
-the bytes analysed. Releases:
+the bytes analyzed. Releases:
 <https://github.com/ChelseaKR/gtfs-scorecard/releases>.
 
 Changelog:
 
+- `1.19` adds an optional `consequence` block to every category finding and
+  `top_fixes` entry: the finding's network reach, plus annual rider-trips and
+  served-area need as values or as `null` with a reason. The per-agency
+  writer does not read the ridership snapshot or the need overlays, so
+  those two carry `not_joined_here` there. See "Consequence block" below.
+  The version bump rebuilds each unchanged feed's artifact once. Additive;
+  grades, fix order, and the scoring profile are unchanged.
 - `1.16` adds `reachable_kinds` to Realtime details and flattens exact
   TripUpdates, VehiclePositions, and ServiceAlerts latest-sample reachability
   into `api/v1/features.json`. It also exposes `realtime_fresh`, which is true
@@ -200,7 +234,7 @@ Changelog:
 
 ```jsonc
 {
-  "schema_version": "1.18",
+  "schema_version": "1.19",
   "rubric_version": "1.3",
   "scoring_profile": {
     "id": "gtfs-scorecard-1.3",
@@ -214,7 +248,8 @@ Changelog:
               "operating_note": "optional curator-verified status; absent if unset" },
   "generated_at": "2026-06-12T13:25:01+00:00",   // when this grade was produced (retrieved_at in the catalog)
   "snapshot_date": "2026-06-12",
-  "feed": { "static_url": "...", "sha256": "...", "size_bytes": 0, "license_note": "...",
+  "feed": { "static_url": "...", // the configured feed URL; credential-like query values read REDACTED
+            "sha256": "...", "size_bytes": 0, "license_note": "...",
             "source_provenance": "official" }, // or archive, third_party, unverified
   "mode_profile": {
     "measured": true, "graded": false,
@@ -262,10 +297,15 @@ Changelog:
   "fetch": { "source": "origin",      // or "mirror" (MobilityData hosted copy); "unknown" for
                                       // snapshots downloaded before provenance recording
                                       // (fetch policy itself: gtfsscorecard.org/fetcher/)
-             "final_url": "...",      // the URL that actually served the graded bytes
+             "final_url": "...",      // the URL that actually served the graded bytes; a
+                                      // credential-like query value (a key, token, or
+                                      // presigned signature) reads REDACTED (ADR 0066)
              "user_agent": "...",     // the User-Agent presented to that server
              "max_attempts": 4,       // configured attempt ceiling; omitted when unknown
              "origin_error": "...",  // exception that forced the mirror; only on mirror fetches
+             "auth": "env-ref",       // only when the feed URL needed a credential (registry
+             "auth_kind": "header",   // fetch_auth): header, query, or basic. Never the
+                                      // credential; final_url then carries no query string
              "reader_archive_profile": "flat-single-root-v1",
              "reader_archive_normalized": true }, // optional; Scorecard readers flattened one
                                                    // root folder/trimmed filename whitespace
@@ -320,7 +360,10 @@ This field is required on schema 1.18 artifacts and absent on older snapshots.
 The `fetch` block states how the graded bytes were obtained. When an origin
 403s or times out, the pipeline scores the MobilityData hosted mirror instead
 of dropping the agency; `"source": "mirror"` makes that visible, since a mirror
-copy can lag what the agency republished. The block is additive within schema
+copy can lag what the agency republished. The mirror of a catalog record that
+MobilityData has marked deprecated is never used: that copy is no longer kept
+in step with the URL, so the run records the origin as unreachable and
+publishes no new grade. The block is additive within schema
 1.4 (consumers tolerate added fields, per the versioning rule above).
 
 The `confidence` block states how much of this grade the pipeline could
@@ -341,6 +384,74 @@ shapes), with a plain-language `detail` and, when not ready, a concrete `fix`.
 Like `ntd_ready`, it is a data-quality heads-up, never an official
 determination.
 
+## Consequence block
+
+From schema 1.19, every category finding and every `top_fixes` entry carries a
+`consequence` block. It says what the finding costs, not only what is wrong,
+and it states each number it does not have instead of filling one in.
+
+```jsonc
+"consequence": {
+  "code": "scorecard_wheelchair_boarding_unknown",
+  "reach": {
+    "basis": "stops", "basis_label": "stops",
+    "affected": 296, "total": 296, "share": 1.0,
+    "total_source": "geo.stop_count", "reason": ""
+  },
+  "ridership": { "annual_rider_trips": null, "ntd_id": "90142", "reason": "not_joined_here" },
+  "served_area_need": { "tier": null, "scale": "us_acs", "reason": "not_joined_here" },
+  "line": "Fixing this covers all 296 stops in the feed.",
+  "absences": ["This record does not store annual rider-trips. ...", "..."]
+}
+```
+
+- `reach` divides the finding's `count` by the one published total that the
+  finding is actually counted against (`basis`). A finding with no countable
+  share has `basis: "none"` and a `reason` such as `feed_level`,
+  `sampled_window`, or `validator_notice`. A count larger than its total is
+  reported as `inconsistent_counts`, never as a share above 1.
+- `ridership` is the feed's National Transit Database reporter's annual
+  rider-trips. The NTD covers United States reporters only, so a feed
+  elsewhere carries `outside_ridership_scope`: unknown, not zero. When more
+  than one registry record claims the same reporter, each carries
+  `duplicate_ntd_reporter` instead of the reporter's whole count.
+- `served_area_need` is a need tier with the within-country `scale` that
+  produced it (`us_acs` or `ca_cimd`). Tiers from different scales are not
+  comparable, so no comparison is made across them.
+
+Each of the three is either a value with an empty `reason` or `null` with a
+non-empty one, and the schema rejects any other combination. An identifier or
+label that does not apply (`ntd_id`, `scale`, `basis_label`, `total_source`) is
+`null`, never an empty string, and a finding with `basis: "none"` never carries
+a share. A consumer should read `null` as "not known here", never as zero.
+
+`not_joined_here` means the step that wrote the record does not read that
+input. It does not mean the data does not exist. Per-agency records are written
+in the daily score shards and the intraday refresh. The ridership snapshot is
+fetched later in the daily run, and the need overlays are built by their own
+workflows, so every United States and Canadian record states those two as
+`not_joined_here`. Absent on artifacts published before schema 1.19.
+
+Ridership and need are joined when the agency page, call brief, board
+one-pager, and evidence packet are built (issue #367). Each joined number names
+its source and the date of its snapshot. The ridership snapshot records its NTD
+report year and fetch date in `data/ntd-ridership.meta.json`, and the two need
+overlays record `generated_on` (with `acs_year` for `equity.json` and `source`
+for `canada-equity.json`). A snapshot that does not record its date is not
+joined, and the page says so. The US tier comes from the state-level ACS
+overlay (ADR 0015), so the page labels it as a statewide reading, not one for
+the feed's service area. The joined values are a description of one feed. They
+never rank agencies and never change a grade or the order of the fixes.
+
+The app's scorecard page (`#/agency/<id>`) shows each finding's reach and the
+reason for each of the other two, and it does not join the snapshots itself. It
+words a share only when the block says it is known: an empty `reason`, a
+`share` between 0 and 1, and counts that agree with it. Anything else, and any
+`ridership` or `served_area_need` value that arrives without a source and date
+beside it, reads as its reason in words. It links the agency page for the
+joined figures. Its wording comes from `CONSEQUENCE_COPY` in
+`web/src/generated/constants.js`, generated from `consequence.py`.
+
 ## Freshness fields
 
 The `freshness` category's `details` carry the feed's validity window, and two
@@ -359,11 +470,18 @@ fields are surfaced for consumers:
   date is strictly more than ten calendar years after the check. The exact
   boundary stays within the threshold. This advisory is outside category
   findings, Top 3 fixes, finding prevalence, and finding diffs; it changes no
-  score. For legacy artifacts and rows without this field, consumers can derive
+  score. It only detects an implausibly distant end date and says nothing
+  about expiry: an expired feed reads `within_review_threshold` too, so do not
+  read that value as "current". Read `expiry_status` for that. For legacy artifacts and rows without this field, consumers can derive
   it from the snapshot/date plus `effective_expiry_date` or
   `days_until_expiry`. Missing date evidence remains `unknown`.
 - `expiry_status` (string): a stable bucket derived from `days_until_expiry`,
-  published on `catalog.json` agencies and rollup members. One of:
+  published on `catalog.json` agencies and rollup members, on open-dataset rows
+  (`dataset.json`, `dataset.csv`, `api/v1/agencies.json`, and
+  `api/v1/agencies.parquet`, from flat export schema `1.5`), and in the MCP
+  `get_scorecard` freshness block. Every surface computes it with the same
+  function from the same day count. This is the field that says whether a feed
+  has expired. One of:
 
   | Value | Meaning |
   | --- | --- |
@@ -381,7 +499,7 @@ whole picture in a single request rather than fetching each `latest.json`.
 ```jsonc
 {
   "source": "https://gtfsscorecard.org",
-  "schema_version": "1.18",
+  "schema_version": "1.19",
   "rubric_version": "1.3",
   "license": "CC-BY-4.0",
   "attribution": "GTFS Scorecard (gtfsscorecard.org), scored on top of the MobilityData gtfs-validator",
@@ -466,12 +584,13 @@ but existing fields keep their meaning and type, and a breaking change lands at
 | Path | What it is |
 | --- | --- |
 | `api/v1/index.json` | The API's self-description: version, endpoint list, license, attribution. |
-| `api/v1/agencies.json` | Every published feed record's latest check in one list (id, name, date, grade, score, rubric and scoring-profile fields, validator version, reader archive profile, feed hash, category scores, days to expiry, and service-horizon review status). `realtime` is null when not measured. |
+| `api/v1/openapi.yaml` | An OpenAPI 3.1 description of the paths in this document, referencing the JSON Schemas above where one exists. See the OpenAPI section below. |
+| `api/v1/agencies.json` | Every published feed record's latest check in one list (id, name, date, grade, score, rubric and scoring-profile fields, validator version, reader archive profile, feed hash, category scores, days to expiry, service-horizon review status, and `expiry_status`). `realtime` is null when not measured. Read `expiry_status`, not the horizon status, to tell whether a feed has expired. |
 | `api/v1/leaderboard.json` | Compatibility path for named changes. `top` and `bottom` are always empty; `most_improved` and `most_declined` compare a canonical feed only with its own prior check under the same rubric, scoring profile, validator, reader archive profile, and measured category set. |
 | `api/v1/by-state.json` | Legacy U.S.-state rollups. `count` covers every U.S. published row in the state; `comparison_eligible_count`, median score, and grade distribution use the guarded comparison cohort. U.S. feeds without a known state group under `Unlocated`. |
 | `api/v1/by-location.json` | Portable country rollups with nested ISO 3166-2 subdivisions. Each `count` covers every published row in that location; `comparison_eligible_count`, median score, and grade distribution use the guarded comparison cohort. Null codes collect rows whose curated location is unknown. |
 | `api/v1/stats.json` | Covered-row count and current-feed share over every published row, plus average score, median score, and grade distribution over the guarded cohort. `comparison_eligible_count` and the `comparison` block state that narrower denominator and its exclusions. |
-| `api/v1/equity.json` | United States-only state ACS need tiers (poverty, zero-vehicle, disability) joined to agency grades. Refreshed weekly from U.S. Census ACS. |
+| `api/v1/equity.json` | United States-only state ACS need tiers (poverty, zero-vehicle, disability) joined to agency grades. Refreshed weekly from U.S. Census ACS; `acs_year` and `generated_on` date the overlay. |
 | `api/v1/ids.json` | Identity crosswalk: every agency's scorecard slug joined to its Mobility Database id, NTD id, and feed URL, so grades join to either registry (or FTA data) without fuzzy matching. |
 | `api/v1/ridership-impact.json` | United States-only quality context weighted by NTD annual rider-trips (ADR 0021). Weighting uses the guarded comparison cohort and only unique, unambiguous NTD reporter matches. `matched_ntd_reporters`, `total_feed_records`, and the duplicate-reporter exclusion fields disclose coverage; legacy `matched_agencies` and `total_agencies` keys remain as aliases. Present when the daily NTD fetch succeeded. |
 | `api/v1/scoring.json` | The same machine-readable methodology as `scoring.json` at the artifact base (weights, grade bands, deductions), served under the versioned path. |
@@ -479,13 +598,13 @@ but existing fields keep their meaning and type, and a breaking change lands at
 | `api/v1/adoption.json` | Which optional GTFS capabilities (Flex, Fares v2, pathways, cEMV, and rider-facing translations) feeds publish, overall and by portable country/subdivision. Backs `/adoption/`. |
 | `api/v1/features.json` | Every current feed record with filterable service modes, capability flags, translation languages, stop- and trip-level wheelchair-field completeness, ferry-subset capability measurements, latest-sample realtime endpoint-kind reachability and header freshness, portable location, identity, scorecard URL, and comparison eligibility. Unknown measurements are `null`, never `false`. Backs the consumer filters and CSV export in `/app/`. |
 | `api/v1/global-coverage.json` | Auditable readiness gate for a bounded European GTFS Schedule beta. It lists the reviewed feed-record cohort, source and terms evidence, current-versus-threshold criteria, country balance, freshness and measurement exceptions, and explicit limits. `not_ready` is a valid result, not an API failure. |
-| `api/v1/realtime.json` | Realtime reliability over sampled windows, overall and by portable country/subdivision. Backs `/realtime/`. |
+| `api/v1/realtime.json` | Realtime reliability over sampled windows, overall and by portable country/subdivision. Backs `/realtime/`. Its `observed` block states when the observations behind it were taken — `newest_last_observation`, `median_last_observation` and `oldest_last_observation` across the monitored feed records, plus `feed_records_dated` and `feed_records_undated`. Read that, not `generated_at`, to judge how current the numbers are: `generated_at` is the build time and is rewritten at every render whether or not the monitor recorded anything. The three dates are null when no member records one, never the build date and never a zero. |
 | `api/v1/problems.json` | The most common validator findings across the covered corpus, with prevalence counts. Its input contains findings without agency identity, so this endpoint has no geographic rows. Backs `/problems/`. |
-| `api/v1/trend.json` | The covered-set quality time series. Backs the trend section at `/pulse/#trend`. |
-| `ntd.json` (linked from `api/v1/index.json` as `ntd_readiness`) | FTA NTD GTFS-readiness rolled up over tracked feed records, plus an additive `reporter_coverage` block counting **NTD reporters**, a different unit that must never be added to a feed-record count. `reporter_coverage` states its own denominator (`obligated_reporters`), how many reporters match a tracked feed, how many have a feed only in another open catalogue, and the low and high ends of the range with no discoverable feed anywhere. Absent entirely when the committed snapshot does not declare `unit: ntd_reporters` or its tiers do not sum to its own denominator (ADR 0052). |
+| `api/v1/trend.json` | The covered-set quality time series. Backs the trend section at `/pulse/#trend`. `points` uses records the current rubric produced. An additive `rescored` block, present when `rescored-history.json` is published, carries a second series in which earlier-rubric records are rescored under the current rubric from stored data, with its method, coverage by reason, and reproduction control (ADR 0068). |
+| `ntd.json` (linked from `api/v1/index.json` as `ntd_readiness`) | FTA NTD GTFS-readiness rolled up over tracked feed records, plus an additive `reporter_coverage` block counting **NTD reporters**, a different unit that must never be added to a feed-record count. `reporter_coverage` states its own denominator (`obligated_reporters`), how many reporters match a tracked feed, how many have a feed only in another open catalog, how many report a GTFS link to FTA that no catalog matched (`fta_link_reported`, self-reported and never fetched; `fta_links_read` says whether FTA's link table was read for the snapshot), and the low and high ends of the range with no GTFS link reported to FTA and no catalog match (with no catalog match alone when `fta_links_read` is false). Absent entirely when the committed snapshot does not declare `unit: ntd_reporters` or its tiers do not sum to its own denominator (ADR 0052). |
 | `api/v1/status.json` | Intended cadence plus liveness outcomes restricted to the current published artifact index. Its `scope` block discloses included and excluded liveness records. |
 | `api/v1/run-status.json` | Latest completed-run evidence. Aggregate counts retain that run's historical attempted set; named unreachable records are restricted to the current published catalog, with older records counted but not named. |
-| `api/v1/canada-equity.json` | Canada served-area equity overlay (StatCan CIMD, ADR 0027), refreshed monthly. Appears once the monthly job has run. |
+| `api/v1/canada-equity.json` | Canada served-area equity overlay (StatCan CIMD, ADR 0027), refreshed monthly. Appears once the monthly job has run; `source` and `generated_on` date the overlay. |
 
 `features.json` keeps the feature-measurement denominator separate from the
 score-comparison denominator. `capability_measured_count` and
@@ -535,7 +654,10 @@ record; the endpoint's CC BY notice applies to the derived gate output.
 In `api/v1/status.json`, `currently_clean_pct` is the current share of feed
 records with no consecutive failed direct check. The legacy
 `success_rate_pct` field remains as an equal-valued compatibility alias; it is
-not a historical request-success rate. Direct liveness never uses a mirror,
+not a historical request-success rate. Its denominator is the records that
+carry a direct-check result: a record with no failure count is reported under
+`not_measured` and left out of the share, rather than counted as clean. When no
+record carries one, the share is `null`. Direct liveness never uses a mirror,
 while the daily scoring run may use the Mobility Database mirror.
 
 Per-agency detail stays the published artifact (`<agency>/latest.json`); the API
@@ -585,7 +707,7 @@ GROUP BY grade ORDER BY grade;
 The pipeline ships the same engine: `scorecard query "<sql>"` runs DuckDB over
 the dataset locally (the table is named `agencies`), and `scorecard query
 --export agencies.parquet` writes the file. Install the query extra first:
-`pip install 'scorecard-pipeline[query]'`.
+`pip install 'gtfs-scorecard[query]'`.
 
 ### Scaling
 
@@ -594,6 +716,34 @@ arbitrary SQL over the covered dataset, both from object storage with no query
 server (ADR 0013). A managed database follows only if interactive multi-tenant
 queries genuinely appear. The decision and trigger are in
 `docs/decisions/0013-static-public-api.md`.
+
+### OpenAPI description (`api/v1/openapi.yaml`)
+
+`api/v1/openapi.yaml` describes the paths in this document in OpenAPI 3.1, so a
+client generator or an API catalog can read them without parsing prose. It
+describes files, not a server: every operation is a `GET` of a static file,
+and its one server entry is relative, so a fork's copy describes the fork.
+Where a path has a JSON Schema under `/schemas/`, the operation references it
+rather than repeating it. Where none exists, the operation says only that the
+response is a JSON object, and this page stays the contract for its fields.
+
+CI holds the description to this page in both directions: a path documented
+here and not described there fails, and so does a path described there and
+not documented here. CI also checks the description against the official
+OpenAPI 3.1 schema, and checks the golden site's copy of each schema-backed
+path against the schema the description names for it.
+
+Deprecation follows the `v1` rule above, applied to paths. A path the
+description lists is not removed within `v1`. A path being retired is first
+marked `deprecated: true` in the description, with a note naming what
+replaces it, and its removal is a breaking change that lands at `api/v2`. A
+single file under a templated path can still disappear for the reasons the
+HTTP contract below gives, such as a retired agency alias; that is not a
+deprecation.
+
+Typed Python and TypeScript clients generated from this description live under
+`clients/`; see [typed-clients.md](typed-clients.md). They are not yet published
+to PyPI or npm.
 
 ## Change feed (`changes/latest.json`)
 
@@ -608,7 +758,7 @@ moves could not be audited against rubric, scoring-profile, validator, reader-
 archive-profile, measured-category, and canonical-identity boundaries.
 
 This JSON contract covers grade and score moves only. The Atom feed at
-`changes/feed.xml` is deliberately wider: it also carries `export_change`
+`/changes/feed.xml` (the site root, not the artifact base) is deliberately wider: it also carries `export_change`
 entries, meaning the feed file's own structure moved (a route left the export,
 stops moved past 100 m, the service span shifted) whether or not that changed
 the grade. Those entries are not in this JSON, so a consumer ingesting
@@ -618,7 +768,7 @@ rather than left for a consumer to discover.
 
 ```jsonc
 {
-  "schema_version": "1.18",
+  "schema_version": "1.19",
   "license": "CC-BY-4.0",
   "generated_at": "2026-06-20T13:25:01+00:00",
   "feed_record_count": 1128,
@@ -644,7 +794,7 @@ rather than left for a consumer to discover.
 
 ```jsonc
 {
-  "schema_version": "1.18",
+  "schema_version": "1.19",
   "rollup": { "id": "california", "name": "California agencies" },
   "agency_count": 2,
   "average_score": 78.2,
@@ -701,6 +851,26 @@ When the feed has expired or is expiring, the badge appends a status segment
 ("feed expired" or "expires soon") and its accessible name gains the status in
 parentheses, so a stale feed reads at a glance, not only by its letter.
 
+### Named badge for an agency's own site
+
+`https://gtfsscorecard.org/agency/<agency>/badge.svg` is a larger badge
+(320 by 58 pixels) served beside each scorecard page. It names the agency and
+shows the grade letter, the score out of 100, and the date of the check, the
+same values the scorecard shows. Each agency page offers it as a copy-paste
+HTML or Markdown snippet that links back to that page:
+
+```html
+<a href="https://gtfsscorecard.org/agency/yolobus/"><img src="https://gtfsscorecard.org/agency/yolobus/badge.svg" width="320" height="58" alt="Yolobus: current GTFS data quality score from GTFS Scorecard"></a>
+```
+
+When the record has no usable grade and score, or its last check is more than
+14 days old, the badge says "No current score" and, when known, the date of
+the last check. It never shows a letter or a number in that case. The snippet's
+alt text names the agency but no grade, because pasted markup is never updated.
+The file is static: no script, cookie, external resource, or tracking
+parameter. It regenerates with each site render and is served with the site's
+normal caching.
+
 `<agency>/badge.json` carries the same grade in the
 [Shields.io endpoint format](https://shields.io/badges/endpoint-badge)
 (`{ "schemaVersion": 1, "label": "GTFS quality", "message": "B 84.1", "color": "green" }`),
@@ -721,12 +891,62 @@ uvx --from gtfs-scorecard scorecard try "$FEED_URL" --country CA \
   --min-grade B --min-days-to-expiry 30
 ```
 
+That is the whole install: `uvx` fetches
+[`gtfs-scorecard`](https://pypi.org/project/gtfs-scorecard/) from PyPI. To run
+code on `main` that is not released yet, point `--from` at the repository
+instead:
+`uvx --from "git+https://github.com/ChelseaKR/gtfs-scorecard#subdirectory=pipeline" scorecard try ...`.
+
+Add `--sarif out.sarif` to also write the validator's notices as SARIF 2.1.0,
+one result per notice code, with the file and row for as many instances as the
+validator sampled and the true instance total in the message. A feed that could
+not be read writes a SARIF with an unsuccessful invocation and the reason, never
+an empty successful one — an empty SARIF is indistinguishable from a clean feed.
+`--sarif-base` prefixes the member path when the feed lives in a subdirectory of
+the repository being annotated.
+
 `--country` accepts an assigned ISO 3166-1 alpha-2 code and defaults to `US` so
 existing commands retain their behavior. It is passed to the MobilityData
 validator and written into the ad-hoc artifact. The command prints the grade,
 category bars, and top fixes, and exits non-zero
 when a threshold is not met. `--min-grade` and `--min-days-to-expiry` are
 optional; with neither, it just reports.
+
+## Compare two artifacts (`scorecard diff`)
+
+Two dated artifacts can be compared directly, and the comparison decides
+whether the pair is the same measurement before it reports anything:
+
+```bash
+uvx --from gtfs-scorecard scorecard diff \
+  https://gtfsscorecard.org/data/artifacts/yolobus/2026-06-01.json \
+  https://gtfsscorecard.org/data/artifacts/yolobus/latest.json \
+  --format json
+```
+
+Each operand is a file path, an `https` URL, or `agency@YYYY-MM-DD` /
+`agency@latest` resolved against a local artifacts directory.
+
+A pair is comparable only when both artifacts agree on **all** of
+`rubric_version`, `scoring_profile.id`, the scoring profile's own
+`rubric_version`, `validator_version`, the reader archive profile, and the set
+of categories whose `status` is `measured`. This is the same producer contract
+`changes/latest.json` and the site's "What changed" section use, and it is
+stated in prose in `docs/comparison-policy.md`. A field an artifact does not
+state is **not** treated as agreement: absent is not equal, and reading it as
+equal is how a methodology change gets published as a change in a feed.
+
+Exit codes: `0` no regression, `1` regressed, `2` not comparable, `3` an operand
+could not be read. `3` is deliberately separate from `2`, because "these are
+different measurements" is a verdict about two artifacts and "I never got one of
+them" is not a verdict at all.
+
+The JSON payload always carries `comparable`, `reasons`, `explanations`, `prev`,
+and `curr`. When `comparable` is `false` it carries **no** `overall` and **no**
+`findings` object — an empty findings object would read as "nothing changed",
+which is the one thing that must not be said across a contract boundary. It
+carries `no_longer_measured` instead, listing findings whose category the newer
+run did not measure. Those did not clear; nobody looked at them.
 
 ## HTTP contract
 

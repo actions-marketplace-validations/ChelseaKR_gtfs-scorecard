@@ -1,11 +1,15 @@
 ---
 date_published: "2026-07-03"
-date_modified: "2026-07-24"
+date_modified: "2026-10-22"
 ---
 
-# Fix: trips don't say where they're headed
+# scorecard_missing_headsigns: trips with no headsign
 
 Code: `scorecard_missing_headsigns`
+
+## The short answer
+
+Trips leave trip_headsign blank where a route has several directions or patterns. Fix: set the rider-facing destination once per pattern.
 
 ## What this means
 
@@ -13,6 +17,11 @@ A trip can use `trip_headsign` in `trips.txt` for its destination, direction,
 or "via" label. `stop_headsign` in `stop_times.txt` can change that label during
 the trip. Some trips leave both blank even though the route has more than one
 direction or pattern.
+
+The scorecard counts a trip as having a headsign when it has `trip_headsign`,
+or when every one of its stop times has `stop_headsign`. A `stop_headsign`
+covers only its own stop, so a trip with some blank rows still counts as
+missing.
 
 `trip_headsign` is optional. The scorecard does not ask a single-pattern,
 single-direction loop to invent one, and GTFS Best Practices says not to copy

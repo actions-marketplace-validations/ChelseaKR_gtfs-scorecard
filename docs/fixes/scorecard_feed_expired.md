@@ -1,17 +1,26 @@
 ---
 date_published: "2026-07-04"
-date_modified: "2026-07-29"
+date_modified: "2026-10-22"
 ---
 
-# Fix: the feed has already expired
+# scorecard_feed_expired: the feed has already expired
 
 Code: `scorecard_feed_expired`
+
+## The short answer
+
+The earlier of feed_end_date and your last calendar date has passed. Fix: re-export today with a calendar and feed_end_date further out.
 
 ## What this means
 
 The scorecard compares `feed_info.txt`'s `feed_end_date` with the last day any
 `calendar.txt` or `calendar_dates.txt` entry runs service, then uses whichever
 date comes first. That earlier date has already passed.
+
+When `feed_end_date` is the earlier date and your calendar runs past it, the
+scorecard shows
+[feed_info ends earlier than your service calendar](scorecard_feed_end_date_before_calendar.md)
+instead, because the fix there is one field rather than a new export.
 
 ## Why it matters
 

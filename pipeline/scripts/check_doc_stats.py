@@ -240,6 +240,13 @@ OPTIONAL_RULES: list[tuple[str, str, str, str]] = [
 # from becoming a place where real drift can hide.
 POINT_IN_TIME: list[tuple[str, str, str]] = [
     (
+        "docs/global-coverage-roadmap.md",
+        r"registry holding ([\d,]+) records across",
+        "the registry size on the stated day the twenty-lane pass was "
+        "reconciled with the two National Access Point exhaustion passes, "
+        "not the live registry",
+    ),
+    (
         "docs/RESEARCH-ROADMAP.md",
         r"21% of ([\d,]+) feeds",
         "sample size of a cited external study (Findings, 2024), not this registry",
@@ -247,7 +254,7 @@ POINT_IN_TIME: list[tuple[str, str, str]] = [
     (
         "docs/expansion-research.md",
         r"\(([\d,]+)\+ feeds, terabytes\)",
-        "another operator's self-reported catalogue size",
+        "another operator's self-reported catalog size",
     ),
     (
         "docs/expansion-ideation-2026-07.md",
@@ -285,6 +292,11 @@ POINT_IN_TIME: list[tuple[str, str, str]] = [
         "per-wave curation log: the second France exhaustion pass's result",
     ),
     (
+        "docs/feeds.md",
+        r"registry moves from [\d,]+ to ([\d,]+) records",
+        "per-wave curation log: the NTD-matched US sync pass's result",
+    ),
+    (
         "docs/global-expansion.md",
         r"waves contains ([\d,]+) feed records",
         "frozen 2026-07-18 baseline; the section says so and says why",
@@ -313,6 +325,24 @@ POINT_IN_TIME: list[tuple[str, str, str]] = [
         "docs/global-coverage-roadmap.md",
         r"would require more than ([\d,]+)\s*\n?records",
         "the 100x scale argument's own arithmetic, floored alongside its input",
+    ),
+    # The 2026-09-15 launch draft quotes one read of /api/v1/coverage.json,
+    # reproduced verbatim in its grounding note, and its post copy repeats
+    # that read. These two name the figure itself rather than a digit class:
+    # a dated value never moves, so an edit that "refreshes" it stops matching
+    # here and has to be argued again instead of inheriting the exemption.
+    (
+        "docs/launch-content-2026-09-15.md",
+        r"(2,671)(?: curated feed)? records",
+        "the registry count the dated launch draft read from coverage.json on "
+        "2026-09-15, after the 2026-09-14 NTD-matched sync pass",
+    ),
+    (
+        "docs/launch-content-2026-09-15.md",
+        r"(2,400)\+ published scorecards",
+        "rounded down from the 2,451 live pages that same 2026-09-15 read "
+        "returned; the pages denominator here is the snapshot frozen at "
+        "2026-08-07, so no rule can gate a live page count",
     ),
 ]
 

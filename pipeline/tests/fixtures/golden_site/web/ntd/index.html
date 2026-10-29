@@ -18,7 +18,11 @@
   <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
   <meta name="twitter:image:alt" content="GTFS Scorecard: transit data quality for small agencies.">
   <link rel="stylesheet" href="/src/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2f3ee'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <script>
     /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
     try {
@@ -28,6 +32,7 @@
     } catch (e) {}
   </script>
   <script src="/src/theme.js" defer></script>
+  <script src="/src/measure.js" defer></script>
   <script src="/src/nav.js" defer></script>
   <noscript><style>
     /* Without JS the menu button cannot expand the collapsed nav, so show the
@@ -58,25 +63,28 @@
       <h2 class="section-title">Reporters, not feeds</h2>
       <p class="page-lede">Of the <strong>1,253 NTD reporters</strong>
       that operated at least one fixed-route mode in Report Year
-      2024, between <strong>473 and
-      641</strong> have no feed discoverable in any open catalogue this
-      site reads. The low end counts a shared rare word in an agency name as a match;
-      the high end does not. The gap between them is how wide a name-based join is,
-      and it is stated rather than averaged away.</p>
+      2024, between <strong>35 and
+      48</strong> have no GTFS link reported to FTA and no feed found in
+      the three open catalogs this site reads (this project's registry, the Transitland
+      Atlas, and the Mobility Database). The others either report a GTFS link to FTA or
+      are matched to a feed in those catalogs. The low end counts a shared rare word in an agency name as a catalog match; the high end does not. The gap between them is how wide a name-based join is, and it is stated rather than averaged away.</p>
       <table class="leaderboard"><thead><tr><th>Reporters</th><th>Count</th></tr></thead>
-      <tbody><tr><td>Matched to a feed this site tracks</td><td>573</td></tr><tr><td>Feed found in another open catalogue</td><td>39</td></tr><tr><td>Name overlap only, needs a human</td><td>168</td></tr>
-      <tr><td>No candidate found anywhere</td><td>473</td></tr></tbody></table>
+      <tbody><tr><td>Matched to a feed this site tracks</td><td>573</td></tr><tr><td>Feed found in another open catalog</td><td>39</td></tr><tr><td>GTFS link reported to FTA, not matched to a catalog</td><td>593</td></tr><tr><td>Name overlap only, needs a human</td><td>13</td></tr>
+      <tr><td>No GTFS link reported and no candidate in the catalogs read</td><td>35</td></tr></tbody></table>
       <p class="fineprint">These are counts of NTD reporters. The
       1,253 above is a different denominator from the tracked-feed
       count at the top of this page, which counts feed records: one operator can
       publish several, and a regional feed can carry many operators. The two are never
-      added. A reporter with no discoverable feed is a limit of what open catalogues
-      can see, not a finding about that agency, and the fix may belong to FTA's own
-      crosswalk or to a catalogue rather than to the agency. Report year
+      added. A reporter with no link and no catalog match is a limit of what these sources can see, not a finding about that agency, and the fix may belong to FTA's own
+      crosswalk or to a catalog rather than to the agency. A GTFS link in FTA's NTD data is self-reported by the agency and is not fetched or validated by this project. It shows that the agency has told FTA
+      where its feed is, not that the feed is current or valid. The link table has no
+      report-year column, so it is matched by NTD ID against the Report Year
+      2024 reporters; it was retrieved
+      2026-10-23. Report year
       2024, retrieved 2026-08-15;
       sources and terms are in <code>data/ntd/PROVENANCE.md</code>.</p>
     </section>
-    <section class="feed-details"><h2 class="section-title">Report year 2026: small and rural reporters join</h2><p class="page-lede">Since Report Year 2023, NTD reporters with fixed-route service have had to publish and maintain GTFS. For RY2026, every submission must provide a stable agency_id for each represented reporter and crosswalk it to the reporter's NTD ID on P-50; agency_id does not need to equal that five-digit ID. An agency that cannot comply yet can request a one-year waiver by showing it is pursuing technical assistance to establish its GTFS data. The same rule adds shapes.txt to the published feed: <a href="/ntd/shapes/">does your feed need shapes.txt, explained</a>.</p><p class="fineprint">Source: FTA's <a href="https://www.federalregister.gov/documents/2025/07/10/2025-12813/national-transit-database-reporting-changes-and-clarifications-for-report-years-2025-and-2026">NTD reporting changes for report years 2025 and 2026</a>. State programs can reach small agencies through the <a href="/program/all/">program rollups</a>, and any expired feed's page carries a ready-to-send outreach note.</p></section>
+    <section class="feed-details"><h2 class="section-title">Report year 2026: small and rural reporters join</h2><p class="page-lede">Since Report Year 2023, NTD reporters with fixed-route service have had to publish and maintain GTFS. For RY2026, every submission must provide a stable agency_id for each represented reporter and crosswalk it to the reporter's NTD ID on P-50; agency_id does not need to equal that five-digit ID. In 2022 FTA proposed that a reporter without a GTFS feed could request a one-year waiver by documenting that it is seeking technical assistance; we have not confirmed how that waiver works under the current rule, so ask your NTD validation analyst. The same rule adds shapes.txt to the published feed: <a href="/ntd/shapes/">does your feed need shapes.txt, explained</a>.</p><p class="fineprint">Source: FTA's <a href="https://www.federalregister.gov/documents/2025/07/10/2025-12813/national-transit-database-reporting-changes-and-clarifications-for-report-years-2025-and-2026">NTD reporting changes for report years 2025 and 2026</a>. State programs can reach small agencies through the <a href="/program/all/">program rollups</a>, and any expired feed's page carries a ready-to-send outreach note.</p></section>
     <section class="feed-details"><h2 class="section-title">By state</h2><table class="leaderboard"><thead><tr><th>State</th><th>Ready</th><th>At risk</th><th>Not ready</th><th>Total</th></tr></thead><tbody><tr><td>Unlocated</td><td>2</td><td>0</td><td>0</td><td>2</td></tr></tbody></table></section>
     <p class="plain-summary"><strong>In plain words:</strong> since Report Year 2023, every
     NTD reporter with fixed-route or deviated-fixed-route service has to publish a valid,
@@ -134,6 +142,14 @@
             <li><a href="/data/">Open data</a></li>
           </ul>
         </section>
+        <section aria-labelledby="footer-programs-h">
+          <h2 id="footer-programs-h">For programs</h2>
+          <ul>
+            <li><a href="/program/all/">Program rollups</a></li>
+            <li><a href="/bundle/">Board report bundle (paid)</a></li>
+          </ul>
+          <p class="footer-aside">Scoring an agency is free. A purchase buys no influence over grades, methodology, or which agencies are listed.</p>
+        </section>
         <section aria-labelledby="footer-project-h">
           <h2 id="footer-project-h">Project</h2>
           <ul>
@@ -145,6 +161,8 @@
             <li><a href="/crosswalk/">Standards crosswalk</a></li>
             <li><a href="/press/">For reporters</a></li>
             <li><a href="/accessibility/">Accessibility</a></li>
+            <li><a href="/about/#privacy">Privacy</a></li>
+            <li><a href="/about/#privacy-opt-out" data-analytics-toggle data-label-on="Opt out of analytics" data-label-off="Opt back in to analytics" data-status-off="Analytics is off on this device." data-status-on="Analytics comes back on from the next page you open.">Opt out of analytics</a><span class="visually-hidden" role="status" data-analytics-status></span></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/CONTRIBUTING.md">Contribute</a></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a></li>
           </ul>

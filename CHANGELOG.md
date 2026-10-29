@@ -29,6 +29,1207 @@ the declared public surface).
 
 ### Added
 
+- **Sitemap `lastmod` for clearance logs, directory pages and NTD pages.** The
+  1,183 sitemap URLs that carried none now get one derived from the data the page
+  shows: a clearance log takes its newest `cleared` date, an `/agencies/` page the
+  newest "checked" date on a card it lists, and `/ntd/`, `/ntd/shapes/` and each
+  state page the newest scoring run behind them. Never the build date; a page with
+  no usable date still has none, and hand-authored pages are unchanged. The
+  structural SEO check now fails a `lastmod` in the future, one missing from those
+  classes, or one a clearance log or directory page does not itself print
+  (`sitemap.future_lastmod`, `sitemap.missing_lastmod`, `sitemap.lastmod_not_on_page`).
+  No URL is added, removed or noindexed. Resubmit the sitemap in Search Console.
+- **Inbound links to the clearance logs and the NTD state pages.** Each
+  `/agencies/` card whose agency has an indexable clearance log (three or more
+  verified clearances, the same test the sitemap uses) now links to
+  `/agency/<id>/fixes/`, and a state's `/program/<state>/` page links to that
+  state's `/ntd/states/<state>/` page when one exists. Until now a clearance log
+  had one inbound link, from its agency page, and Search Console reported 7 of 18
+  sampled logs as discovered but never crawled. No page is added, removed or
+  noindexed and the sitemap is unchanged.
+- **NTD Report Year 2026 state pages and a rewrite of the fix guides.** Each
+  state with at least five tracked feeds measured for shapes.txt gets
+  `/ntd/states/<state>/`: every tracked feed in the state with its shapes.txt
+  and agency_id checks, worst first. A feed the check did not run for is listed
+  as not checked and left out of every count; a state below the threshold has no
+  page. The 41 `/fix/<code>/` guides now open with a search-phrase heading and a
+  one-line "short answer" under the code. The NTD pages also stop saying two
+  things the sources do not support: that FTA estimated "just over a third" when
+  it finalized the rule (the estimate, "over one-third of all reporters", is in
+  the October 2024 proposal and the final notice does not repeat it), and that
+  an agency can request a one-year waiver today (FTA proposed that in 2022; the
+  2023 final notice does not mention it). Review the Search Console data for
+  these pages on 2027-06-30.
+- **Retired feeds follow the catalog to their successor.** `scorecard
+  supersessions` now proposes a repoint when a tracked record's catalog record
+  is retired into one current record nobody tracks: the record keeps its page
+  and history, and its feed URL and catalog id move to the successor. Each
+  proposal is held, with the reason, when the successor is ambiguous, keyed,
+  looks like a different agency, is pinned by a curator note, or sits on a host
+  whose robots.txt the project's policy refuses (ADR 0070: an explicit
+  Disallow, an error, a redirect or an HTML page at `/robots.txt`; the
+  successor URL is checked with the same `robots_policy` the daily fetch
+  uses). A retired alias of the same record does not
+  block the move, which fixes Stanislaus Regional Transit being graded on a
+  feed that expired in 2020 while its alias held the current one. Applied once
+  by hand for Kansas City, Chattanooga, Richmond, Virginia Breeze, Monroe
+  County, Birmingham, Stanislaus and Thousand Oaks. ADR 0069.
+- **23 more US feed records**, all public operators no record tracked: 16
+  Pennsylvania NTD reporters from the Transitland Atlas, plus Manchester,
+  Charlottesville, Danville's fixed-route feed, two Golden Crescent feeds,
+  Jefferson County NY and Jackson County IL. Each host's robots.txt was read
+  before the record was added, and each feed was valid and current when
+  fetched. ADR 0069.
+- **Feed requests identify the project and follow robots.txt.** Every
+  schedule, realtime, liveness and publisher request sends
+  `gtfs-scorecard/<version> (+https://gtfsscorecard.org)` instead of a
+  browser's User-Agent, and reads the host's robots.txt first. A disallowed
+  feed is "not fetched: robots disallows", shown with its last measured grade
+  and never as a zero; an error, redirect or HTML page at robots.txt is
+  off-limits too, except a 403 on the listed object-store and API hosts where
+  403 means "no such file". `/status/` names and counts these apart from
+  outages. About 450 of 2,495 active records stop refreshing as a result,
+  242 of them on `www.data.gouv.fr`. ADR 0070.
+- **The catalog is read through the Mobility Database API.**
+  `files.mobilitydatabase.org`, whose robots.txt disallows everything, is no
+  longer read: no mirror fallback, and a catalog URL on it is refused. The
+  weekly discover job reads the API with `MOBILITY_FEED_API_TOKEN` and pauses,
+  saying so, until the token is set. ADR 0070.
+- **A guard for the Pages deploy role's read list.** The role's S3 policy
+  names readable keys one by one, and PR #522 added `rescored-history.json` to
+  the deploy's sync without adding it, so every deploy from 2026-10-13 failed
+  with AccessDenied and the live data went stale. The policy now lists the key,
+  and a test reads `pages.yml` and the Terraform policy and fails when a key
+  the deploy syncs or copies, or a prefix it lists, is not covered, matching
+  patterns the way IAM does.
+- **Buy by invoice or purchase order.** `/invoice/` lets a public agency or
+  program that cannot use a card link ask for a quote by email, accept it with a
+  purchase order, and receive an invoice. The form composes a `mailto:` link in the
+  browser and sends nothing. A blank quote, with line items and prices generated
+  from `web/bundle/plan.json` by `make sync-invoice-docs`, is in
+  `docs/invoice/`. The Stripe links and `paymentsAvailable` are unchanged.
+
+- **Earlier records rescored under the current rubric, shown as their own
+  series.** `scorecard rescore-history` rescores rubric 1.1 to 1.3 records from
+  what each record stored, without downloading any feed again, and writes
+  `rescored-history.json` beside `index.json`. `api/v1/trend.json` gains an
+  additive `rescored` block (method, coverage by reason, the native
+  reproduction control, and the series). The coverage page shows it apart from
+  the native series unless rescoring reproduces every native record exactly.
+  ADR 0068.
+
+- The history tables can be listed on AWS Data Exchange as a second storefront
+  (ADR 0065, `docs/data-marketplace.md`). Built and off: an owned data set and a
+  least-privilege publishing role behind `marketplace_enabled` in
+  `infra/artifacts`, and a `marketplace` job in `history-export.yml` that
+  publishes each monthly build as a new revision once `ADX_DATA_SET_ID` is set.
+  The listing's CSV data dictionary is generated from the export's column list.
+
+- **A visible "Source feed" line on each agency scorecard.** Under the hero,
+  the feed URL on file links the publisher's own download, and a second link
+  opens that feed's version history on the Mobility Database when the record
+  carries an id the site has verified the shape of. The scorecard links and
+  never hosts a copy. A local zip, a credentialed fetch, a URL with user-info
+  or a credential-like query parameter (redacted or not, ADR 0066), a
+  publisher in `history-export-exclusions.yaml`, or a license block that
+  forbids redistribution renders no line, and the JSON-LD `isBasedOn` follows
+  the same rule.
+
+### Changed
+
+- **The index can be stored compressed, and the history jobs keep a mirror.**
+  `data/artifacts/index.json` carries every agency's full history (151,374,557
+  bytes on 2026-10-22; 4,903,301 gzipped) and every refresh, deploy, collect and
+  report run read all of it from S3. All reads and writes now go through
+  `scripts/s3-index.sh`, which accepts the object plain or gzip and, when the
+  repository variable `INDEX_GZIP` is `1`, writes gzip with
+  `Content-Encoding: gzip`. The key is unchanged, so there is still one index
+  object and no IAM change. With the variable unset nothing stored changes.
+  History export and Trend history repair also sync the dated records into a
+  mirror in the Actions cache (`--exact-timestamps --delete`) instead of
+  downloading about 10 GB on every run. See `docs/deploy.md`.
+
+- **Less S3 data transfer out for the refresh and the deploy.** The Intraday
+  refresh and Deploy site now keep the public per-agency artifact set (every
+  `latest.json`, today's and yesterday's dated snapshots, badges) in the
+  Actions cache and transfer only the objects S3 changed, instead of
+  re-downloading all of it on every run. Published bytes are unchanged
+  (`scripts/overlay-s3-mirror.sh`, `tests/test_overlay_s3_mirror.py`). A
+  draft, unapplied lifecycle rule is in `docs/s3-feeds-lifecycle-draft.md`.
+
+- **The all-agencies rollup page is well under half the size.** `/program/all/` listed
+  every agency as a full card, each with its own heading, grade chip, snapshot
+  date and a second "Open next finding" link to the same agency page with a
+  `?finding=` query, which made the page over a megabyte with thousands of
+  duplicate-canonical links. Rollups with more than 500 members now list each
+  agency once, with one name link, its score and its needs-attention note,
+  under one heading per grade; the expired and shapes.txt worklists use the
+  same compact rows. State and country rollups keep today's cards, every agency
+  stays linked from the page, and titles, descriptions, canonicals and
+  structured data are unchanged. A tighter page-weight budget pins the result.
+
+- **The install wording leads with PyPI, because 1.5.1 is there.** The v1.5.1
+  run of `pypi-publish.yml` uploaded `gtfs-scorecard` 1.5.1 and read it back,
+  and the MCP Registry lists `io.github.ChelseaKR/gtfs-scorecard` 1.5.1 with
+  the package `pypi:gtfs-scorecard@1.5.1`. `server.json` records
+  `pypi_first_upload: "1.5.1"`; `README.md`, `docs/api.md`, `docs/mcp.md` and
+  `pipeline/README.md` drop the "Once gtfs-scorecard is on PyPI" hedge and lead
+  with `uvx gtfs-scorecard`, keeping the source-tree install for code on
+  `main` that is not released yet. `docs/mcp.md`'s publishing steps say that
+  1.5.1 went to PyPI and then to the registry, in that order.
+  `pipeline/tests/test_distribution_claims.py` now also fails if the recorded
+  first upload goes back to `null` or names another version.
+- The Action examples in `README.md` and `docs/ci-action.md` pin `@v1.5.1`,
+  the newest published Action release. `docs/ci-action.md` says that
+  `v1.5.1` changes nothing the Action does and that the floating `v1` moved to
+  it on 2026-10-11.
+- History tables version 1.1: a credential-like query value (an API key, a
+  token, or a presigned URL's signature and temporary credentials) in
+  `feed_static_url` or `fetch_final_url` reads `REDACTED`, and a user-info part
+  is dropped. The free site applies its own rule for the same values (ADR 0066,
+  under Security below).
+- **The program offer moved from agency scorecards to the program rollup
+  pages (ADR 0064, amending ADR 0058).** In 23 days 0 of 2,945 sessions that
+  landed on an agency page reached `/bundle/`. Each `/program/<id>/` page,
+  `/program/all/` included, now carries the panel with the plan's price and
+  the counted `bundle_panel_click` link; agency scorecards name nothing paid
+  above the footer.
+
+### Security
+
+- **Published feed URLs no longer carry credentials.** An artifact's
+  `fetch.final_url` and `feed.static_url` were published exactly as fetched.
+  When a feed redirects to a presigned object in someone else's bucket, the
+  recorded URL carried that object's temporary credential and signature
+  (`AWSAccessKeyId`, `Signature`, `x-amz-security-token`, `X-Amz-*`, `sig`,
+  `jwt`), and a few publishers put an API key in the download URL. One rule,
+  `pipeline/src/scorecard_pipeline/url_redaction.py`, now replaces those
+  query values with `REDACTED` and drops a `user:password@` part, from an
+  explicit, case-insensitive list. It runs where artifacts are written
+  (`publish.py`), where the site renderer reads them (so the catalog,
+  directory, API files, scorecard pages and JSON-LD `isBasedOn` inherit it),
+  in the dataset and global-coverage exports, and on every JSON file
+  `assemble_public_artifacts.sh` copies into the deployed site, which covers
+  artifacts written before this change. What the pipeline fetches is
+  unchanged. ADR 0066 records why committed history is not rewritten.
+
+### Fixed
+
+- **`/ntd/` no longer reports a limit of the catalogs read as a count.** The
+  reporter join matched 1,253 Report Year 2024 reporters against three catalogs
+  and printed "473 to 641 have no feed discoverable in any open catalog", without
+  reading the GTFS link each agency reports to FTA (NTD GTFS weblinks, Socrata
+  `2u7n-ub22`). That table is now the fifth source, joined by NTD ID as the last
+  strong tier (`ntd_weblink_ntd_id`), so no existing tier count moves and 593
+  reporters leave the two unmatched tiers. The range is 35 to 48 reporters with
+  no GTFS link reported to FTA and no catalog match. A reported link is
+  self-reported and is never fetched or validated, and the page says so; when the
+  table is missing the page says it was not read instead of printing the old
+  range. Provenance and edge-case rules are in `data/ntd/PROVENANCE.md`.
+- **The support page and `docs/support.md` no longer say the core costs
+  "single-digit dollars a month".** AWS Cost Explorer shows $28.35 of Amazon S3
+  charges in us-west-2 for September 2026 ($17.26 data transfer out, $8.80
+  requests, $2.29 storage). Both pages now state that figure and its month, say
+  the cause by requester is not yet measured, give the Stage 0 target (under
+  $10 a month by 2027-03-31), and state no total because the AWS account is
+  shared. `pipeline/tests/test_support_cost_claim.py` pins the wording.
+
+- **The intraday expiry sweep no longer runs out the job's clock.** Once the
+  fix below restored every agency's history to `index.json` (148 MB, 224,890
+  rows on 2026-10-22), each of the ~2,489 feeds the first sweep after UTC
+  midnight re-dates parsed and rewrote the whole file, 3.2 s a feed, so the
+  "Refresh expiry from calendar data" step ran 134 to 167 minutes and was
+  cancelled at the job's 175-minute bound on most days from 2026-10-14; a
+  cancelled job publishes nothing, so the next cycle repeated it and
+  scorecards stayed stale for up to ten hours. `publish()` now takes an
+  `index_batch`, and the sweep writes the index once after its loop
+  (`publish.flush_index`), byte-identical to the per-feed result. The sweep
+  also takes `--budget-seconds` (2400 in the workflow): past it no new agency
+  starts, the rest are named in the log and a warning annotation, each keeps
+  its last published record, and the step exits 0. The step carries
+  `timeout-minutes: 50` as the backstop for a wedged runner.
+- **The national trend kept two days of history.** "Is transit data getting
+  better?" (`/pulse/#trend`, `api/v1/trend.json`) showed only 2026-10-11 and
+  2026-10-12. Every intraday re-score and freshness sweep rebuilt a feed's
+  `index.json` history from the dated files in the CI checkout alone, so each
+  one dropped every row whose dated record lived only in S3 (173,581 rows by
+  2026-10-12). `publish._update_index` now keeps those rows, as
+  `rebuild_index` already did, through one shared `merge_index_history`.
+  `scorecard backfill-index-history` restores the lost rows from the stored
+  records, and the dispatch-only `trend-history-repair.yml` runs it against the
+  store. ADR 0068.
+
+- **The open dataset, `api/v1/agencies.json`, and the MCP scorecard say when a
+  feed has expired.** `service_horizon_status` only flags an end date more than
+  ten years out, so an expired feed reads `within_review_threshold`. On those
+  surfaces it was the only status shown: 348 of the 2,477 rows in the live
+  `agencies.json` on 2026-10-02 were lapsed or stale and carried that value,
+  Santa Rosa CityBus among them at 2,381 days past its end date. Rows in
+  `dataset.json`, `dataset.csv`, `api/v1/agencies.json`, and
+  `api/v1/agencies.parquet` now carry `expiry_status`, the same bucket
+  `catalog.json` already publishes, computed by the same function from the same
+  day count. That is flat export schema `1.5` (`1.6` when the `license_notice`
+  column is present). The MCP `get_scorecard` freshness block adds it too.
+  `scorecard explain` prints the expiry status beside the horizon line and
+  labels the horizon as a distant end-date check only. `docs/api.md`, the
+  rubric, and the catalog schema now say the horizon status does not describe
+  expiry. Nothing was renamed and no value was added to the horizon status, so
+  existing clients keep working. No score or grade changes.
+
+## [1.5.1] - 2026-10-09
+
+### Changed
+
+- **The Python distribution is named `gtfs-scorecard` on PyPI.** It was
+  `scorecard-pipeline` through v1.5.0, and that tag's run of the publish
+  workflow was the first to reach the upload: PyPI refused the name as too
+  similar to the existing, unrelated project `scorecardpipeline`, so no
+  pending publisher could be registered for it and nothing was uploaded.
+  `pipeline/pyproject.toml`, `server.json`, the publish workflow's name checks
+  and read-back, the CI wheel smoke test, and the install lines in the README,
+  `docs/api.md`, `docs/mcp.md` and `pipeline/README.md` now say
+  `gtfs-scorecard`: `uvx gtfs-scorecard` starts the MCP server (the executable
+  alias that was `scorecard-pipeline` is now `gtfs-scorecard`, which is what
+  registry clients run), `uvx --from gtfs-scorecard scorecard` runs the
+  command-line tool, and `pip install 'gtfs-scorecard[query]'` adds DuckDB.
+  The import package `scorecard_pipeline`, the `scorecard` and `scorecard-mcp`
+  commands, the MCP server name `io.github.ChelseaKR/gtfs-scorecard` and the
+  Action are unchanged. The sync receipt's `tool.package` keeps the constant
+  `scorecard-pipeline` that the frozen 1.2 receipt schema requires; a later
+  schema version is where that label would change. Nothing else differs from
+  v1.5.0.
+- The Action examples in `README.md` and `docs/ci-action.md` pin `@v1.5.0`,
+  and `docs/ci-action.md` says what that release includes that `v1.4.0` did
+  not.
+
+## [1.5.0] - 2026-10-09
+
+### Added
+
+- **The scorecard history tables (ADR 0063), the release notes for the tag
+  that ships them.** A second paid tier beside the program report bundle:
+  every dated check of every covered feed record and every finding in each,
+  as two Parquet tables (`checks`, `findings`) with a data dictionary, a
+  provenance file, and a license, built by the open-source
+  `scorecard history-export` command and rebuilt monthly. Licensed to one
+  organization; the dated scorecards it is built from, the flat exports, the
+  read API, and the monthly dataset release stay free and unchanged. A
+  publisher can ask to be left out of the sold tables through
+  `history-export-exclusions.yaml`, and the free site is untouched by that
+  request. Delivery rides the bundle's checkout path: a Stripe Payment Link,
+  a 30-day capability link to the newest monthly object, and an email, with
+  no build per order and no new always-on resource. The tier is described at
+  `/data/history/`, pointed to from the open-data page, the support page,
+  `llms.txt`, and this README, and is on sale only once its plan file says
+  so. Grades, methodology, and which agencies are listed are never for sale.
+- **Phase 3 of ADR 0063: the pointers and the pricing copy.** `/data/` gains
+  a section pointing a reader who needs the corpus over time to
+  `/data/history/`; `/support/` gains a second paid card; `llms.txt` and the
+  README describe two paid things instead of one; the history page gains the
+  buyer's questions in the bundle's shape (what arrives, when, how long the
+  link lives, what if it is wrong, what if no build exists, what a purchase
+  does not change, what stays free) and a matching FAQ node; and the price is
+  still only ever read from `web/data/history/plan.json` through the
+  generated regions. `docs/history-tables.md` records the price knob and the
+  day-90 rule.
+- **The scorecard history tables are open for purchase at $99 (ADR 0063,
+  the plan flip).** `web/data/history/plan.json` now says payments are
+  available and names the live Stripe Payment Link for `history_once`, so
+  `/data/history/` states the price in its two generated regions: the
+  offers block in the head, which is the page's Product node with one
+  Offer at 99 USD, one time, and the no-scripting plan list. The amount
+  lives only in that plan file; `make sync-bundle-offers` writes both
+  regions from it, and the page's own copy and scripts type no amount.
+  With the plan on, `site-seo.json` requires the Product node on
+  `/data/history/` the way it does on `/bundle/`, so the deploy-time
+  structural SEO check fails the page if the offers block ever goes
+  missing while the tier is open.
+- **The history tables are findable (ADR 0063, the findability pass).**
+  Measured on the live site on 2026-10-06, only `/data/` and `/support/`
+  linked `/data/history/`: the home page linked `/bundle/` three times and
+  the history tables never, the two paid pages did not cross-link, `/tools/`
+  did not list the tier, and `/api/` returned 404. Now the home page's "Use
+  the public data" card carries one sentence pointing at it, `/tools/` lists
+  it as a paid entry beside the bundle's, `/bundle/` carries one line for
+  the reader who needs tables rather than board reports and `/data/history/`
+  one line back, and `/api/` is a redirect alias to the open-data page's
+  endpoint list through the same stub mechanism that serves `/access/`. No
+  surface types the amount, the shared nav and footer are unchanged, and no
+  agency page names the tier; the tests pin each of those.
+
+- **Delivery for the scorecard history tables, built and closed (ADR 0063,
+  phase 2).** `history-export.yml` writes one zip a month to the private
+  `history/<YYYY-MM>/` prefix under its own least-privilege OIDC role; the
+  program-bundle setup route recognizes the `history_once` plan and answers a
+  paid checkout with a 30-day capability link to the newest monthly object,
+  emailed from `SES_FROM`, with the checkout left unused while the tier is
+  closed, the store unreadable, or no build exists yet; the download route
+  presigns only the one key a row names. `/data/history/` and
+  `/data/history/setup/` are published with their plan file saying payments
+  are off, so nothing is for sale until the owner follows the runbook in
+  `docs/history-tables.md`. No free output changes.
+
+- **The scorecard history tables, the paid data tier's build step (ADR 0063).**
+  `scorecard history-export` writes `checks.parquet` (one row per feed record per
+  dated check) and `findings.parquet` (one row per finding per check) from the
+  dated artifacts, with a data dictionary, a provenance file, and the license the
+  tables are sold under, packed into one zip with fixed timestamps. Output is
+  byte-stable for a fixed artifact tree and the build streams one artifact at a
+  time. Each row carries the registry's license block, the publisher's credit
+  line, and the share-alike reuse notice; `history-export-exclusions.yaml` lists
+  publishers who asked to be left out, and the export drops their rows and keeps
+  only the count. Nothing on the site, in the Lambda, or in Stripe changes; the
+  tier is not yet on sale. `docs/history-tables.md` is the contract.
+- **A reviewed PyPI publish path for `scorecard-pipeline`, and a registry
+  manifest that names it.** `.github/workflows/pypi-publish.yml` runs on a
+  signed release tag and uploads through PyPI Trusted Publishing, from a job in
+  the `pypi` environment that waits for a required reviewer; the build job
+  refuses to continue if that environment has no reviewer, and a last job
+  compares what PyPI serves with what was built. Nothing has been uploaded:
+  PyPI needs a pending publisher registered first, and the README and
+  `docs/mcp.md` say "once scorecard-pipeline is on PyPI" until
+  `server.json` records the first upload (`tests/test_distribution_claims.py`
+  holds the wording to that field in both states). `server.json` declares the
+  `registryType: pypi` package again, now that there is a path to make it true,
+  and is submitted to the MCP Registry only after the upload. Fixed on the way:
+  the server name's namespace is now `io.github.ChelseaKR`, because the
+  registry's namespace check is case-sensitive and would have refused
+  `chelseakr`; the description was cut to the registry's 100-character limit,
+  which the old one failed; the package now builds from its own sdist (a
+  schema force-included from `../web` made `uv build` fail, so the package
+  carries a byte copy, held identical by a test); `uvx scorecard-pipeline` now
+  starts the MCP server, which is the command registry clients run; and the
+  package has a README and project links for its PyPI page.
+
+- **The rubric states how far one style notice can move a grade (ADR 0062).**
+  Correctness deducts per notice code, so `mixed_case_recommended_field` costs
+  at most 8 correctness points however many names it flags. A review read
+  VTA's F 49.4 as driven by 9,620 mixed-case notices; the published artifact
+  shows they cost 8.0 of 60.5 points and the F came from two days of freshness
+  runway. No separate cap on style notices was added, and the ADR records the
+  numbers and the alternatives checked.
+
+- **A structured `license` block for registry records, an advisory lint, a
+  dry-run migration, and a reuse notice for share-alike feeds
+  ([#372](https://github.com/ChelseaKR/gtfs-scorecard/issues/372), part 2).**
+  A record may now carry a `license` block beside its `license_note`: the
+  license class (SPDX ids where they exist), whether attribution is required,
+  whether redistribution is allowed, whether the license is share-alike, the
+  terms link, the day the terms were read, and a review status. Every term is
+  `true`, `false` or `unknown` with no default, so an unread license cannot read
+  as a permissive one. The loader validates the block strictly, and
+  `registry/license.schema.json` states the same shape as a JSON Schema that a
+  test holds to the parser's verdict. `scorecard license-lint` reports records
+  with no block, an `unknown` license, or a block that contradicts itself or its
+  note; it says in its own output that it is advisory and exits 0, and it never
+  reports a share-alike license as a problem. `scorecard license-migrate`
+  proposes blocks from the existing notes, one line per record, and writes
+  nothing unless given `--apply`; a note that is ambiguous becomes `unknown` and
+  `needs_review`, never a guess, and the migration never records a review.
+  Owner decision, 2026-09-19: a feed whose license requires share-alike is
+  admitted, with a notice. A record whose block says `share_alike: true` for a
+  license it names now gets a plain-language reuse notice on its scorecard page
+  (a headed section that names the license and says what share-alike asks of
+  anyone who reuses the data) and a `license_notice` field in `dataset.json`,
+  `dataset.csv` and `agencies.parquet` (flat export schema `1.4`, present only
+  once some record has a notice). An unknown, absent, `false`, or contradictory
+  block gets no notice and is never treated as share-alike or as permissive.
+  No registry record was changed, so no scorecard and no export carries a notice
+  yet, and no published file changes until a reviewed migration is applied; the
+  test suite proves the rendering and the export field on a fixture. What
+  remains of #372: the reviewed migration, curator review of each block, and an
+  admission rule.
+- **Typed Python and TypeScript clients for the read API, generated and drift-checked
+  ([#370](https://github.com/ChelseaKR/gtfs-scorecard/issues/370)).**
+  `clients/python` (`gtfs-scorecard-client`) and `clients/typescript`
+  (`@gtfs-scorecard/client`) are generated from `web/api/v1/openapi.yaml` with
+  `openapi-python-client` and `openapi-typescript`, pinned by exact version and
+  installed as dev tooling only. `pipeline/tests/test_clients_drift.py` runs in
+  `make verify` and fails when the description or a schema changes and the
+  committed bundle does not; `make clients-check` (the `Clients` workflow)
+  regenerates and diffs every derived file, and `make clients-control` proves it
+  fails on a stale description, a stale schema and a hand edit. Contract tests
+  run both clients against recorded responses for every described path and
+  assert that an unmeasured value stays absent or null and is never a zero. A
+  `schema_version` guard rejects a major version the client was not generated
+  for. Nothing is published: `docs/typed-clients.md` lists the owner steps for
+  PyPI and npm. One defect in the pinned Python generator (a property named
+  `d` shadowing its local, which broke `by-location.json` and every rollup) is
+  patched at generation time.
+- **A published schema for `scorecard explain --format json`
+  ([#364](https://github.com/ChelseaKR/gtfs-scorecard/issues/364)).**
+  `web/schemas/explain.schema.json` describes the audit trail behind a grade:
+  each category with its rubric weight, the weight actually applied, its
+  contribution and its listed deductions, and the overall block with its
+  reconciliation note and band margins. A category that was not measured must
+  carry null for every figure and no deductions, so a missing category cannot
+  be read as a zero. The trail has no `schema_version` field, and adding one
+  would change public output, so the schema describes the shape as it is and
+  a change to that shape changes the file in the same commit. Every
+  explainable artifact in the committed corpus validates against it,
+  including the ones that do not reconcile and the ones with a renormalized
+  weight set, and fourteen mutations are each rejected. Still open in #364:
+  the "Show the arithmetic" link from the agency page's confidence section.
+
+- **A program panel on every agency scorecard (ADR 0058).** Agency pages
+  carried 97% of the site's search impressions, and until now their only route
+  to the paid bundle was the footer. Each `/agency/<id>/` page now ends its
+  report, after the standards section, with one panel for programs that
+  support several agencies. It says first that the scorecard and the board
+  one-pager stay free. It then lists what this agency's report in a bundle
+  would hold, from the page's own artifact: grade, score, and check date,
+  category scores, top fixes when there are any, and score history once there
+  are two checks. The cheapest one-time plan and the delivery promise are read
+  from `web/bundle/plan.json`. One button leads to `/bundle/`, and a text link
+  leads to the real sample. The panel renders nothing when the plan sells
+  nothing or the artifact lacks a measured grade, score, or check date. It is
+  hidden in print, and the call brief, the board one-pager, and the
+  self-contained report still name nothing paid. The rubric stamp beside each
+  grade now links the methodology section of `/how-to-read/`.
+
+- **A consequence block on every published finding (artifact schema 1.19,
+  part of [#367](https://github.com/ChelseaKR/gtfs-scorecard/issues/367)).**
+  `publish()` now attaches `consequence.py`'s block to each category finding
+  and each `top_fixes` entry, so both the full score and the freshness sweep
+  write it. Reach is computed from the artifact itself. Ridership and
+  served-area need are stated as absences with a reason. A non-US feed carries
+  `outside_ridership_scope`, and a record sharing an NTD reporter with another
+  carries `duplicate_ntd_reporter`. A US or Canadian feed otherwise carries
+  the new `not_joined_here`: the writer never reads the ridership snapshot or
+  the need overlays, and saying "no snapshot was supplied" would have been
+  false about the project. The schema accepts a value with an empty reason or
+  `null` with a reason, and nothing else, so an absence cannot be published
+  as zero. The agency page, call brief, board one-pager, and evidence packet
+  (schema 1.2) show each fix's reach and join rider-trips and need when they
+  are built, each with its source and snapshot date, or the plain reason there
+  is none. The ridership fetch and both need overlays now record the date the
+  pages cite, and an undated snapshot is not joined. The US tier is labeled
+  as statewide, because the ACS overlay is state-level. Fix order and grades
+  are unchanged.
+
+- **The scorecard in the app now shows each finding's consequence
+  ([#367](https://github.com/ChelseaKR/gtfs-scorecard/issues/367)).** Under each
+  top fix and each finding in "Everything we checked", the app states how much
+  of the network the finding covers, in the same words as the agency page. Under
+  the fixes, a "Riders and need behind these fixes" block gives the reason each
+  of annual rider-trips and transit need is not shown in the app, and links the
+  agency page, which joins dated snapshots when it renders. Nothing in the app
+  is worded as a number unless the record says it is known: a null share, a
+  share that sits beside a reason, counts that disagree, and a value with no
+  source or date all read as words. A scorecard published before schema 1.19
+  says so once instead of going quiet. The wording now lives in one place,
+  `consequence.py`, and reaches the app through `web/src/generated/constants.js`
+  (`CONSEQUENCE_COPY`), so the two surfaces cannot drift. Static page output is
+  byte-identical. Fix order and grades are unchanged.
+
+- **The Action's `evidence-packet` input, and `scorecard retest --artifact`
+  (#366).** Set `evidence-packet` to a packet from `scorecard evidence-packet
+  --format json` and the Action retests the feed it has just scored against
+  the packet's acceptance tests, failing the build unless every finding is
+  cleared. It reads the run's own `result-json` through the new `retest
+  --artifact RESULT`, so the validator runs once. A packet or result the
+  retest cannot read or judge fails the build with the reason in the
+  annotation, and is never read as nothing still present; an artifact scored
+  under a different `--country` is refused. New outputs `retest-outcome` and
+  `retest-json`. With the input unset the step is byte-identical to before:
+  the same commands and arguments, outputs, summary, annotations, files and
+  exit code, checked against transcripts captured from the step before this
+  change. The input is on `main` only; it is not in `v1.4.0`.
+
+- **Google Analytics 4 beside PostHog, loaded from the same script
+  (2026-09-17, [ADR 0056](docs/decisions/0056-google-analytics-4.md)).**
+  `web/src/measure.js` gains a second, separate block that loads GA4 for the
+  measurement id committed as `measurement_ga4_id` in `site-seo.json`
+  (`G-45H8Q9H93F`). `scorecard render-measure` writes it into the assembled
+  site at deploy; the committed script carries no id, and an empty value loads
+  nothing. The block loads nothing under Global Privacy Control, Do Not Track,
+  or on `localhost`. Consent Mode v2 denies ad storage, ad user data and ad
+  personalization everywhere and analytics storage in the EEA, the UK and
+  Switzerland. The config turns off Google signals and ad personalization
+  signals, and sends the page path and the referring origin only, so the
+  Stripe order reference on `/bundle/setup/` never reaches Google.
+  `check_site_seo.py` declares the GA4 loader origin (`measurement_ga4_host`)
+  as the one other host the declared script may name, and forbids every Google
+  Analytics host everywhere else. `tests/test_measure_ga4.py` runs the rendered
+  script in Node against a stub page, with negative controls that assert their
+  sabotage landed. `/about/#privacy`, `README.md`, `docs/listing-policy.md`,
+  `docs/deploy.md`, `docs/release-checklist.md`, `docs/audits/dpia-lite.md`,
+  and ADRs 0031 and 0055 now describe GA4, its `_ga` cookies and its 14-month
+  retention. Every page footer gains an "Opt out of analytics" link. The
+  choice is remembered on the device, stops both PostHog and GA4, expires the
+  GA4 cookies, and toggles to "Opt back in to analytics". The PostHog block
+  gains only the check for that choice. `check_site_seo.py` fails a measured
+  page without the control.
+
+- **Credentialed feed sources, the mechanism half (#371).** A registry record
+  can now carry `fetch_auth: {kind: header|query|basic, name, secret}`, where
+  `secret` names an environment variable in the `SCORECARD_FEED_AUTH_`
+  namespace and never holds the key (`feed_auth.py`, `registry/README.md`).
+  Fail-closed is the load-bearing part: an unset or empty variable raises
+  before any request, records the run outcome as unreachable with the reason
+  `credential not configured`, writes no artifact, and never falls back to the
+  Mobility Database mirror. With the variable set, the credential goes only to
+  the configured URL's own origin (a cross-host redirect does not receive it),
+  the artifact's `fetch` block adds `auth: env-ref` and `auth_kind`, the
+  published `final_url` drops its query string, and a failed request is
+  reported by exception class and HTTP status only. `scorecard lint --strict`
+  refuses a literal credential in the record as `literal_credential`, and the
+  keyless liveness check skips these records. No credential and no Austria or
+  New York record is added; admitting one still needs an owner-registered key
+  and a terms review, and the issue stays open for that.
+
+- **`scorecard license-audit` (part of
+  [#372](https://github.com/ChelseaKR/gtfs-scorecard/issues/372)).** Counts
+  every registry record by the one license its `license_note` names, from a
+  closed vocabulary of SPDX ids. A note naming two licenses, only a link, or
+  terms outside the vocabulary is `unknown` with the reason, never a guess.
+  The share-alike count is reported against the open owner decision in
+  `docs/follow-ups.md` as `undecided`. On today's registry it reads 126
+  records, not the 160 that document quotes, plus six whose notes name a
+  share-alike license beside another and are listed for a curator. Text or
+  `--json`. A report only: it exits 0 and gates nothing.
+
+- **Google Ads conversion upload job (2026-09-15,
+  [docs/google-ads-upload-setup.md](docs/google-ads-upload-setup.md)).** A
+  real conversion action now exists
+  (`customers/2688527650/conversionActions/7769927171`), so the upload job
+  `docs/paid-search-readiness.md` §3/step 10 deferred is built:
+  `infra/program-bundle/ads_conversion_upload_handler.py`, a Lambda
+  EventBridge invokes daily, uploads every pending conversion event via the
+  `google-ads` client library's `ConversionUploadService`, and writes each
+  row's own outcome back. `conversion_tracking.emit` now also writes to a
+  new small DynamoDB table (`gtfs-scorecard-program-ad-conversions`) rather
+  than only printing to CloudWatch, keyed by Stripe checkout session id so
+  a webhook retry cannot double-report a sale; see that module's docstring
+  for why a table and not the CloudWatch Logs Insights query originally
+  sketched. Five new `google_ads_*` Terraform variables (four required, one
+  optional -- Google sunset the developer token as an access-control
+  mechanism 2026-09-09) carry the credentials, blank by default, never
+  committed. Written, not yet applied, and the daily schedule stays
+  `DISABLED` until `google_ads_upload_ready` is set `true`.
+
+- **28 reviewed US feed records from an NTD-matched `scorecard sync` pass
+  (2026-09-14).** `scorecard sync --country US` against the live Mobility
+  Database catalog returned 202 untracked candidates; this pass kept only
+  the 35 flagged `is_official` in the source catalog with a matching
+  National Transit Database id, then excluded seven by hand after they
+  turned out to duplicate an already-tracked operator under a different
+  name or feed URL (Champaign-Urbana MTD, the Centre County CATABUS feed,
+  a consolidated Trailways feed covering four already-separately-tracked
+  New York Trailways entries, and four candidates the sync tool itself
+  flagged with an `-ntd-NNNNN` id suffix because the name already existed).
+  The 28 that remained span 20 states and add Wyoming's first tracked feed
+  (Wind River Transportation Authority), all small systems in line with the
+  product's stated audience. The registry moves to 2,671 records; see
+  `docs/global-coverage-roadmap.md` for why this project reviews sync
+  output by hand rather than admitting it automatically.
+
+- **Cookieless site measurement, disclosed on the page it measures
+  (2026-09-13, [ADR 0055](docs/decisions/0055-cookieless-site-measurement.md)).**
+  The site recorded nothing about a visit until now, and could not say whether
+  anyone reached `/bundle/` or followed a checkout link. One first-party script,
+  `web/src/measure.js`, now sends a page view (path only, page family,
+  referring domain) and a `bundle_checkout_click` with the plan id to PostHog
+  Cloud US: no SDK, no cookie, a visit id that dies with the tab,
+  `$process_person_profile: false`, off under Global Privacy Control or Do Not
+  Track, and off entirely unless the deploy writes a `POSTHOG_KEY` into the
+  script (`scorecard render-measure`, a new `pages.yml` step; the committed copy
+  has no key). `/about/#privacy` states what is sent, linked from every footer.
+  `check_site_seo.py` replaces the no-tracking contract with the site-measurement
+  one: exactly one `/src/measure.js` on every page, none on a redirect stub, the
+  PostHog SDK loader hosts forbidden alongside Google's, the measurement host
+  named nowhere but the declared script, and that script naming no other host;
+  `measured_pages` is reported beside `html_files`. `tests/test_measure.py`
+  holds the script's own promises, the `ph-no-capture` marker on the
+  post-checkout form and its email field, and that the board report a buyer
+  receives never carries the script. `docs/listing-policy.md`, `README.md`,
+  `docs/deploy.md`, `docs/release-checklist.md`, `docs/audits/dpia-lite.md`,
+  and ADR 0031 say the same thing the site does.
+
+### Fixed
+
+- **The monthly dataset cut can verify the tag it signs.** `dataset-release.yml`
+  signs `dataset-YYYY-MM` with `SCHEDULED_WRITER_SSH_KEY` and then runs
+  `git verify-tag` against an allowed-signers file. #258 pointed it, and the
+  owner promotion script, at `.github/release-signers`, which holds only the
+  owner's release key, and nothing compared the two. The first cuts to reach
+  the step, 2026-10-02 and 2026-10-03, stopped at "No principal matched"
+  before the push, so no `dataset-2026-09` or `dataset-2026-10` exists.
+  Dataset tags now verify against a new `.github/dataset-signers` that lists
+  the writer's public key (the repository deploy key of the same name) and
+  nothing else; `release-signers` is unchanged, so `release-sign.yml` still
+  accepts the owner's key alone for `vX.Y.Z` tags. A test pins both
+  fingerprints, checks which file each workflow reads, and exercises the new
+  file with `ssh-keygen -Y find-principals`. September cannot be recovered
+  (its source artifact is gone); October can be cut by a manual dispatch
+  before November 1 UTC.
+- **SacRT's F 51.1 from 2026-10-02 is withdrawn.** It was graded from
+  Mobility Database mdb-1296's hosted copy, SacRT's September 2024 export,
+  after the download from iportal.sacrt.com failed on its expired certificate.
+  The fix above stops the next one; `corrections.yaml` now takes back the one
+  already published, under a new cause, `deprecated_catalog_mirror`, with
+  outcome `not_measured` until a run downloads SacRT's own feed (feed_version
+  "SEP26 GTFS" as of 2026-10-02). The index-parity test now asks
+  `withdrawn_now`, as `rebuild_index` does, because the committed snapshot ends
+  2026-08-07 and does not hold the withdrawn record.
+- **Rīgas satiksme pins the catalog record that replaced its old one.** The
+  registry pinned Mobility Database mdb-884, which the catalog deprecated in
+  favor of mdb-3502. Since a deprecated row no longer supplies a mirror, the
+  old pin left Rīga with no fallback when saraksti.rigassatiksme.lv times out,
+  as it did on 2026-10-02. Two more records whose catalog successor downloads
+  their own registry URL are repointed the same way: Pasažieru vilciens (Vivi),
+  mdb-2015 to mdb-3385, and Zoom (Le Grand Chalon), mdb-658 to tdg-82664.
+
+- **A deprecated catalog record's hosted copy is no longer scored in place of
+  an unreachable feed.** When iportal.sacrt.com's certificate expired on
+  2026-09-20, the fallback scored Mobility Database mdb-1296's hosted copy and
+  published it as SacRT's feed on 2026-10-02: F 51.1, "service data ended 636
+  days ago". That copy is SacRT's September 2024 export, last refreshed on
+  2024-10-17, because the catalog deprecated mdb-1296 in favor of mdb-2137.
+  SacRT's own feed runs to 2027-01-02. A row the catalog marks `deprecated` now
+  never supplies a mirror, so the run records the origin as unreachable and
+  publishes no new grade. Mirrors of active and inactive rows are unchanged.
+
+- **A feed check that failed without an HTTP status now says so on the agency
+  page.** An expired certificate, a refused connection, or a timeout left the
+  monitoring line reading "Checked for changes 35 minutes ago; last changed 103
+  days ago", which looks like a clean check. It now adds "the last N checks
+  could not download the feed".
+
+- **A `feed_end_date` earlier than the service calendar is named as its own
+  fix (ADR 0061).** Freshness takes the earlier of `feed_info.feed_end_date`
+  and the last calendar date, and said nothing about which one it used. BART's
+  feed says it ends 2026-08-30 while its weekday service runs to 2027-01-08,
+  so its top fix read "service data ended 32 days ago, re-export the feed".
+  When `feed_end_date` sets an expiry that has passed or is under 30 days away
+  and the calendar runs past it, the finding is now
+  `scorecard_feed_end_date_before_calendar`: it names both dates and asks for
+  `feed_end_date` to be corrected. The score still reads the declared date, as
+  the GTFS reference directs, so no grade moves. Freshness details add
+  `expiry_limited_by`.
+
+- **A `stop_headsign` at every stop now counts as a headsign (rubric 1.4,
+  ADR 0060).** The headsign component read `trip_headsign` only. TriMet
+  publishes no `trip_headsign` and a `stop_headsign` on every stop time, so it
+  scored 0% headsigns and lost 15 rider-experience points for destinations its
+  riders do see. A trip now counts when it has `trip_headsign` or a
+  `stop_headsign` on every one of its stop times. The pass streams
+  `stop_times.txt` keeping only trip IDs, so it runs on feeds of any size.
+  Artifacts keep `headsign_pct` as the literal `trip_headsign` share and add
+  `headsign_stop_headsign_trips`.
+
+- **Program bundle Payment Links now offer card and Link only.**
+  `scripts/stripe-setup.sh` creates its Payment Links with an explicit
+  `payment_method_types` of `card` and `link`. Without it a link follows the
+  account's default payment method configuration, which offered Cash App Pay
+  and Amazon Pay to an organizational buyer; the only live checkout attempt
+  (2026-09-18) used Cash App Pay and expired unpaid. Card still carries
+  Apple Pay and Google Pay. The four live links in `web/bundle/plan.json`
+  predate this and are updated in the Stripe account by the owner, not by
+  this script, which never touches a link that is already selling.
+
+- **A freshness sweep now rebuilds the conformance mark and NTD readiness
+  along with the top fixes, so one record cannot state two expiry counts.**
+  `resweep()` recomputed freshness, `overall` and `top_fixes` but copied the
+  `conformance` and `ntd_readiness` blocks forward from the last full score.
+  SacRT's committed record for 2026-08-07 leads with "Service data runs out in
+  8 day(s)" while both blocks say 21 days. `publish()` already re-derived
+  conformance on write; `ntd_readiness` was never re-derived, and the sweep's
+  own return value carried both stale. Both are now rebuilt in the sweep, and
+  NTD readiness only where the full score attached it (US feeds, ADR 0026).
+
+- **Sacramento and Bay Area agencies are graded on the feeds they publish
+  now.** Several records pointed at files their agencies stopped updating, and
+  in two cases the live record was the retired one. SacRT's current iportal
+  feed is canonical again, with the January 2025 wp-content copy retired into
+  it. The dead Yolobus mdb-1295 record is retired into `yolobus`, Elk Grove
+  reads SacRT's Elk Grove feed instead of a URL that now leads to an unrelated
+  site, AC Transit gains a record for its own feed, SamTrans' keyless file is
+  canonical instead of the keyed 511 record, and the duplicate Marin Transit
+  and Santa Rosa CityBus records are retired. Santa Rosa and Petaluma say on
+  the page that the file graded is an old export. BART's URLs use https.
+  The iportal.sacrt.com certificate expired on 2026-09-20; the affected
+  records say so, and certificate checking stays on. The registry moves to
+  2,672 records.
+
+- **The Daily's slowest score shard no longer runs within two minutes of its
+  bound, and the Watchdog now measures it.** The `ovapi-netherlands` runner
+  death last occurred on 2026-09-05; every daily run since has finished its
+  validator. What the daily lost since was elsewhere (a publish-slot eviction
+  on 2026-09-14, and the retirement-guard false positive on 2026-09-15 to
+  2026-09-17, fixed in #456 and #464). Reading the run history for the cause
+  found a near miss: the shard holding `autolinee-toscane` ran 47 to 53 of its
+  55 minutes on eight of 11 daily runs, because that one record takes about 20
+  minutes to score, and the workflow comment still said the slowest shard
+  took about 32. A shard stopped at its bound loses every record it had
+  scored. The registry gains an `own_shard` field, which isolates a record on
+  its own shard the way `large_feed` does but raises no size ceiling, and
+  `autolinee-toscane` carries it. The Watchdog's bound check, which could
+  only see `refresh` and `collect` because the shards' job names are matrix
+  labels, now reads the longest `score (...)` shard of each Daily run and
+  fails at 90% of the bound. The incident record for #297 gains a dated
+  status section with the evidence.
+
+- **The bundle Lambdas deploy again: the package outgrew Lambda's direct
+  upload.** Adding the ads-conversion handler pulled the google-ads
+  dependency tree into the shared zip, which reached 82 MB against Lambda's
+  70,167,211-byte direct-upload cap; the 2026-09-18 program-bundle apply
+  returned 413 for every function and the five Lambdas kept their 09-13
+  code. Terraform now uploads the same archive (still built by
+  `scripts/build-lambda-package.sh`) to the private artifacts bucket under
+  `lambda-packages/` and points every function at it; S3 accepts up to
+  250 MB. The object carries no secrets (tokens and Stripe keys stay in
+  Lambda environment variables), nothing serves it, and no lifecycle rule
+  expires it.
+
+- **The daily feed-health digest can no longer print a subscriber's address
+  into a public run log, and one refused address no longer skips everyone
+  after it.** This repository is public, so each run log is a publication, and
+  the digest step is the one scheduled step that reads real subscribers.
+  Amazon SES quotes the recipient in its own error text when it will not send
+  to an address, and the send loop let that exception escape: the message
+  landed in the log and every later recipient was skipped. `notify` now
+  registers an `::add-mask::` for each address, webhook URL and unsubscribe
+  token before it sends anything, reports a failed send by position and error
+  code only, keeps sending to the rest, and still exits non-zero so the step
+  turns red. The sender address travels through the environment rather than
+  being expanded into the script text the log prints. Nothing had leaked: the
+  digest step's log for the daily runs from 2026-09-08 through 2026-09-18
+  shows counts and the sender address only, and the one email sent in that
+  window (2026-09-18) went through cleanly. The exposure was the next refused
+  address, not a past one. Tests cover the refusal, the masks-first ordering,
+  and a workflow lint on the step.
+
+- **The intraday refresh overlaps its waiting instead of timing out on it.**
+  The watchdog's bound check failed on 2026-09-18: Intraday refresh run
+  35316236534 took 160 of its 175 minutes. That run was the tail of four days
+  in which every refresh's publish was refused (fixed by #464), so no cycle
+  saved its liveness state and each one re-scored the same growing backlog
+  until the rescore deadline. Under it sat two serial steps that were mostly
+  waiting: the liveness sweep (44-45 minutes a cycle for ~1,500 due feeds)
+  and the rescore (48 minutes for 91 feeds in run 35345841643, of which 16.5
+  were validating and scoring). `scorecard liveness --workers` now checks
+  hosts side by side, one request per host at a time. The rescore loop moved
+  into `scorecard rescore`, which keeps four `scorecard run`s in flight that
+  take turns validating and scoring through a lock file (`worklock.py`), runs
+  a `large_feed` alone, and never overlaps two feeds that share a host.
+  Replaying eight measured cycles through it took their rescore from 33-94
+  minutes to 10-49. The 175-minute bound and the watchdog's 90% line are
+  unchanged. A feed the rescore defers to its deadline now has its liveness
+  record put back, so its next check reads it as changed; the old warning
+  said such feeds "stay due next cycle", and nothing re-scored them before the
+  next daily run.
+
+- **The secret scan skipped registry YAML entirely, so no rule could fire there (#371).**
+  `.gitleaks.toml` allowlisted `^registry/.*\.ya?ml$` by path, and gitleaks
+  skips a path-allowlisted file for every rule without reading it, so a rule
+  aimed at the registry reported nothing. The allowlist now matches the shape
+  of the line instead: the six YAML fields that hold a feed URL, which is where
+  all six public feed-URL keys the default rules find in `registry/` sit. A new
+  rule, `scorecard-fetch-auth-literal-secret`, refuses any `fetch_auth.secret`
+  value that is not a `SCORECARD_FEED_AUTH_` name. A full-tree scan is clean
+  before and after the change.
+
+- **Advance the AL2023 snapshot pin past 18 HIGH openssl CVEs (2026-09-16).**
+  Both Lambda images (`infra/compute`, `infra/instant-score`) `dnf upgrade`
+  against an immutable Amazon Linux 2023 repository snapshot GUID, pinned
+  rather than left floating so a CVE fix lands only when this repo deliberately
+  advances it (see the 2026-08-18 precedent in this file). The GUID last moved
+  on 2026-09-01; `container-scan.yml`'s Monday run found 18 HIGH CVEs
+  (CVE-2026-14457, CVE-2026-18798, CVE-2026-54874, CVE-2026-63072 through
+  CVE-2026-63076, and CVE-2026-75803, each once in `openssl-fips-provider-latest`
+  and once in `openssl-snapsafe-libs`) fixed in `1:3.5.8-1.amzn2023.0.1`, one
+  version past the pinned `1:3.5.7-2.amzn2023.0.2`. `AL2023_REPO_GUID` in both
+  Dockerfiles now points at the current snapshot from Amazon's mirror list
+  (`6ac5adb4...b0f869e`), verified directly before this change: its repodata
+  serves the fixed 0.1 openssl builds, and a `--platform linux/amd64` rebuild
+  of both images (matching the `ubuntu-latest` runner Trivy scans on) reproduced
+  the 18-finding baseline first, then confirmed `trivy image --severity
+  HIGH,CRITICAL --ignore-unfixed` reports 0 findings against the advanced pin,
+  with `rpm -q` in the built image showing both packages at `3.5.8-1.amzn2023.0.1`.
+  No change to `.trivyignore.yaml`: these were real, fixable CVEs, not false
+  positives.
+- **The embeddable grade badge's own text failed the AAA bar it visibly
+  claims to meet (2026-09-16).** `badge.py` writes `badge.svg` and `mark.svg`
+  as white text on a colored fill, and the site's merge-blocking contrast
+  gate (`check_contrast.py`, `make verify`) enforces AAA (7:1) on every other
+  text/background pair on the site. It never measured these two SVGs, because
+  they are Python-built strings, not CSS: grade C's white text measured
+  3.95:1 against its fill and grade D's 4.34:1, both below even AA (4.5:1);
+  grades A and B cleared AA (5.32:1, 5.04:1) but not AAA; only F passed. The
+  five grade colors and the unknown-grade fallback are now the closest shade
+  of the same hue that clears 7:1 (grade C: `#9a7d0a` to `#695607`; grade D:
+  `#b5651d` to `#834915`; similarly for A, B, and the fallback gray), and the
+  feed-status segment and the conformance mark now reuse those same checked
+  colors instead of carrying their own. `check_contrast.py` imports
+  `badge.py`'s color dicts directly and checks each against white, so a
+  future color change that drops back below 7:1 fails `make verify` instead
+  of shipping unmeasured.
+
+- **Two scheduled publish bounds that nothing measured (2026-09-13).**
+  `refresh.yml`'s `timeout-minutes: 240` sat above the job's own 180-minute
+  cron, and was argued from "~70 to ~137 minutes", a runtime written once and
+  then outgrown. The longest of 100 scheduled runs measured 2026-09-01..13 took
+  170.1 minutes. A bound above the cadence cannot mean "this run has lost its
+  schedule", because the serial `artifacts-publish` group has already queued the
+  next cycle. It is now 175: above every recorded run, below the cadence. The
+  comment says plainly what no number fixes: scheduled fires were as little as
+  114.2 minutes apart, and nothing sits under that and above a 154-minute run.
+  `scorecard.yml`'s `collect` took up to 56.7 of its 60 minutes (2026-07-28), and
+  a killed collect drops the day's publish. It is now 90, which is under the
+  tightest refresh gap, so one collect can hold back at most one refresh.
+  Watchdog gains "No scheduled publish job is running up against its own bound".
+  It reads each recent run's job duration, not its conclusion, and fails at 90%
+  of the bound, on a job killed at its bound, and on a reading that measured
+  nothing. `test_workflow_safety.py` holds both bounds between their measured
+  runtime and their ceiling, and holds the watchdog's copies of the bounds to
+  the workflows ([#390](https://github.com/ChelseaKR/gtfs-scorecard/issues/390)).
+- **A realtime monitor run whose push was rejected threw its observations away
+  (2026-09-13).** `rt-monitor.yml` samples every agency for over two hours and
+  commits at the end, so `main` has usually moved to another monitor run's
+  observations by then: the concurrency queue releases the next run within
+  seconds of this one's push, and that run's checkout can precede it. The retry
+  rebased, and a rebase cannot resolve this — both sides appended different
+  readings to the same per-agency records, so every file conflicted and the loop
+  ran `git rebase --abort; exit 1`. Measured over the 30 days to 2026-09-13,
+  that cost one scheduled run a day from 09-09 onward (the 03:31 UTC run, six
+  days running), each one a full three-hour sampling cycle for every agency,
+  and each one also reddening Watchdog's realtime check. The two runs are not in
+  disagreement, so the retry now unions the two histories by capture timestamp
+  (`pipeline/scripts/merge_rt_health.py`), recomputes each summary from the
+  merged list, caps it the way an append does, and re-commits. A record present
+  only on the other side is left alone, a shared timestamp keeps the published
+  copy, and a corrupt published record still refuses to be read as an empty
+  history.
+- **`/realtime/` and `api/v1/realtime.json` carried the build date where a data
+  date belongs (2026-09-13).** The only date either document held was
+  `generated_at`, written at every render, so a reader took it for when the
+  observations were current. They need not be: `rt-monitor.yml` recorded nothing
+  between 2026-09-05 and 2026-09-08 while both were rebuilt on the intraday
+  cadence and stamped with the build date. Each member already carried its own
+  `last_ts`; `rt_national.observed_vintage` now states it at the level a reader
+  looks at. The rollup gains an `observed` block — the newest, median and oldest
+  of the members' own last-observation dates — and the page carries the same
+  three dates in prose. A national rollup has as many vintages as it has
+  members, so all three are published rather than one: the newest alone would
+  hide a long tail of stale members behind one fresh one. No threshold is
+  introduced, matching the per-agency window that names the date it ends. Every
+  published date is a date a feed record was actually observed on — an even
+  count takes the older of the two middle dates rather than their mean. Members
+  recording no date are counted in `feed_records_undated` and named on the page,
+  not dropped from the denominator, and a corpus where nobody recorded a date
+  publishes nulls and says so rather than falling back to the build date
+  ([#389](https://github.com/ChelseaKR/gtfs-scorecard/issues/389)).
+- **The monthly dataset cut had one attempt a month, and 2026-09 spent it
+  (2026-09-13).** Run 33553673342 (2026-09-01) failed in "Assemble the release
+  bundle": `expected-latest-ids` and `actual-latest-ids` differed at line 294,
+  the index/latest straddle `pages.yml` now re-reads through. `dataset-2026-09`
+  does not exist, the citable release for that month was never cut, and nothing
+  said so — this workflow publishes no page and has no cadence to go stale
+  against, so a failed cut is invisible until somebody opens the Actions tab.
+  It now fires on days 1, 2 and 3, and a new `decide` job keeps a healthy month
+  at exactly one run by asking whether a run of this workflow started in this
+  month and succeeded. That question is deliberately not "does the tag exist":
+  the tag is written two thirds of the way through the job, so a run that
+  tagged and then failed to stage its release would read as done and never be
+  retried. An unreadable run history fails the guard rather than being turned
+  into an empty answer, and the release job is skipped outright on a spent
+  fire rather than started and short-circuited.
+- **`scorecard try` on a local zip wrote the machine's absolute path into the
+  files people forward (2026-09-13).** A single-feed run recorded a local feed
+  as `file:///…` of its resolved path, so a user name and a folder layout
+  landed in `feed.static_url` and `fetch.final_url` of the `--json-out`
+  artifact, in the JSON-LD of the `--html` scorecard, and in the terminal
+  summary — three of the six outputs a `try` can produce. Those are exactly the
+  files that get attached to a ticket or emailed to a vendor. A local feed is
+  now recorded by its file name only, the way `try --batch` and
+  `scorecard retest` already record one; the resolved path stays in the scratch
+  key, which is never published, so two feeds that share a name still cannot
+  overwrite each other's download. `tests/test_adhoc.py` now runs a `try` with
+  every output flag and searches all six for the path, its `file://` form and
+  its containing folder. Schema.org `isBasedOn` is omitted rather than filled
+  with a file name, since only a fetchable link belongs in a URL slot
+  ([#398](https://github.com/ChelseaKR/gtfs-scorecard/issues/398)).
+- **A Pages platform blip cost a whole publish cycle, twice in six days
+  (2026-09-13).** Neither loss came from anything this repository produced. Run
+  34245244731 (2026-09-08) uploaded all 204,351,632 bytes of the site artifact
+  and then failed on `Failed to FinalizeArtifact: ... (403) Forbidden`; run
+  34461157937 (2026-09-10) read `Current status: updating_pages` from a healthy
+  backend for the full 10 minutes `actions/deploy-pages` defaults to and then
+  *canceled its own deployment* (`Timeout reached, aborting!`). Both were
+  Intraday refresh deploys, so in both the refreshed data reached S3 and the
+  live site kept serving the previous generation until the next cycle three
+  hours later, with a red scheduled run to read. The upload is now attempted
+  twice — the first attempt tolerates its own failure so the second can run, and
+  the second carries no `continue-on-error`, so two failures still fail the job
+  — and the deploy waits 20 minutes, above the action's default and inside the
+  job's own 30-minute bound. `test_pages_deploy_resilience.py` holds that shape:
+  exactly one tolerated failure, a retry tied to the first attempt's outcome
+  that can itself fail, and a wait that stays shorter than the job containing
+  it.
+- **The delivery-breach rule could not read the type DynamoDB returns, so no
+  paid order has ever been reported as owing a refund (2026-09-13).**
+  `/bundle/` promises delivery within two business days "or the purchase is
+  refunded". `common.bundle_row` writes `deliver_by_epoch` as an `int`; boto3's
+  DynamoDB resource stores that as `{"N": "..."}` and hands it back as a
+  `decimal.Decimal`, for which `isinstance(value, int | float)` is `False`.
+  `deadline.is_breached` and `deadline.days_late` were written exactly that
+  way, so every real row read as one that had made no promise:
+  `deadline_breached` could never fire, the reconciler's issue title could
+  never escalate to `REFUND DUE`, and `scorecard program-refunds` printed "no
+  orders past the promise" however many there were. Every test passed, because
+  the table fakes hand back the Python object they were given. Both readers now
+  go through one `deadline.promised_epoch`, which takes any shape the field can
+  arrive as and refuses `bool` (an `int`, and `True` would breach on sight).
+- **The refund report named a day the buyer was never told (2026-09-13).**
+  `deadline_epoch` is the last second of the promised day in
+  America/Los_Angeles, which is the following morning in UTC, and
+  `program_refunds` read it back with `.date()` in UTC — so an order the buyer
+  was told was due Wednesday 16 September printed as "promised by 2026-09-17"
+  on the one document that settles whether that promise was kept. It now reads
+  back through `deadline.promised_day`, in the promise's own zone.
+- **The documented baseline example pinned a floating major, and it had `main`
+  red since it merged (2026-09-09).** `docs/ci-action.md`'s "Comparing against
+  a baseline" snippet read `uses: ChelseaKR/gtfs-scorecard@v1`. That section
+  arrived on a branch cut 28 minutes before the gate forbidding the floating
+  form landed, so it carried the older convention past a check that did not yet
+  exist when it was written. From the merge onward, three tests in
+  `pipeline/tests/test_documented_action_ref.py` failed on `main`
+  (`test_no_public_example_names_a_floating_major`,
+  `test_every_documented_ref_agrees`,
+  `test_the_documented_pin_has_a_changelog_entry`), and because the branch
+  protection here requires branches to be current with `main`, every open pull
+  request inherited the failure with nothing wrong in its own diff. Measured on
+  unmodified `main`: 3 failed, 4 passed on that file; with the pin corrected,
+  7 passed. The pin is `v1.4.0` and not the higher `1.5.0`, which has a
+  changelog section dated 2026-08-18 and no tag: it would satisfy the
+  changelog check and fail `test_the_documented_pin_is_a_tag_that_exists`.
+  The other three examples in the file were already pinned; only this one
+  was not.
+
+- **The weekly history secret scan could not fail on a credential that had
+  been revoked (2026-09-06).** `trufflehog.yml` ran `--results=verified`,
+  which reports a finding only when TruffleHog presents the credential to the
+  provider and the provider says it is live. A credential that leaked and was
+  then revoked answers "no", so it is filed under `unverified` and never under
+  `verified` -- and revocation is the normal end state of a real incident.
+  A sweep whose whole purpose is to find what was committed and later taken
+  back out therefore could not fail on the one case it exists for, and went
+  green for it every week. Measured on a throwaway clone with a real-shaped
+  AWS key planted in one commit and deleted in the next (present in history,
+  absent at HEAD, both confirmed first; the key was deliberately not AWS's
+  documented example, which is filtered under every tier): `--only-verified`,
+  `--results=verified` and `--results=verified,unknown` all exited 0 reporting
+  nothing, and `--results=verified,unknown,unverified` exited 183.
+
+  The job now runs two lanes over the full history. Lane 1 reports every tier
+  with `Lob,URI,AWSSessionKey,AzureSasToken,RailwayApp` excluded; lane 2 is the
+  previous gate unchanged -- verified results, every detector but Lob, over
+  every path -- under `if: ${{ !cancelled() }}`. The pair is a strict superset
+  of what the job checked before, which is what makes lane 1's four extra
+  exclusions free.
+
+  Those four are excluded because re-scanning all 931 commits of `main` under
+  the widened tier reported 34 unverified findings and no verified ones, and
+  every one is somebody else's fact or a synthetic fixture: 31 are presigned
+  download URLs recorded verbatim as `fetch.final_url` provenance under
+  `data/artifacts/` when the pipeline fetched a public feed from Japan's
+  open-data portals (`AWSAccessKeyId=ASIA...` on S3, `sig=...` on Azure Blob
+  with SAS windows as short as two minutes, plus feed UUIDs RailwayApp reads as
+  tokens), and 3 are synthetic `example.org` DSNs in `pipeline/tests/`. Path
+  exclusion was rejected again, on ADR 0044's reasoning.
+
+  Neither step had a `version:` input. That input selects the image that scans
+  (`ghcr.io/trufflesecurity/trufflehog:${VERSION}`) and defaults to `latest`,
+  so the `uses:` SHA pinned only the wrapper: the gate was pinned at v3.95.8
+  and running whatever upstream had published most recently. The ref is
+  resolved **forward** to v3.97.1 and both lanes pin `version: "3.97.1"`, so
+  nothing is downgraded.
+
+  `pipeline/tests/test_trufflehog_workflow.py` holds the tier contract, the
+  pin contract, `fetch-depth: 0`, the scan root, and the property that every
+  detector lane 1 excludes stays armed in lane 2. Run against the pre-change
+  workflow it fails four of its six assertions. Rationale and the full finding
+  table: `docs/decisions/0053-secret-scan-reports-every-result-tier.md`;
+  the SEC-19 declaration is updated in `docs/standards-conformance-gaps.md`.
+
+- **A connection reset while downloading a scanner failed a required check
+  before anything was scanned (2026-09-11).** `security.yml` fetches the
+  gitleaks release and `container-scan.yml` fetches the validator jar with
+  `curl --retry 3`, and curl retries only what it counts as transient: a
+  timeout, an FTP 4xx, or HTTP 408, 429, 500, 502, 503 or 504. A TLS
+  connection reset (exit 35) is none of those. On PR #395 that failed
+  `Secret scan (gitleaks)`, one of the 15 required checks on `main`, on the
+  first attempt and before gitleaks ran, so a merge would have waited on a
+  manual re-run. All three `curl --retry` commands in `.github/workflows/`
+  (the third is `otp-qa.yml`'s feed download) now also pass
+  `--retry-all-errors`, and `test_workflow_download_retry.py` holds that for
+  every workflow.
+
+### Removed
+
+- **The committed `web/dataset.csv`, a frozen 2026-07-10 copy.** Data commits
+  stopped at the S3 cutover (ADR 0002, ADR 0030); since then `render-site`
+  writes `dataset.csv` in the Pages, a11y and e2e jobs from the S3 artifacts,
+  and the deployed file is current (2,477 rows dated 2026-10-02 on
+  2026-10-01). The repository copy still listed 1,128 rows, the retired `mta`
+  Metro-North record, and NJ Transit's bare "Bus" and "Rail" names, so it
+  misled anyone who read the checkout as the dataset. Nothing reads it from a
+  checkout: the dataset release reads the Pages artifact or the deployed
+  site, and the tests render into a temporary root. It is now ignored so a
+  local render does not add it back.
+
+### Added
+
+- **Coverage for the delivery pipeline behind `/bundle/`, measured rather than
+  asserted (2026-09-13).** The purchase page is well covered; the machinery
+  that has to turn a payment into an archive was not covered to the same
+  standard, and that is where the money goes. Each behavior was measured by
+  sabotaging the property and running the suite, which found four things no
+  test could see: the breach rule's blindness to DynamoDB's number type and the
+  refund report's off-by-a-day date (both in Fixed above); an entitlement row
+  carrying nobody's email address, which would have granted its cap to whoever
+  asked and cost a Stripe call to settle; and three `scan` loops — the
+  reconciler's, the entitlement read's and the weekly refresh's — none of which
+  had ever been made to follow a `LastEvaluatedKey`, so a bundles table past one
+  DynamoDB page would have silently stopped reporting undelivered orders,
+  refused real buyers, and stopped refreshing paying subscribers.
+  New tests also pin the ambiguous dispatch failure (a socket that timed out
+  after GitHub queued the run: one capability row, one claim, one archive key,
+  one run group, one unmoved promise), that a subscription refresh writes no
+  `deliver_by_epoch` and so cannot breach a date nobody quoted it, that an
+  agency id refused by the character rule is named to the buyer and leaves the
+  checkout unclaimed so the same one can be corrected and resent, and the two
+  legs that carry the promised date into the buyer's delivery email — the
+  workflow step and the email body — neither of which had been checked at all.
+- **The table fake now evaluates what it is asked, not just what it holds
+  (2026-09-13).** `FakeTable.scan` ignored `FilterExpression` and returned every
+  row in one page, so the DynamoDB-side filter in
+  `setup_handler._purchase_rows` was unexaminable: narrowing it to `session#`
+  alone — which in production stops a refresh ever finding a bundle recorded
+  only by the webhook, the exact case the entitlement rule exists to serve —
+  left all 169 tests green. The fake now evaluates the filter (the condition
+  parser grew `begins_with`) and can page, and that one repair turned nine
+  existing tests into checks of the filter they had always been about.
+- **A contract for `/bundle/plan.json`, and checks that read what the page
+  actually renders (2026-09-12).** `/bundle/` started taking real money the day
+  the payment rail was turned on, and the only gate with new exposure was the
+  `axe` accessibility scan. `web/src/bundle.js` builds the price lines and the
+  "Buy through Stripe" controls client-side out of `web/bundle/plan.json`, so
+  the served HTML carries no price and no link, and nothing static can see a
+  malformed plan. A `null` `checkout_url`, a test-mode Payment Link, an
+  interval on a one-off bundle, a fifth product nothing on Stripe backs, or
+  `paymentsAvailable: true` over any of those, all shipped green on the one
+  page that charges a card.
+
+  `web/schemas/program-bundle-plan.schema.json` closes the document: exactly
+  the four product keys `bundle_25`, `bundle_100`, `refresh_mo` and
+  `refresh_yr`; `interval` pinned to `null`, `"month"` and `"year"` per key so
+  a swap cannot advertise a cadence the Stripe price does not charge;
+  `checkout_url` restricted to a `https://buy.stripe.com/` Payment Link that is
+  not a test-mode one; and a conditional making `paymentsAvailable: true` a
+  claim about every product, each of which must then carry a numeric price and
+  a non-null link. It uses no `format` keyword, and a test keeps it that way:
+  `format` is an annotation unless the validator was built with a
+  `format_checker`, and a contract that looks enforced and is not is worse than
+  none. The live file validates unchanged.
+
+  The prices stay hand-written in three places — the table in
+  `docs/program-plan.md`, the cents constants in `scripts/stripe-setup.sh`, and
+  the dollars in `plan.json` — and their *agreement* is what is gated, in
+  `pipeline/tests/test_bundle_plan_contract.py`. None of the three is
+  downstream of another; the authoritative price lives in the Stripe account,
+  which no offline gate can read. Deriving one from another would delete the
+  transcription error the check exists to catch, and would empty the document's
+  own argument, which is the rule `docs/lint-complexity-ratchet.md` already
+  sets for a hand-maintained number carrying a human justification. The cents
+  constant is bound to a product through the `prices create` line that spends
+  it, so pointing `BUNDLE_25_CENTS` at the 100-agency price is a disagreement
+  the check can see, and each of the three readers asserts it found all four
+  keys before anything is compared.
+
+  `pipeline/tests/e2e/test_bundle_checkout.py` asserts the rendered DOM in all
+  three states the renderer has: four buy controls with `buy.stripe.com` hrefs
+  and each card printing its own plan's price when payments are on; four cards
+  reading "Not yet available" and no buy control when they are off; and no card
+  at all, under an announced error, when the plan cannot be read. Expectations
+  are read from the same `plan.json` the page reads, so a price change moves
+  the page and the test together.
+
+  `site-budgets.json` now lists `bundle/index.html` and
+  `bundle/setup/index.html` as `required` pages. Both were covered only by the
+  `**/index.html` pattern at 3,407,872 bytes, a ceiling over three hundred
+  times their size that matches whatever files happen to be present — so a
+  deploy that dropped the page taking the money, or the page Stripe redirects
+  the buyer to afterwards, passed every gate in the repository. A missing
+  `required` page exits 2 and always blocks.
+
+  `/bundle/` was deliberately **not** added to `lighthouserc.routes.json`;
+  `docs/follow-ups.md` records why and what would change the answer.
+
+- **`scorecard retest`: check a new export against an evidence packet
+  (#366).** `scorecard retest PACKET FEED --country CC` scores the feed the
+  way `scorecard try` does and reports each packet finding as cleared, still
+  present, or not comparable, in a record carrying both feed hashes and both
+  producer contracts (`--json-out`, `--markdown-out`). Exit 0 when every
+  finding is cleared, 1 when any is still present, 2 when it could not judge.
+  The packet is validated before anything is fetched. A different rubric,
+  scoring profile, validator or reader archive profile makes every finding not
+  comparable; a category the retest did not measure makes only its own
+  finding not comparable.
+
+  Building it found the packet's acceptance test passing on unchanged bytes.
+  Over the committed `data/artifacts` snapshot (2,496 packets, 7,412 work
+  items), 8 work items name a notice raised with a count of 0, such as "0 of
+  0 stops don't say whether a wheelchair user can board there", and
+  `acceptance_test_passes` compared that count with the expected 0 and
+  passed. It now requires the notice to be absent, which is what the packet's
+  own method text says. The Action input and the closure receipt are not
+  part of this change.
+
+- **Five more MCP tools, and three things they refuse to say (2026-09-06).**
+  `scorecard-mcp` exposed search, one scorecard, and coverage stats; the
+  question `docs/mcp.md` opens with — *"why did my grade drop and what do I tell
+  my vendor"* — needed history, the fix knowledge base, and packets, so
+  `get_history`, `explain_finding`, `get_rollup`, `get_evidence_packet` and
+  `coverage_for` are added. Still read-only, still stdlib-only, still no
+  language model anywhere in the server. The refusals are carried in the
+  payloads rather than in the docs, because an assistant paraphrases what it is
+  handed and a caveat that is not in the data does not survive the paraphrase:
+  `get_history` marks every measurement-contract boundary and makes no change
+  claim across one, returning a stated reason rather than an empty change list
+  so "nothing moved" cannot be read off a refusal; `explain_finding` returns the
+  rule link alone for a code with no written recipe, deliberately not the
+  generated fallback wording that is honest beside a real count on a scorecard
+  page but would be a made-up sentence handed to an assistant as knowledge, and
+  an unrecognized producing tool gets no guidance and a list of the keys that
+  are recognized rather than the nearest vendor's name; and `coverage_for`
+  reports an untracked place as not covered rather than as zero feeds, because
+  "this scorecard tracks nothing here" and "there is nothing here" are different
+  statements. Every response is bounded and says so (`returned`, `available`,
+  `truncated`). `call_tool` now dispatches through a table, and a test asserts
+  that table and the advertised `TOOLS` name the same set. Closes #369.
+
+- **Workspace history: `scorecard try --history DIR` and `scorecard trend`
+  (#362).** A feed that is not in the public registry can now keep a private
+  history. Each `try --history` run appends one record to
+  `DIR/<feed>/history.jsonl`, counts and codes only, in the published
+  `workspace-history.schema.json` shape, and `scorecard trend --history DIR`
+  renders it as text, Markdown or a self-contained HTML file, with the alerts
+  `scorecard alerts` would raise for a registered feed. Both call one
+  function, `alerts.feed_alert_items`, which `build_digest` now uses for every
+  registered feed, so the two cannot drift apart. A record measured
+  differently from the one before it is shown as a boundary and never
+  compared, a line the history cannot read is skipped and named, and a run is
+  refused rather than added to a folder that already holds a different feed.
+  The Action gains a `history-path` input on `main`; it is not in `v1.4.0`.
+  `--history` records one feed, so `try --batch` refuses it alongside the
+  other single-feed options. That refusal is added here rather than with the
+  batch verb because the two landed in the same week and neither list could
+  name a flag the other branch had not merged yet: measured on the merge of
+  the two, `try --batch … --history DIR` was accepted and wrote no history at
+  all, and no test failed.
+
 - **Program report bundle, built and not launched (2026-09-01).** The
   program tier the sustainability plan allows (gtfs-scorecard-plans/07:
   agency-facing stays free; only tools for the people who manage many
@@ -36,7 +1237,7 @@ the declared public surface).
   closed. `scorecard bundle` renders one program's branded board reports for
   a cohort of up to 100 agencies as one archive with a manifest that names
   every id asked for and what happened to it; `report-bundle.yml` is the
-  on-demand fulfilment; `infra/program-bundle` (written, not applied) is the
+  on-demand fulfillment; `infra/program-bundle` (written, not applied) is the
   post-checkout form, the capability download route, the Stripe webhook, and
   the weekly refresh, with plan-failing preconditions that keep
   `payments_enabled` at "0" until the Stripe configuration is complete;
@@ -46,10 +1247,39 @@ the declared public surface).
   the "named user at the table" the plan required before building this
   tier. The runbook and the day-90 gate are in `docs/program-plan.md`.
 
+- **`scorecard explain`: the arithmetic behind a published grade (#364).** A
+  reader who wants to contest a score can now see every step that produced it
+  rather than reading `score.py`. `scorecard explain ARTIFACT
+  [--format text|markdown|json]` reads one artifact and prints each category's
+  published score, the line items behind it, the rubric weight and the weight
+  actually applied after renormalization, each category's contribution, the
+  total, the published rounding, and the grade band edges. It is pure: no
+  fetch, no rescoring, and no published value changes.
+
+  Two refusals rather than approximations. An artifact from a rubric version
+  this build has no constants for is refused with exit 2 instead of being
+  scored with today's constants, and a leftover the trail cannot attribute to
+  a documented cause is printed as `unexplained` instead of being rounded
+  away. Exit 2 also covers an unreadable file, keeping "could not judge"
+  distinct from a real disagreement.
+
+  Writing it measured something worth recording. Over the 2,166 rubric-1.3
+  artifacts in `data/artifacts` carrying a measured category, 36 (1.66%) have
+  an `overall.score` that cannot be reproduced by applying the published
+  weights to the published category scores: the pipeline weights the unrounded
+  category scores while the artifact publishes them rounded to one decimal.
+  None of those 36 crosses a grade band. Counting the 320 artifacts still on
+  rubric 1.1 as well, the figure is 45 of 2,494, and one of those does cross a
+  band — `cape-ann-transportation-authority-cata-447` publishes 80.0 and a B
+  where the published category scores give 79.9, a C. `explain` reports the
+  gap wherever it occurs and names the cause; whether the overall should
+  instead be derived from the published category scores is a scoring decision
+  and is not taken here.
+
 - **14 French feed records from the rentrée recheck pass (2026-09-01).** The
   2026-08-30 exhaustion left 100 candidates excluded only for short
   calendars. Two days later, fourteen had refreshed past the 60-day gate and
-  passed the same licence, identity, validator, and calendar path — SETRAM
+  passed the same license, identity, validator, and calendar path — SETRAM
   (Le Mans bus and tramway) and Linead (Dreux) among them, plus five Tarn
   networks from the Gaillac-Graulhet agglomeration. Saint-Sulpice-la-Pointe
   went from zero days of remaining service to 304 across those two days,
@@ -59,11 +1289,26 @@ the declared public surface).
   calendars as September exports land; the registry moves to 2,275 records
   and the European sample to 618. The pass log is in `docs/feeds.md`.
 
+- **`scorecard try --batch`: score a CSV of untracked feeds into a private
+  cohort rollup (#363).** `scorecard try --batch feeds.csv --out DIR` scores
+  each row the way `scorecard try` scores one feed, writes each scorecard as
+  JSON and HTML, and writes one rollup as Markdown, HTML and CSV: every feed
+  in CSV order, the feeds whose service ends within 30 days or has ended, the
+  fixes shared across the cohort (counted by the published rollup's own
+  function, now `rollups.count_shared_fixes`), and the campaign worklists,
+  which omit grades. The CSV contract is published at
+  `/schemas/batch-feeds.schema.json` and is checked before anything is
+  fetched. A feed that cannot be fetched or read is a row with its reason,
+  never a grade, and makes the run exit non-zero only with `--strict`. A
+  local feed is recorded by file name only, and the same CSV with the same
+  `--date` gives byte-identical files. Nothing is published and nothing
+  enters the registry.
+
 - **76 reviewed French feed records from a second National Access Point
   exhaustion pass (2026-08-30).** Five weeks after the July exhaustion, the
   transport.data.gouv.fr API snapshot yielded 206 still-untracked datasets
   under Licence Ouverte 2.0 or ODbL. Every admission passed the same gates as
-  the first pass: portal licence and named legal-owner attribution recorded as
+  the first pass: portal license and named legal-owner attribution recorded as
   reuse evidence, identity review against the tracked registry, the pinned
   canonical MobilityData validator and complete scorecard path, and at least
   60 days of effective service. The pass adds records in twelve metropolitan
@@ -82,6 +1327,76 @@ the declared public surface).
   is now about 56% of it, further above the European beta gate's 40%
   largest-country ceiling, which that gate continues to report honestly as
   unmet.
+
+- **An OpenAPI 3.1 description of the static read API (part of #370).**
+  `web/api/v1/openapi.yaml`, which `pages.yml` already copies to
+  `/api/v1/openapi.yaml` with the rest of `web/`, describes 51 paths: the 46
+  in `docs/api.md`'s two endpoint tables and the 5 its prose names. Each is a
+  `GET` of a static file. The 9 operations with a published JSON Schema
+  reference it; the rest say only that the response is a JSON object and leave
+  `docs/api.md` as the contract for their fields, rather than carrying a schema
+  written for the occasion. The one server entry is relative, so a fork's copy
+  describes the fork.
+
+  Nothing generates the file, so `tests/test_openapi_contract.py` is what keeps
+  it true. It checks the document against the official OpenAPI 3.1
+  meta-schema, vendored and pinned by digest, and holds it to `docs/api.md` in
+  both directions with a floor under each. It resolves 45 of the 51 paths to a
+  file in the golden site and names why the other 6 cannot be there, a list
+  that must equal the unresolved set. It also validates each schema-backed
+  path's golden file against the schema the description names, so a reference
+  to the wrong schema fails. The PyPI and npm clients #370 also asks for need a
+  publishing credential and are not part of this change.
+
+  Writing it corrected two places where `docs/api.md` put a path under the
+  wrong base. `catalog.json` and `catalog.csv` are served from the site root,
+  and their `data/artifacts/` paths return 404. The Atom feed is at
+  `/changes/feed.xml`, and the artifact base does not serve it either. The
+  schema row now lists all eight published schemas rather than four.
+
+- **`scorecard diff`, and an Action baseline that fails closed
+  (2026-09-06).** `scorecard diff OLD NEW` compares any two scorecard
+  artifacts — file paths, `https` URLs, or `agency@YYYY-MM-DD` /
+  `agency@latest` — and decides whether the pair is the same measurement
+  before it reports anything. Two artifacts that disagree on rubric version,
+  scoring profile, validator version, reader archive profile, or measured
+  category set are different measurements, so the difference between them is
+  not a statement about the feed: the command says `NOT COMPARABLE`, names
+  the field, and its JSON carries no `overall` and no `findings` object at
+  all, because an empty findings object reads as "nothing changed". A field an
+  artifact does not state is not read as agreement. Exit codes are `0` no
+  regression, `1` regressed, `2` not comparable, and `3` an operand could not
+  be read — `3` kept apart because "I never got one of them" is not a verdict
+  about two artifacts, and a gate that files a broken input under the feed's
+  methodology is reporting a fabricated cause. The Marketplace Action gains
+  `baseline` and `fail-on-regression` inputs plus `comparable` and
+  `regressed` outputs; an unreadable baseline fails the build whatever
+  `fail-on-regression` says, and a non-comparable pair fails a regression gate
+  rather than passing it. Alongside it, `feeddiff.diff_artifacts` no longer
+  reports a finding as *cleared* when the category it lived in simply stopped
+  being measured; those are listed as not measured, because nobody looked at
+  them, which is not the same as their being fixed. Closes #361.
+
+- **SARIF output, and a refused feed that does not look clean in it
+  (2026-09-06).** `scorecard try --sarif out.sarif` writes the validator's
+  notices as SARIF 2.1.0, and the Action gains `sarif` and `sarif-base` inputs
+  plus a `sarif` output, so a maintainer who keeps GTFS in git sees each notice
+  as a code-scanning alert annotated on the line in `stops.txt` or `trips.txt`.
+  Rule metadata carries the plain-language `what`/`why` the scorecard page shows
+  and the `helpUri` from `rule_links.py`, so the Security tab says the same
+  thing the site says rather than repeating a rule id. Three deliberate
+  properties: one result per notice **code**, carrying the true instance total
+  and saying how many of them it could locate, because the validator samples its
+  examples and emitting one result per sampled row would publish "5 problems"
+  about a code with 23 instances; fingerprints built from the code, file, field
+  and first row but **not** the count, so a partly-fixed finding stays the same
+  alert instead of resurfacing as a new one; and a feed that could not be read
+  writes an `executionSuccessful: false` invocation with the reason attached
+  rather than an empty successful run — SARIF has no shape for "I did not run",
+  and an empty `results` array renders exactly like a feed with nothing wrong.
+  `cli.run_adhoc_detailed` was split out to carry the parsed validator report
+  alongside the artifact: the per-notice file and row samples exist only there,
+  because `build_artifact` aggregates each code to a count. Closes #368.
 
 ### Changed
 
@@ -103,6 +1418,358 @@ the declared public surface).
   build instead of waiting for a reader.
 
 ### Fixed
+
+- **The realtime monitor had been killed by its own timeout on every run
+  since 2026-09-05, and nothing said so.** `rt-monitor.yml` was given
+  `timeout-minutes: 45` by the portfolio-wide job-timeout pass, without that
+  number being measured against this job. It has never been achievable: the
+  sampling burst walks every configured realtime endpoint in turn, so the run
+  grows with the registry, and its own history reads 116.8 minutes at the
+  shortest (2026-08-30) and 162.9 at the longest (2026-09-05). Every
+  scheduled run since was stopped part-way through `Sample realtime feeds`,
+  `Commit observations` was skipped, and no observation was recorded:
+  `data/rt-health`'s newest commit is 2026-09-05 and the eleven runs after it
+  are eleven of eleven `cancelled`. That conclusion is the reason it went
+  unnoticed — GitHub records a job hitting its own bound as `cancelled`, not
+  as `timed_out` or `failure`, and a canceled run reads as no verdict rather
+  than as a broken one. The bound is now 170 minutes, above every run this
+  workflow has recorded and below its own 180-minute cron interval, which is
+  the real ceiling because the concurrency group is serial. `Watchdog` now
+  asks the same question about the realtime monitor that it already asks
+  about the daily run, and both questions now count `cancelled` as an answer.
+  The runtime is not flat — 117 to 163 minutes in six days — so the next
+  decision is whether to shard the burst or lengthen the cron, and that is
+  the owner's.
+
+- **`boxcar`'s published C is withdrawn; the reason it was held back was not
+  true of the code it was written beside.** The 2026-09-05 withdrawal left three
+  grades standing under `not_yet_corrected`, and `boxcar` was held back on the
+  stated ground that its 89 calendar rows make freshness a genuine measurement,
+  that `score_feed_content` therefore does not refuse the feed, and that
+  withdrawing the C would let the next run publish an A for a feed with no stops,
+  no routes and no trips. Checked on 2026-09-06 against the same commit: it does
+  refuse. `FeedDates.has_service_content` had already landed four days earlier
+  (2026-09-02) and gates freshness on stops and trips, not on calendars — the
+  `freshness` docstring names this exact feed as the case it was added for. So no
+  run could publish an A here, or anything else; the scoring decision the
+  hold-back was waiting on had already shipped, and only the withdrawal was
+  outstanding. Because the scorer refuses the archive it writes no artifact, so
+  the stale letter would have stood indefinitely — the same permanence the
+  nineteen withdrawals were about. What was published is worth naming: the same
+  feed scored D (70.0) on 2026-07-10 with 84 stops and 94 trips, and on
+  2026-08-06 its tables emptied and the grade went **up**, to C (73.0), because an
+  archive with nothing in it gives the deduction rules almost nothing to deduct
+  for. Re-fetched from the agency's own URL on 2026-09-06 to confirm the archive
+  is still header-only (HTTP 200, 5,544 bytes). `corrections.yaml` carries the
+  entry with its evidence, the current pointers and the `index.json` entry are
+  removed, and the 23 dated artifacts are kept, so a run that reads a real feed
+  here supersedes the withdrawal on its own. A regression test now pins the
+  refusal against `boxcar`'s exact archive shape — 89 calendar rows and a valid
+  `feed_info` window over header-only tables. The existing refusal test could not
+  have caught the false claim: it uses a zip with no GTFS members at all, which
+  trips `has_date_tables` and `has_service_content` together and so says nothing
+  about the combination that actually reached the public site.
+
+- **`scorecard lint` reported and never said whether it passed.**
+  `docs/add-your-agency.md` sends a first-time contributor to
+  `uv run scorecard lint --strict` and tells them a green result there means a
+  green check on their pull request. There was no green result to see. The two
+  advisory kinds, `non_https_url` and `missing_mdb_id`, stand at well over a
+  thousand rows across the whole registry, so adding one correct entry printed
+  a screenful of tab-separated lines about other people's agencies and then
+  exited 0 in silence. The summary that would have explained it went to
+  `log.info`, which the CLI does not display, so the only signal was an exit
+  status nobody reads. Walked from a clean checkout: every malformed entry the
+  document names does fail with exactly the one line it promises, so the failure
+  path was already right and only the success path said nothing. The report is
+  unchanged and still goes to stdout, one row per issue, so anything parsing it
+  is unaffected; the verdict now goes to stderr, naming the counts by kind and
+  either `PASSED --strict`, the blocking kinds when it failed, or that a run
+  without `--strict` is advisory and not the gate. The walkthrough shows what a
+  passing run looks like instead of implying it looks like nothing.
+
+- **"Over the last N days" was a claim about now, from a window that need not
+  end now.** Every agency page with a realtime record carries a "Realtime
+  reliability" section reading "the realtime feed responded on X% of N checks
+  over the last D days". `D` is the span between the oldest and newest recorded
+  observation; the page is rebuilt on the intraday cadence whether or not the
+  monitor recorded anything. So a monitor that stops leaves the sentence
+  standing, on a page dated today, about a window that closed whenever the last
+  observation landed. It is not hypothetical: `rt-monitor.yml` recorded nothing
+  between 2026-09-05 and 2026-09-08, and this repository's own committed golden
+  renders "over the last 9 days" for a record whose newest observation is
+  2026-07-01. The window now names the day it ends -- "in the 9 days to
+  2026-07-01" -- and the fineprint says the window belongs to the record rather
+  than to the build. A single observation is dated instead of being given no
+  time reference at all, which is what it had. Naming the end date needs no
+  staleness threshold and reads no clock, so it cannot drift and there is no
+  judgment in it to get wrong.
+
+- **Nineteen published F grades have been withdrawn, and the site now says so.**
+  The refusal that shipped on 2026-09-01 stopped the scorer minting a grade for
+  an archive it could not read. It did nothing about the ones already published,
+  and it made them permanent: a refused agency writes no artifact, so the daily
+  run leaves the old letter exactly where it was and warns into a log. Nineteen
+  named transit agencies stayed publicly graded F on feeds nobody had read, and
+  twelve of the nineteen are in no registry at all, so no run would ever have
+  looked at them again.
+
+  The cause was established per feed rather than assumed. Eleven of the nineteen
+  carry the validator's own `invalid_input_files_in_subfolder` notice in their
+  published artifact: the archive wraps its GTFS tables in a folder and the
+  reader looked at the top level. Several of those are healthy feeds.
+  `santa-clarita-transit` was graded F on an archive holding 364 stops and 898
+  trips; `miami-dade-transit-331` on one holding 6,973 stops and 24,285 trips.
+  The other eight are archives that really do describe no service, confirmed by
+  re-reading the same bytes where the feed is still reachable.
+
+  `corrections.yaml` is the reviewed record: for each withdrawn grade, the
+  agency, the snapshot and feed hash it was computed from, what was published,
+  the period it was public, the verified cause, the evidence, and what stands in
+  its place. Neither outcome is a number. A grade taken back because nothing was
+  read is not corrected to a different reading of the same nothing; where the
+  feed cannot be read the answer is that it is not measured, and where the
+  record is no longer a current listing the scorecard is withdrawn and not
+  replaced. A later run that does read the feed supersedes the withdrawal on its
+  own and publishes its own measurement.
+
+  Deleting the files would not have held. `publish.reindex` re-derives
+  `latest.json` from the newest dated artifact beside it, so a retraction made by
+  hand comes back on the next run. The withdrawal is enforced in the pipeline:
+  reindex removes the current pointers, keeps the id out of the index, and folds
+  it into the same S3 deletion plan retirement already uses, and `publish`
+  refuses to write a current pointer for a record the file withdraws. Dated
+  artifacts are untouched.
+
+  A new `/corrections/` page carries the public record, linked from
+  `/how-to-read/` and documented in `docs/listing-policy.md`. Three more
+  published grades carry the same defect and are listed in the same file under
+  `not_yet_corrected` with the reason each is held back, so the gate cannot be
+  satisfied by narrowing what it looks at. One of them, `boxcar`, needs a
+  scoring decision first: its archive has no stops, no routes and no trips, but
+  its calendar has 89 real rows, so freshness is a genuine measurement and
+  `score_feed_content` does not refuse the feed. The next run would publish an A.
+
+- **Ten workflows canceled the previous commit's CI run on every push to `main`.**
+  Each was keyed `<name>-${{ github.ref }}` with `cancel-in-progress: true`. On a pull
+  request `github.ref` is `refs/pull/N/merge`, so that cancels superseded runs of the
+  same pull request, which is the intent and the saving. On a push it is
+  `refs/heads/main` for *every* commit, so two pushes in quick succession shared one
+  group and the second canceled the first outright. Flipping `cancel-in-progress` to
+  `false` does not fix it and is the trap worth naming: the second run then queues, and a
+  third evicts the queued one from the pending slot. Both roads end at a commit on `main`
+  whose only check-run is `cancelled`. Two commits reached `main` that way on 2026-09-06.
+
+  What makes it worse than a missing tick is that `cancelled` is *no signal at all* — not
+  a pass, not a failure — and it renders in `gh run list` beside real conclusions, so a
+  reader reconstructing whether a commit was ever tested gets a confident wrong answer in
+  either direction. A push is now grouped by its own `github.sha` and cancels nothing:
+  one commit, one verdict. Pull-request cancellation is unchanged.
+
+  Affected: `a11y`, `ci`, `codeql`, `container-scan`, `e2e`, `iac`, `links`,
+  `openssf-scorecard`, `security`, `standards-pin`. `codeql` has no `push` trigger today
+  (CICD §11e) but carried the same key and is fixed with the rest, so the defect cannot
+  come back with the trigger. Fixed-name groups — `artifacts-publish`, `pages`,
+  `rt-monitor` and the other publish serializers — are deliberately untouched: queueing is
+  the point of those. `tests/test_workflow_concurrency.py` holds the rule, and was checked
+  by putting the defect back and watching it fail.
+
+- **A stops.txt with classic-Mac line endings read as a feed describing no
+  service.** `gtfs._has_data_row` decides `FeedDates.has_service_content`, the
+  flag that says whether an archive describes any service at all, and it read
+  the table as raw bytes. Iterating bytes splits on `\n` only, so a table whose
+  rows end in a bare carriage return is one long line: the header consumed the
+  whole file, nothing was left to be a data row, and an archive carrying stops
+  published `has_service_content: false`. It now decodes through a
+  `TextIOWrapper` with `encoding="utf-8-sig"` and `newline=""`, the same
+  decoding `_read_table` and `iter_table_rows` already use, so CR, LF and CRLF
+  all split into rows and a UTF-8 BOM is stripped rather than counted as
+  content. Reported and fixed by @ghzhost in #336; the regression test is the
+  carriage-return case, with the BOM cases kept and labeled as passing either
+  way.
+
+- **Six more places where an absence was published as a number.** The same
+  defect as the validator-report fix below, found in six other measurements the
+  site publishes. In each one a value that means "we could not measure this"
+  was written where a measured value goes, so a reader cannot tell the two
+  apart. None of them invented a new vocabulary: every fix reuses the
+  not-measured convention the project already has.
+
+  - **A realtime fetch that failed inside our own fetcher was published as the
+    agency's outage.** `rt.fetch_sample` caught every exception into
+    `ok=False`, and that flag is not neutral: it becomes an ERROR finding on the
+    agency's page, a deduction from their realtime score, and a "down" reading
+    in the uptime record `/realtime/` publishes. Our SSRF guard refusing a URL,
+    and any unexpected exception in our own code, were published under an
+    agency's name as "your feed is down". `rt.measures_the_endpoint` now decides
+    whose failure it was. A `requests` failure, `UnresolvableHostError` (which
+    `net.py` already classifies as an origin availability failure) and a body
+    that is not a parseable GTFS-Realtime protobuf remain the agency's outage.
+    Everything else marks the sample not measured; the feed kind drops out of
+    reachability and the rest renormalize, and a window with nothing measurable
+    in it publishes no realtime category and records no uptime observation. A
+    configured feed kind with no sample record at all keeps its deliberate
+    fail-closed reading.
+
+  - **A feed with no trips was failing the NTD shapes check rather than
+    unmeasurable by it.** `assess_shapes_readiness` answered `not_ready` when
+    `trips.txt` has no rows, while its own detail line beside it said the
+    coverage could not be checked. The prose was right and the status was not: a
+    stops-only feed sat in the failing bucket of `pct_ready` on every NTD rollup
+    and wore a "Not ready" badge. `NOT_CHECKED` already existed for exactly
+    this — with a rendered label, a badge class, and a deliberate absence from
+    `_RANK`, where membership is what "we measured it" means — and is now used.
+
+  - **A recommendation check that crashed read as a clean bill of health.**
+    `recommend._safe` returned `[]` for a crash, which is the value a check
+    returns when it ran and found nothing to suggest. An accessibility audit
+    that died on a malformed table published the same page as a feed with no
+    accessibility gaps at all. The sandbox stays — one broken table must not
+    cost an agency its score — but `_safe` now returns `None`, the artifact
+    carries `recommendations_not_measured` when a check could not run, and both
+    renderers say so instead of falling silent.
+
+  - **A liveness record that says nothing was counted as a healthy feed.**
+    `refresh_success_record` read `int(record.get("consecutive_failures") or 0)`,
+    so a record missing the field, or carrying null, or carrying anything that
+    is not a count, read as a zero-failure record and joined the numerator of
+    the public uptime figure on `/status/` and in `api/v1/status.json`. Only a
+    non-negative int is a streak now; the rest are reported under a new
+    `not_measured` field and leave the share's denominator, and the page names
+    the denominator it used.
+
+  - **A ridership impact with no weighted trips published a 0.0% expired
+    share.** `expired_trips_pct` returned 0.0 on a zero denominator, one line
+    above `weighted_average_score`, which returns `None` on the same
+    denominator. 0.0% reads as the best possible answer — none of these trips
+    ride on an expired feed — where the truth was that there were no trips to
+    take a share of. Both are absent together now.
+
+  - **An empty findings corpus reported 100% plain-language coverage.**
+    `plain_language_coverage` returned 100.0 for a share with no denominator and
+    called it vacuously fully covered. 100.0 is the number a fully curated
+    corpus earns, and `scorecard coverage --save` writes this figure to
+    `coverage-baseline.json` as the bar every later week is measured against, so
+    the first real reading would land as a drop from a number nobody took. Both
+    shares are `None` when there is nothing to divide by, `--save` refuses to
+    overwrite a real baseline with an unmeasured one, and the regression check
+    reports nothing when either side has no reading.
+
+- **The release-tag ruleset locked everyone out, including the owner.**
+  `.github/rulesets/tags.json` shipped with `"bypass_actors": []` while
+  `.github/rulesets/main.json`, in the same directory, carried the repository-admin
+  bypass. An empty list is not a stricter version of the rule; it is a different one.
+  Applied, nobody can move or delete a tag matching `refs/tags/v*.*.*` — not the owner,
+  not with an admin token, not from the web UI. That is live rather than theoretical here:
+  `v1.4.0` matches the pattern and points at a 2026-07-25 commit `main` has since left
+  hundreds of commits behind, so a mistagged release has no remedy short of burning the
+  version number or opening a support ticket. The floating `v1` tag is unaffected either
+  way — the glob needs two literal dots and never matched it. `tags.json` now carries the
+  same admin bypass `main.json` has, ADR 0033 records the correction, and
+  `pipeline/tests/test_ruleset_bypass.py` fails the build if either file loses its bypass
+  or if the two stop agreeing. **The committed file is not the live ruleset:** applying it
+  is `gh api repos/ChelseaKR/gtfs-scorecard/rulesets/{id} -X PUT`, an owner action, the
+  same as for `main.json`'s required-checks list.
+
+- **The scoring path no longer loads `stop_times.txt` into memory, which is
+  what killed the OVapi Netherlands shard for three weeks.** The
+  `score (ovapi-netherlands)` job had been dying with "The runner has received
+  a shutdown signal" since 2026-08-07, after the validator had already
+  succeeded and the JVM had already exited. With no JVM on the box, memory
+  climbed from about 2 GB to 15.9 GB in roughly 45 seconds, swap filled,
+  available memory reached 88 MB, and the runner was killed. Disk was flat at
+  86 GB free the whole time.
+
+  The trigger was the whole-table reader's per-table cap, and specifically the
+  side of it the feed landed on. `MAX_MEMBER_BYTES` is 1 GiB: above it a table
+  is skipped, below it the table is read into `list[dict[str, str]]`. OVapi's
+  `stop_times.txt` is 1,011,976,627 bytes — 62 MB **under** the cap — and
+  17,099,889 rows. Measured on the live archive, a row of that table costs 754
+  bytes as a Python dict, so reading it whole comes to about 12.9 GB on a 15.6
+  GiB runner. Every earlier export had been *over* the cap and was therefore
+  skipped; the feed oscillates across the line, and the day it came in under,
+  the shard died. A bigger feed was safer.
+
+  So the fix is not a different number. Bytes on disk do not predict bytes in
+  memory, the multiplier moves with row width, and any fixed byte cap is a
+  cliff a feed can cross between exports. Lowering it would only skip more
+  tables, which buys safety by measuring less. Both whole-table consumers of
+  `stop_times.txt` on the daily scoring path now stream it instead, because
+  what each one takes from the table is a bounded aggregate rather than the
+  table: `routability` folds it into the trips with at least two serviced
+  locations plus the served stop and location-group ids (855 thousand trips and
+  57 thousand stops on OVapi, against 17 million rows), and `ferry_profile`
+  folds it into the stop ids the ferry trips call at — and, being handed a lazy
+  reader, returns without opening the table at all for a feed with no ferry
+  route. `iter_table_rows` now accepts `max_member_bytes=None` for exactly this
+  case: the cap is not lowered, it is inapplicable, because there is no whole
+  table in memory for it to bound. Archive-shape safety — entry count,
+  compression ratio, per-entry and whole-archive size — was always enforced in
+  `fetch.py` before any reader opens the bytes, and remains the real zip-bomb
+  guard and the ceiling on how much there can be to stream.
+
+  `MAX_MEMBER_BYTES` itself is unchanged and still governs every table read
+  whole, including these two modules' reads of `trips.txt` and `stops.txt`. If
+  one of those trips it, routability still publishes `measured: false` with
+  reason `table_too_large`; an unread table never reaches the artifact as a
+  count of zero.
+
+  Both checks now run to completion on the live OVapi archive in 68.6 seconds
+  at a peak of 1.38 GB resident — against roughly 13 GB and a killed runner —
+  and report what three weeks of shutdown signals could not: 854,910 trips, 35
+  of them with fewer than two stops, 58,953 boardable stops, 1,981 of them
+  served by no trip, and a ferry profile over 11,532 ferry trips.
+
+  **This changes published output for four feeds, and no grade.** OVapi
+  Netherlands, the Swiss national timetable, gtfs.de local transit and Carris
+  Metropolitana have all been publishing `routability: {"measured": false,
+  "reason": "table_too_large"}` and no `ferry_profile`. They will now publish
+  real routability counts, and a ferry profile where the feed has ferry routes.
+  Both blocks are zero-deduction, so no category score, overall score, grade,
+  or conformance verdict moves for any feed. Output for feeds under the cap is
+  byte-identical: verified by running the old and new readers over a
+  300-feed synthetic corpus covering flex location groups, the GeoJSON
+  `location_id` header typo, ferry and non-ferry routes, missing and
+  header-only tables, and trips with zero, one and many stops.
+
+  `gtfs.py` also logs any table of 64 MiB or more, with its uncompressed size
+  and whether it was read whole, streamed, or skipped. The three-week diagnosis
+  needed an instrumented re-run to learn which table was being read and how big
+  it was; the next incident carries that evidence in its own log.
+
+- **A validator report nobody could read is no longer scored as a clean feed.**
+  The upward twin of the fabricated F above, and the one that lasted longer,
+  because a flattering number invites no complaint. `ValidationReport` had one
+  shape for "the validator found nothing wrong" and the same shape for "there
+  was no report to read": an empty list of notices. Correctness starts at 100
+  and deducts per notice, so the second case scored `Correctness 100.0 / 100`
+  and published "The validator found no problems in this feed. That is rare and
+  worth celebrating." about a feed whose report had never been read.
+
+  Four payloads reached that sentence through `validate.parse_report_data` or
+  `vcache._report_from_json`, the only two functions in the package that build a
+  `ValidationReport`: an empty JSON object, a dict of an entirely different
+  shape, a report truncated after its `summary`, and a report whose `notices`
+  were null. Correctness was also the only scored category with no way to say
+  "not measured" at all: freshness and rider experience return no category and
+  are dropped, realtime is never appended for an agency that publishes none, and
+  all three render as "Not yet measured" with no number.
+
+  Both builders now refuse. A gtfs-validator report always carries `notices` as
+  a list, empty when the feed is clean, so the list's presence is what separates
+  the two cases; a payload without one raises `UnreadableValidatorReportError`,
+  a `ValueError` that travels the path a non-zip response body already travels.
+  A report with `"notices": []` is a real measurement of a genuinely clean feed
+  and still scores 100.
+
+  Where the same report can be obtained another way, the refusal is a miss
+  rather than a stop. An unreadable validator-cache entry re-validates, because
+  the honest cost of a cache entry we cannot read is one Java run. An unreadable
+  hosted report from the Mobility Feed API falls back to a local validator run,
+  which is what every other mismatch there already does. Only our own
+  `report.json` has no second source, and that one raises: the agency is not
+  re-scored that day and the run reports it, which is what "we could not read
+  it" looks like from outside.
 
 - **A feed with no stops and no trips is no longer given a letter grade.**
   Reported downstream against the published `gtfs-scorecard@v1.4.0` Action: a
@@ -150,6 +1817,16 @@ the declared public surface).
   that 365 out of a `feed_info.txt` end date, which is a claim about data that
   is not in the archive; with no service to be the end of, the sentence and the
   100.0 were both about nothing, and both are now withheld.
+
+  **The published Action still carries the old behavior.** This fix is
+  unreleased. `v1.4.0` and the floating `v1` both point at `d800e0b4`
+  (2026-07-25), which predates the refusal, so a workflow on
+  `uses: ChelseaKR/gtfs-scorecard@v1` -- the form the README and
+  `docs/ci-action.md` recommend -- still scores a well-formed zip with no GTFS
+  files as `F (31.3/100)` and still reports `passed=true`. `main` refuses it,
+  and `pipeline/tests/test_action_v2.py` pins the composite action's outputs for
+  a refused feed as well as the scorer's own refusal. Closing the gap for
+  callers is a release, not a code change.
 
   **Not done here, and it needs an owner decision.** The 22 already-published
   scorecards still carry their old letters. The scorer can no longer refresh
@@ -271,7 +1948,7 @@ the declared public surface).
   records are different denominators that are never added, and giving the
   no-discoverable-feed range at both ends (473 to 641) rather than averaging a
   name-based join. A reporter with no discoverable feed is shown as a limit of
-  what open catalogues can see, never as a zero and never as a finding about
+  what open catalogs can see, never as a zero and never as a finding about
   that agency. The section publishes nothing at all if the snapshot does not
   declare its unit, if its tiers do not sum to its own denominator, or if it
   cannot say which report year it is from and when it was retrieved -- the fine
@@ -310,8 +1987,6 @@ the declared public surface).
   this closes the "RR:R3 alert-tier wiring remains open" note EXP-04 left behind.
 
   No score, grade, category, weight, threshold, or public page moved.
-
-## [1.5.0] - 2026-08-18
 
 ### Added
 
@@ -562,7 +2237,7 @@ the declared public surface).
   implausible-predictions finding. And the anomaly detector compared
   adjacent history rows as if they were adjacent days — 1,114 published
   steps span 27 days — so a month-long regression could be labeled a
-  one-day glitch and both the dip and its recovery suppressed; neighbouring
+  one-day glitch and both the dip and its recovery suppressed; neighboring
   rows must now be within two days. No grade moves in any of the three: the
   gate is advisory, drift is not a score component, and no published
   history contained a gap-spanning dip.
@@ -705,9 +2380,9 @@ the declared public surface).
   result, on 57 to 60 of 118 codes curated — a jump that is real but
   concentrated, and `docs/ideation/02-large-scale-fixes.md` now states why that
   number must never be reported without naming the codes that moved it.
-- **Correction to published behaviour: the subscribe form recorded a narrower
+- **Correction to published behavior: the subscribe form recorded a narrower
   consent than it appeared to offer.** `subscriptions.yaml` documents that
-  omitting `kinds` means every kind, and the YAML path honours that. The form
+  omitting `kinds` means every kind, and the YAML path honors that. The form
   path inverted it: the subscribe Lambda held
   `ALERT_KINDS = ("expiry", "regression")`, and a payload that omitted `kinds`
   was stored as that explicit closed two-item list rather than as a
@@ -724,7 +2399,7 @@ the declared public surface).
   imports both and compares them. A test that had pinned the old two-item
   default — asserting the bug — was corrected in the same change.
   *Requires a Lambda deploy; code correctness alone does not change live
-  behaviour.*
+  behavior.*
 - **A published registry figure that would have gone stale, corrected before it
   did.** `docs/global-coverage-roadmap.md` said "The current registry contains
   2,185 feed records" in the present tense and the next paragraph multiplied
@@ -785,7 +2460,7 @@ the declared public surface).
   the lockfile the images never read.
 - **`web/src/` is scanned again.** ~6,600 lines of hand-written browser
   JavaScript, including 24 `innerHTML` assignment sites, were excluded from
-  Semgrep (`.semgrepignore`) and gitleaks (`.gitleaks.toml`) and never analysed
+  Semgrep (`.semgrepignore`) and gitleaks (`.gitleaks.toml`) and never analyzed
   by CodeQL, which covers python and actions only — so the only code in this
   repository that runs in a rider's browser had no SAST and no secret scanning
   from any of the three. Both exclusions existed for the public GTFS feed-URL
@@ -1082,7 +2757,7 @@ the declared public surface).
   islands. Each feed is official, current, and explicitly open for reuse.
 - Add an ungraded ferry data profile for ferry-serving feeds. It reports the
   ferry subset's terminal hierarchy, `stop_access`, published accessibility,
-  bicycle and car carriage, plus clearly labelled whole-feed fare and realtime
+  bicycle and car carriage, plus clearly labeled whole-feed fare and realtime
   facts in agency pages, artifacts, and the feature API.
 - Publish an ungraded service-mode contract from GTFS `route_type` and trip
   counts. Mode membership and primary mode now flow through artifacts, the
@@ -1245,7 +2920,8 @@ from `git log` against current history. As of this tag, the repo shipped:
 - Realtime drift/plausibility checks, embeddable grade badges, and rollup
   views across agency cohorts.
 
-[Unreleased]: https://github.com/ChelseaKR/gtfs-scorecard/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/ChelseaKR/gtfs-scorecard/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/ChelseaKR/gtfs-scorecard/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/ChelseaKR/gtfs-scorecard/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ChelseaKR/gtfs-scorecard/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/ChelseaKR/gtfs-scorecard/releases/tag/v1.3.0

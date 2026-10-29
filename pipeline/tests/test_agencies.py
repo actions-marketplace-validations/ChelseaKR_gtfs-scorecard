@@ -177,9 +177,231 @@ def test_repo_registry_matches_documented_feed_record_counts(
     agencies = read_agencies()
     european = [agency for agency in agencies if agency.country in EUROPE_BETA_COUNTRY_CODES]
 
-    assert len(agencies) == 2_275
-    assert len(european) == 618
-    assert len({agency.country for agency in european}) == 26
+    assert len(agencies) == 2_695
+    assert len(european) == 760
+    assert len({agency.country for agency in european}) == 28
+
+
+def test_repo_registry_has_no_catalog_note_as_an_agency_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """mdb-2183 was published as "do not use - deprecfated" on a state NTD page.
+
+    The record is a live feed (agency.txt names it "Sound Generations: Hyde
+    Shuttle"), so it keeps its id and takes the feed's own name. The whole
+    registry must also be free of feed-descriptor names, which is what
+    ``scorecard lint --strict`` blocks a merge on.
+    """
+    from scorecard_pipeline.lint import is_feed_descriptor, lint_registry
+
+    monkeypatch.setenv("SCORECARD_ROOT", str(REPO_ROOT))
+    agencies = read_agencies()
+    by_id = {agency.id: agency for agency in agencies}
+
+    assert by_id["sound-generations-hyde-shuttle"].name == "Sound Generations: Hyde Shuttle"
+    assert [i for i in lint_registry(agencies) if i.kind == "feed_descriptor_name"] == []
+
+    # Negative control: put the catalog's note back and the same check must
+    # fire, so a green result above is not a check that cannot fail.
+    sabotaged = by_id["sound-generations-hyde-shuttle"]
+    object.__setattr__(sabotaged, "name", "do not use - deprecfated")
+    try:
+        assert sabotaged.name == "do not use - deprecfated"  # the sabotage applied
+        assert is_feed_descriptor(sabotaged.name)
+        flagged = [i for i in lint_registry(agencies) if i.kind == "feed_descriptor_name"]
+        assert [i.agency_id for i in flagged] == ["sound-generations-hyde-shuttle"]
+    finally:
+        object.__setattr__(sabotaged, "name", "Sound Generations: Hyde Shuttle")
+
+
+def test_repo_registry_names_pittsburgh_regional_transit_by_its_current_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The agency renamed from Port Authority of Allegheny County; its feed says so.
+
+    The record keeps its id (URLs, history and the dated artifacts live under
+    it) and takes the name in the feed's own agency.txt. No record may still
+    carry the old name, or a state page would list one agency twice under two
+    names.
+    """
+    monkeypatch.setenv("SCORECARD_ROOT", str(REPO_ROOT))
+    agencies = read_agencies()
+    by_id = {agency.id: agency for agency in agencies}
+
+    prt = by_id["port-authority-of-allegheny-county"]
+    assert prt.name == "Pittsburgh Regional Transit"
+    assert prt.mdb_id == "409"
+    assert not [a.id for a in agencies if a.name == "Port Authority of Allegheny County"]
+
+    # Negative control: the record as it stood on origin/main must fail the
+    # same name check, and the sabotage must have applied before we trust it.
+    stale = yaml.safe_load(
+        (REPO_ROOT / "registry" / "us" / "pa.yaml")
+        .read_text(encoding="utf-8")
+        .replace("name: Pittsburgh Regional Transit", "name: Port Authority of Allegheny County")
+    )
+    stale_record = next(
+        a for a in stale["agencies"] if a["id"] == "port-authority-of-allegheny-county"
+    )
+    assert stale_record["name"] == "Port Authority of Allegheny County"  # sabotage applied
+    assert stale_record["name"] != "Pittsburgh Regional Transit"
+
+
+def test_repo_registry_includes_2026_09_ntd_official_cohort(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A 28-agency US cohort, all `is_official` and NTD-matched in the source
+
+    catalog, sourced via `scorecard sync --country US` on 2026-09-14 and
+    reviewed by hand against the existing registry to exclude anything that
+    duplicated an already-tracked operator under a different name or URL
+    (see docs/global-coverage-roadmap.md). Wyoming's first tracked feed is
+    part of this cohort, adding a shard.
+    """
+    monkeypatch.setenv("SCORECARD_ROOT", str(REPO_ROOT))
+    by_id = {agency.id: agency for agency in read_agencies()}
+
+    wind_river = by_id["wind-river-transportation-authority"]
+    assert wind_river.subdivision_code == "US-WY"
+    assert wind_river.mdb_id == "ntd-80121"
+    assert wind_river.is_official is True
+
+    lake_charles = by_id["lake-charles-transit"]
+    assert lake_charles.subdivision_code == "US-LA"
+    assert lake_charles.mdb_id == "ntd-60023"
+
+    cohort_ids = {
+        "lake-charles-transit",
+        "good-earth-transit",
+        "city-of-hattiesburg",
+        "city-of-kingsport",
+        "city-of-hinesville-georgia",
+        "city-of-longview",
+        "tricounty-link",
+        "city-of-galesburg",
+        "milford-transit-district",
+        "city-of-jefferson",
+        "borough-of-mt-carmel",
+        "mckinney-avenue-transit-authority",
+        "maui-county-transit",
+        "metro-mcallen",
+        "ute-tribe-public-transit",
+        "seneca-transit-system",
+        "city-of-pigeon-forge",
+        "city-of-pullman",
+        "developmental-services-of-nw-kansas-access-transportation",
+        "city-of-hobbs",
+        "texarkana-urban-transit-district-t-line-bus",
+        "city-of-kokomo",
+        "laudergo-water-trolley",
+        "park-county-transit",
+        "wind-river-transportation-authority",
+        "a-shiwi-transit",
+        "city-of-fargo",
+        "st-cloud-metropolitan-transit-commission",
+    }
+    assert cohort_ids <= by_id.keys()
+    assert len(cohort_ids) == 28
+
+
+def test_repo_registry_includes_2026_10_coverage_cohort_and_repairs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ADR 0069: 23 new US feed records and 8 catalog-successor repairs.
+
+    The new records are NTD reporters with a Transitland Atlas feed, or active
+    official Mobility Database records, that no registry record tracked. Each
+    host's robots.txt was read before the record was added and each feed was
+    fetched with an honest User-Agent and found valid and current on
+    2026-10-13. The repairs keep the
+    tracked record and follow the catalog's own retirement to its successor.
+    """
+    monkeypatch.setenv("SCORECARD_ROOT", str(REPO_ROOT))
+    by_id = {agency.id: agency for agency in read_agencies()}
+
+    cohort = {
+        "altoona-metro-transit-amtran": "30011",
+        "cambria-county-transit-authority-camtran": "30012",
+        "luzerne-county-transportation-authority-lcta": "30015",
+        "county-of-lackawanna-transit-system-colts": "30025",
+        "shenango-valley-shuttle-service": "30055",
+        "mid-mon-valley-transit-authority": "30061",
+        "pottstown-area-rapid-transit": "30077",
+        "fayette-area-coordinated-transportation": "30087",
+        "hazleton-public-transit": "30093",
+        "lebanon-transit": "30095",
+        "freedom-transit": "30111",
+        "schuylkill-transportation-system": "30127",
+        "new-castle-area-transit-authority": "30151",
+        "indiana-county-transit-authority-indigo": "30177",
+        "crawford-area-transportation-authority": "30185",
+        "area-transportation-authority-of-north-central-pa": "30196",
+        "manchester-transit-authority": "10002",
+        "charlottesville-area-transit-cat": "30036",
+        "danville-transit-fixed-route": "30069",
+        "golden-crescent-victoria-transit": "60095",
+        "golden-crescent-commuter": "60095",
+        "jefferson-county-public-transit-jcpt": "",
+        "jackson-county-mass-transit-district-jax": "",
+    }
+    assert len(cohort) == 23
+    for agency_id, ntd_id in cohort.items():
+        agency = by_id[agency_id]
+        assert agency.country == "US"
+        assert agency.is_canonical_feed
+        # Atlas-sourced records carry no Mobility Database id or official flag:
+        # the Atlas states neither, and nothing here is taken from the
+        # files.mobilitydatabase.org export.
+        if agency.mdb_id:
+            assert agency.mdb_id.isdigit()
+            assert agency.is_official is True
+        else:
+            assert agency.is_official is None
+        assert agency.ntd_id == ntd_id
+        assert agency.license_note  # absence of a stated license is recorded, not implied
+        assert agency.static_gtfs_url.startswith("https://")
+    # One operator, two feeds: they share an organization and say which is which.
+    gcrpc = [by_id["golden-crescent-victoria-transit"], by_id["golden-crescent-commuter"]]
+    assert {a.organization_id for a in gcrpc} == {"golden-crescent-regional-planning-commission"}
+    assert {a.feed_variant for a in gcrpc} == {"fixed route", "commuter"}
+
+    repaired = {
+        "kansas-city-area-transportation-authority-kcata": (
+            "3519",
+            "https://ridekc.org/static-gtfs",
+        ),
+        "chattanooga-area-regional-transportation-authority-carta-2082": (
+            "3474",
+            "https://raw.githubusercontent.com/gocarta/gtfs/refs/heads/master/gtfs_current.zip",
+        ),
+        "grtc-transit-system": (
+            "3518",
+            "https://www.ridegrtc.com/wp-content/uploads/2025/02/gtfs.zip",
+        ),
+        "virginia-breeze": ("3506", "https://maps.tds.ai/download-feed/virginia-breeze-gtfs"),
+        "monroe-county-transportation-authority-mcta": (
+            "3460",
+            "https://ponytracker.availtec.com/InfoPoint/gtfs-zip.ashx",
+        ),
+        "birmingham-jefferson-county-transit-authority-max-2263": (
+            "3434",
+            "https://maxtransit.org/GTFS/2026/google_transit_Working.zip",
+        ),
+    }
+    # The 2026-07-11 dedupe kept StaRT's expired 2020 Trillium feed canonical
+    # and aliased the twin on the operator's current feed; the repair follows
+    # the alias. Thousand Oaks was already on its successor's URL; only the
+    # catalog id moves.
+    repaired["stanislaus-regional-transit-start"] = (
+        "2273",
+        "https://stanrta.rideralerts.com/InfoPoint/gtfs-zip.ashx",
+    )
+    repaired["thousand-oaks-transit"] = (
+        "3100",
+        "https://data.trilliumtransit.com/gtfs/thousandoaks-ca-us/thousandoaks-ca-us.zip",
+    )
+    for agency_id, (mdb_id, url) in repaired.items():
+        assert (by_id[agency_id].mdb_id, by_id[agency_id].static_gtfs_url) == (mdb_id, url)
 
 
 def test_repo_registry_carries_reviewed_coverage_recovery_updates(
@@ -208,9 +430,13 @@ def test_repo_registry_includes_france_pan_and_new_country_code_wave(
 ) -> None:
     monkeypatch.setenv("SCORECARD_ROOT", str(REPO_ROOT))
     by_id = {agency.id: agency for agency in read_agencies()}
+    # The `fr-pan-` prefix says where a record came from, not which wave
+    # brought it in, so every National Access Point pass lands in this list.
+    # The whole-cohort assertions below hold for all of them; the per-wave
+    # counts are scoped by reviewed_on further down.
     france_pan = [agency for agency in by_id.values() if agency.id.startswith("fr-pan-")]
 
-    assert len(france_pan) == 226
+    assert len(france_pan) == 234
     assert {agency.country for agency in france_pan} == {"FR"}
     assert {agency.subdivision_code for agency in france_pan} >= {
         "FR-20R",
@@ -230,25 +456,29 @@ def test_repo_registry_includes_france_pan_and_new_country_code_wave(
         )
         assert agency.reuse_evidence.reviewed_on in {"2026-07-23", "2026-08-30", "2026-09-01"}
         assert agency.reuse_evidence.identity_reviewed is True
-    # The 2026-08-30 second exhaustion pass added 76 reviewed records,
+    # The 2026-08-30 second exhaustion pass holds 56 reviewed records,
     # including the first French large-feed-tier record (Naolib, Nantes).
+    # It was 76 before the coverage-expansion pass re-reviewed 20 of them
+    # on 2026-09-01, which moved those into the third-pass cohort below.
     second_pass = [
         agency
         for agency in france_pan
         if agency.reuse_evidence is not None and agency.reuse_evidence.reviewed_on == "2026-08-30"
     ]
-    assert len(second_pass) == 76
+    assert len(second_pass) == 56
     naolib = by_id["fr-pan-84101"]
     assert naolib.large_feed is True
     assert naolib.subdivision_code == "FR-PDL"
-    # The 2026-09-01 rentrée recheck pass added 14 records whose calendars
-    # refreshed past the 60-day gate, SETRAM (Le Mans) among them.
+    # The 2026-09-01 cohort is the 14 rentrée recheck records whose calendars
+    # refreshed past the 60-day gate, SETRAM (Le Mans) among them, plus 20
+    # second-pass records the coverage-expansion pass re-reviewed on that
+    # date and 8 it added outright.
     third_pass = [
         agency
         for agency in france_pan
         if agency.reuse_evidence is not None and agency.reuse_evidence.reviewed_on == "2026-09-01"
     ]
-    assert len(third_pass) == 14
+    assert len(third_pass) == 42
     setram = by_id["fr-pan-79601"]
     assert setram.subdivision_code == "FR-PDL"
     assert setram.reuse_evidence is not None
@@ -908,6 +1138,20 @@ def test_fare_free_defaults_false_and_parses() -> None:
 def test_fare_free_must_be_boolean() -> None:
     with pytest.raises(AgencyConfigError, match="fare_free must be true or false"):
         parse_agencies(entry(fare_free="yes"))
+
+
+def test_own_shard_defaults_false_and_parses() -> None:
+    (default_agency,) = parse_agencies(VALID)
+    assert default_agency.own_shard is False
+    (agency,) = parse_agencies(entry(own_shard=True))
+    assert agency.own_shard is True
+    # It is not the large-feed tier: no ceiling moves with it.
+    assert agency.large_feed is False
+
+
+def test_own_shard_must_be_boolean() -> None:
+    with pytest.raises(AgencyConfigError, match="own_shard must be true or false"):
+        parse_agencies(entry(own_shard="yes"))
 
 
 def test_mdb_id_parsed() -> None:

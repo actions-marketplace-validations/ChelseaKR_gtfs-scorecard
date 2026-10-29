@@ -24,6 +24,32 @@ concurrency:
 jobs:
   monitor:
     runs-on: ubuntu-latest
+    # RELIABILITY: this bound has to sit above the job's real runtime and below
+    # the cron interval, and it was set to 45 without either being measured.
+    # Every recorded successful run of this workflow took longer than that: the
+    # burst walks every configured realtime endpoint one at a time, so the run
+    # grows with the registry. Measured from the run history on 2026-09-08 —
+    # ~117 min (2026-08-30/31), ~141-153 min (2026-09-01..04), 160-163 min
+    # (2026-09-05). So from the moment the 45-minute bound landed, every
+    # scheduled run was killed part-way through "Sample realtime feeds",
+    # "Commit observations" was skipped, and no observation was recorded:
+    # data/rt-health's newest commit is 2026-09-05 and the eleven runs since
+    # are 11 of 11 `cancelled`, which is how GitHub records a job timeout and
+    # is exactly the conclusion a sweep reads as "no signal".
+    #
+    # 170 sits above every observed run and below the 180-minute cron interval.
+    # That interval is the real ceiling, not a comfort margin: the concurrency
+    # group below is serial with `cancel-in-progress: false`, so a run that
+    # outlives its own cadence makes the next one queue behind it, and a third
+    # arrival evicts the queued one. A run that has taken longer than 170
+    # minutes has already lost the schedule and should be stopped.
+    #
+    # The trend is not flat, so this bound is a repair and not a resting
+    # place: 117 to 163 minutes in six days, on a 180-minute cadence. Raising
+    # it past 180 is not the answer, because that is the cadence itself;
+    # sharding the burst or lengthening the cron is, and which one is an
+    # owner decision.
+    timeout-minutes: 170
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
@@ -33,12 +59,32 @@ jobs:
           ssh-key: ${{ secrets.SCHEDULED_WRITER_SSH_KEY }}
       - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
+          enable-cache: true
           python-version: "3.12"
       - name: Sample realtime feeds
         working-directory: pipeline
         run: uv run scorecard rt-health
+      # RELIABILITY: the retry below used to rebase, and a rebase cannot resolve
+      # what it finds here. This job samples for over two hours and pushes at
+      # the end, so `main` has routinely moved to ANOTHER monitor run's
+      # observations by then — the concurrency queue releases the next run
+      # within seconds of this one's push, and its checkout can precede that
+      # push. Both sides then hold different appends to the same per-agency
+      # JSON, so every record is a content conflict: run 34735712784
+      # (2026-09-13) hit `git rebase --abort; exit 1` with conflicts in
+      # essentially the whole directory and discarded a full cycle of
+      # observations. Measured over the 30 days to 2026-09-13, this cost one
+      # scheduled run a day from 09-09 onward (03:31 UTC, six days running),
+      # and each loss also reddened Watchdog's realtime check.
+      #
+      # The two sides are not in disagreement — each holds observations the
+      # other never took — so the retry unions the histories by capture
+      # timestamp instead of replaying a patch. `merge_rt_health.py` recomputes
+      # each summary from the merged list; the published copy wins a shared
+      # timestamp, so a merge never rewrites what main already carries.
       - name: Commit observations
         run: |
+          set -euo pipefail
           git config user.name "scorecard-bot"
           git config user.email "actions@users.noreply.github.com"
           git add data/rt-health
@@ -49,9 +95,38 @@ jobs:
             pushed=false
             for attempt in 1 2 3 4 5; do
               if git push origin HEAD:main; then pushed=true; break; fi
-              echo "push rejected (main moved); rebasing and retrying ($attempt)"
-              git fetch origin main
-              git rebase origin/main || { git rebase --abort; exit 1; }
+              # RELIABILITY: a push that was rejected because main moved and a
+              # push that never reached GitHub both land here, and they need
+              # opposite responses. Run 37376079735 (2026-10-05) lost a full
+              # cycle of observations when the SSH authentication failed
+              # ("Permission denied (publickey)") on the same deploy key that
+              # had fetched this checkout 2.5 hours earlier, pushed the previous
+              # run's observations at 21:08Z, and checked out the next run at
+              # 01:05Z: the loop assumed main had moved, `git fetch` failed the
+              # same way, and `set -e` ended the step on the first attempt with
+              # "push rejected (main moved)" as the only explanation. So the
+              # fetch is the test. If it cannot reach the remote either, nothing
+              # about main is known, and the right move is to wait and push
+              # again rather than merge against nothing.
+              if ! git fetch origin main; then
+                echo "push and fetch both failed: the remote is unreachable or refused the key, not a moved main; retrying after a pause ($attempt)"
+                sleep $((attempt * 15))
+                continue
+              fi
+              echo "push rejected (main moved); merging both histories and retrying ($attempt)"
+              ours="$RUNNER_TEMP/rt-health-ours-$attempt"
+              rm -rf "$ours"
+              cp -R data/rt-health "$ours"
+              git reset --hard FETCH_HEAD
+              (cd pipeline && uv run python scripts/merge_rt_health.py \
+                --ours "$ours" --into ../data/rt-health)
+              git add data/rt-health
+              if git diff --cached --quiet; then
+                echo "main already carries every observation this run recorded."
+                pushed=true
+                break
+              fi
+              git commit -m "chore(rt): realtime health observations"
               sleep 3
             done
             if [ "$pushed" != true ]; then

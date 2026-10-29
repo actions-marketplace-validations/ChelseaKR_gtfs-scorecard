@@ -18,7 +18,11 @@
   <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
   <meta name="twitter:image:alt" content="GTFS Scorecard: transit data quality for small agencies.">
   <link rel="stylesheet" href="/src/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2f3ee'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <script>
     /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
     try {
@@ -28,6 +32,7 @@
     } catch (e) {}
   </script>
   <script src="/src/theme.js" defer></script>
+  <script src="/src/measure.js" defer></script>
   <script src="/src/nav.js" defer></script>
   <noscript><style>
     /* Without JS the menu button cannot expand the collapsed nav, so show the
@@ -226,6 +231,14 @@ ORDER BY rubric_version, scoring_profile_id, validator_version,
             <li><a href="/data/">Open data</a></li>
           </ul>
         </section>
+        <section aria-labelledby="footer-programs-h">
+          <h2 id="footer-programs-h">For programs</h2>
+          <ul>
+            <li><a href="/program/all/">Program rollups</a></li>
+            <li><a href="/bundle/">Board report bundle (paid)</a></li>
+          </ul>
+          <p class="footer-aside">Scoring an agency is free. A purchase buys no influence over grades, methodology, or which agencies are listed.</p>
+        </section>
         <section aria-labelledby="footer-project-h">
           <h2 id="footer-project-h">Project</h2>
           <ul>
@@ -237,6 +250,8 @@ ORDER BY rubric_version, scoring_profile_id, validator_version,
             <li><a href="/crosswalk/">Standards crosswalk</a></li>
             <li><a href="/press/">For reporters</a></li>
             <li><a href="/accessibility/">Accessibility</a></li>
+            <li><a href="/about/#privacy">Privacy</a></li>
+            <li><a href="/about/#privacy-opt-out" data-analytics-toggle data-label-on="Opt out of analytics" data-label-off="Opt back in to analytics" data-status-off="Analytics is off on this device." data-status-on="Analytics comes back on from the next page you open.">Opt out of analytics</a><span class="visually-hidden" role="status" data-analytics-status></span></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/CONTRIBUTING.md">Contribute</a></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a></li>
           </ul>

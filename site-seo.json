@@ -10,8 +10,25 @@
   "noindex_path_patterns": [
     "/agency/*/board/",
     "/agency/*/brief/",
-    "/bundle/",
-    "/bundle/setup/"
+    "/bundle/sample/",
+    "/bundle/setup/",
+    "/data/history/setup/"
+  ],
+  "conditional_noindex_path_patterns": [
+    "/agency/*/fixes/"
+  ],
+  "lastmod_required_path_patterns": [
+    "/agencies/",
+    "/agencies/page/*/",
+    "/agency/*/fixes/",
+    "/ntd/",
+    "/ntd/shapes/",
+    "/ntd/states/*/"
+  ],
+  "lastmod_shown_path_patterns": [
+    "/agencies/",
+    "/agencies/page/*/",
+    "/agency/*/fixes/"
   ],
   "canonical_aliases": {
     "/app/": "/agencies/"
@@ -25,6 +42,21 @@
   "required_json_ld_types": {
     "/agency/*/": [
       "Dataset"
+    ],
+    "/bundle/": [
+      "Service",
+      "Product"
+    ],
+    "/data/history/": [
+      "Service",
+      "Product"
+    ],
+    "/program/": [
+      "CollectionPage"
+    ],
+    "/program/*/": [
+      "CollectionPage",
+      "Dataset"
     ]
   },
   "title_length": [
@@ -37,9 +69,14 @@
   ],
   "redirect_aliases": {
     "/access/": "/adoption/#access",
+    "/api/": "/data/#get-h",
     "/changes/": "/pulse/#changes",
     "/concept/": "/how-to-read/",
     "/leaderboard/": "/pulse/#changes",
     "/trends/": "/pulse/#trend"
-  }
+  },
+  "measurement_script": "/src/measure.js",
+  "measurement_host": "https://us.i.posthog.com",
+  "measurement_ga4_host": "https://www.googletagmanager.com",
+  "measurement_ga4_id": "G-45H8Q9H93F"
 }

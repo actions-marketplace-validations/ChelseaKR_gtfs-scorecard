@@ -1,0 +1,535 @@
+// @ts-check
+/* Site measurement. This file is the whole of the measurement code the site
+ * serves. It holds an opt-out control and two measurement blocks. The two
+ * blocks share nothing but the opt-out mark the control sets, so either can
+ * be switched off without touching the other.
+ *
+ * The first block (docs/decisions/0055-cookieless-site-measurement.md) sends
+ * one pageview per page load, and one event when a checkout link on /bundle/
+ * is followed, to PostHog Cloud US. It is short enough to read in full:
+ *
+ * - No cookie, no localStorage, no fingerprint, no SDK. A visit id is drawn at
+ *   random and kept in sessionStorage, which the browser discards when the tab
+ *   closes. Every event carries $process_person_profile false, so PostHog
+ *   keeps no person profile for it either.
+ * - Only the page path is sent, never the query string or the fragment. The
+ *   post-checkout page carries a Stripe order reference in its query string,
+ *   and that reference must never leave the browser.
+ * - Only the referring domain, never the full referrer, for the same reason.
+ * - Nothing is read from a form, an input, or the page text. There is no
+ *   autocapture here because there is no SDK here.
+ * - Global Privacy Control or Do Not Track switches all of it off.
+ * - With no key written by the deploy, the first line of logic returns and
+ *   nothing is sent. The committed copy of this file has no key.
+ *
+ * The second block (docs/decisions/0056-google-analytics-4.md) loads Google
+ * Analytics 4, whose own script and cookies are described in that ADR. It
+ * also forwards the conversion events of the bundle pages to GA4
+ * (docs/decisions/0057-bundle-conversion-events.md). The rules it keeps are
+ * written above it.
+ *
+ * Before both runs the opt-out control behind the analytics opt-out link
+ * in every page footer (also ADR 0056). A reader who opts out is
+ * remembered on that device, and both blocks load nothing for them.
+ *
+ * The disclosure a reader sees is /about/#privacy. The gates that keep this
+ * file, that page, and every other page in step are
+ * pipeline/tests/test_measure.py, pipeline/tests/test_measure_ga4.py and the
+ * measurement section of pipeline/scripts/check_site_seo.py.
+ */
+// The opt-out control (docs/decisions/0056-google-analytics-4.md). It runs
+// first, whether or not either tool is configured, so the footer link always
+// works.
+//
+// - The choice is kept in localStorage under one key, and is the only thing
+//   this file stores there. It holds "off" or is absent.
+// - At load, a stored "off" marks the page with data-measure-stopped on the
+//   root element. Both blocks below check that mark and load nothing.
+// - Every [data-analytics-toggle] control in the page becomes a toggle. Its
+//   wording and the status it announces come from its own data attributes,
+//   so the Spanish footer carries Spanish copy and this file carries none.
+// - Opting out marks the page, stores "off", and tells the GA4 block to stop
+//   and forget its cookies. Opting back in clears the stored choice. The
+//   page stays stopped, and both tools start again from the next page.
+// - A page opened with the flag measure=off in its query string is marked
+//   stopped for that page alone, and nothing is stored. The weekly
+//   production Lighthouse audit (lighthouserc.production.json, run by
+//   .github/workflows/watchdog.yml) opens every route with this flag, so the
+//   site never counts its own audits as visitors. The query string is only
+//   tested for that one flag; neither block below reads or sends it.
+(function () {
+  "use strict";
+
+  var STORE = "scorecard-analytics";
+  var STOPPED = "data-measure-stopped";
+  var doc = /** @type {any} */ (document);
+  var win = /** @type {any} */ (window);
+  var root = doc.documentElement;
+
+  /** @returns {boolean} */
+  function storedOff() {
+    try {
+      return win.localStorage.getItem(STORE) === "off";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /** @param {boolean} off */
+  function remember(off) {
+    try {
+      if (off) win.localStorage.setItem(STORE, "off");
+      else win.localStorage.removeItem(STORE);
+    } catch (e) {
+      // Private modes can refuse storage; the choice still holds on this page.
+    }
+  }
+
+  var off = storedOff();
+  if (off) root.setAttribute(STOPPED, "opted-out");
+  else if (/(?:^|[?&])measure=off(?:&|$)/.test(String(win.location.search || ""))) {
+    root.setAttribute(STOPPED, "audit");
+  }
+
+  var controls = doc.querySelectorAll("[data-analytics-toggle]");
+
+  /** @param {any} control @param {boolean} announce */
+  function show(control, announce) {
+    var label = control.getAttribute(off ? "data-label-off" : "data-label-on");
+    if (label) control.textContent = label;
+    if (!announce) return;
+    var status = control.parentNode && control.parentNode.querySelector("[data-analytics-status]");
+    var said = control.getAttribute(off ? "data-status-off" : "data-status-on");
+    if (status && said) status.textContent = said;
+  }
+
+  function toggle() {
+    off = !off;
+    remember(off);
+    if (off) {
+      root.setAttribute(STOPPED, "opted-out");
+      doc.dispatchEvent(new win.CustomEvent("scorecard:measure-stopped"));
+    } else {
+      root.setAttribute(STOPPED, "until-next-page");
+    }
+    for (var i = 0; i < controls.length; i++) show(controls[i], true);
+  }
+
+  for (var i = 0; i < controls.length; i++) {
+    var control = controls[i];
+    // Without this script the control stays a plain link to the privacy
+    // statement, which explains the other ways to opt out.
+    control.setAttribute("role", "button");
+    control.addEventListener("click", function (/** @type {any} */ event) {
+      event.preventDefault();
+      toggle();
+    });
+    control.addEventListener("keydown", function (/** @type {any} */ event) {
+      if (event.key !== " ") return;
+      event.preventDefault();
+      toggle();
+    });
+    show(control, false);
+  }
+})();
+
+(function () {
+  "use strict";
+
+  // Written at deploy time from the POSTHOG_KEY secret by the render-measure
+  // command (scorecard_pipeline.site_shell.render_measure_script). A PostHog
+  // project key is write-only and ships in every page by design; it is a
+  // secret in the repository only so that it can be set without a commit.
+  var KEY = ""; // measure:key
+  var HOST = "https://us.i.posthog.com";
+  var VISIT_KEY = "scorecard-visit";
+
+  if (!KEY) return;
+  var nav = /** @type {any} */ (window.navigator || {});
+  var win = /** @type {any} */ (window);
+  var doc = /** @type {any} */ (document);
+  if (nav.globalPrivacyControl === true) return;
+  if (nav.doNotTrack === "1" || win.doNotTrack === "1" || nav.msDoNotTrack === "1") return;
+  if (doc.documentElement.hasAttribute("data-measure-stopped")) return;
+  if (doc.prerendering) return;
+  if (!win.fetch || !win.crypto || !win.crypto.getRandomValues) return;
+
+  /** @param {Uint8Array} bytes */
+  function hex(bytes) {
+    var out = "";
+    for (var i = 0; i < bytes.length; i++) out += (bytes[i] + 256).toString(16).slice(1);
+    return out;
+  }
+
+  /** A UUID version 7: the millisecond clock in the first 48 bits, random
+   *  bits after. PostHog reads $session_id in this shape. @returns {string} */
+  function uuid7() {
+    var b = new Uint8Array(16);
+    win.crypto.getRandomValues(b);
+    var t = Date.now();
+    b[0] = Math.floor(t / 1099511627776) % 256;
+    b[1] = Math.floor(t / 4294967296) % 256;
+    b[2] = Math.floor(t / 16777216) % 256;
+    b[3] = Math.floor(t / 65536) % 256;
+    b[4] = Math.floor(t / 256) % 256;
+    b[5] = t % 256;
+    b[6] = (b[6] & 15) | 112;
+    b[8] = (b[8] & 63) | 128;
+    var h = hex(b);
+    return (
+      h.slice(0, 8) + "-" + h.slice(8, 12) + "-" + h.slice(12, 16) + "-" +
+      h.slice(16, 20) + "-" + h.slice(20)
+    );
+  }
+
+  /** The visit id: kept for this tab only, and only until the tab closes.
+   *  When session storage is unavailable, each page load draws its own.
+   *  @returns {string} */
+  function visitId() {
+    var id = null;
+    try {
+      id = win.sessionStorage.getItem(VISIT_KEY);
+    } catch (e) {
+      id = null;
+    }
+    if (!id || !/^[0-9a-f-]{36}$/.test(id)) {
+      id = uuid7();
+      try {
+        win.sessionStorage.setItem(VISIT_KEY, id);
+      } catch (e) {
+        // Fine: this page load has its own id and the next one draws another.
+      }
+    }
+    return id;
+  }
+
+  /** Which family of page this is, from the path alone. The Spanish pages
+   *  mirror the English ones under /es/. @param {string} path */
+  function pageType(path) {
+    var p = path.replace(/^\/es(?=\/)/, "");
+    if (p === "/") return "home";
+    var head = p.split("/")[1] || "";
+    if (head === "agency") return "agency";
+    if (head === "program") return "program";
+    if (head === "bundle") return "bundle";
+    if (head === "support") return "support";
+    if (head === "fix") return "fix";
+    if (head === "agencies" || head === "app") return "directory";
+    return "other";
+  }
+
+  /** The referring site, as a host name only. @returns {string} */
+  function referringDomain() {
+    var ref = doc.referrer;
+    if (!ref) return "$direct";
+    try {
+      return new URL(ref).hostname || "$direct";
+    } catch (e) {
+      return "$direct";
+    }
+  }
+
+  var visit = visitId();
+  var path = win.location.pathname;
+
+  /** @param {string} event @param {Record<string, string>} props */
+  function send(event, props) {
+    // A reader who opts out mid-page is not reported again on this page.
+    if (doc.documentElement.hasAttribute("data-measure-stopped")) return;
+    /** @type {Record<string, unknown>} */
+    var properties = {
+      $process_person_profile: false,
+      $lib: "gtfs-scorecard-measure",
+      $lib_version: "1",
+      $session_id: visit,
+      $current_url: win.location.origin + path,
+      $pathname: path,
+      $host: win.location.host,
+      $referring_domain: referringDomain(),
+      page_type: pageType(path),
+    };
+    for (var k in props) {
+      if (Object.prototype.hasOwnProperty.call(props, k)) properties[k] = props[k];
+    }
+    var body = JSON.stringify({
+      api_key: KEY,
+      event: event,
+      distinct_id: visit,
+      properties: properties,
+    });
+    try {
+      win
+        .fetch(HOST + "/i/v0/e/", {
+          method: "POST",
+          mode: "cors",
+          credentials: "omit",
+          keepalive: true,
+          headers: { "Content-Type": "application/json" },
+          body: body,
+        })
+        .catch(function () {
+          // Measurement never surfaces an error to a reader.
+        });
+    } catch (e) {
+      // Same rule.
+    }
+  }
+
+  send("$pageview", {});
+
+  // A control opts in by carrying data-measure with the event name; nothing
+  // else a reader clicks is reported. web/src/bundle.js marks the checkout
+  // links this way, with data-measure-plan naming the plan id from plan.json.
+  // Both values are checked against a narrow shape before they are sent, so
+  // a stray attribute cannot turn into an arbitrary string in the event.
+  document.addEventListener(
+    "click",
+    function (event) {
+      var target = event.target;
+      if (!(target instanceof Element)) return;
+      var control = target.closest("[data-measure]");
+      if (!control) return;
+      var name = control.getAttribute("data-measure") || "";
+      var plan = control.getAttribute("data-measure-plan") || "";
+      if (!/^[a-z][a-z0-9_]{1,40}$/.test(name)) return;
+      /** @type {Record<string, string>} */
+      var props = {};
+      if (/^[a-z0-9_]{1,40}$/.test(plan)) props.plan = plan;
+      send(name, props);
+    },
+    true
+  );
+})();
+
+// Google Analytics 4 (docs/decisions/0056-google-analytics-4.md).
+//
+// - With no measurement id written by the deploy, the first line of logic
+//   returns and nothing loads: no Google script, no cookie, no request. The
+//   committed copy of this file has no id. The id is measurement_ga4_id in
+//   site-seo.json, and render-measure writes it into the marked line below.
+// - Global Privacy Control, Do Not Track, or an opt-out through the footer
+//   link returns before anything loads. Opting out on a page where GA4 has
+//   already loaded sets Google's own ga-disable flag for the id, which stops
+//   every later hit, and expires the two GA4 cookies.
+// - A page served from this machine (localhost) loads nothing, so local work
+//   and the Lighthouse runs in CI are never counted.
+// - Consent defaults (Consent Mode v2): ad storage, ad user data and ad
+//   personalization are denied everywhere. Analytics storage is denied in the
+//   European Economic Area, the United Kingdom and Switzerland, and granted
+//   elsewhere. There is no banner, so no _ga cookie is ever set in those
+//   regions.
+// - Google signals and ad personalization signals are off.
+// - The page address sent is the path only, and the referrer is the origin
+//   of the linking site only, for the reason the block above gives: the
+//   post-checkout page carries a Stripe order reference in its query string,
+//   and the page opened after it would carry that address as its referrer.
+(function () {
+  "use strict";
+
+  // Written at deploy time from measurement_ga4_id in site-seo.json by the
+  // render-measure command (scorecard_pipeline.site_shell.render_measure_script).
+  // A GA4 measurement id ships in every page by design; it is not a secret.
+  var GA4_ID = ""; // measure:ga4-id
+  var LOADER = "https://www.googletagmanager.com/gtag/js?id=";
+  // Where analytics storage stays denied: the 27 EU members, Iceland,
+  // Liechtenstein and Norway (the EEA), the United Kingdom and Switzerland,
+  // as the ISO 3166-1 codes the consent region parameter reads.
+  var CONSENT_REQUIRED = [
+    "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU",
+    "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK",
+    "IS", "LI", "NO",
+    "GB",
+    "CH",
+  ];
+
+  if (!GA4_ID) return;
+  var nav = /** @type {any} */ (window.navigator || {});
+  var win = /** @type {any} */ (window);
+  var doc = /** @type {any} */ (document);
+  if (nav.globalPrivacyControl === true) return;
+  if (nav.doNotTrack === "1" || win.doNotTrack === "1" || nav.msDoNotTrack === "1") return;
+  if (doc.documentElement.hasAttribute("data-measure-stopped")) return;
+  if (!/^G-[A-Z0-9]+$/.test(GA4_ID)) return;
+  var host = win.location.hostname;
+  if (!host || host === "localhost" || host === "127.0.0.1" || host === "[::1]") return;
+
+  /** The origin of the linking site, with no path. @returns {string} */
+  function referrerOrigin() {
+    var ref = doc.referrer;
+    if (!ref) return "";
+    try {
+      return new URL(ref).origin + "/";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  win.dataLayer = win.dataLayer || [];
+  // gtag reads the arguments object itself, not an array made from it.
+  function gtag() {
+    win.dataLayer.push(arguments);
+  }
+
+  gtag("consent", "default", {
+    ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
+    analytics_storage: "denied",
+    region: CONSENT_REQUIRED,
+  });
+  gtag("consent", "default", {
+    ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
+    analytics_storage: "granted",
+  });
+  gtag("js", new Date());
+  gtag("config", GA4_ID, {
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false,
+    page_location: win.location.origin + win.location.pathname,
+    page_referrer: referrerOrigin(),
+  });
+
+  /** Expire the two GA4 cookies on this host and on each parent domain,
+   *  since gtag sets them on the widest domain it can. */
+  function forgetCookies() {
+    var names = ["_ga", "_ga_" + GA4_ID.slice(2)];
+    var parts = host.split(".");
+    for (var n = 0; n < names.length; n++) {
+      var gone = names[n] + "=; Max-Age=0; path=/";
+      doc.cookie = gone;
+      for (var i = 0; i < parts.length - 1; i++) {
+        doc.cookie = gone + "; domain=" + parts.slice(i).join(".");
+      }
+    }
+  }
+
+  // Conversion events (docs/decisions/0057-bundle-conversion-events.md).
+  //
+  // The bundle pages announce three steps toward a purchase as a
+  // "scorecard:commerce" event on the document: the plans were shown
+  // (view_item), a checkout link was followed (begin_checkout), and Stripe
+  // sent a buyer back with an order (purchase). This block alone forwards
+  // them to GA4, and it rebuilds every parameter from fields it checks one at
+  // a time, so nothing else a page script put in the event can reach Google:
+  //
+  // - the event name is one of those three;
+  // - a plan is a short lowercase id from plan.json with a plain number for
+  //   its price, and the currency is three capital letters;
+  // - an order is named only by a transaction id of 32 hex characters, which
+  //   the setup page makes by hashing the Stripe order reference, so the
+  //   reference itself never reaches this block;
+  // - the page address and referrer are the same path-only values the page
+  //   view carries.
+  //
+  // The plan a buyer chose is kept in the session storage of this tab from the
+  // checkout click until the page Stripe returns to, because the address of
+  // that page does not say what was bought. Only this block writes it, and only
+  // while GA4 is on. Once the purchase is reported it holds the hash of the order
+  // instead, so reloading that page does not count the purchase twice, and
+  // opting out removes it.
+  var COMMERCE = ["view_item", "begin_checkout", "purchase"];
+  var CHECKOUT_KEY = "scorecard-checkout";
+  var PAGE = win.location.origin + win.location.pathname;
+  var REFERRER = referrerOrigin();
+
+  /** @param {unknown} raw @returns {number | null} */
+  function amount(raw) {
+    return typeof raw === "number" && isFinite(raw) && raw >= 0 && raw <= 100000 ? raw : null;
+  }
+
+  /** One plan as GA4 reads it, or null. @param {any} raw */
+  function planItem(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    var id = raw.item_id;
+    var price = amount(raw.price);
+    if (typeof id !== "string" || !/^[a-z0-9_]{1,40}$/.test(id) || price === null) return null;
+    return { item_id: id, price: price, quantity: 1 };
+  }
+
+  /** @param {unknown} raw @returns {string} */
+  function currency(raw) {
+    return typeof raw === "string" && /^[A-Z]{3}$/.test(raw) ? raw : "";
+  }
+
+  /** @param {unknown} value */
+  function keep(value) {
+    try {
+      if (value === null) win.sessionStorage.removeItem(CHECKOUT_KEY);
+      else win.sessionStorage.setItem(CHECKOUT_KEY, JSON.stringify(value));
+    } catch (e) {
+      // Storage refused: the purchase is still reported, without its plan.
+    }
+  }
+
+  /** @returns {any} */
+  function kept() {
+    try {
+      return JSON.parse(win.sessionStorage.getItem(CHECKOUT_KEY) || "null");
+    } catch (e) {
+      return null;
+    }
+  }
+
+  doc.addEventListener("scorecard:commerce", function (/** @type {any} */ event) {
+    // Set by the opt-out below; gtag.js reads the same flag before every hit.
+    if (win["ga-disable-" + GA4_ID]) return;
+    var detail = event && event.detail;
+    if (!detail || typeof detail !== "object") return;
+    var name = detail.event;
+    if (COMMERCE.indexOf(name) < 0) return;
+    if (name === "purchase") {
+      var order = detail.transaction_id;
+      if (typeof order !== "string" || !/^[0-9a-f]{32}$/.test(order)) return;
+      var chosen = kept();
+      if (chosen && chosen.reported === order) return;
+      var bought = chosen && planItem(chosen.item);
+      var paid = chosen && currency(chosen.currency);
+      keep({ reported: order });
+      gtag(
+        "event",
+        "purchase",
+        bought && paid
+          ? {
+              transaction_id: order,
+              currency: paid,
+              value: bought.price,
+              items: [bought],
+              page_location: PAGE,
+              page_referrer: REFERRER,
+            }
+          : { transaction_id: order, page_location: PAGE, page_referrer: REFERRER }
+      );
+      return;
+    }
+    var list = [];
+    var raw = Array.isArray(detail.items) ? detail.items.slice(0, 8) : [];
+    for (var i = 0; i < raw.length; i++) {
+      var item = planItem(raw[i]);
+      if (item) list.push(item);
+    }
+    var money = currency(detail.currency);
+    var total = amount(detail.amount);
+    if (!list.length || !money || total === null) return;
+    if (name === "begin_checkout") keep({ item: list[0], currency: money });
+    gtag("event", name, {
+      currency: money,
+      value: total,
+      items: list,
+      page_location: PAGE,
+      page_referrer: REFERRER,
+    });
+  });
+
+  doc.addEventListener("scorecard:measure-stopped", function () {
+    win["ga-disable-" + GA4_ID] = true;
+    forgetCookies();
+    keep(null);
+  });
+
+  var script = doc.createElement("script");
+  script.async = true;
+  script.src = LOADER + encodeURIComponent(GA4_ID);
+  (doc.head || doc.documentElement).appendChild(script);
+})();

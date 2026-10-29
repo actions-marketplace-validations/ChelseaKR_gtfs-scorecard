@@ -18,6 +18,7 @@ jobs:
   watch:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '23 */6 * * *' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       actions: read # read the Daily scorecard run history
     steps:
@@ -71,20 +72,22 @@ jobs:
           fi
           age=$(( ( $(date -u +%s) - $(date -u -d "$updated" +%s) ) / 3600 ))
           echo "live deployment was produced by '$name' run $run_id, ${age}h ago ($updated)"
-          # Healthy steady-state redeploys roughly every 3h (Intraday's own
-          # cadence, refresh.yml). 9h tolerates three missed cycles in a row
-          # — enough margin that one slow run sharing the artifacts-publish
-          # concurrency lock with a Daily run doesn't page on its own — while
-          # still catching a real stall inside a working day, not after one.
-          if [ "$age" -gt 9 ]; then
-            echo "::error::The live site's deployed data is ${age}h old (>9h). Neither Daily nor Intraday has published successfully in that window."
+          # Healthy steady-state redeploys roughly every 6h: Intraday runs
+          # every 3h but redeploys the site on every other cycle (refresh.yml,
+          # "Decide whether this cycle redeploys the site"), plus the Daily.
+          # 14h tolerates one missed deploying cycle plus GitHub's schedule
+          # jitter, so one slow run sharing the artifacts-publish concurrency
+          # lock with a Daily run doesn't page on its own, while still catching
+          # a real stall inside a working day. It was 9h at a 3h deploy cadence.
+          if [ "$age" -gt 14 ]; then
+            echo "::error::The live site's deployed data is ${age}h old (>14h). Neither Daily nor Intraday has published successfully in that window."
             exit 1
           fi
 
       # The freshness check above tolerates one bad Daily run as long as
       # Intraday keeps deploying; this pages on the first Daily failure
       # specifically, so a red daily is known within six hours rather than
-      # only once nothing has published in 9h. `if: always()` so it still
+      # only once nothing has published in 14h. `if: always()` so it still
       # runs (and can still fail the job) even when the step above already
       # failed — previously this had no `if:`, and because the step above's
       # threshold had always already tripped by the time Watchdog got a
@@ -104,8 +107,226 @@ jobs:
           status=$(echo "$latest" | jq -r '.[0].status // empty')
           event=$(echo "$latest" | jq -r '.[0].event // empty')
           echo "most recent completed Daily scorecard run: event=$event status=$status conclusion=$conclusion"
-          if [ "$conclusion" = "failure" ] || [ "$conclusion" = "timed_out" ]; then
+          # An unreadable answer is not a good answer. `gh run list` falls back
+          # to '[]' on any failure (network, auth, a rate limit), which leaves
+          # `conclusion` empty — and an empty string matches none of the
+          # branches below, so without this the step exits 0 and the watchdog
+          # reports the Daily pipeline healthy on the strength of a reply it
+          # never got. The realtime and bundle checks in this same file already
+          # guard this way; this one did not.
+          if [ -z "$conclusion" ]; then
+            echo "::error::Could not read a completed Daily scorecard run. This check says nothing about the Daily pipeline until it can."
+            exit 1
+          fi
+          # `cancelled` is in this list because that is what GitHub records
+          # when a job hits its own `timeout-minutes`, not `timed_out`.
+          # Measured on 2026-09-08 against Realtime monitor run 34162993774:
+          # the job started 21:24:06 and completed 22:09:20 — 45 minutes to
+          # the second, against `timeout-minutes: 45` — and both the job and
+          # the run concluded `cancelled`. A check that reads only `failure`
+          # and `timed_out` therefore cannot see a workflow that is dying on
+          # its own bound, which is the shape that ran unnoticed for three
+          # days in rt-monitor.yml.
+          if [ "$conclusion" = "failure" ] || [ "$conclusion" = "timed_out" ] || [ "$conclusion" = "cancelled" ]; then
             echo "::error::The most recent completed Daily scorecard run ended '$conclusion'. Investigate before the published data goes stale."
+            exit 1
+          fi
+
+      # Issue #390. A bound nothing measures is the rt-monitor incident one step
+      # earlier. That job sat eleven runs deep in its own timeout because the
+      # runtime its bound was argued from was written once and never read again.
+      # The check above reads a conclusion, and a job that finishes at 58 of 60
+      # minutes concludes `success` right up to the day it concludes
+      # `cancelled`. This step reads the duration instead, for the two jobs whose
+      # kill drops a publish.
+      #
+      # The bounds are copied here, and pipeline/tests/test_workflow_safety.py
+      # fails if they stop matching the workflows. This step fails for a job
+      # stopped at its bound (a timeout concludes `cancelled` and keeps its
+      # steps), for a job that finished within 3% of its bound (the HARD STOP,
+      # 170 of 175 minutes: one slower cycle is a kill), and for a reading that
+      # found no job to measure, which is not a pass.
+      #
+      # A job at 90% to 97% of its bound is a warning, not a fault. It is
+      # written as an annotation and to the job summary, and the step stays
+      # green. Measured 2026-10-21 over the last 20 Watchdog runs, 4 were red
+      # for that warning alone (a 162-minute success on a 175-minute bound,
+      # then re-read by the next two Watchdog runs while it stayed in the
+      # window) while every cycle in them published. A check that is red for a
+      # run that succeeded teaches the reader to ignore red, which hides the
+      # runs that were killed. The rule is in `classify_bound` below and is run
+      # by pipeline/tests/test_workflow_safety.py.
+      - name: No scheduled publish job is running up against its own bound
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # workflow|job|timeout-minutes|completed runs to read. Refresh fires
+          # every 3 hours and this step every 6, so it reads 3 runs to see
+          # every one.
+          #
+          # `score` is the Daily's matrix: its jobs are named `score (<ids>)`, so
+          # a row names the prefix and the step measures the longest shard of
+          # each run. A score shard killed at its bound loses every record it had
+          # scored and not yet uploaded (about 65), the same loss as a dead
+          # runner, and nothing measured it: on 2026-09-09 and 2026-09-14 the
+          # slowest shard ran 53 and 52 of its 55 minutes. Daily fires once a day
+          # and this step four times, so it reads 2 runs.
+          BOUNDED_JOBS: |
+            refresh.yml|refresh|175|3
+            scorecard.yml|collect|90|2
+            scorecard.yml|score|55|2
+        run: |
+          set -euo pipefail
+          fail=0
+          # classify_bound START
+          # conclusion steps minutes bound -> killed | hard_stop | warn | ok
+          classify_bound() {
+            local conclusion=$1 steps=$2 minutes=$3 bound=$4
+            if [ "$conclusion" = "cancelled" ] && [ "$steps" -gt 0 ] && [ "$minutes" -ge $((bound - 1)) ]; then
+              echo killed
+            elif [ $((minutes * 100)) -ge $((bound * 97)) ]; then
+              echo hard_stop
+            elif [ $((minutes * 10)) -ge $((bound * 9)) ]; then
+              echo warn
+            else
+              echo ok
+            fi
+          }
+          # classify_bound END
+          while IFS='|' read -r workflow job bound runs; do
+            [ -z "$workflow" ] && continue
+            ids=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" \
+              --branch main --status completed --limit "$runs" \
+              --json databaseId --jq '.[].databaseId' 2>/dev/null || true)
+            if [ -z "$ids" ]; then
+              echo "::error::Could not read completed $workflow runs, so nothing here says how close $job is to its $bound-minute bound."
+              fail=1
+              continue
+            fi
+            measured=0
+            for id in $ids; do
+              # A job is either named exactly `$job` or is one leg of a matrix
+              # named `$job (...)`. Of the matching jobs only the longest is
+              # read: it is the one nearest its bound, and a shard stopped at
+              # the bound is by definition the longest. One page of 100 jobs
+              # covers a run today (about 50); a Daily plan past ~97 shards
+              # would need paging here.
+              row=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/jobs?per_page=100" \
+                --jq "[.jobs[] | select((.name == \"$job\" or (.name | startswith(\"$job (\"))) and .started_at != null and .completed_at != null)] | sort_by(-((.completed_at | fromdate) - (.started_at | fromdate))) | .[0:1][] | [.started_at, .completed_at, .conclusion, (.steps | length)] | @tsv" \
+                2>/dev/null || true)
+              [ -z "$row" ] && continue
+              IFS=$'\t' read -r started completed conclusion steps <<< "$row"
+              minutes=$(( ( $(date -u -d "$completed" +%s) - $(date -u -d "$started" +%s) ) / 60 ))
+              measured=$((measured + 1))
+              echo "$workflow $job, run $id: $minutes of $bound minutes, $conclusion, $steps steps"
+              case "$(classify_bound "$conclusion" "$steps" "$minutes" "$bound")" in
+                killed)
+                  echo "::error::$workflow $job run $id was stopped by its own $bound-minute bound after $minutes minutes. GitHub records that as canceled, not as a failure."
+                  fail=1
+                  ;;
+                hard_stop)
+                  echo "::error::$workflow $job run $id took $minutes of its $bound-minute bound, within 3% of the hard stop. The next slower run is a timeout kill: re-measure the runtime and move the bound or the work before that happens."
+                  fail=1
+                  ;;
+                warn)
+                  echo "::warning::$workflow $job run $id took $minutes of its $bound-minute bound, 90% or more. Not a fault: it finished. It becomes one at 97% (the hard stop)."
+                  echo "- $workflow $job run $id: $minutes of $bound minutes, $conclusion (warning, 90% or more)" >> "$GITHUB_STEP_SUMMARY"
+                  ;;
+                *)
+                  echo "- $workflow $job run $id: $minutes of $bound minutes, $conclusion" >> "$GITHUB_STEP_SUMMARY"
+                  ;;
+              esac
+            done
+            if [ "$measured" -eq 0 ]; then
+              echo "::error::None of the last $runs completed $workflow runs has a $job job with a start and an end, so its duration was not measured."
+              fail=1
+            fi
+          done <<< "$BOUNDED_JOBS"
+          exit "$fail"
+
+      # The realtime monitor publishes no page of its own, so nothing else in
+      # this repository notices when it stops. Its record (data/rt-health) is
+      # read by every agency page's reliability section and by /realtime/, and
+      # a run that records nothing leaves those surfaces describing an older
+      # window while the page around them is rebuilt today. Ask the same
+      # question as the step above, about the workflow whose silence is the
+      # hardest to see.
+      - name: The most recent realtime monitor run did not fail
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          latest=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow rt-monitor.yml \
+            --branch main --status completed --limit 1 \
+            --json conclusion,status,event 2>/dev/null || echo '[]')
+          conclusion=$(echo "$latest" | jq -r '.[0].conclusion // empty')
+          status=$(echo "$latest" | jq -r '.[0].status // empty')
+          event=$(echo "$latest" | jq -r '.[0].event // empty')
+          echo "most recent completed Realtime monitor run: event=$event status=$status conclusion=$conclusion"
+          if [ -z "$conclusion" ]; then
+            echo "::error::Could not read a completed Realtime monitor run. This check says nothing about the monitor until it can."
+            exit 1
+          fi
+          if [ "$conclusion" = "failure" ] || [ "$conclusion" = "timed_out" ] || [ "$conclusion" = "cancelled" ]; then
+            echo "::error::The most recent completed Realtime monitor run ended '$conclusion', so no realtime observation was recorded. The reliability figures on every agency page and on /realtime/ describe an older window than the page says."
+            exit 1
+          fi
+
+      # report-bundle.yml is the program tier's fulfillment step, and every run
+      # of it is an order somebody paid between $149 and $490 for. It is
+      # dispatched, never scheduled, so it has no cadence to go stale against
+      # and no page that looks wrong when it stops: a failed run is invisible
+      # unless someone opens the Actions tab. This asks the only question
+      # that matters about it -- did the last order fail -- and stays red
+      # until a later run succeeds, because an undelivered paid order does
+      # not stop being one after six hours.
+      #
+      # Two shapes this must not confuse:
+      #   * NO completed runs at all is the normal state before the first
+      #     sale, and is not a failure. It is read from an empty list, not
+      #     from an error, which is why the `gh` call is tested for its own
+      #     exit status instead of being wrapped in `|| echo '[]'` -- that
+      #     idiom turns "I could not ask" into "nothing to report".
+      #   * `cancelled` IS a failure here. A job killed by its own
+      #     `timeout-minutes` concludes `cancelled`, never `timed_out` (the
+      #     measurement is in the Daily check above), and this job carries
+      #     `timeout-minutes: 30`. A hundred-agency bundle that outgrows that
+      #     bound is exactly the failure this check exists for, and reading
+      #     only `failure`/`timed_out` would be blind to it. Nothing else
+      #     cancels these runs: report-bundle.yml's concurrency group is
+      #     per-bundle and `cancel-in-progress: false`.
+      #
+      # No `--branch main` filter, unlike the two checks above. The ref these
+      # runs are dispatched on is the setup Lambda's WORKFLOW_REF, which is a
+      # Terraform variable; pinning `main` here would quietly stop watching
+      # paid orders the day that variable changed.
+      - name: The most recent program report bundle run did not fail
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # stderr goes to its own file rather than into "$latest": merging it
+          # would corrupt the JSON on any call gh decides to warn about.
+          if ! latest=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow report-bundle.yml \
+            --status completed --limit 1 --json conclusion,createdAt 2>"$RUNNER_TEMP/gh-run-list.err"); then
+            echo "::error::Could not read the Program report bundle run list: $(cat "$RUNNER_TEMP/gh-run-list.err"). This check says nothing about paid orders until it can."
+            exit 1
+          fi
+          if [ "$(echo "$latest" | jq 'length')" -eq 0 ]; then
+            echo "no completed Program report bundle runs yet; nothing has been ordered."
+            exit 0
+          fi
+          conclusion=$(echo "$latest" | jq -r '.[0].conclusion // empty')
+          created=$(echo "$latest" | jq -r '.[0].createdAt // empty')
+          echo "most recent completed Program report bundle run: created=$created conclusion=$conclusion"
+          if [ -z "$conclusion" ]; then
+            echo "::error::A completed Program report bundle run reported no conclusion. This check says nothing about paid orders until it can."
+            exit 1
+          fi
+          if [ "$conclusion" = "failure" ] || [ "$conclusion" = "timed_out" ] || [ "$conclusion" = "cancelled" ]; then
+            echo "::error::The most recent completed Program report bundle run ended '$conclusion'. A paid order was not delivered, and the buyer was told the build had started. Re-dispatch report-bundle.yml with that run's inputs."
             exit 1
           fi
 

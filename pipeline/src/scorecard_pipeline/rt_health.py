@@ -58,16 +58,26 @@ class RtObservation:
 
 def observe(
     window: RtWindow, *, kinds_total: int, scheduled: set[str] | None = None
-) -> RtObservation:
-    """Derive a lightweight observation from a sampled window.
+) -> RtObservation | None:
+    """Derive a lightweight observation from a sampled window, or None.
 
     ``kinds_total`` is how many realtime feeds the agency publishes, so uptime is
     measured against what exists rather than a fixed three. Coverage is recorded
     only when trips were scheduled during the window; otherwise it is None and
     drops out of the summary rather than reading as zero.
+
+    Returns None when no feed kind in the window could be sampled at all — every
+    attempt failed inside our own fetcher (``RtSample.measured`` is False). An
+    observation is a claim about the agency's uptime, and that window supports
+    none: recording it would put our outage in their record, where the site
+    publishes it as the share of checks their feed answered. The caller records
+    nothing and logs instead, so the gap is visible in the run log rather than
+    priced into somebody else's reliability figure.
     """
     from .rt import RT_KINDS
 
+    if not any(sample.measured for sample in window.samples):
+        return None
     ts = max((s.fetched_at for s in window.samples), default=0)
     kinds_reachable = sum(1 for kind in RT_KINDS if window.kind_ok(kind))
     lags = [window.worst_lag(k) for k in ("trip_updates", "vehicle_positions")]
@@ -167,14 +177,13 @@ def state_path(agency_id: str) -> Path:
     return _state_dir() / f"{agency_id}.json"
 
 
-def load_observations(agency_id: str) -> list[RtObservation]:
-    """The recorded observations for an agency, oldest first; empty when none.
+def read_record(path: Path) -> list[RtObservation]:
+    """The observations in one record file, oldest first; empty when absent.
 
-    Raises ``RtHealthRecordCorruptError`` when the record file exists but is
-    not valid JSON, so a corrupt file is never mistaken for an empty history
-    (see that error's docstring for why that distinction matters).
+    Raises ``RtHealthRecordCorruptError`` when the file exists but is not valid
+    JSON, so a corrupt file is never mistaken for an empty history (see that
+    error's docstring for why that distinction matters).
     """
-    path = state_path(agency_id)
     try:
         text = path.read_text()
     except FileNotFoundError:
@@ -199,10 +208,13 @@ def load_observations(agency_id: str) -> list[RtObservation]:
     return out
 
 
-def append_observation(agency_id: str, observation: RtObservation) -> Path:
-    """Append one observation to an agency's record, capping the history."""
-    observations = [*load_observations(agency_id), observation][-MAX_OBSERVATIONS:]
-    path = state_path(agency_id)
+def load_observations(agency_id: str) -> list[RtObservation]:
+    """The recorded observations for an agency, oldest first; empty when none."""
+    return read_record(state_path(agency_id))
+
+
+def write_record(path: Path, agency_id: str, observations: list[RtObservation]) -> Path:
+    """Write one agency's record, summary included, replacing it atomically."""
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "agency_id": agency_id,
@@ -213,3 +225,38 @@ def append_observation(agency_id: str, observation: RtObservation) -> Path:
     tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     tmp.replace(path)
     return path
+
+
+def append_observation(agency_id: str, observation: RtObservation) -> Path:
+    """Append one observation to an agency's record, capping the history."""
+    observations = [*load_observations(agency_id), observation][-MAX_OBSERVATIONS:]
+    return write_record(state_path(agency_id), agency_id, observations)
+
+
+def merge_records(ours: Path, into: Path) -> list[Path]:
+    """Union one run's records into another generation of the same records.
+
+    Every monitor run appends to the same per-agency files, so when two runs
+    overlap their commits do not conflict over a decision — each holds
+    observations the other never took. The two histories are unioned by capture
+    timestamp, oldest first, capped the way ``append_observation`` caps, and the
+    summary is recomputed from the merged list rather than carried over from
+    either side.
+
+    ``ours`` is read, never written. A record present only in ``into`` (an
+    agency the other run recorded and this one did not) is left exactly as it
+    is. Returns the paths under ``into`` whose contents changed.
+    """
+    changed: list[Path] = []
+    for source in sorted(ours.glob("*.json")):
+        destination = into / source.name
+        published = read_record(destination)
+        by_ts = {observation.ts: observation for observation in read_record(source)}
+        # A timestamp recorded on both sides is the same capture; keep the
+        # published copy so a merge never rewrites what main already carries.
+        by_ts.update({observation.ts: observation for observation in published})
+        merged = [by_ts[ts] for ts in sorted(by_ts)][-MAX_OBSERVATIONS:]
+        if merged == published:
+            continue
+        changed.append(write_record(destination, source.stem, merged))
+    return changed

@@ -34,14 +34,54 @@ env:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # RELIABILITY (issue #297): no bound previously existed short of the
-    # platform's 360-minute default. Observed successful runs range from ~70
-    # to ~137 minutes depending on how many feeds are due this cycle (cadence
-    # tiers, ADR 0010), so this stays well above that range to avoid flagging
-    # a legitimately heavy cycle, while still catching a genuine hang (a
-    # runner killed validating a large feed, as in issue #297) inside one
-    # scheduling day instead of running silent for six hours.
-    timeout-minutes: 240
+    outputs:
+      deploy_site: ${{ steps.site-cycle.outputs.deploy }}
+    # RELIABILITY (issues #297, #390): until #297 there was no bound short of
+    # the platform's 360-minute default. #297 set 240 against an observed "~70
+    # to ~137 minutes", a figure written once that the job then outgrew and
+    # nothing recomputed. Re-measured 2026-09-13 over the 100 scheduled runs
+    # from 2026-09-01T09:33Z to 2026-09-13T18:30Z: successful runs took 56.6
+    # to 154.1 minutes (median 87.3, n=84), the longest run of any conclusion
+    # took 170.1 (a failure), and no run was stopped at its bound. How long a
+    # cycle takes still depends on how many feeds are due (cadence tiers, ADR
+    # 0010).
+    #
+    # 175 sits above every one of those runs and below the 180-minute cron.
+    # 240 did not. A bound above the cadence cannot mean "this run has lost its
+    # schedule": by the time it fires the next cycle has already started, and
+    # `artifacts-publish` is serial with `cancel-in-progress: false`, so a third
+    # arrival evicts the queued run rather than the wedged one.
+    #
+    # What no number can do is stated rather than implied. GitHub defers
+    # scheduled fires unevenly, and consecutive fires in the same window were as
+    # little as 114.2 minutes apart (median 181.3, longest 226.5). No bound sits
+    # below that and above a 154-minute run, so this catches a wedged runner
+    # (a runner killed validating a large feed, as in #297) and a run that has
+    # outlived the nominal cadence, not a compressed gap. A faster job or a
+    # longer cron fixes that, and which one is an owner decision.
+    #
+    # This number is now read. Watchdog's "No scheduled publish job is running
+    # up against its own bound" compares each run's duration with it, and
+    # pipeline/tests/test_workflow_safety.py holds it between the measured
+    # runtime and the cadence.
+    #
+    # Re-measured 2026-09-18, when that check failed on run 35316236534 (160
+    # of 175 minutes), and answered by trimming the work rather than moving
+    # the bound. From 2026-09-14 to 2026-09-18 every cycle's publish was
+    # refused (fixed by #464), so no cycle saved its liveness state: each one
+    # re-found the same growing backlog (234 to 384 changed feeds), re-ran the
+    # whole day's freshness sweep (~25 minutes), and re-scored until the
+    # rescore deadline pinned the job at ~160 minutes. Before that window,
+    # cycles took 64-128 minutes (2026-09-11..13); the two after it took 141
+    # and 100 as the backlog drained. Most of every cycle was two serial
+    # steps waiting: the liveness sweep (23-45 minutes) on one server at a
+    # time, and the rescore (31-94) on servers and realtime sampling windows.
+    # Both now overlap that waiting (see each step). Replaying the measured
+    # per-feed timings of eight cycles through the new rescore took each from
+    # 33-94 minutes to 10-49. The bound stays at 175. The watchdog annotates a
+    # run at 90% (158 minutes) and goes red only at 97% (170 minutes) or when
+    # a run is stopped at the bound.
+    timeout-minutes: 175
     concurrency:
       group: artifacts-publish
       cancel-in-progress: false
@@ -60,6 +100,41 @@ jobs:
         with:
           python-version: "3.12"
 
+      # RELIABILITY: the per-feed rescore loop further down has no bound of its
+      # own, so a large due batch (more agencies now carry a realtime feed
+      # than when 175 was last measured) can run this whole job out to its
+      # job-level timeout-minutes with the loop still mid-agency. A job killed
+      # by timeout-minutes never reaches the reindex/rollups step or the S3
+      # publish step after it, so every feed already re-scored that cycle is
+      # discarded along with the ones still queued -- the loop needs its own
+      # wall-clock deadline, read from when this job actually started, to stop
+      # taking on new agencies while enough of the budget remains for the
+      # steps after it.
+      - name: Record job start time
+        run: echo "job_started_epoch=$(date -u +%s)" >> "$GITHUB_ENV"
+
+      # COST: the site deploy below re-reads the published corpus from S3, and
+      # S3 egress to GitHub runners was most of this project's AWS bill. The
+      # refresh itself still runs and publishes to S3 every three hours, so
+      # the liveness commitment on /status/ and the S3 data are unchanged. Only
+      # the Pages rebuild skips every other cycle: cycles that start in the
+      # 00, 06, 12 and 18 UTC windows deploy, the 03, 09, 15 and 21 ones do
+      # not, so the site's data is at most about six hours behind S3 instead
+      # of three. A manual dispatch always deploys. Watchdog's staleness
+      # bound (watchdog.yml) is sized for this.
+      - name: Decide whether this cycle redeploys the site
+        id: site-cycle
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          hour=$((10#$(date -u +%H)))
+          if [ "$EVENT_NAME" != "schedule" ] || [ $(( (hour / 3) % 2 )) -eq 0 ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=site deploy skipped::This cycle publishes to S3 only; the next even cycle (00/06/12/18 UTC) redeploys the site."
+          fi
+
       - name: Authenticate to AWS
         if: ${{ vars.ARTIFACTS_BUCKET != '' }}
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
@@ -67,30 +142,84 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
 
+      # The bounded set below (latest.json for every agency plus today's and
+      # yesterday's dated snapshots) is ~400 MB of the ~570 MB this step pulled
+      # on each of eight cycles a day, almost all of it unchanged since the
+      # cycle before. Keep it in the Actions cache and let `aws s3 sync` fetch
+      # only what S3 changed. Everything cached here is public data the site
+      # already serves; the fix-log cache below is private and is not cached.
+      # index.json changes every cycle and is a plain copy.
+      - name: Name the mirror day
+        id: mirror-day
+        run: echo "today=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the public-artifact mirror
+        id: mirror
+        if: ${{ vars.ARTIFACTS_BUCKET != '' }}
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/public-artifact-mirror
+          key: public-artifact-mirror-v1-refresh-${{ steps.mirror-day.outputs.today }}
+          restore-keys: |
+            public-artifact-mirror-v1-refresh-
+
       - name: Hydrate current artifacts from S3
         if: ${{ vars.ARTIFACTS_BUCKET != '' }}
         run: |
           today=$(date -u +%Y-%m-%d)
           yesterday=$(date -u -d yesterday +%Y-%m-%d)
-          aws s3 sync "s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts" data/artifacts \
-            --exclude "*" --include "index.json" \
+          mirror="$RUNNER_TEMP/public-artifact-mirror"
+          log="$RUNNER_TEMP/mirror-sync.log"
+          mkdir -p "$mirror"
+          # `--exact-timestamps`: the default download rule skips a same-size
+          # object whose local copy is older, which would miss a rewrite that
+          # did not change the size. The mirror's files carry the S3 times they
+          # were downloaded with, so an unchanged object compares equal.
+          # `--delete` drops mirror files S3 no longer has (a retired agency).
+          aws s3 sync "s3://${{ vars.ARTIFACTS_BUCKET }}/data/artifacts" "$mirror" \
+            --exclude "*" \
             --include "*/latest.json" \
             --include "*/${today}.json" --include "*/${yesterday}.json" \
-            --only-show-errors
+            --delete --exact-timestamps --no-progress > "$log"
+          echo "::notice title=public-artifact mirror::$(grep -c '^download:' "$log" || true) objects downloaded, $(grep -c '^delete:' "$log" || true) removed"
+          scripts/overlay-s3-mirror.sh "$mirror" data/artifacts "$today" "$yesterday"
+          scripts/s3-index.sh get "${{ vars.ARTIFACTS_BUCKET }}" data/artifacts/index.json
           aws s3 sync "s3://${{ vars.ARTIFACTS_BUCKET }}/cache/fixlog" data/artifacts \
             --only-show-errors
           aws s3 cp "s3://${{ vars.ARTIFACTS_BUCKET }}/data/liveness.json" \
             data/liveness.json --only-show-errors || true
 
+      # Saved once per UTC day, not per run: the sync above makes the mirror
+      # equal to S3 on every run, so a day-old entry only costs the objects
+      # that changed since. Saving each cycle would push a ~400 MB entry eight
+      # times a day into the repository's 10 GB cache.
+      - name: Save the public-artifact mirror
+        if: ${{ vars.ARTIFACTS_BUCKET != '' && steps.mirror.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/public-artifact-mirror
+          key: public-artifact-mirror-v1-refresh-${{ steps.mirror-day.outputs.today }}
+
       - name: Select the feeds due this cycle
         working-directory: pipeline
         run: uv run scorecard cadence --out "$RUNNER_TEMP/due.txt"
 
+      # Hosts are checked side by side and each host's feeds one at a time, so
+      # no agency's server has two requests from this sweep in flight: the
+      # load the serial sweep put on it, arriving no faster. Serial, this step
+      # took 44-45 minutes a cycle on 2026-09-18 for ~1,500 due feeds, most of
+      # it waiting on one server at a time. Sixteen lanes let the ~500 quiet
+      # hosts finish behind the few busy ones, and the busiest sets the floor:
+      # api.gtfs-data.jp carries 505 registered feeds at about a second a
+      # check. The baseline is the state before this sweep, for the rescore
+      # to put back any feed it defers (`scorecard rescore --liveness-baseline`).
       - name: Detect changed and unreachable feeds (due subset)
         working-directory: pipeline
         run: |
           uv run scorecard liveness --apply \
             --only "$RUNNER_TEMP/due.txt" \
+            --workers 16 \
+            --baseline-out "$RUNNER_TEMP/liveness.before.json" \
             --changed-out "$RUNNER_TEMP/changed.txt"
 
       # Export fingerprints are read by `export_diff` (exportdiff.py), which runs
@@ -99,75 +228,113 @@ jobs:
       # ~82 MB out of S3 every cycle to serve the handful of feeds that changed;
       # fetch them by exact key instead, once the changed list exists. A feed
       # with no stored fingerprint simply has no diff to report, which is the
-      # same behaviour as its first ever run.
+      # same behavior as its first ever run.
       - name: Hydrate export fingerprints for the changed feeds
         if: ${{ vars.ARTIFACTS_BUCKET != '' }}
         env:
           ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+        #
+        # Eight copies at a time. One `aws s3 cp` per feed took about a second
+        # and a half, which serially was 5-9 minutes a cycle while 200-400
+        # feeds were changed (2026-09-14..18). `|| true` is per object, as it
+        # was in the loop this replaces: a missing fingerprint is the normal
+        # first-run case, and a feed without one reports no diff.
         run: |
           set -euo pipefail
           mkdir -p data/cache/structure
           [ -s "$RUNNER_TEMP/changed.txt" ] || exit 0
-          while IFS= read -r id; do
-            [ -n "$id" ] || continue
-            aws s3 cp \
-              "s3://${ARTIFACTS_BUCKET}/cache/structure/${id}.json" \
-              "data/cache/structure/${id}.json" --only-show-errors || true
-          done < "$RUNNER_TEMP/changed.txt"
+          # The single quotes are the point: the child shell expands $1 per id.
+          # shellcheck disable=SC2016
+          xargs -P 8 -n 1 sh -c '
+            aws s3 cp "s3://${ARTIFACTS_BUCKET}/cache/structure/$1.json" \
+              "data/cache/structure/$1.json" --only-show-errors || true
+          ' fingerprint < "$RUNNER_TEMP/changed.txt"
 
+      # RELIABILITY: a local-disk step with no network, and until 2026-10-22
+      # the step with no bound of its own. Every publish re-serialized the
+      # whole index.json, which holds every agency's full history since #522
+      # (148 MB, 224,890 rows on 2026-10-22), so the first sweep after UTC
+      # midnight (~2,489 agencies, 3.2 s each) ran 134 to 167 minutes and was
+      # killed at the job's 175-minute bound on most days (runs 39703075009,
+      # 39557688508, 39524867695, 39382419582, 39365201144, 39351069391). A
+      # killed job publishes nothing, so the next cycle repeated the sweep.
+      # The index is now written once per sweep (publish.flush_index).
+      #
+      # 2400 s is the budget the sweep honors itself: the same first-of-day
+      # sweep took 17 to 28 minutes through 2026-10-13, when the index was a
+      # fraction of its present size, so a budget of 40 minutes clears every
+      # sweep that was ever healthy and still sits under the 50-minute step
+      # timeout, which is the backstop for a wedged disk or runner. Both sit
+      # far below 175. A sweep that reaches the budget stops taking agencies,
+      # publishes what it swept, names the rest in the log and a warning
+      # annotation, and exits 0; a deferred agency keeps its last published
+      # record and is found again next cycle. tests/test_workflow_safety.py
+      # holds budget < step timeout < job timeout.
       - name: Refresh expiry from calendar data (no fetch, no validator)
         working-directory: pipeline
+        timeout-minutes: 50
         run: |
           uv run scorecard freshness-sweep --apply \
+            --budget-seconds 2400 \
             --changed-out "$RUNNER_TEMP/swept.txt"
 
+      # `scorecard rescore` (pipeline/src/scorecard_pipeline/rescore.py) is
+      # the loop that used to be written out here, with the same outcome
+      # counting, deadline, floor and annotations, and unit tests in place of
+      # string checks on this file. What it adds is overlap. Measured
+      # 2026-09-18 on run 35345841643, the serial loop spent 48.0 minutes on
+      # 91 feeds, and only 16.5 of them validating and scoring: the rest was
+      # 25 realtime sampling windows (24.2), interpreter start-up (4.8) and
+      # downloads (2.4). Several runs are now in flight at once, and they take
+      # turns at validating and scoring through the heavy lock, so the part
+      # that needs memory still runs one feed at a time. A `large_feed` runs
+      # with nothing else in flight, and two feeds that share a host are
+      # never in flight together.
+      #
+      # The floor is the one scorecard.yml has (its "Verify shard artifacts
+      # before publishing" step). Before it, every non-zero exit here became
+      # an `echo`, so an intraday cycle in which every changed feed failed to
+      # re-score still ran reindex, rollups, render-site, the S3 publish and
+      # the Pages deploy, and reported success. Republishing yesterday's
+      # corpus under today's deployment timestamp is the one outcome a
+      # refresh must not report as a refresh, so a cycle that attempted feeds
+      # and re-scored none exits 1. A cycle that deferred everything to the
+      # budget (nothing attempted) is not that: it still applied the freshness
+      # sweep and publishes that.
       - name: Re-score only the feeds that changed
         working-directory: pipeline
+        env:
+          # Start no new agency once this many seconds have elapsed since the
+          # job began, leaving the rest of `timeout-minutes: 175` for the two
+          # steps after this one: rebuilding the index and rollups, and
+          # publishing to S3. 9300s = 155 minutes; measured 2026-09-14, those
+          # two steps plus the AWS credential renewal between them took 2-4
+          # minutes on every run recorded. Runs already in flight at the
+          # deadline finish, as the serial loop's current feed did, and their
+          # heavy parts queue on the lock: measured 2026-09-11..18 over 2,023
+          # re-scores of feeds that are not `large_feed`, that part took 62s at
+          # the 99th percentile and 176s at most, so four in flight cost well
+          # under the 20 minutes of slack. A deferred feed keeps its last good
+          # artifact and its liveness record is put back as it was before this
+          # cycle's sweep, so its next check reads it as changed again; the
+          # daily `scorecard.yml` run re-validates every canonical feed at
+          # least once every 24h either way.
+          REFRESH_RESCORE_DEADLINE_SECONDS: "9300"
+          # Runs in flight at once. The overlap is waiting (downloads and
+          # sampling windows), not memory, so this is not the runner's core
+          # count. Replaying eight measured cycles, three workers left 2-5
+          # minutes on the table against four, and six or eight did no better.
+          REFRESH_RESCORE_WORKERS: "4"
         run: |
-          set -uo pipefail
-          changed="$RUNNER_TEMP/changed.txt"
-          [ -s "$changed" ] || { echo "No changed feeds to re-score."; exit 0; }
-          attempted=0
-          refreshed=0
-          failed=0
-          # A single feed's vendor outage must not abort the batch; warn and move on.
-          while read -r id; do
-            [ -n "$id" ] || continue
-            attempted=$(( attempted + 1 ))
-            echo "::group::rescore $id"
-            uv run scorecard run --agency "$id" && EXIT=0 || EXIT=$?
-            if [ "$EXIT" -eq 0 ]; then
-              refreshed=$(( refreshed + 1 ))
-            elif [ "$EXIT" -eq 2 ]; then
-              # `scorecard run` reserves exit 2 for "the feed had not changed
-              # after all", which is an outcome and not a failure. It can only
-              # occur under --skip-unchanged, which this tier does not pass
-              # today; counted correctly here so adding that flag later cannot
-              # make the floor below fire on a cycle where nothing needed doing.
-              refreshed=$(( refreshed + 1 ))
-              echo "feed unchanged, keeping last artifact"
-            else
-              failed=$(( failed + 1 ))
-              echo "::warning title=rescore failed::$id kept its last good artifact"
-            fi
-            echo "::endgroup::"
-          done < "$changed"
-          echo "re-scored $refreshed of $attempted changed feeds ($failed failed)"
-          # The floor scorecard.yml has (its "Verify shard artifacts before
-          # publishing" step) and this tier did not. Every non-zero exit above
-          # became an `echo`, and nothing downstream counted them, so an
-          # intraday cycle in which every changed feed failed to re-score still
-          # ran reindex, rollups, render-site, the S3 publish and the Pages
-          # deploy, and reported success. Republishing yesterday's corpus under
-          # today's deployment timestamp is the one outcome a refresh must not
-          # report as a refresh.
-          if [ "$attempted" -gt 0 ] && [ "$refreshed" -eq 0 ]; then
-            echo "::error::None of the $attempted changed feeds re-scored this cycle. Refusing to publish a refresh that refreshed nothing; each feed's cause is in the warnings above."
-            exit 1
-          fi
-          if [ "$failed" -gt 0 ]; then
-            echo "::warning title=partial refresh::$failed of $attempted changed feeds did not re-score this cycle and kept their previous scorecard."
-          fi
+          set -euo pipefail
+          uv run scorecard rescore \
+            --ids "$RUNNER_TEMP/changed.txt" \
+            --workers "$REFRESH_RESCORE_WORKERS" \
+            --started-epoch "$job_started_epoch" \
+            --budget-seconds "$REFRESH_RESCORE_DEADLINE_SECONDS" \
+            --heavy-lock "$RUNNER_TEMP/rescore-heavy.lock" \
+            --liveness-baseline "$RUNNER_TEMP/liveness.before.json" \
+            --deferred-out "$RUNNER_TEMP/deferred.txt"
 
       - name: Rebuild index and rollups
         working-directory: pipeline
@@ -190,6 +357,10 @@ jobs:
         if: ${{ vars.ARTIFACTS_BUCKET != '' }}
         env:
           ARTIFACTS_BUCKET: ${{ vars.ARTIFACTS_BUCKET }}
+          # Store the index as gzip (31x smaller to read back) once the repo
+          # variable INDEX_GZIP is "1". Unset, it stays plain JSON; every reader
+          # accepts both (scripts/s3-index.sh).
+          INDEX_GZIP: ${{ vars.INDEX_GZIP }}
         run: |
           set -euo pipefail
           artifact_uri="s3://${ARTIFACTS_BUCKET}/data/artifacts"
@@ -259,8 +430,7 @@ jobs:
           aws s3 cp data/liveness.json \
             "s3://${ARTIFACTS_BUCKET}/data/liveness.json" \
             --cache-control "max-age=300" --only-show-errors
-          aws s3 cp data/artifacts/index.json "${artifact_uri}/index.json" \
-            --cache-control "max-age=300" --only-show-errors
+          scripts/s3-index.sh put "$ARTIFACTS_BUCKET" data/artifacts/index.json
 
           # Persist comparison memory only after every public write succeeds.
           aws s3 sync "$fixlog_stage" \
@@ -269,9 +439,11 @@ jobs:
             "s3://${ARTIFACTS_BUCKET}/cache/structure" --only-show-errors
 
   # Refreshes do not write to main, so deploy the newly published S3 state
-  # explicitly after the refresh.
+  # explicitly after the refresh, on every other cycle (see "Decide whether
+  # this cycle redeploys the site" above).
   deploy:
     needs: refresh
+    if: ${{ needs.refresh.outputs.deploy_site == 'true' }}
     permissions:
       contents: read
       pages: write
@@ -284,3 +456,4 @@ jobs:
       perf_gate: advisory
     secrets:
       PAGES_AWS_ROLE_ARN: ${{ secrets.PAGES_AWS_ROLE_ARN }}
+      POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}

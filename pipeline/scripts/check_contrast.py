@@ -12,6 +12,14 @@ high-contrast theme. Run before committing the accessibility work:
 from __future__ import annotations
 
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from scorecard_pipeline.badge import _FALLBACK_COLOR, _GRADE_COLOR
+from scorecard_pipeline.embed_badge import _INK as _EMBED_INK
+from scorecard_pipeline.embed_badge import _INK_SOFT as _EMBED_INK_SOFT
+from scorecard_pipeline.embed_badge import _PAPER as _EMBED_PAPER
 
 
 def _lin(c: float) -> float:
@@ -101,6 +109,45 @@ PAIRS: list[tuple[str, str, str, bool]] = [
     ("landing page focus ring on --paper", "L_focus-page", "L_paper", False),
     ("landing dark-chrome focus ring on --pine", "L_focus-dark", "L_pine", False),
     ("landing amber-surface focus ring on --amber", "L_focus-on-amber", "L_amber", False),
+    # ---- OG/social-preview images (web/og.svg, web/bundle-og.svg) and the
+    # brand mark (web/favicon.svg, web/apple-touch-icon.svg) ----
+    # These are baked into raster images, not live CSS, so every pair uses
+    # literal hexes rather than theme tokens (a flat, theme-independent
+    # design: social platforms render a single PNG, not the page's own
+    # theme). All text in both cards is set at or above the AAA "large text"
+    # size (>=18.66px bold or >=24px), so the applicable bar is 4.5:1. The
+    # background is checked against the gradient's lighter stop (#143123),
+    # the worse of its two stops, as a conservative flat stand-in for the
+    # gradient a reader's eye actually sees.
+    ("og wordmark/headline cream on gradient (lighter stop)", "#f2f3ee", "#143123", True),
+    ("og subtitle on gradient (lighter stop)", "#cdddcf", "#143123", True),
+    ("og grade-tile letter on tile fill", "#9fb2a2", "#1b3a2a", True),
+    ("og highlighted grade-A ink on amber chip", "#102a20", "#fdc70a", True),
+    ("og footer domain (amber mono) on gradient (lighter stop)", "#fdc70a", "#143123", True),
+    ("og footer place on gradient (lighter stop)", "#9fb2a2", "#143123", True),
+    ("bundle-og kicker (amber bold) on gradient (lighter stop)", "#fdc70a", "#143123", True),
+    ("bundle-og trust line (amber bold) on gradient (lighter stop)", "#fdc70a", "#143123", True),
+    ("bundle-og report-card grade B on white chip", "#2c5f70", "#ffffff", True),
+    ("bundle-og report-card grade C on white chip", "#8a5a14", "#ffffff", True),
+    ("bundle-og report-card grade A on amber chip", "#102a20", "#fdc70a", True),
+    ("mark checkmark (amber) on badge circle fill", "#fdc70a", "#163a2c", True),
+    # ---- embeddable grade badge SVG (scorecard_pipeline/badge.py) ----
+    # The badge is a standalone SVG with a fixed palette (literal hexes, no
+    # theming), so these pairs hold in every theme pass, same as the og/mark
+    # pairs above. Colors come straight from badge.py so this list can't
+    # drift from what the pipeline actually writes to badge.svg. Badge text
+    # is 11px, well under the AAA "large text" threshold, so 7:1 applies.
+    *(
+        (f"badge white text on grade {grade} fill", "#ffffff", hexcolor, False)
+        for grade, hexcolor in _GRADE_COLOR.items()
+    ),
+    ("badge white text on fallback (unknown grade) fill", "#ffffff", _FALLBACK_COLOR, False),
+    # ---- named, dated embed badge SVG (scorecard_pipeline/embed_badge.py) ----
+    # Same fixed-palette reasoning. The grade letter is white on the grade
+    # fills checked above; the name and score lines are ink on paper, and the
+    # date line is the soft ink on paper at 11px.
+    ("embed badge name and score (ink) on paper", _EMBED_INK, _EMBED_PAPER, False),
+    ("embed badge date line (soft ink) on paper", _EMBED_INK_SOFT, _EMBED_PAPER, False),
 ]
 
 THEMES: dict[str, dict[str, str]] = {

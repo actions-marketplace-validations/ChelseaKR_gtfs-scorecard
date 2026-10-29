@@ -18,7 +18,11 @@
   <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
   <meta name="twitter:image:alt" content="GTFS Scorecard: transit data quality for small agencies.">
   <link rel="stylesheet" href="/src/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2f3ee'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <script>
     /* Apply the saved theme before first paint to avoid a flash (WCAG 1.4.8). */
     try {
@@ -28,6 +32,7 @@
     } catch (e) {}
   </script>
   <script src="/src/theme.js" defer></script>
+  <script src="/src/measure.js" defer></script>
   <script src="/src/nav.js" defer></script>
   <noscript><style>
     /* Without JS the menu button cannot expand the collapsed nav, so show the
@@ -48,7 +53,7 @@
     <h1 class="page-title">Accessibility</h1>
     <p class="page-lede">This site is meant to be usable by everyone, including
     people who use a keyboard, a screen reader, a magnifier, or high-contrast
-    colours. Here is where we stand and how to tell us when something gets in
+    colors. Here is where we stand and how to tell us when something gets in
     your way.</p>
 
     <div class="route-rule" role="presentation"><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span><span class="seg"></span><span class="stopdot"></span></div>
@@ -61,7 +66,7 @@
     and the printable brief.</p></section>
 
     <section><h2 class="section-title">How we check</h2>
-    <p>Every colour pair is verified to clear AAA contrast in all four themes by an
+    <p>Every color pair is verified to clear AAA contrast in all four themes by an
     automated gate. Axe checks a representative set of page families in the accessibility
     workflow, Lighthouse checks the landing page in the publishing workflow, and browser
     tests exercise keyboard and form journeys. We also review with a keyboard. A recorded
@@ -74,7 +79,7 @@
     <p>We keep an honest list. The agency map is a convenience layer built on a
     third-party component; everything it shows is also on the fully accessible
     <a href="/agencies/">agency list</a>, so no one is stranded. A few linked external
-    documents (federal rules, validator docs) are outside our control; we summarise
+    documents (federal rules, validator docs) are outside our control; we summarize
     them in plain language on our own pages.</p></section>
 
     <section><h2 class="section-title">Report a barrier</h2>
@@ -131,6 +136,14 @@
             <li><a href="/data/">Open data</a></li>
           </ul>
         </section>
+        <section aria-labelledby="footer-programs-h">
+          <h2 id="footer-programs-h">For programs</h2>
+          <ul>
+            <li><a href="/program/all/">Program rollups</a></li>
+            <li><a href="/bundle/">Board report bundle (paid)</a></li>
+          </ul>
+          <p class="footer-aside">Scoring an agency is free. A purchase buys no influence over grades, methodology, or which agencies are listed.</p>
+        </section>
         <section aria-labelledby="footer-project-h">
           <h2 id="footer-project-h">Project</h2>
           <ul>
@@ -142,6 +155,8 @@
             <li><a href="/crosswalk/">Standards crosswalk</a></li>
             <li><a href="/press/">For reporters</a></li>
             <li><a href="/accessibility/">Accessibility</a></li>
+            <li><a href="/about/#privacy">Privacy</a></li>
+            <li><a href="/about/#privacy-opt-out" data-analytics-toggle data-label-on="Opt out of analytics" data-label-off="Opt back in to analytics" data-status-off="Analytics is off on this device." data-status-on="Analytics comes back on from the next page you open.">Opt out of analytics</a><span class="visually-hidden" role="status" data-analytics-status></span></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/CONTRIBUTING.md">Contribute</a></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a></li>
           </ul>

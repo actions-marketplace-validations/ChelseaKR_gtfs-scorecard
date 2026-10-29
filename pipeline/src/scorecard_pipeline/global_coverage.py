@@ -16,6 +16,7 @@ from typing import Any
 
 from . import DATA_ATTRIBUTION, DATA_LICENSE
 from .location import country_name, normalize_location
+from .url_redaction import redact_url_text
 
 GLOBAL_COVERAGE_SCHEMA_VERSION = "1.0"
 FRESHNESS_WINDOW_DAYS = 7
@@ -26,7 +27,7 @@ MAX_LARGEST_COUNTRY_SHARE_PCT = 40.0
 MIN_FRESH_SCORECARD_PCT = 95.0
 REQUIRED_COMPLETE_PCT = 100.0
 
-# EU27 plus the five explicitly included neighbouring markets.  Keep this
+# EU27 plus the five explicitly included neighboring markets.  Keep this
 # closed and visible: expanding the gate's geography is a product decision,
 # not a side effect of adding another registry record.
 EUROPE_BETA_COUNTRY_CODES = frozenset(
@@ -275,6 +276,10 @@ def _exception_rows(exceptions: dict[str, list[str]]) -> list[dict[str, Any]]:
     ]
 
 
+def _redacted(url: object) -> object:
+    return redact_url_text(url) if isinstance(url, str) else url
+
+
 def _feature_denominator(
     features: Mapping[str, Any], feature_rows: dict[str, dict[str, Any]], ids_valid: bool
 ) -> tuple[int | None, bool]:
@@ -335,7 +340,8 @@ def _assess_feed_record(
                 if directory_row is not None
                 else _field(agency, "subdivision_name", "")
             ),
-            "feed_url": _field(agency, "static_gtfs_url"),
+            # Published, so through the one redaction rule (ADR 0066).
+            "feed_url": _redacted(_field(agency, "static_gtfs_url")),
             "scorecard_url": (directory_row or {}).get("scorecard_url"),
             "retrieved_at": (directory_row or {}).get("retrieved_at"),
             "fresh": fresh,

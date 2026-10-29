@@ -7,14 +7,14 @@ the landing page (`web/index.html`), the single-page app (`web/app/` plus
 (`web/subscribe.html`, `web/submit.html`, `web/try.html`, `web/how-to-read/`,
 `web/about/`).
 
-This report records per-criterion conformance, how the colour-selection
+This report records per-criterion conformance, how the color-selection
 mechanism works, and an honest list of anything still short of full AAA.
 
-## How the theme (colour-selection) mechanism works
+## How the theme (color-selection) mechanism works
 
 `web/src/theme.js` is loaded on every page. It renders an accessible, keyboard-
 operable menu (a `<button>` with `aria-haspopup`/`aria-expanded` opening a
-`role="menu"` of `role="menuitemradio"` items) labelled "Theme". The choice is
+`role="menu"` of `role="menuitemradio"` items) labeled "Theme". The choice is
 saved to `localStorage` under `scorecard-theme` and applied as a `data-theme`
 attribute on `<html>`, which overrides the CSS custom properties in both
 `web/src/styles.css` and the landing page's inline tokens.
@@ -34,7 +34,7 @@ shared stylesheet lacked this guard until 2026-07; the landing page always had
 it).
 
 This control is what satisfies 1.4.8's requirement for a mechanism to select
-foreground and background colours.
+foreground and background colors.
 
 ## Final contrast ratios (light theme, normal text, threshold 7:1)
 
@@ -63,14 +63,51 @@ raises every dark-text ratio.
 The High contrast and Dark themes clear the same threshold with wider margin
 (typically 9:1 to 21:1); run the script for the full table.
 
+## Brand mark and social-preview images (large text, threshold 4.5:1)
+
+`web/favicon.svg` (the route-line-into-a-checkmark mark, reused at
+`web/apple-touch-icon.svg`), `web/og.svg`, and `web/bundle-og.svg` are static
+raster images, not live CSS, so `check_contrast.py` checks their literal
+hexes directly rather than theme tokens (see the "OG/social-preview images"
+group in `PAIRS`). Every text element in both cards is set at or above the
+AAA large-text size (>=18.66px bold or >=24px), so 4.5:1 is the applicable
+bar; the background is checked against the panel gradient's lighter stop
+(`#143123`), the worse of its two stops.
+
+| Pair | Ratio |
+| --- | --- |
+| wordmark/headline `#f2f3ee` on gradient `#143123` | 12.61 |
+| subtitle `#cdddcf` on gradient `#143123` | 9.94 |
+| grade-tile letter `#9fb2a2` on tile `#1b3a2a` | 5.56 |
+| highlighted grade-A ink `#102a20` on amber chip `#fdc70a` | 9.72 |
+| footer domain `#fdc70a` on gradient `#143123` | 8.94 |
+| footer place `#9fb2a2` on gradient `#143123` | 6.27 |
+| bundle-og kicker `#fdc70a` on gradient `#143123` | 8.94 |
+| bundle-og trust line `#fdc70a` on gradient `#143123` | 8.94 |
+| bundle-og report-card grade B `#2c5f70` on white chip | 7.05 |
+| bundle-og report-card grade C `#8a5a14` on white chip | 5.91 |
+| bundle-og report-card grade A `#102a20` on amber chip | 9.72 |
+| mark checkmark `#fdc70a` on badge circle `#163a2c` | 7.97 |
+
+These images are decorative (an Organization `logo` and two `og:image`/
+`twitter:image` social-preview cards); the alt text a screen-reader user
+actually gets is the `og:image:alt`/`twitter:image:alt` pair each page
+carries, not the pixels. The root card and every hand-authored page except
+`/bundle/` share one alt string ("GTFS Scorecard: transit data quality for
+small agencies."), enforced by
+`pipeline/tests/test_static_nav.py::test_hand_authored_pages_describe_the_shared_social_image`.
+`/bundle/` carries its own, describing its own card ("GTFS Scorecard Program
+Report Bundle: board reports for every agency your program supports."),
+enforced by the same test's bundle-specific assertion.
+
 ## Per-criterion conformance
 
 | Criterion | Status | Notes |
 | --- | --- | --- |
 | 1.4.6 Contrast (Enhanced) 7:1 | MET | All normal-text pairs darkened to >=7:1 (>=4.5:1 large) across all themes; checked by `check_contrast.py`. |
-| 1.4.8 Visual Presentation | MET | Prose measure capped to ~70ch (`--measure`); no justified text; the theme menu provides the colour-selection mechanism. |
+| 1.4.8 Visual Presentation | MET | Prose measure capped to ~70ch (`--measure`); no justified text; the theme menu provides the color-selection mechanism. |
 | 2.4.8 Location | MET | The filled nav stop carries `aria-current="page"` when it is the page being read and `aria-current="true"` when it is the hub of the section that page sits in, so a hub is never announced as the current page; a `nav[aria-label="Breadcrumb"]` on prerendered agency, program, fix, and section pages. |
-| 2.4.9 Link Purpose (Link Only) | MET | Bare-filename and arrow/"view" links given self-describing text or `aria-label` ("standards crosswalk", "the change feed", "Open transit data downloads", "Source code on GitHub"). |
+| 2.4.9 Link Purpose (Link Only) | MET | Bare-filename and arrow/"view" links given self-describing text or `aria-label` ("standards crosswalk", "the change feed", "Open transit data downloads", "Source code on GitHub"). Fix-guide links name the finding they open ("Read the fix guide for `expired_calendar`"); until 2026-09-13 all 23,304 of them read "Read the fix guide", and `/problems/` carried 23 of those pointing at 23 different guides. |
 | 2.4.13 Focus Appearance | MET | All `:focus-visible` outlines are >=3px solid with >=3:1 contrast; the choropleth has a real outline plus a thick dark stroke. The dark pine chrome band (header controls and footer links) rings in `--amber` rather than the blue `--focus`, which is tuned for the light page and would fall to ~1.6:1 on pine; amber clears >=9:1 on pine in every theme (`check_contrast.py`). |
 | 2.5.5 Target Size (Enhanced) 44x44 | MET (one documented exception) | Chips, filter buttons, follow/remove, selects, copy buttons, search, form controls, and dense nav/footer links are >=44px. See the choropleth exception below. |
 | 3.1.3 Unusual Words | MET | A glossary lives at `/how-to-read/#glossary`; first uses are `<dfn>` and linked to it. |

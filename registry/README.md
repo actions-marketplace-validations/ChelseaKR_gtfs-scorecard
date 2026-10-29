@@ -36,7 +36,12 @@ must not be guessed merely to choose a shard.
 - `rt_urls`: mapping whose supported keys are `trip_updates`,
   `vehicle_positions`, and `service_alerts`; every value is an `http(s)` URL.
 - `rt_note`, `license_note`, `operating_note`, `ntd_note`: curator-facing
-  explanatory text shown on the relevant scorecard surfaces.
+  explanatory text shown on the relevant scorecard surfaces. `scorecard
+  license-audit` reads `license_note` as data, so name the one licence that
+  applies by its usual name or SPDX id. A note that names a second licence,
+  even to say it does not apply, is reported as `unknown` for a curator to read.
+  The optional [`license` block](#structured-license-block-license) records the
+  same terms as data beside the note.
 - `mdb_id`: Mobility Database source id used for exact feed rediscovery.
 - `ntd_id`: four- or five-digit US National Transit Database id.
 - `organization_id`: stable operator slug shared by related feeds.
@@ -46,6 +51,15 @@ must not be guessed merely to choose a shard.
 - `is_official`: `true` or `false` when catalog provenance establishes it.
 - `service_type`: `fixed` (default), `seasonal`, or `demand_response`.
 - `fare_free`: `true` only when fare-free operation is a verified policy.
+- `own_shard`: `true` gives the record a Daily scoring shard to itself. Use it
+  only for a source measured to take many minutes to serve one ordinary-sized
+  feed, such as a server that builds the archive on each request, so that its
+  wait cannot use up the time budget of the records that would share its shard.
+  It changes nothing about how the feed is fetched, validated, or scored, and
+  unlike `large_feed` it does not raise any size ceiling. Say in a YAML comment
+  what was measured and when.
+- `fetch_auth`: a credential reference for a feed behind a registration wall;
+  see [Credentialed feeds](#credentialed-feeds-fetch_auth) below.
 
 A replaced endpoint may remain in the registry as `feed_status: deprecated`
 with `alias_of` pointing to its active successor. It is then excluded from
@@ -75,6 +89,14 @@ fails the build if it is written by hand, until the decision is recorded in
 agency, and the automation must not re-apply the redirect), and each one states
 its evidence. See `docs/supersession-flagging.md`.
 
+When the successor is a record **nobody tracks**, the same command proposes a
+repoint instead of an alias: the tracked record keeps its id and page, and its
+`static_gtfs_url` and `mdb_id` move to the successor, with a comment naming the
+two catalog ids. It is held, with the reason in the report, when the successor
+is ambiguous, needs a key, looks like a different agency by the rules above, is
+pinned by a note that names the current host, or sits on a host whose
+robots.txt refuses the request under ADR 0070's policy. See `docs/decisions/0069-coverage-repair-and-measured-cohort.md`.
+
 ### Reviewed reuse evidence
 
 `reuse_evidence` is an optional, curator-approved record used by bounded
@@ -101,6 +123,128 @@ review date that is not in the future, non-empty attribution and reviewer, and
 an explicit identity review. Unknown keys or inferred evidence fail registry
 loading. Absence means no approved evidence record is on file; it is not a
 claim that the feed is unlicensed.
+
+### Structured license block (`license`)
+
+`license_note` is prose. The optional `license` block records the same terms as
+data, next to the note and never in place of it. Nothing reads the block to
+admit or score a feed: it is a ledger, and the tooling around it
+(`scorecard license-lint`, `scorecard license-migrate`) is advisory. The one thing
+a block changes is the reuse notice for a share-alike feed. Absence is
+allowed and means only that no block has been written yet.
+
+```yaml
+license:
+  id: CC-BY-4.0                 # required: one value from the list below
+  attribution_required: true    # required: true, false, or unknown
+  redistribution_allowed: unknown  # required: true, false, or unknown
+  share_alike: false            # required: true, false, or unknown
+  status: unreviewed            # required: unreviewed, needs_review, or reviewed
+  name: ""                      # required only when id is other or proprietary-terms
+  terms_url: https://provider.example/terms   # optional http(s) link to the terms
+  retrieved_on: "2026-09-19"    # optional: the day the terms were last read
+  attribution: Provider name.   # optional: the credit text the terms ask for
+  reviewed_by: curator-handle   # only with status reviewed, and then required
+  reviewed_on: "2026-09-19"     # only with status reviewed, and then required
+  reviewer_note: Free text.     # optional
+```
+
+- `id` is a license class from `license_audit.CLASSES` (SPDX identifiers where
+  one exists: `CC-BY-4.0`, `ODbL-1.0`, `CC-BY-SA-3.0`, `CC0-1.0`, `etalab-2.0`,
+  and the rest of that list), or one of three states: `other` for a named
+  license outside the list (give its `name`), `proprietary-terms` for bespoke
+  terms a curator has read (give a `name`), and `unknown`.
+- **Unknown is a recorded state, never a default.** The three terms are
+  required and take exactly `true`, `false`, or `unknown`. There is no default
+  and no `null`, so a term nobody measured cannot read as a permissive one.
+  Write `unknown` when you do not know. A block with `id: unknown` whose terms
+  say anything else is reported as inconsistent.
+- `share_alike` records what the license states. Share-alike feeds are listed,
+  with a reuse notice on the scorecard and in the flat exports, but only when the
+  block says `share_alike: true` for a license it names; `unknown` and a missing
+  block never produce one (see [`docs/feeds.md`](../docs/feeds.md#share-alike-admitted-with-a-notice)).
+- `status: reviewed` means a named person read the terms. It needs `reviewed_by`
+  and `reviewed_on` (a quoted, past ISO date), and those two fields are refused
+  on any other status, so a review nobody did cannot be recorded. Quote every
+  date: YAML reads a bare `2026-09-19` as a date, not a string, and the loader
+  rejects it.
+- The loader rejects unknown keys, a missing required key, a value outside the
+  lists above, and a malformed URL or date, with a sentence naming the record.
+  [`license.schema.json`](license.schema.json) states the same shape as a JSON
+  Schema (draft 2020-12). It is generated from
+  `pipeline/src/scorecard_pipeline/license_ledger.py`, and a test fails if the
+  two differ. The parser also checks real calendar dates and that a date is not
+  in the future, which a schema cannot.
+
+To see what is missing or inconsistent, run `uv run scorecard license-lint`
+(add `--all` to list every record without a block). It always exits 0. To see
+what blocks the existing notes support, run `uv run scorecard license-migrate`:
+a dry run that writes nothing and prints one line per record. Only
+`--apply` writes, and it is meant for a reviewed pull request of its own. The
+flow and the share-alike decision are in
+[`docs/feeds.md`](../docs/feeds.md#the-structured-license-block).
+
+### Credentialed feeds (`fetch_auth`)
+
+Some publishers put a feed whose licence already permits reuse behind a
+registration wall: the file answers 401 until a registered account's key is
+sent. `fetch_auth` lets a record name that key without containing it.
+
+```yaml
+fetch_auth:
+  kind: header                         # header, query, or basic
+  name: X-Api-Key                      # header or query-parameter name; omit for basic
+  secret: SCORECARD_FEED_AUTH_EXAMPLE  # the NAME of an environment variable
+```
+
+- `kind: header` sends the variable's value in the header called `name`.
+- `kind: query` appends `name=<value>` to `static_gtfs_url`. Leave the
+  parameter out of the URL on file; `lint --strict` refuses a URL that already
+  carries it.
+- `kind: basic` sends HTTP basic authentication. The variable holds
+  `user:password`, and `name` is not used.
+
+`secret` is never the credential. It must be an environment variable name that
+starts with `SCORECARD_FEED_AUTH_` and uses only capital letters, digits, and
+underscores. `scorecard lint --strict` blocks anything else as
+`literal_credential`, and the secret scan (`.gitleaks.toml`) blocks it too.
+The prefix also stops a record from pointing the fetcher at another secret the
+pipeline holds and sending it to the host the record names. A user name or
+password written into any feed URL (`https://user:pass@host/`) is blocked the
+same way; use `kind: basic` instead. A credentialed record needs an `https`
+`static_gtfs_url`.
+
+What happens at fetch time:
+
+- **Variable unset or empty:** the feed is recorded as unreachable with the
+  reason `credential not configured`, and nothing is requested. There is no
+  keyless attempt and no fallback to the Mobility Database mirror, and no
+  artifact is written, so no grade appears. The last published scorecard, if
+  there is one, stays as it was.
+- **Variable set:** the credential goes only to the feed URL's own host.
+  If the publisher redirects to another host, the credential is not sent
+  there. The artifact's `fetch` block records `auth: env-ref` and
+  `auth_kind`, and never the credential or the variable's name. For a
+  credentialed fetch, `fetch.final_url` is published without its query string.
+- **Request fails:** the error names the exception and HTTP status only,
+  because a full error message would quote a URL that can hold the credential.
+
+The keyless liveness check skips credentialed records, so a gated URL's 401 is
+never counted as an outage. The daily run scores them every day instead.
+
+**A key is access, not a licence.** Registering for an account shows that we
+can download the feed. It does not show that the scorecard may republish or
+grade it. A credentialed record still needs `reuse_evidence` reviewed against
+the publisher's terms, exactly like any other record, before it is admitted.
+
+Where the value lives is up to whoever runs the pipeline, never this
+repository. In GitHub Actions, store it as a repository secret and map it
+into the scoring step's environment with
+`SCORECARD_FEED_AUTH_EXAMPLE: ${{ secrets.SCORECARD_FEED_AUTH_EXAMPLE }}`.
+Elsewhere, set it in that runtime's environment from its own secret store,
+never in a committed file. Pull requests from forks get no secrets, so a
+credentialed record reads as `credential not configured` there, which is the
+intended result.
 
 Unknown fields, malformed URLs or locations, duplicate ids, missing alias
 targets, and alias cycles fail registry loading. Run the same gates as CI before

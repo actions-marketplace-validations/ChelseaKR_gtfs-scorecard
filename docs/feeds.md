@@ -2,7 +2,7 @@
 
 Source endpoints, licenses, and polling etiquette for the original Yolo County
 pilots and the first worldwide canaries. This page is the hand-verified
-reference; the full registry has more than 2,200 feed records, still mostly in
+reference; the full registry has more than 2,600 feed records, still mostly in
 the United States and Canada, and lives in the explicit shards listed by
 `registry/index.yaml`, with the discovery process documented in
 `docs/feed-discovery.md`. Every URL below was verified with a live request on
@@ -12,6 +12,112 @@ The next European cohort is not selected by feed count alone. Its current
 discovery audit, source hierarchy, license-review rule, and public beta gate are
 in [global-expansion.md](global-expansion.md). The reviewed European records
 remain canaries until that gate passes.
+
+## License classes
+
+`scorecard license-audit` reads the `license_note` on every registry record and
+names the one license the note states, from the closed vocabulary in
+`pipeline/src/scorecard_pipeline/license_audit.py`. A note that names two
+licenses, only a link, or terms outside the vocabulary is `unknown`, with the
+reason. The audit never guesses, and it is a report: it blocks nothing.
+
+| Class | Share-alike | Attribution required | Listing policy |
+| --- | --- | --- | --- |
+| `ODbL-1.0` | yes | yes | Admitted with a reuse notice (see below) |
+| `CC-BY-SA-4.0`, `CC-BY-SA-3.0`, `CC-BY-SA` (no version stated) | yes | yes | Admitted with a reuse notice (see below) |
+| `CC-BY-4.0`, `CC-BY-2.1-JP`, `CC-BY` (no version stated) | no | yes | Reviewed record by record |
+| `etalab-2.0`, `NLOD-2.0`, `DL-DE-BY-2.0`, `OGL-UK-3.0`, `OGL-Canada-2.0`, `ODC-By-1.0` | no | yes | Reviewed record by record |
+| `CC0-1.0`, `DL-DE-ZERO-2.0`, `public-domain` | no | no | Reviewed record by record |
+| `unknown` | not known | not known | Reviewed record by record |
+
+Share-alike feeds are admitted, with a reuse notice. The decision is recorded
+below. The audit counts the records whose notes name a share-alike license and
+lists the ones a curator has to read, and it does not exclude any of them.
+
+### The structured license block
+
+The class table above comes from reading prose. A record can also carry a
+structured `license` block beside its `license_note` (field list and rules in
+[`registry/README.md`](../registry/README.md#structured-license-block-license),
+JSON Schema in `registry/license.schema.json`). It records what the terms state
+as data: the license class, whether attribution is required, whether
+redistribution is allowed, whether the license is share-alike, the terms link,
+the day the terms were read, and a review status. Every term is `true`, `false`
+or `unknown`. There is no default, so a license nobody read is recorded as
+unknown and never as a permissive one.
+
+The flow, and what is built:
+
+1. **Report.** `scorecard license-audit` reads the notes and counts records per
+   class. Built.
+2. **Advisory lint.** `scorecard license-lint` lists records that have no block,
+   whose block says `unknown`, or whose block contradicts itself, its license
+   class, or its note. It states in its own output that it is advisory and it
+   always exits 0. It changes nothing about which feeds are admitted, scored, or
+   published. The only thing a block changes is the reuse notice in step 7. Built.
+3. **Dry-run migration.** `scorecard license-migrate` proposes a block for every
+   record from its note and prints one line per record. A note that names one
+   license in the vocabulary gets that license, marked `unreviewed`. Everything
+   else (no license stated, only a link, terms outside the vocabulary, more than
+   one license) gets `unknown` and `needs_review`, with the reason. It never
+   writes a reviewer or a review date, and it writes nothing at all unless given
+   `--apply`. Built. The registry has not been migrated.
+4. **Owner reviews the dry run.** Someone reads the per-record report before any
+   block is written. Not done.
+5. **Apply.** `scorecard license-migrate --apply` inserts the blocks as text,
+   verifies every edit by re-reading the YAML, and is a no-op the second time.
+   It belongs in a pull request of its own, because it adds a block to every
+   record. Not done.
+6. **Curators review.** A curator reads a record's terms, fills in `terms_url`,
+   `retrieved_on` and `redistribution_allowed`, and sets `status: reviewed` with
+   their handle and the date. Not done.
+7. **Reuse notice.** A record whose block says `share_alike: true` carries a
+   notice on its scorecard page and in the flat exports. Built, and it appears
+   nowhere until step 5 has run, because no record has a block yet.
+8. **An admission rule.** `lint --strict` refusing a new record without a
+   reviewed license class waits on steps 5 and 6. Not built, deliberately. It
+   would not refuse a share-alike license: that is admitted.
+
+#### Share-alike: admitted with a notice
+
+**Owner decision, 2026-09-19:** a feed whose license requires share-alike is
+admitted, with a notice. It is not excluded, retired, or scored differently.
+
+- The `license` block records share-alike as a neutral fact. `scorecard
+  license-lint` reports records with no block, an unknown license, or a
+  contradictory block, and it never reports a share-alike license as a problem.
+- **The scorecard page.** When a record's block says `share_alike: true` for a
+  license it names, the page shows a section headed "Reuse notice: this feed's
+  license is share-alike". It names the license, says what share-alike asks of
+  anyone who copies, adapts, or builds on the data and shares the result (share
+  it under the same license and credit the source), gives any credit line the
+  publisher asks for, and links the publisher's terms when the block records
+  them. It is text under a real heading, so it does not depend on colour or an
+  icon, and it adds no new styling.
+- **The flat exports.** Once at least one record carries a notice, `dataset.json`,
+  `dataset.csv` and `agencies.parquet` gain a last field, `license_notice`, on
+  every row: the same words on an affected record, empty on every other record.
+  That is flat export schema `1.6` (`1.4` before `expiry_status` was added in
+  `1.5`). Until then the exports have no such column, at schema `1.5`. [`docs/api.md`](api.md) ships with each dataset release as the
+  data dictionary and says what an empty value means.
+- **Only an affirmative share-alike gets a notice.** No block, `id: unknown`,
+  `share_alike: false`, and `share_alike: unknown` all get none, and none of them
+  is treated as share-alike or as permissive. An empty notice means only that no
+  share-alike license is recorded. A block that marks a license share-alike when
+  its class is not (for example `CC-BY-4.0` with `share_alike: true`) gets no
+  notice either, and the lint reports the contradiction, so the page never names
+  a license as share-alike that it is not.
+- **What has not moved.** The registry has no license blocks yet, so no scorecard
+  and no export carries a notice until a reviewed migration is applied (steps 4
+  and 5 above). Earlier passages in this documentation and in
+  [`global-expansion.md`](global-expansion.md) that describe share-alike datasets
+  as excluded or deferred predate this decision. Admitting one of those datasets
+  is still a record-by-record step: it needs a reviewed block and passes every
+  other gate. The Estonian records are a separate case, because their notes name
+  no license at all and a curator has to read the publisher's terms first.
+
+The measured size of the question is in
+[`follow-ups.md`](follow-ups.md#decide-the-share-alike-question-for-records-already-listed).
 
 ## First worldwide canaries
 
@@ -180,7 +286,7 @@ national aggregate still counts as one feed record.
 - **Waltti Kotka, Finland (`FI-09`)** is one regional bus feed with five
   operator rows and 151 routes. The
   [Waltti open-data terms](https://opendata.waltti.fi/docs) apply CC BY 4.0 and
-  require source credit, a licence link, and disclosure of changes.
+  require source credit, a license link, and disclosure of changes.
 
 - **Rejseplanen, Denmark (`DK`)** is one national aggregate with 26 agency rows
   and bus, flex-bus, rail, metro, tram, and ferry service. The
@@ -320,7 +426,7 @@ reasons are also summarized in [global-expansion.md](global-expansion.md).
   3.0 Italia, opening Emilia-Romagna. Their download pins a dated version, so a
   curator refreshes the version parameter when TPER publishes a new archive.
 - **Spain (one record)**: CRTM's interurban regional bus network under the
-  consortium licence, a distinct feed from the tracked city bus and light rail.
+  consortium license, a distinct feed from the tracked city bus and light rail.
 - **Portugal (one record)**: STCP Porto under CC0, from the portal's current
   rolling resource rather than its dated snapshots.
 
@@ -441,7 +547,7 @@ Rejections again outnumbered additions, and the reasons are the review:
   Skånetrafiken, Västtrafik, and others, all API-key gated), the Slovenian
   National Access Point feeds on b2b.nap.si (CC BY-SA 4.0 but HTTP 401), De Lijn
   in Flanders, and the Austrian national access point, whose GTFS carries a
-  custom licence agreement and exposes only sample data.
+  custom license agreement and exposes only sample data.
 - **No stable current download**: the Luxembourg official ATP feed, which
   publishes only weekly-dated snapshots with per-release resource ids and no
   rolling latest URL, unchanged from the sixth wave, and the German HVV Hamburg
@@ -496,7 +602,7 @@ of 251), both under the 40% ceiling.
 - **Germany (two records)**: VVS Stuttgart (CC BY 4.0) and SWU Ulm (CC0 1.0),
   both read on MobiData BW, the Baden-Württemberg state mobility portal. SWU
   operates within the tracked DING association but is a distinct operator-level
-  feed under its own licence.
+  feed under its own license.
 - **Portugal (one record)**: Metropolitano de Lisboa under CC BY 4.0 on the
   national portal dados.gov.pt, using the portal's stable latest-version
   redirect.
@@ -1411,9 +1517,9 @@ first-party, openly licensed GTFS Schedule feeds. Discovery ran across the
 Mobility Database catalog, the Transitland Atlas, and Canadian and Australian
 open-data portals. Every candidate was preflighted on 2026-07-18: the source zip
 was downloaded, its `calendar.txt` and `calendar_dates.txt` window and size were
-read, the archive was deleted, and the reuse licence was confirmed at the
+read, the archive was deleted, and the reuse license was confirmed at the
 publisher before any record was written. The gate was fail-closed, so a
-candidate had to show a first-party publisher, a resolvable licence permitting
+candidate had to show a first-party publisher, a resolvable license permitting
 commercial reuse, a current service calendar, and a stable keyless download.
 Sixty-nine records were added.
 
@@ -1434,9 +1540,9 @@ Canada added fifty-seven records across five subdivisions:
 - British Columbia (thirty-five): BC Transit regional systems across the
   province, from the Victoria and Kelowna networks to small community systems
   such as 100 Mile House and Salt Spring Island. The BC Transit Open Data Terms
-  of Use grant a non-exclusive licence to use, reproduce, and redistribute the
+  of Use grant a non-exclusive license to use, reproduce, and redistribute the
   data including commercially, with attribution to BC Transit. It is a custom
-  government licence, recorded as such rather than as Creative Commons.
+  government license, recorded as such rather than as Creative Commons.
 - Québec (fourteen): the nine exo suburban sectors and the exo commuter-rail
   feed (CC BY 4.0 through Données Québec), plus RTC (Québec City), STS
   (Sherbrooke), STLévis, and Rouyn-Noranda, all CC BY 4.0.
@@ -1461,22 +1567,22 @@ The review rejected or deferred more than it kept, and the reasons cluster:
   404s.
 - Host unreachable or blocking automated fetch: Saskatoon Transit (HTTP 503) and
   MRC les Moulins (HTTP 403).
-- Licence forbids or conditions commercial reuse (fail closed): Metrobus
+- License forbids or conditions commercial reuse (fail closed): Metrobus
   (St. John's) reserves the right to charge commercial users a fee, and the
   Société de transport de Laval restricts commercial and quasi-commercial use.
   Neither is an open commercial-reuse grant.
 - Share-alike, held for consistency: Codiac Transpo (Moncton) publishes under
-  CC BY-SA. Share-alike is not on the accepted licence list.
-- Licence page not resolvable from the review environment (fail closed): Halifax
+  CC BY-SA. Share-alike is not on the accepted license list.
+- License page not resolvable from the review environment (fail closed): Halifax
   Transit, Lethbridge Transit, Red Deer Transit, Durham Region Transit, Greater
   Sudbury Transit, Burlington Transit, Transit Windsor, City of Regina, and STO
   (Gatineau) each returned a 403, a 404, or a JavaScript or bot-challenged
-  licence page, so the exact terms could not be read. They wait for a manual
-  licence read.
-- Licence unconfirmed in this pass (aggregator- or Metrolinx-hosted with no
-  dataset-level licence surfaced): Cornwall, Belleville, and Milton Transit
+  license page, so the exact terms could not be read. They wait for a manual
+  license read.
+- License unconfirmed in this pass (aggregator- or Metrolinx-hosted with no
+  dataset-level license surfaced): Cornwall, Belleville, and Milton Transit
   (served through metrolinx.tmix.se), Fredericton Transit (an ArcGIS item with
-  no licence field), Medicine Hat Transit, Thunder Bay Transit, and RTL
+  no license field), Medicine Hat Transit, Thunder Bay Transit, and RTL
   Longueuil (its conditions PDF 404s). These remain candidates for a later pass.
 - Aggregator-hosted rather than first-party: Maritime Bus is served only from a
   Trillium mirror, not an operator or government portal.
@@ -1484,7 +1590,7 @@ The review rejected or deferred more than it kept, and the reasons cluster:
   Transport for New South Wales (key-gated and over the download cap), Transport
   Canberra (HTTP 403, and its MyWay+ feed needs a key). Tasmania's superseding
   first-party aggregate is documented separately because its source, URL, and
-  licence all changed after this pass.
+  license all changed after this pass.
 
 ## United States small and rural depth wave
 
@@ -1931,12 +2037,12 @@ Réunion, Martinique, Mayotte, Normandie, Nouvelle-Aquitaine, Occitanie,
 Pays-de-la-Loire, and Provence-Alpes-Côte-d’Azur. Twenty-six publish official,
 keyless GTFS-Realtime endpoints through the same portal.
 
-Four new country samples cleared the same source, licence, identity, and
+Four new country samples cleared the same source, license, identity, and
 calendar gate:
 
 - **Albania:** Municipality of Tirana. The city's
   [open-data policy](https://tirana.al/faqe/open-data) states that its data is
-  available without licence restrictions.
+  available without license restrictions.
 - **Moldova:** Transport Public Ungheni. The operator's
   [open-data page](https://unghenitransport.md/retea-de-transport/open-data)
   applies CC BY 4.0.
@@ -1952,7 +2058,7 @@ Existing-country depth added Lethbridge Transit, Rimouski Transit, Réseau de
 transport de Longueuil, and Saint John Transit in Canada; MVG München and hvv
 Hamburg in Germany; and West Coast Motors plus the Essex Bus Network in the
 United Kingdom. Their recorded terms are the relevant Canadian municipal open
-government licences or CC BY 4.0, Germany's provider reuse terms or
+government licenses or CC BY 4.0, Germany's provider reuse terms or
 Datenlizenz Deutschland – Namensnennung 2.0, and the UK Open Government Licence
 v3.0.
 
@@ -1972,8 +2078,8 @@ The rejection set is part of this wave:
   portal records CC BY-SA 4.0, which is outside the project's general
   share-alike allowlist.
 - Cascais no longer exposes the catalog's named GTFS dataset in its official
-  data API. Barreiro's catalog licence link names a different publisher.
-  Neither identity/licence pair was inferred.
+  data API. Barreiro's catalog license link names a different publisher.
+  Neither identity/license pair was inferred.
 - Short-calendar, expired, dead, registration-gated, aggregate, and
   multi-fragment candidates elsewhere remained out under their previously
   documented reasons.
@@ -1987,7 +2093,7 @@ country codes are not a census of any country or region.
 A further 20 grouped discovery and verification loops on 2026-07-23 tested
 both new-country candidates and additional publishers in represented countries.
 The pass began with every still-untracked Mobility Database record marked
-official and carrying a licence link, then crossed each plausible result against
+official and carrying a license link, then crossed each plausible result against
 the publisher or responsible government portal. Seventy-three candidates ran
 through the bounded download, pinned canonical MobilityData validator, full
 scorecard, and 60-day effective-calendar path. Fifty-five produced score
@@ -2024,12 +2130,12 @@ The 20 loops also recorded their no-add outcomes:
 7. Italy: GTT Torino's terms are non-commercial, so it stayed out.
 8. Sardegna: 12 portal feeds were tested; the current eligible files were
    already tracked, while the rest were expired, short-calendar, or unreachable.
-9. Poland: Kraków lacked an explicit commercial licence and Bydgoszcz was a
+9. Poland: Kraków lacked an explicit commercial license and Bydgoszcz was a
    community converter rather than a first-party schedule publisher.
 10. Portugal: Cascais, Barreiro, and Metro Sul do Tejo still lacked a matching
-    current publisher/source/licence chain.
+    current publisher/source/license chain.
 11. Chile: Santiago's current page still lacked an explicit commercial grant.
-12. Colombia: Bogotá's CC BY-SA licence remains outside the general allowlist.
+12. Colombia: Bogotá's CC BY-SA license remains outside the general allowlist.
 13. Australia: Canberra Light Rail failed the effective-calendar gate.
 14. New Zealand: Metlink had only 30 days of effective service remaining.
 15. Belgium: STIB/MIVB's downloaded calendar was expired.
@@ -2106,7 +2212,7 @@ The no-add ledger matters:
   record's terms.
 - Tursib's terms allow only personal, non-commercial use. Oman and Santiago
   still lack an explicit commercial grant. Polish community mirrors,
-  mismatched API records, and catalog-only licence claims were not substituted
+  mismatched API records, and catalog-only license claims were not substituted
   for first-party evidence.
 - Short-calendar, expired, unreachable, timed-out, and overlapping candidates
   elsewhere remained out. A successful validator run alone was never treated
@@ -2172,7 +2278,7 @@ census of agencies, operators, or national coverage.
 A second exhaustive loop over France's National Access Point ran on
 2026-08-30, five weeks after the first. The API snapshot held 784 datasets,
 475 of them carrying a GTFS Schedule resource. After removing datasets under
-no admitted open licence (ten unspecified, two under the restricted "Licence
+no admitted open license (ten unspecified, two under the restricted "Licence
 mobilités") and every dataset already matched to a tracked registry endpoint,
 206 candidate datasets remained. Each was taken as one canonical current
 resource per dataset and, unless excluded first, run through the bounded
@@ -2265,6 +2371,87 @@ France's admitted records rise from 343 to 357 of a 618-record reviewed
 European sample. These are feed records from one national portal, not a
 census of French agencies or coverage.
 
+## NTD-matched US sync pass (2026-09-14)
+
+`scorecard sync --country US` was run against the live Mobility Database
+catalog to check whether registered US coverage still reflects what the
+catalog carries. It returned 202 candidates the registry does not already
+track by id or feed URL. Rather than admit all 202, this pass kept only the
+35 the source catalog itself flagged `is_official: true` with a matching
+National Transit Database id — the strongest identity signal available for a
+US agency without a per-agency license or portal check, and the same bar
+`docs/global-coverage-roadmap.md` sets for defensibility before breadth.
+
+The sync tool's own dedupe only catches an exact id, mdb id, or feed URL
+match, so seven of the 35 were excluded by hand after turning out to name an
+operator already tracked under a different id or feed URL:
+
+- **Champaign-Urbana Mass Transit District** (`developer.mtd.org`) duplicates
+  the already-tracked `champaign-urbana-mass-transit-district-mtd`
+  (`developer.cumtd.com`), same agency (CUMTD), different feed host.
+- **Centre Area Transportation Authority (CATABUS)** duplicates the
+  already-tracked `centre-county-transit-authority-cata`, which is on a
+  stale `transitfeeds.com` URL flagged by the 2026-08-31 feed-discovery pass
+  (`docs/feed-discovery.md`) — a URL-update case, not a new agency.
+- **Adirondack Trailways, New York Trailways, Pine Hill Trailways, Burlington
+  Trailways** is one consolidated feed from the operator's own CMS covering
+  four networks this registry already tracks as four separate legacy feeds
+  from the NY 511 S3 bucket (`adirondack-trailways-adp`,
+  `adirondack-trailways-nyp`, `new-york-trailways`,
+  `adirondack-trailways-pine-hill-trailways`) — a consolidation question for
+  a dedicated review, not a same-pass add.
+- Four more (METRA/Columbus GA, Butte Regional Transit B-Line, LANTA, Tri
+  Delta Transit) were flagged by the sync tool itself, which appends an
+  `-ntd-NNNNN` suffix to a candidate's id when its name already exists in
+  the registry; each names an operator already tracked under a different
+  feed URL, held here as an update case rather than a new record.
+
+The remaining 28 were checked for an exact-name or exact-NTD-id collision
+against the full registry and found clean. They span 20 states and add
+Wyoming's first tracked feed. Two were spot-checked end to end with
+`scorecard try` against their live URLs: City of Pullman, Washington
+(grade D, 63.8/100) and Lake Charles Transit, Louisiana (grade A, 93.3/100),
+confirming the pipeline fetches, validates, and scores them without special
+handling.
+
+- **Lake Charles Transit** and **Good Earth Transit** — Louisiana (`US-LA`).
+- **City of Hattiesburg** — Mississippi (`US-MS`).
+- **City of Kingsport** and **City of Pigeon Forge** — Tennessee (`US-TN`).
+- **City of Hinesville, Georgia** — Georgia (`US-GA`).
+- **City of Longview**, **McKinney Avenue Transit Authority**, **Metro
+  McAllen**, and **Texarkana Urban Transit District (T-Line Bus)** — Texas
+  (`US-TX`).
+- **TriCounty Link** — South Carolina (`US-SC`).
+- **City of Galesburg** — Illinois (`US-IL`).
+- **Milford Transit District** — Connecticut (`US-CT`).
+- **City of Jefferson** — Missouri (`US-MO`), distinct from the
+  already-tracked JeffCo Express (Jefferson County, a different agency).
+- **Borough of Mt. Carmel** — Pennsylvania (`US-PA`).
+- **Maui County Transit** — Hawaii (`US-HI`).
+- **Ute Tribe Public Transit** — Utah (`US-UT`).
+- **Seneca Transit System** — New York (`US-NY`).
+- **City of Pullman** — Washington (`US-WA`).
+- **Developmental Services of NW Kansas/ACCESS Transportation** — Kansas
+  (`US-KS`).
+- **City of Hobbs** and **A:Shiwi Transit** — New Mexico (`US-NM`).
+- **City of Kokomo** — Indiana (`US-IN`); the catalog listed Google Drive
+  links as its realtime endpoints, which is not a conforming GTFS-RT source,
+  so `rt_urls` was left unset rather than tracked as realtime.
+- **LauderGO! Water Trolley** — Florida (`US-FL`).
+- **Park County Transit** — Montana (`US-MT`).
+- **Wind River Transportation Authority** — Wyoming (`US-WY`), the state's
+  first tracked feed.
+- **City of Fargo** — North Dakota (`US-ND`).
+- **St. Cloud Metropolitan Transit Commission** — Minnesota (`US-MN`).
+
+None state a data license in the catalog; each carries the standard
+"verify before publishing" license note pending a per-agency check. The
+registry moves from 2,643 to 2,671 records. The remaining 167 sync
+candidates (the non-`is_official` majority, plus the 4 US-only-catalog
+transitland-sourced rows already at the 202 count) are not queued anywhere;
+admitting them means the identity and reuse review this roadmap requires,
+not a mechanical follow-on.
+
 ## Unitrans (ASUCD / City of Davis)
 
 | | |
@@ -2309,6 +2496,11 @@ transit.land still point at it, and the MDB "latest" mirror is frozen at
 2025-10-13. Fetch directly from `avl.yctd.org`, which is also what Cal-ITP's
 monthly reports use. Reporting the correction to both registries is on the
 backlog and would be a small useful contribution.
+
+The registry record that still pointed at the dead URL,
+`yolo-county-transportation-district-yolobus` (mdb-1295), was retired into
+`yolobus` on 2026-10-01, after the URL again returned 404. Its dated artifacts
+stay available, and its page now redirects to the live record.
 
 Feed quirks the pipeline must tolerate:
 - No `feed_info.txt` (freshness falls back to the calendars).

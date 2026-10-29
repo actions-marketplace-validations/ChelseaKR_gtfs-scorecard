@@ -3,6 +3,34 @@
 **Status:** Accepted (2026-09-01). Infrastructure written, not applied; the
 purchase surface is built, unlinked, and closed.
 
+**Status log, 2026-09-12.** The tier is open: `web/bundle/plan.json` carries
+`paymentsAvailable: true` and four live Stripe Payment Links, and `/bundle/` is
+linked from the shared footer, the landing page, `/about/`, `/data/`,
+`/support/`, `/tools/`, and every `/program/<id>/` rollup. This records what
+happened; it re-decides nothing. The last Consequence below ("the page stays
+unlinked until early October") described a window that the launch and the
+instruction to make the paid options visible have already overtaken, so read it
+as history rather than as a live constraint. Everything the decision itself
+holds fixed — agency-facing free, no price in a template, purchase buys no
+influence, no shaming surface — is unchanged and is now asserted by
+`pipeline/tests/test_paid_tier_visibility.py`.
+
+**Status log, 2026-09-13 (issue #417).** "No price in HTML", below, was written
+about a page deployed ahead of its payment rail and has been read since as a
+rule about bytes. It was always a rule about *authorship*: a price typed into a
+template keeps selling after the plan changes. The page now states its four
+amounts in the served HTML twice — as `Offer` structured data for a machine, and
+as a plan list inside `<noscript>` for a person — and neither is typed. Both are
+written from `web/bundle/plan.json` by `make sync-bundle-offers`, compared byte
+for byte against the generator on every CI run, and emitted only while the plan
+says payments are available. `.github/workflows/pages.yml` copies `web/` in one
+step, so the page and the plan it renders are always served from one commit.
+What changed is who can read the price: measured on the live site, a reader with
+scripting off saw 0 of 4 prices and a sentence saying nothing was for sale, while
+four live Payment Links were being served. No checkout control was added to that
+list, because `/bundle/setup/` cannot be submitted without scripting and a buy
+link there would take the money and strand the payer.
+
 ## Context
 
 The sustainability plan (`gtfs-scorecard-plans/07-monetization-sustainability.md`)
@@ -33,7 +61,7 @@ program with twenty agencies is packaging, branding, and delivery.
 
 **Replace the conversation with a checkout.** A real Stripe Checkout on a
 truthful page *is* the named-user gate. Nothing is built for a buyer until
-someone pays; the buyer identifies themselves by paying; fulfilment is
+someone pays; the buyer identifies themselves by paying; fulfillment is
 automated so the tier costs no attention after launch.
 
 Concretely, the **program report bundle**:
@@ -43,7 +71,7 @@ Concretely, the **program report bundle**:
   every requested id and what happened to it. The core is
   `scorecard_pipeline/bundle.py`; it computes nothing new and talks to no
   payment provider.
-- `.github/workflows/report-bundle.yml` is the on-demand fulfilment, the
+- `.github/workflows/report-bundle.yml` is the on-demand fulfillment, the
   same posture as `onboard.yml`: Actions is the compute, so the tier needs
   no always-on server for the work itself.
 - `infra/program-bundle` is the only always-on surface: a post-checkout

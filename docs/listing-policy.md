@@ -13,12 +13,44 @@ people who support it) see how the feed is doing and what to fix first. The
 sources are public feed catalogs (the Mobility Database, transit.land) and
 agency-submitted feeds.
 
+Reuse terms are part of what is listed. `scorecard license-audit` reports the
+license each record's note names. When it shows a listed record whose terms
+the project does not list, acting on that is a listing decision taken under
+this policy, not a curation edit to the record's note.
+
+A record may also carry a structured `license` block, and `scorecard
+license-lint` reports records whose block is missing, unknown, or inconsistent.
+That report is advisory. It changes nothing about which feeds are listed, and a
+finding in it is a prompt for a curator to read the terms, not a listing action.
+
+Feeds whose license requires share-alike are listed, with a reuse notice on the
+scorecard and in the flat exports ([feeds.md](feeds.md#share-alike-admitted-with-a-notice)).
+A share-alike license is not grounds for removing a listing.
+
 ## Privacy
 
-The public scorecard does not use analytics or track visitors. It sets no
-tracking cookies, sends no page-view beacons, and does not build rider or
-visitor profiles. Site-quality checks use automated synthetic visits instead
-of observing real visitor sessions.
+The public scorecard uses two measurement tools. PostHog counts page views and
+one further event, a click on a checkout link on the bundle page. It sets no
+cookie, keeps no identifier past the current browser tab, reads nothing a
+visitor types, and builds no rider or visitor profile. Google Analytics 4
+records page views and how a page is used (time on page, scrolling, links
+followed to other sites, file downloads), with the page's query string and the
+referrer's path dropped. Outside the EEA, the UK and Switzerland it sets the
+`_ga` cookies, which last up to two years; inside them it sets no cookie.
+Google signals and ad features are off, and Google keeps the event-level data
+for 14 months. The full statement of what is recorded, where it goes, how long it is
+kept, and how to opt out is on the site at
+[gtfsscorecard.org/about/#privacy](https://gtfsscorecard.org/about/#privacy).
+The script that loads both is `web/src/measure.js`, the decisions are
+[ADR 0055](decisions/0055-cookieless-site-measurement.md) and
+[ADR 0056](decisions/0056-google-analytics-4.md), and Global Privacy Control or
+Do Not Track switches both off. So does the "Opt out of analytics" link in
+every page footer, which the browser remembers on that device. Site-quality checks use automated
+synthetic visits instead of observing real visitor sessions.
+
+Until 2026-09-13 the site recorded nothing about a visit at all. That rule
+was withdrawn on that date, and Google Analytics 4 was added on 2026-09-17;
+this section and the site say what replaced it.
 
 The domain owner may verify ownership through DNS and submit the public sitemap
 to Search Console outside this project. The repository contains no Search
@@ -63,6 +95,26 @@ Verification confirms the contact's relationship to the listing. It does not
 endorse the grade, override the rubric, or prevent other people from reporting
 errors. Registry changes still go through a reviewed pull request so the public
 record shows what changed and why.
+
+## Grades we have taken back
+
+A grade is only as good as the data behind it. When we find that a published
+grade was computed from an archive we never actually read, or from a catalog
+copy that was not the agency's current feed, we withdraw it and say so, rather than replacing the number quietly or leaving the page to
+disappear. The [corrections page](https://gtfsscorecard.org/corrections/) lists
+every withdrawn grade with what it said, how long it was public, why it was
+wrong, and what stands in its place. The machine-readable record is
+`corrections.yaml` at the repository root, and it is reviewed in a pull request
+like any other change.
+
+Where the feed can be read, the next successful run publishes a real grade and
+the correction stays on record beside it. Where it cannot, the answer is that
+the feed is not measured; we do not substitute a different number for one we
+could not compute. Dated score records from the affected days remain available
+as the historical record of what this project published, including when it was
+wrong. They are not presented as an agency's current condition.
+
+Nothing is required of an agency on that list.
 
 ## Long-expired feeds
 

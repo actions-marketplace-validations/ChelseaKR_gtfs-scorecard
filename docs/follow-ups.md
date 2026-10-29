@@ -61,7 +61,7 @@ history is not rewritten.
 
 ## Fan-out compute (`infra/compute`, roadmap Year 2)
 
-**Status: deferred, and not a plain `terraform apply`.** At ~2,261 configured feeds the
+**Status: deferred, and not a plain `terraform apply`.** At ~2,671 configured feeds the
 GitHub Actions matrix handles the daily run in well under an hour, so this is
 premature. More importantly, applying `infra/compute` stands up an EventBridge
 schedule that would run the pipeline **in addition to** the Actions cron — two
@@ -81,29 +81,58 @@ See `docs/decisions/0003-fan-out-compute.md` for the original design.
 
 ## Streaming reader for national-scale feeds
 
-**Status: deferred; scoring is unblocked with an explicit measurement gap.** The
-gtfs.de Germany-wide aggregate and the Swiss national timetable have a
-`stop_times.txt` of 1.9 GiB and 2.4 GiB. Scorecard's whole-table reader
-(`gtfs.py`) caps a single table at 1 GiB (`MAX_MEMBER_BYTES`). Raising the cap is
-not safe: loading a 2.4 GiB table whole risks a Python out-of-memory even on a
-16 GiB runner. The daily pipeline now publishes the graded scorecard and marks
-the zero-deduction routability block unmeasured with reason `table_too_large`.
+**Status: done 2026-09-05 for the scoring path, after the deferral caused an
+outage.** Both whole-table consumers of `stop_times.txt` in the daily scoring
+path now stream it.
 
-Consumers of `stop_times.txt` in the daily scoring path: `ferry_profile`
-(already made to skip an oversized table), `routability`, and the realtime
-readers `rt_drift` and `rt` (only for feeds that publish realtime). All are
-zero-deduction and descriptive, so none changes a grade.
+The deferral rested on an assumption that turned out to be backwards. The note
+below used to say the cap kept a national feed safe by skipping its
+`stop_times.txt`. It did — right up until a feed came in *under* it. The OVapi
+Netherlands aggregate's `stop_times.txt` was 1,011,976,627 bytes, 62 MB under
+the 1 GiB cap, and 17,099,889 rows. Measured on the live archive, those rows
+cost 754 bytes each as `dict[str, str]`: about 12.9 GB on a 15.6 GiB runner.
+The `score (ovapi-netherlands)` shard was killed with "The runner has received
+a shutdown signal" for three weeks, after the validator had already succeeded
+and the JVM had already exited. A bigger feed was safer, because a bigger feed
+was skipped.
 
-The remaining improvement is:
+That is the property of a fixed byte cap, not a mistake in where it was set:
+bytes on disk do not predict bytes in memory, the multiplier moves with row
+width, and the feed oscillates across whatever line is drawn. Lowering the cap
+buys safety by measuring less, which is the wrong trade for a tool whose product
+is measurement.
 
-1. **Stream the table.** Give `gtfs.py` a row-iterating reader for the large
-   tables and move each consumer above to the aggregates it actually needs
-   (counts, per-trip first/last stop). Memory-safe and accurate. Raises the
-   tool's ceiling so it can score a national feed. The larger change.
+What each consumer actually needed from the table was a bounded aggregate, not
+the table:
 
-Until streaming ships, these aggregates are scored but do not claim the two
-router-free checks over `stop_times.txt`. Verkehrsverbund Rhein-Neckar, whose
-largest table fits the cap, continues to receive those checks.
+- `routability` needs the trips that have at least two serviced locations, the
+  stop ids some trip calls at, and the location group ids some trip calls at —
+  three sets keyed by trip and stop. On OVapi that is 855 thousand trips and 57
+  thousand stops, and it does not grow with the 17 million rows.
+- `ferry_profile` needs the stop ids the *ferry* trips call at, and returns
+  before reading a row at all when the feed has no ferry route.
+
+Both now call `iter_table_rows` with `max_member_bytes=None`. The size check is
+not lowered, it is inapplicable: there is no whole table in memory for it to
+bound. Archive-shape safety (entry count, compression ratio, per-entry and
+whole-archive size) was always enforced upstream in `fetch.py` before any reader
+opens the bytes, and still is — that, not `MAX_MEMBER_BYTES`, is the zip-bomb
+guard and the ceiling on how much there can be to stream.
+
+`MAX_MEMBER_BYTES` is unchanged and still governs every table read whole,
+including `routability`'s and `ferry_profile`'s reads of `trips.txt` and
+`stops.txt`. When one of those trips it, routability still publishes
+`measured: false` with reason `table_too_large` rather than a count of zero.
+
+Remaining, and deliberately not done here:
+
+1. **The realtime readers.** `rt._trip_time_spans` and `rt_drift._schedule_lookup`
+   still read `stop_times.txt` whole. Neither is reachable for any large feed
+   today — none of the 15 `large_feed: true` records publishes realtime — and
+   `_schedule_lookup`'s index is one entry per stop time, so streaming alone
+   would not bound it. Fix them when a large feed first publishes realtime.
+2. **`scorecard otp`.** The manual routing-QA command reads the table whole to
+   sample stop pairs. It is interactive and not on the daily path.
 
 ## Reduce `/compare/`, then tighten its Lighthouse aggregation
 
@@ -133,3 +162,214 @@ Steps:
 
 The floor stays at 0.80 throughout. What is deferred is the tightening, not the
 standard.
+
+## Whether `/bundle/` needs a Lighthouse gate, once the routes config aggregates honestly
+
+**Status: open, opened 2026-09-12.** `/bundle/` went live taking real money the
+same day, and the pass that gated it (a JSON Schema over `web/bundle/plan.json`,
+its price agreement with `docs/program-plan.md` and `scripts/stripe-setup.sh`,
+three browser tests over the rendered buy controls, and a `required` byte budget
+for both pages of the paid flow) deliberately did **not** add the page to
+`lighthouserc.routes.json`. The reasons are the section above, not an oversight:
+
+1. That config still asserts with `aggregationMethod: "median-run"`, which for
+   `categories:*` degrades to best-of-N and for a timing metric picks a run by
+   proximity to median FCP rather than by the metric being asserted. ADR 0045
+   measured home-page FCP with a 2 ms interquartile range against an LCP spread
+   of 1813 ms, so the selection is close to arbitrary. Adding a page here buys a
+   verdict on the runner, not on the page.
+2. `/bundle/` is 10 KB of hand-authored HTML, three deferred scripts and one
+   `fetch`. There is no rendered payload that can grow with the registry, which
+   is the mechanism behind every performance regression this repository has
+   actually had.
+3. What the page can get wrong is what it sells, and the byte budget, the
+   schema and the browser tests are the checks that can see that. A performance
+   floor would report green over a page offering the wrong price.
+
+Steps, after step 3 of the section above lands:
+
+1. Once `lighthouserc.routes.json` asserts with a true `median`, re-open this
+   and decide on the same evidence the other routes were chosen on: several
+   `a11y.yml` jobs' worth of reports for `/bundle/`, not a single sample.
+2. If it is added, it is a fourth URL on a job that already runs three, so
+   weigh the minutes against what the accessibility scan (which already covers
+   `/bundle/` and `/bundle/setup/` through `.pa11yci.json`) does not already
+   tell us.
+
+## Decide the share-alike question for records already listed
+
+**Status: decided 2026-09-19, see below; opened 2026-09-01.** Two findings from the 2026-09-01 coverage
+pass are the same question, and neither is safe to settle inside a wave whose
+job was adding records.
+
+**France and ODbL.** 158 French records in the registry cite ODbL in their
+`license_note`, including entries in `registry/fr/idf.yaml`, while
+[`docs/feeds.md`](feeds.md) records ODbL French datasets as *excluded* and names
+Île-de-France as an example of the exclusion. Both cannot be right. The records
+arrived in the 2026-07-23 National Access Point pass; the exclusion predates it.
+
+**Estonia and CC BY-SA 3.0.** Estonia's national Public Transport Register is
+published under CC BY-SA 3.0 on the national open-data portal, and the
+`terms_url` carried by `estonia-public-transport-register` and
+`tallinn-public-transport-tlt` now returns 404.
+
+The 2026-09-01 pass applied the strict reading to new admissions and changed
+nothing already listed. That cost roughly 84 ODbL French datasets (Tisséo
+Toulouse, STAR Rennes, TAG Grenoble among them) and 19 Estonian county feeds,
+all of which pass every other gate.
+
+What has to be decided, once, for both:
+
+1. Does this project redistribute share-alike GTFS? The gates say no. The
+   registry says yes for 160 records.
+2. If yes, `docs/feeds.md` and the admission gates need amending, and the ~103
+   deferred datasets become admissible.
+3. If no, the 160 existing records need retiring, which reduces published
+   coverage and unpublishes live scorecards. That is a listing-policy action,
+   not a curation one, and the affected agencies should be handled under
+   [`listing-policy.md`](listing-policy.md).
+
+**Measured 2026-09-17 with `scorecard license-audit` (issue #372).** The
+registry's notes do not support 160, and the figure was not reproducible when
+this section landed either. 126 records name a share-alike license as their
+only license: 122 in France and one each in Germany, Italy, Bulgaria, and New
+Caledonia, all of them canonical. Six more name one beside another license and
+need a curator's reading, not a count: four NVBW records whose notes say no
+ODbL condition applies, AVV Aachen (CC0 schedule data with ODbL route shapes),
+and AMAT Palermo (CC BY 4.0 with a CC BY-SA tram marking). Neither Estonian
+note names CC BY-SA, so the audit counts both as unknown. The question above is
+unchanged. Only its size is measured here, and the numbers above are left as
+written.
+
+**Decided 2026-09-19: share-alike is admitted with a notice.** The owner's
+answer to the three questions above: this project does list share-alike feeds,
+the exclusion in the admission gates does not stand, and no existing record is
+retired for its license. A feed whose recorded license requires share-alike
+carries a reuse notice on its scorecard page and in the flat exports. The
+records already listed are unchanged. The mechanism is described in
+[`feeds.md`](feeds.md#share-alike-admitted-with-a-notice). The structured
+`license` block, `scorecard license-lint` and `scorecard license-migrate` are
+built and advisory, and the registry has not been migrated, so no notice appears
+anywhere yet. The measured counts above are left as written.
+
+Still open from this section: the roughly 100 deferred datasets are not admitted
+by this decision alone (each still needs its own reviewed block and every other
+gate), and the two Estonian records need a curator to read the publisher's terms.
+
+Do not resolve this by editing one side quietly to match the other.
+
+## Teach `discover` to check its own replacement candidate
+
+**Status: open, opened 2026-09-01.** All five feeds that
+[`feed-discovery.md`](feed-discovery.md) lists under "Likely replaced" were
+re-checked on 2026-09-01: every tracked URL the repo uses is live and serving a
+zip, and two of the proposed replacements are not (MVV München's candidate
+returns 404, Rockford's refuses the connection). Applying that report
+unreviewed, or running `scorecard discover --apply` against it, would swap two
+working feeds for dead links.
+
+The report is already written as suggestions to verify by hand, which is what
+saved it. A HEAD check on the candidate before listing it under "Likely
+replaced" would stop a dead replacement being proposed at all.
+
+## Feed sources blocked by the pipeline's HTTP client, not by policy
+
+**Status: open, opened 2026-09-01.** Several feeds pass source, license,
+identity and calendar and fail only on how this pipeline fetches. Two of them
+were diagnosed exactly on 2026-09-01 against OpenSSL 3.5.7, whose default
+security level is 2:
+
+- **`yamaguchi-opendata.jp`** — the server sends
+  `TLSV1_ALERT_INSUFFICIENT_SECURITY`. At `DEFAULT@SECLEVEL=1` it negotiates
+  TLS 1.2 with `AES256-SHA256`: static-RSA key exchange, so **no forward
+  secrecy**. This host carries Iwakuni City and Hikari City, both official
+  municipal CKAN datasets, both CC BY, both keyless, calendars to 2027-03-26
+  and 2027-03-31. They are the only route into **JP-35 Yamaguchi**, one of the
+  two Japanese prefectures still empty.
+- **`webapps.regionofwaterloo.ca`** — `DH_KEY_TOO_SMALL`. At
+  `DEFAULT@SECLEVEL=1` it negotiates TLS 1.2 with `DHE-RSA-AES256-GCM-SHA384`,
+  which does have forward secrecy; the server's Diffie-Hellman parameters are
+  simply under 2048 bits. This host carries Grand River Transit (CA-ON).
+- **`transport.act.gov.au`** (Canberra) is a different problem, not TLS: it
+  answers every non-browser client with a Cloudflare interstitial, including
+  with full browser headers. The license is fine and `data.act.gov.au` names
+  the exact archives.
+
+**The recommendation is not to weaken the client.** Lowering the security level
+globally would degrade every one of the 2,575 fetches to accommodate two
+servers, and this tool's standing rests on the trustworthiness of what it
+publishes: a grade is derived from bytes fetched over that connection. A
+per-record opt-in (the shape `large_feed` already uses, e.g. a curator-set
+`legacy_tls: true`) is the only version worth considering, and even that buys
+one prefecture and one Ontario operator.
+
+The cheaper and more useful action is upstream: tell Yamaguchi Prefecture their
+open-data portal offers no forward-secrecy cipher, and tell the Region of
+Waterloo their DH parameters are undersized. Both are ordinary server
+misconfigurations their operators would likely want to know about, and fixing
+them helps every consumer of those portals, not just this project.
+
+Until then these are worth separating from license and freshness rejections
+when reading coverage gaps: no amount of sourcing effort closes them.
+
+## Coverage blocked on a credential or an email, not on curation
+
+**Status: open, opened 2026-09-01.** Four cases where the license is already the
+right shape and the only obstacle is access. Each is one action away.
+
+**Austria's regional feeds — a registration wall.** All seven Verkehrsverbünde
+plus Linz AG publish on `data.mobilitaetsverbuende.at`: 17 GTFS datasets
+refreshed weekly, VOR at 262.8 MB down to Linz AG at 5.4 MB. The API enumerates
+anonymously (`GET /api/public/v1/data-sets`) but the file endpoint returns 401,
+and the platform's own documentation says accounts are created manually and
+cannot be scripted. MVO's terms already permit commercial reuse with
+attribution. One project account would unlock eight fixed-route feeds covering
+all nine Bundesländer plus six Flex feeds. The code half now exists (#371): a
+record can carry `fetch_auth` naming an environment variable, and a missing
+variable reads as unreachable with no mirror fallback (see
+`registry/README.md`). What remains is the owner's: register the account,
+store the key as a secret, and review MVO's terms into `reuse_evidence`, since
+a key grants access and not a license. The same applies to New York's
+`datatools-511ny` bucket below. No such record is admitted yet.
+
+**ESHOT İzmir — a host that is down.** 19 MB, on `acikveri.bizizmir.com`, under
+the same CC BY 4.0 terms already approved for two registered İzmir records. TCP
+timeout on 443 and 80 across two passes, while sibling `izdeniz.com.tr`
+answered 200 in the same batch, so it is per-host rather than a network path.
+
+**TRANSTU Tunis — a host that is down.** Tunisia's catalog confirms nine
+OTL-licensed datasets and the OTL grants commercial reuse with attribution, but
+every resource URL points at `data.transport.tn`, which refuses on 443, on 80,
+and by IP. Tunisia would be a new country code.
+
+**Yellowknife (CA-NT) — a missing listing.** The open-data terms are live at
+`yellowknife.ca/open-data-terms-use` and are exactly the right shape ("exploit
+the Datasets commercially", attribution only). The City's portal holds 60 items,
+none transit, and no City page names the `passio3.com` endpoint that serves the
+feed. CA-NT has no shard.
+
+Also worth an upstream note: Mobility Database source 2138 still points at a
+stale ÖBB resource (`GTFS_OP_2024_obb.zip`).
+
+## Existing records whose evidence did not survive re-reading
+
+**Status: open, opened 2026-09-01.** Separate from the share-alike question
+above, three records already in the registry were found to rest on evidence that
+does not hold. None was edited; all need a curator decision.
+
+- **`donan-bus`** (`registry/jp/01.yaml`, admitted 2026-07-17) is sourced from
+  the `ckan.hoda.jp` dataset the 2026-09-01 pass rejected, so its evidence is
+  the CKAN license field that gate 2 excludes. Its calendar now ends 2026-09-30
+  and no alternative URL exists.
+- **CUMTD** carries no `reuse_evidence` and would fail gate 2 today: its terms
+  restrict use to purposes that "assist mass transportation riders", require an
+  embedded key, and are revocable at will.
+- **`st-lawrence-county-public-transit`** (`registry/us/ny.yaml`) has a
+  `license_note` citing a data.ny.gov (OPEN-NY) license PDF, but the feed is
+  served from the `datatools-511ny` bucket, which is governed by NYSDOT's
+  Developer's Access Agreement and requires registration. Low impact, since the
+  record claims no `reuse_evidence`, but the note misleads a reader.
+
+**Abashiri Bus** is the opposite case and worth a recheck: source and license
+are clean, and only `feed_info.feed_end_date` (2026-07-31) blocks it while its
+`calendar_dates` run to 2026-11-23.

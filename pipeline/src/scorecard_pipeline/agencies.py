@@ -14,7 +14,9 @@ from typing import NoReturn
 
 import yaml
 
-from .config import AGENCIES, Agency, ReuseEvidence, repo_root, utc_today
+from .config import AGENCIES, Agency, FetchAuth, LicenseBlock, ReuseEvidence, repo_root, utc_today
+from .feed_auth import FETCH_AUTH_KEYS, FETCH_AUTH_KINDS, name_problem
+from .license_ledger import check_block
 from .location import SUPPORTED_COUNTRY_CODES, normalize_location
 
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
@@ -168,6 +170,84 @@ def _parse_reuse_evidence(raw: object, *, entry_label: str, source: str) -> Reus
     )
 
 
+def _bool_field(entry: dict[str, object], name: str, label: str, source: str) -> bool:
+    """An optional true/false registry field, false when absent. Kept out of
+    ``parse_agencies`` so a new flag does not add a branch to its tracked
+    complexity (docs/lint-complexity-ratchet.md)."""
+    value = entry.get(name, False)
+    if not isinstance(value, bool):
+        _fail(label, f"{name} must be true or false, got {value!r}", source)
+    return value
+
+
+def _parse_fetch_auth(
+    entry: dict[str, object], *, entry_label: str, static_url: str, source: str
+) -> FetchAuth | None:
+    """Validate an entry's ``fetch_auth`` block's shape (issue #371); None when
+    the entry has none, which is every keyless feed.
+
+    Shape only. Whether ``secret`` is a proper environment-variable reference
+    rather than a literal credential is ``scorecard lint --strict``'s
+    ``literal_credential`` rule, and fetch time refuses it again (feed_auth.py).
+    No message here quotes ``secret``: if it holds a real credential, a loader
+    error printed to a CI log would publish it a second time.
+    """
+    field = "fetch_auth"
+    if field not in entry:
+        return None
+    raw = entry[field]
+    if not isinstance(raw, dict):
+        _fail(entry_label, f"{field} must be a mapping with kind and secret", source)
+    unknown = set(raw) - FETCH_AUTH_KEYS
+    if unknown:
+        # Key names are the curator's own structure, not the credential.
+        _fail(
+            entry_label, f"unknown {field} field(s): {', '.join(sorted(map(str, unknown)))}", source
+        )
+    kind = raw.get("kind")
+    if kind not in FETCH_AUTH_KINDS:
+        _fail(entry_label, f"{field}.kind must be one of {list(FETCH_AUTH_KINDS)}", source)
+    secret = raw.get("secret")
+    if not isinstance(secret, str) or not secret.strip():
+        _fail(
+            entry_label,
+            f"{field}.secret must name the environment variable that holds the credential",
+            source,
+        )
+    name = raw.get("name", "")
+    if not isinstance(name, str):
+        _fail(entry_label, f"{field}.name must be a string", source)
+    problem = name_problem(str(kind), name.strip())
+    if problem is not None:
+        _fail(entry_label, problem, source)
+    # A credential sent over plain http is readable by anyone on the path, and
+    # net.py scopes credential headers to the configured URL's scheme too, so an
+    # http record could never receive them after an https redirect either.
+    if not static_url.startswith("https://"):
+        _fail(entry_label, f"{field} requires an https static_gtfs_url", source)
+    return FetchAuth(kind=str(kind), secret=secret.strip(), name=name.strip())
+
+
+def _parse_license_block(
+    entry: dict[str, object], *, entry_label: str, source: str
+) -> LicenseBlock | None:
+    """Validate an entry's structured ``license`` block (issue #372); None when
+    the entry has none, which is every record today.
+
+    Strict about shape, silent about substance: a malformed block fails loading
+    with a sentence, like any other malformed field, but nothing here reads what
+    the block says to admit or score a feed. ``scorecard license-lint`` reports a
+    missing or inconsistent block, as advice only, and ``license_notice`` is the
+    one reader of a share-alike block.
+    """
+    if "license" not in entry:
+        return None
+    block, problems = check_block(entry["license"], today=_today())
+    if block is None:
+        _fail(entry_label, "; ".join(problems), source)
+    return block
+
+
 def parse_agencies(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
     raw: object,
     *,
@@ -247,7 +327,10 @@ def parse_agencies(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
             "service_type",
             "fare_free",
             "large_feed",
+            "own_shard",
             "reuse_evidence",
+            "fetch_auth",
+            "license",
         }
         if unknown:
             _fail(label, f"unknown field(s): {', '.join(sorted(unknown))}", entry_source)
@@ -279,6 +362,8 @@ def parse_agencies(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
         if not isinstance(large_feed, bool):
             _fail(label, f"large_feed must be true or false, got {large_feed!r}", entry_source)
 
+        own_shard = _bool_field(entry, "own_shard", label, entry_source)
+
         organization_id = str(entry.get("organization_id") or "").strip()
         if organization_id and not ID_PATTERN.match(organization_id):
             _fail(
@@ -306,11 +391,17 @@ def parse_agencies(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
         if official_raw is not None and not isinstance(official_raw, bool):
             _fail(label, f"is_official must be true or false, got {official_raw!r}", entry_source)
 
+        fetch_auth = _parse_fetch_auth(
+            entry, entry_label=label, static_url=static_url, source=entry_source
+        )
+
         reuse_evidence = None
         if "reuse_evidence" in entry:
             reuse_evidence = _parse_reuse_evidence(
                 entry["reuse_evidence"], entry_label=label, source=entry_source
             )
+
+        license_block = _parse_license_block(entry, entry_label=label, source=entry_source)
 
         country = str(entry.get("country") or "US").strip().upper()
         subdivision_code = str(entry.get("subdivision_code") or "").strip().upper()
@@ -378,7 +469,10 @@ def parse_agencies(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
                 service_type=service_type,
                 fare_free=fare_free,
                 large_feed=large_feed,
+                own_shard=own_shard,
                 reuse_evidence=reuse_evidence,
+                fetch_auth=fetch_auth,
+                license_block=license_block,
             )
         )
     if not agencies:

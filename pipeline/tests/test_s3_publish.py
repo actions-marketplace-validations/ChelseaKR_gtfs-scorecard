@@ -301,6 +301,49 @@ def test_retirement_manifest_deletes_only_mutable_current_objects(tmp_path: Path
     assert second.retired == 0
 
 
+def test_retirement_permits_a_canonical_id_that_is_currently_withdrawn(tmp_path: Path) -> None:
+    """A withdrawn-but-still-canonical id (e.g. ``beloit-transit``) must publish.
+
+    ``_cmd_publish_artifacts`` computes ``protected_agency_ids`` as every
+    canonical id minus the currently-withdrawn set (corrections.py), so an
+    agency that is both canonical and withdrawn is not protected here: its
+    current pointer files are deleted like any other retirement, exactly as
+    ``test_retirement_manifest_deletes_only_mutable_current_objects`` proves
+    for an unregistered id. ``protected_agency_ids`` still carries an
+    unrelated canonical id, so this also proves the exclusion is scoped to
+    the withdrawn id and does not just empty the protection set.
+    ``test_retirement_rejects_current_canonical_ids`` proves the opposite
+    case still holds: an unexplained canonical id with no withdrawal is
+    still rejected.
+    """
+    root = tmp_path / "artifacts"
+    agency_id = "beloit-transit"
+    dated_key = f"{PREFIX}/{agency_id}/2026-01-01.json"
+    current_keys = {f"{PREFIX}/{agency_id}/{name}" for name in MUTABLE_PUBLIC_ARTIFACT_NAMES}
+    objects = {
+        **{key: b"stale current" for key in current_keys},
+        dated_key: b'{"snapshot_date": "2026-01-01"}',
+    }
+    client = _FakeS3(objects)
+    _write(root, f"{agency_id}/2026-01-01.json", '{"snapshot_date": "2026-01-01"}')
+    manifest = _retirement_manifest(tmp_path, [agency_id])
+
+    result = _publish(
+        client,
+        root,
+        retirement_manifest=manifest,
+        # beloit-transit is canonical but withdrawn, so it is excluded from
+        # protection; unitrans is canonical and not withdrawn, so it stays
+        # protected (and is not in this manifest, so nothing rejects it).
+        protected_agency_ids={"unitrans"},
+    )
+
+    assert set(client.deletes[0]) == current_keys
+    assert current_keys.isdisjoint(client.objects)
+    assert dated_key in client.objects
+    assert result.retired == len(MUTABLE_PUBLIC_ARTIFACT_NAMES)
+
+
 def test_retirement_rejects_a_local_current_pointer_before_deleting(tmp_path: Path) -> None:
     root = tmp_path / "artifacts"
     _write(root, "retired-demo/latest.json", '{"grade": "F"}')
@@ -544,3 +587,191 @@ def test_the_cli_fails_when_publishing_fails(
                 PREFIX,
             ]
         )
+
+
+# --- the Daily scorecard `collect` handoff (2026-09-15 .. 09-17) -------------
+#
+# Daily scorecard runs 34975445619, 35102283767 and 35227438125 each scored
+# every shard and then exited 2 in "Publish artifacts to S3":
+#
+#   scorecard: error: retirement manifest includes current canonical agency
+#   id(s): beloit-transit, massachusetts-area-express-max
+#
+# `reindex` wrote a withdrawn, still-registered id into the retirement manifest
+# (#432 made the withdrawal hold over the same unread bytes re-dated
+# 2026-08-10), and `publish-artifacts` then refused its own manifest. #456
+# fixed the protection set inside `_cmd_publish_artifacts`, but its test drives
+# `publish_tree` with a hand-built set, so reverting the CLI change leaves it
+# green. These drive the two commands collect actually runs, in order, through
+# `main`, which is where the exit 2 came from.
+
+_WITHDRAWN_SHA = "2f047947b9b64e479c96d384f0d68819294658c727b61ca7e1fc363d2889241c"
+
+
+def _registry_with_a_withdrawal(repo: Path) -> None:
+    """Two registered feeds, one of them withdrawn as ``beloit-transit`` is."""
+    repo.mkdir(parents=True, exist_ok=True)
+    (repo / "agencies.yaml").write_text(
+        "agencies:\n"
+        "  - id: unitrans\n"
+        "    name: Unitrans\n"
+        "    static_gtfs_url: https://example.org/unitrans.zip\n"
+        "  - id: beloit-transit\n"
+        "    name: Beloit Transit\n"
+        "    static_gtfs_url: https://example.org/beloit.zip\n"
+    )
+    (repo / "corrections.yaml").write_text(
+        "schema_version: 1\n"
+        "corrections:\n"
+        "  - agency_id: beloit-transit\n"
+        "    agency_name: Beloit Transit\n"
+        '    snapshot_date: "2026-07-25"\n'
+        f"    feed_sha256: {_WITHDRAWN_SHA}\n"
+        "    grade: F\n"
+        "    score: 37.8\n"
+        '    published_from: "2026-06-19"\n'
+        '    published_until: "2026-09-05"\n'
+        "    cause: no_schedule_tables\n"
+        "    outcome: not_measured\n"
+        "    evidence: >-\n"
+        "      Every table holds a header row and nothing else.\n"
+    )
+
+
+def _empty_feed_artifact(date: str) -> str:
+    """A letter over an archive with 0 stops and 0 trips (corrections.py)."""
+    return json.dumps(
+        {
+            "agency": {"id": "beloit-transit", "name": "Beloit Transit"},
+            "snapshot_date": date,
+            "feed": {"sha256": _WITHDRAWN_SHA},
+            "overall": {"grade": "F", "score": 37.8},
+            "categories": {
+                "completeness": {
+                    "status": "measured",
+                    "score": 0.0,
+                    "details": {"stops": 0, "trips": 0},
+                }
+            },
+        }
+    )
+
+
+def _publish_args(root: Path, manifest: Path) -> list[str]:
+    """The flags the Daily scorecard's publish step passes, minus the bucket."""
+    return [
+        "publish-artifacts",
+        "--root",
+        str(root),
+        "--bucket",
+        BUCKET,
+        "--prefix",
+        PREFIX,
+        "--retirement-manifest",
+        str(manifest),
+        "--exclude",
+        "index.json",
+        "--exclude",
+        "*/fixlog.json",
+    ]
+
+
+def test_collect_publishes_the_manifest_reindex_wrote_for_a_withdrawn_agency(
+    isolated_repo_root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from scorecard_pipeline.artifact_lifecycle import retirement_manifest_path
+    from scorecard_pipeline.cli import main
+    from scorecard_pipeline.config import artifacts_dir
+
+    _registry_with_a_withdrawal(isolated_repo_root)
+    root = artifacts_dir()
+    # The checkout carries the withdrawn record; collect's hydrate adds what
+    # S3 still serves: the same unread bytes re-dated, as the current pointer.
+    _write(root, "beloit-transit/2026-07-25.json", _empty_feed_artifact("2026-07-25"))
+    _write(root, "beloit-transit/2026-08-10.json", _empty_feed_artifact("2026-08-10"))
+    _write(root, "beloit-transit/latest.json", _empty_feed_artifact("2026-08-10"))
+
+    assert main(["reindex"]) == 0
+    manifest = retirement_manifest_path(root)
+    assert json.loads(manifest.read_text())["agency_ids"] == ["beloit-transit"]
+    assert not (root / "beloit-transit" / "latest.json").exists()
+
+    current = {f"{PREFIX}/beloit-transit/{name}" for name in MUTABLE_PUBLIC_ARTIFACT_NAMES}
+    dated = f"{PREFIX}/beloit-transit/2026-08-10.json"
+    client = _FakeS3({**{key: b"withdrawn F" for key in current}, dated: b"evidence"})
+    monkeypatch.setattr(s3_publish, "s3_client", lambda workers: client)
+
+    assert main(_publish_args(root, manifest)) == 0
+
+    # The withdrawn grade's current pointers are gone from the store; the
+    # dated evidence it was withdrawn over is not.
+    assert not current & set(client.objects)
+    assert dated in client.objects
+
+
+def test_collect_still_refuses_to_retire_a_registered_agency_nothing_withdrew(
+    tmp_path: Path,
+    isolated_repo_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The exemption is the withdrawal, not every id that shows up in a manifest."""
+    from scorecard_pipeline.cli import main
+    from scorecard_pipeline.config import artifacts_dir
+
+    _registry_with_a_withdrawal(isolated_repo_root)
+    root = artifacts_dir()
+    _write(root, "beloit-transit/2026-07-25.json", _empty_feed_artifact("2026-07-25"))
+    _write(root, "unitrans/2026-09-17.json", '{"snapshot_date": "2026-09-17"}')
+    manifest = _retirement_manifest(tmp_path, ["unitrans"])
+    client = _FakeS3({f"{PREFIX}/unitrans/latest.json": b"current B"})
+    monkeypatch.setattr(s3_publish, "s3_client", lambda workers: client)
+
+    with pytest.raises(SystemExit) as exited:
+        main(_publish_args(root, manifest))
+
+    assert exited.value.code == 2
+    assert (
+        "retirement manifest includes current canonical agency id(s): unitrans"
+        in capsys.readouterr().err
+    )
+    assert client.deletes == []
+    assert f"{PREFIX}/unitrans/latest.json" in client.objects
+
+
+def test_a_staged_publish_root_still_honors_the_withdrawal_reindex_recorded(
+    tmp_path: Path, isolated_repo_root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Intraday refresh and targeted score publish a stage, not the corpus.
+
+    `refresh.yml` stages only the feeds it changed or swept and passes that
+    directory as ``--root``, with the manifest reindex wrote under
+    ``data/artifacts``. A withdrawn agency is rarely in the stage, so the
+    withdrawal has to be read from the tree the manifest came from. Reading it
+    from ``--root`` is how Intraday refresh 35299487909 still exited 2 on the
+    commit that fixed the Daily scorecard.
+    """
+    from scorecard_pipeline.artifact_lifecycle import retirement_manifest_path
+    from scorecard_pipeline.cli import main
+    from scorecard_pipeline.config import artifacts_dir
+
+    _registry_with_a_withdrawal(isolated_repo_root)
+    corpus = artifacts_dir()
+    _write(corpus, "beloit-transit/2026-07-25.json", _empty_feed_artifact("2026-07-25"))
+    _write(corpus, "beloit-transit/latest.json", _empty_feed_artifact("2026-08-10"))
+    _write(corpus, "unitrans/2026-09-18.json", '{"snapshot_date": "2026-09-18"}')
+    assert main(["reindex"]) == 0
+    manifest = retirement_manifest_path(corpus)
+    assert json.loads(manifest.read_text())["agency_ids"] == ["beloit-transit"]
+
+    # The refresh stage: only the feed this cycle touched.
+    stage = tmp_path / "public-artifacts"
+    _write(stage, "unitrans/2026-09-18.json", '{"snapshot_date": "2026-09-18"}')
+    current = {f"{PREFIX}/beloit-transit/{name}" for name in MUTABLE_PUBLIC_ARTIFACT_NAMES}
+    client = _FakeS3({key: b"withdrawn F" for key in current})
+    monkeypatch.setattr(s3_publish, "s3_client", lambda workers: client)
+
+    assert main(_publish_args(stage, manifest)) == 0
+
+    assert not current & set(client.objects)
+    assert client.put_keys == [f"{PREFIX}/unitrans/2026-09-18.json"]

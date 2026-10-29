@@ -12,6 +12,7 @@ import os
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Final, Literal
 
 
 def utc_today() -> dt.date:
@@ -46,6 +47,56 @@ class ReuseEvidence:
     reviewed_by: str
     reviewed_on: str
     identity_reviewed: bool
+
+
+#: A fact a license states that may not be known: true, false, or the string
+#: ``"unknown"``. Never ``None`` and never a default, so an unmeasured term
+#: cannot read as a permissive one (issue #372).
+Tri = bool | Literal["unknown"]
+TRI_UNKNOWN: Final = "unknown"
+
+
+@dataclass(frozen=True)
+class LicenseBlock:
+    """The structured license block of one registry record (issue #372).
+
+    A recorded description of the terms, not a decision about them. It sits
+    beside the free-text ``license_note`` and never replaces it. See
+    ``license_ledger.py`` for the vocabulary and every validation rule, and
+    ``registry/license.schema.json`` for the same shape as a JSON Schema.
+
+    ``share_alike`` records what the license states. Share-alike feeds are
+    admitted, with a reuse notice (owner decision, 2026-09-19); see
+    ``license_notice.py``.
+    """
+
+    id: str
+    attribution_required: Tri
+    redistribution_allowed: Tri
+    share_alike: Tri
+    status: str
+    name: str = ""
+    terms_url: str = ""
+    retrieved_on: str = ""
+    attribution: str = ""
+    reviewed_by: str = ""
+    reviewed_on: str = ""
+    reviewer_note: str = ""
+
+
+@dataclass(frozen=True)
+class FetchAuth:
+    """How to present a credential to a registration-walled feed URL (#371).
+
+    ``secret`` is the *name* of an environment variable, never the credential
+    itself; feed_auth.py resolves it at fetch time and fails closed when it is
+    missing. ``name`` is the header or query-parameter name the publisher
+    expects; it is empty for ``basic``, which always uses ``Authorization``.
+    """
+
+    kind: str
+    secret: str
+    name: str = ""
 
 
 @dataclass(frozen=True)
@@ -133,6 +184,24 @@ class Agency:
     # inspection) stay unchanged. Default False keeps every ordinary feed on the
     # tight standard caps. See fetch.LARGE_LIMITS and docs/global-coverage-roadmap.md.
     large_feed: bool = False
+    # Give this record a Daily shard to itself. It says nothing about the feed's
+    # size or trust, so it does not touch the archive ceilings the way
+    # ``large_feed`` does. It is for a source that takes minutes to serve one
+    # ordinary-sized feed (a server that builds the archive on each request), so
+    # the wait cannot use up the job budget of the ~64 records that would
+    # otherwise share its shard. See shards.plan_shards and registry/README.md.
+    own_shard: bool = False
+    # A credential reference for a feed behind a registration wall (#371). None
+    # is every ordinary keyless feed. When set, fetching fails closed without
+    # the named environment variable and never falls back to a mirror. See
+    # feed_auth.py and registry/README.md.
+    fetch_auth: FetchAuth | None = None
+    # The structured license block (issue #372), or None when the record has
+    # not been given one. None means "no block on file", never "unrestricted";
+    # nothing reads it to admit or score a feed, and the only thing it changes in
+    # what is published is the share-alike reuse notice. The free-text
+    # ``license_note`` above stays the record's prose.
+    license_block: LicenseBlock | None = None
 
     @property
     def organization_key(self) -> str:

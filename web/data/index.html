@@ -16,10 +16,15 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
   <meta name="twitter:image:alt" content="GTFS Scorecard: transit data quality for small agencies.">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"DataCatalog","name":"GTFS Scorecard open data","description":"Scheduled GTFS data-quality reports for the public transit feed records this site currently covers worldwide, with public last-run status.","url":"https://gtfsscorecard.org/data/","license":"https://creativecommons.org/licenses/by/4.0/","publisher":{"@type":"Organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/"},"dataset":[{"@type":"Dataset","name":"GTFS Scorecard agency feed-quality dataset","url":"https://gtfsscorecard.org/dataset.json","license":"https://creativecommons.org/licenses/by/4.0/","distribution":[{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"https://gtfsscorecard.org/dataset.json"},{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://gtfsscorecard.org/dataset.csv"}]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"DataCatalog","name":"GTFS Scorecard open data","description":"Scheduled GTFS data-quality reports for the public transit feed records this site currently covers worldwide, with public last-run status.","url":"https://gtfsscorecard.org/data/","license":"https://creativecommons.org/licenses/by/4.0/","publisher":{"@type":"Organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/"},"dataset":[{"@type":"Dataset","name":"GTFS Scorecard agency feed-quality dataset","description":"The latest data-quality grade for every GTFS feed record GTFS Scorecard currently covers worldwide, one row per feed record: its id, name, check date, letter grade, overall score, available category scores, and days until the service calendar expires. Built from the same dated scoring artifacts as the agency pages and updated on completed scoring runs.","url":"https://gtfsscorecard.org/dataset.json","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/"},"license":"https://creativecommons.org/licenses/by/4.0/","distribution":[{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"https://gtfsscorecard.org/dataset.json"},{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://gtfsscorecard.org/dataset.csv"}]}]}</script>
   <link rel="stylesheet" href="/src/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2f3ee'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <script src="/src/theme.js" defer></script>
+  <script src="/src/measure.js" defer></script>
   <script src="/src/nav.js" defer></script>
   <noscript><style>
     /* Without JS the menu button cannot expand the collapsed nav, so show the
@@ -98,6 +103,27 @@
       computed on top of the canonical
       <a href="https://gtfs-validator.mobilitydata.org/">MobilityData GTFS validator</a>.</p>
     </section>
+
+    <section aria-labelledby="programs-h">
+      <h2 class="section-title" id="programs-h">If you are reporting on a whole program</h2>
+      <p>The dataset above stays free for that, including in a deliverable you are paid for.
+      What is sold is the finished document, not the numbers: the
+      <a href="/bundle/">program report bundle</a> renders every agency you support as one
+      archive of branded board reports, built from these same published scorecards. Prices are on
+      that page, and a purchase buys no influence over grades, methodology, or which agencies are
+      listed.</p>
+    </section>
+
+    <section aria-labelledby="history-h">
+      <h2 class="section-title" id="history-h">If you need the whole corpus as a table over time</h2>
+      <p>The file above is the latest check per feed record. Every dated check stays free as
+      well, one file per agency per date under <code>/data/artifacts/</code>, and so does the
+      open-source command that turns them into tables. What is sold is the built artifact: the
+      <a href="/data/history/">scorecard history tables</a>, every dated check and every finding
+      as two Parquet tables with a data dictionary, provenance, and license, rebuilt monthly and
+      licensed to one organization. The price is on that page, and a purchase buys no influence
+      over grades, methodology, or which agencies are listed.</p>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -144,6 +170,14 @@
             <li><a href="/data/">Open data</a></li>
           </ul>
         </section>
+        <section aria-labelledby="footer-programs-h">
+          <h2 id="footer-programs-h">For programs</h2>
+          <ul>
+            <li><a href="/program/all/">Program rollups</a></li>
+            <li><a href="/bundle/">Board report bundle (paid)</a></li>
+          </ul>
+          <p class="footer-aside">Scoring an agency is free. A purchase buys no influence over grades, methodology, or which agencies are listed.</p>
+        </section>
         <section aria-labelledby="footer-project-h">
           <h2 id="footer-project-h">Project</h2>
           <ul>
@@ -155,6 +189,8 @@
             <li><a href="/crosswalk/">Standards crosswalk</a></li>
             <li><a href="/press/">For reporters</a></li>
             <li><a href="/accessibility/">Accessibility</a></li>
+            <li><a href="/about/#privacy">Privacy</a></li>
+            <li><a href="/about/#privacy-opt-out" data-analytics-toggle data-label-on="Opt out of analytics" data-label-off="Opt back in to analytics" data-status-off="Analytics is off on this device." data-status-on="Analytics comes back on from the next page you open.">Opt out of analytics</a><span class="visually-hidden" role="status" data-analytics-status></span></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/CONTRIBUTING.md">Contribute</a></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a></li>
           </ul>

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GTFS Scorecard: plain-language GTFS quality and fixes</title>
-<meta name="description" content="Daily GTFS quality scorecards for small transit agencies, with dated grades, prioritized fixes, history, practitioner tools, and open data.">
+<title>GTFS Scorecard: GTFS validator results in plain English</title>
+<meta name="description" content="Daily scorecards turn MobilityData GTFS validator findings into a dated grade and a prioritized fix list for small transit agencies. Free and open source.">
 <meta property="og:title" content="GTFS Scorecard">
 <meta property="og:description" content="Plain-language GTFS grades and fixes, scheduled monitoring, program views, pre-publish tools, and open data.">
 <meta property="og:type" content="website">
@@ -19,8 +19,9 @@
 <link rel="canonical" href="https://gtfsscorecard.org/">
 <link rel="alternate" hreflang="en" href="https://gtfsscorecard.org/">
 <link rel="alternate" hreflang="es" href="https://gtfsscorecard.org/es/">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/","description":"A free GTFS quality service for small and rural transit agencies, with plain-language scorecards, scheduled monitoring, practitioner tools, and open data."}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"DataCatalog","name":"GTFS Scorecard","description":"Published data quality scores for the public GTFS feeds this site currently covers, with scheduled monitoring and public last-run status. Checks correctness, freshness, rider-experience completeness, and realtime health. Includes plain-language fixes, program views, pre-publish tools, and machine-readable data for transit managers, riders, program staff, and data teams.","url":"https://gtfsscorecard.org/","license":"https://creativecommons.org/licenses/by/4.0/","publisher":{"@type":"Organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/"},"keywords":["GTFS","transit data quality","General Transit Feed Specification","GTFS-RT","public transit","small transit agency","open data"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/","description":"A free GTFS quality service for small and rural transit agencies, with plain-language scorecards, scheduled monitoring, practitioner tools, and open data.","@id":"https://gtfsscorecard.org/#website","publisher":{"@id":"https://gtfsscorecard.org/#organization"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://gtfsscorecard.org/#organization","name":"GTFS Scorecard","url":"https://gtfsscorecard.org/","logo":"https://gtfsscorecard.org/og.png","description":"An open-source GTFS data quality service for small and rural transit agencies, scoring public Schedule and Realtime feeds daily and translating every finding into a plain-language fix.","sameAs":["https://github.com/ChelseaKR/gtfs-scorecard"],"hasOfferCatalog":{"@type":"OfferCatalog","name":"GTFS Scorecard services","itemListElement":[{"@type":"Offer","price":0,"priceCurrency":"USD","url":"https://gtfsscorecard.org/agencies/","itemOffered":{"@type":"Service","name":"GTFS feed scorecard for one agency","url":"https://gtfsscorecard.org/agencies/","description":"Daily grades, prioritized fixes, feed history, and a printable board report for any tracked agency. Free for every agency, for its own feed, with no account.","@id":"https://gtfsscorecard.org/#free-scorecard"}},{"@type":"Offer","url":"https://gtfsscorecard.org/bundle/","itemOffered":{"@id":"https://gtfsscorecard.org/bundle/#service"}}]}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"DataCatalog","name":"GTFS Scorecard","description":"Published data quality scores for the public GTFS feeds this site currently covers, with scheduled monitoring and public last-run status. Checks correctness, freshness, rider-experience completeness, and realtime health. Includes plain-language fixes, program views, pre-publish tools, and machine-readable data for transit managers, riders, program staff, and data teams.","url":"https://gtfsscorecard.org/","license":"https://creativecommons.org/licenses/by/4.0/","publisher":{"@id":"https://gtfsscorecard.org/#organization"},"keywords":["GTFS","transit data quality","General Transit Feed Specification","GTFS-RT","public transit","small transit agency","open data"]}</script>
 <script>
   try {
     document.documentElement.classList.add("js");
@@ -30,8 +31,14 @@
   } catch (e) {}
 </script>
 <script src="/src/theme.js" defer></script>
+<script src="/src/measure.js" defer></script>
 <script src="/src/landing-scorecard.js?v=20260723-coverage" defer></script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23163a2c'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2f3ee'/%3E%3C/svg%3E">
+<script src="/src/plan-summary.js" defer></script>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <style>
   @font-face {
     font-family: "Overpass";
@@ -813,7 +820,7 @@
   .movement .action { min-width: 13rem; border-color: var(--on-pine); color: var(--on-pine); }
 
   footer { background: var(--pine); color: var(--on-pine); padding: 3rem 0 2rem; }
-  .footer-grid { display: grid; grid-template-columns: 1.2fr repeat(3, 1fr); gap: 2rem; }
+  .footer-grid { display: grid; grid-template-columns: 1.2fr repeat(4, 1fr); gap: 2rem; }
   footer h2 { margin: 0 0 0.7rem; font-family: var(--display); font-size: 1.05rem; }
   footer p { margin: 0; color: #cfdcd2; font-size: 0.9rem; }
   footer nav { display: grid; align-content: start; }
@@ -1503,6 +1510,57 @@
     font-size: 0.8rem;
     font-weight: 700;
   }
+  /* The paid tier, stated once on the landing page. Same furniture as the task
+     register above it: a ruled list, mono kickers, no card wall and no color
+     the page does not already use. */
+  .program-tier { padding: 2.75rem 0; border-bottom: 1px solid var(--line-ink); }
+  .program-tier .section-intro { margin-bottom: 1.35rem; }
+  .plan-tiles {
+    display: grid;
+    gap: 0;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--ink);
+  }
+  .plan-tile {
+    min-width: 0;
+    padding: 0.9rem 0.8rem;
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .plan-tile-kicker {
+    margin: 0 0 0.18rem;
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .plan-tile-name {
+    margin: 0 0 0.35rem;
+    color: var(--ink-soft);
+    font-size: 0.86rem;
+    line-height: 1.3;
+  }
+  .plan-tile-price {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .plan-summary-status {
+    max-width: 62ch;
+    margin: 0 0 1rem;
+    color: var(--ink-soft);
+    font-size: 0.86rem;
+  }
+  .plan-summary-cta { margin: 0; max-width: 24rem; }
+  @media (min-width: 48rem) {
+    .plan-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .plan-tile { border-bottom: 0; border-right: 1px solid var(--line-ink); }
+    .plan-tile:last-child { border-right: 0; }
+  }
+
   .scorecard-demo .scorecard-desk {
     grid-column: auto;
     grid-row: auto;
@@ -1656,7 +1714,7 @@
             </li>
             <li class="workflow-step">
               <span class="workflow-node" aria-hidden="true">2</span>
-              <div><h3>Check the published data</h3><p>Run canonical validation plus freshness, rider-information, and optional realtime checks. A feed can follow the specification and still strand a rider, so <a href="/focus/#beyond-the-validator">some checks run past the validator</a>.</p></div>
+              <div><h3>Check the published data</h3><p>Run canonical validation plus freshness, rider-information, and optional realtime checks. A feed can follow the specification and still strand a rider, so <a href="/focus/#beyond-the-validator">some checks run past the validator</a>. New to the validator? Read <a href="/gtfs-validator/">how the scorecard uses it</a>.</p></div>
               <span class="workflow-state state-live">Live</span>
             </li>
             <li class="workflow-step">
@@ -1715,11 +1773,12 @@
               <a id="scope-brief-link" href="/agency/unitrans/brief/">Open selected brief</a>
               <a id="scope-board-link" href="/agency/unitrans/board/">Board one-pager</a>
               <a href="/program/all/">Program views</a>
+              <a href="/bundle/">Bundle for a program (paid)</a>
             </nav>
           </li>
           <li>
             <div class="task-name"><span>Reuse evidence</span><h3>Use the public data</h3></div>
-            <p>Filter feed features, query the API, download records, or embed the selected grade.</p>
+            <p>Filter feed features, query the API, download records, or embed the selected grade. Every dated check and finding, as tables over time, is sold as the <a href="/data/history/">scorecard history tables (paid)</a>; the dated scorecards behind them stay free.</p>
             <nav aria-label="Reuse public evidence">
               <a href="/app/#/?view=features">Feed features</a>
               <a href="/data/">Data and API</a>
@@ -1727,6 +1786,24 @@
             </nav>
           </li>
         </ul>
+      </section>
+
+      <section class="program-tier" id="programs" aria-labelledby="program-tier-h">
+        <div class="section-intro">
+          <p class="section-code">For programs</p>
+          <div>
+            <h2 id="program-tier-h">One paid add-on, for people who support many agencies.</h2>
+            <p class="lede">Scoring stays free for every agency, including the board one-pager an
+            agency takes to its own meeting. What costs money is the packaging: every agency you
+            support, as one archive of those same reports, under your program's name and logo. A
+            purchase buys no influence over grades, methodology, or which agencies are listed.</p>
+          </div>
+        </div>
+        <div class="plan-summary" data-plan-summary>
+          <p class="plan-summary-status" data-plan-status>Prices, delivery, and the refund
+          commitment are listed on the bundle page.</p>
+          <p class="plan-summary-cta"><a class="action action-secondary" href="/bundle/"><span>See the plans and what each includes</span><span class="arrow" aria-hidden="true">&rarr;</span></a></p>
+        </div>
       </section>
 
       <section class="scorecard-demo" aria-labelledby="scorecard-demo-h">
@@ -1922,7 +1999,8 @@
     <div class="footer-note"><h2>GTFS Scorecard</h2><p>An open-source data-quality lens for small transit agencies, piloted with Unitrans and Yolobus in Yolo County. It is not an official compliance determination.</p></div>
     <nav aria-label="Use the scorecard"><h2>Use</h2><a href="/app/">All scorecards</a><a href="/tools/">Feed tools</a><a href="/data/">Open data</a><a href="/status/">Pipeline status</a></nav>
     <nav aria-label="Explore the project"><h2>Explore</h2><a href="/pulse/">Coverage overview</a><a href="/problems/">Common problems</a><a href="/focus/">Focus areas</a><a href="/how-to-read/">How to read a scorecard</a></nav>
-    <nav aria-label="Project information"><h2>Project</h2><a href="/about/">About</a><a href="/support/">Get help or sponsor</a><a href="https://github.com/ChelseaKR/gtfs-scorecard" target="_blank" rel="noopener">Source<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/accessibility.md" target="_blank" rel="noopener">Accessibility<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md" target="_blank" rel="noopener">Listing policy<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://chelseakr.com" target="_blank" rel="noopener">Built by Chelsea Kelly-Reif<span class="visually-hidden"> (opens in a new tab)</span></a></nav>
+    <nav aria-label="For programs"><h2>For programs</h2><a href="/program/all/">Program rollups</a><a href="/bundle/">Board report bundle (paid)</a></nav>
+    <nav aria-label="Project information"><h2>Project</h2><a href="/about/">About</a><a href="/about/#privacy">Privacy</a><a href="/about/#privacy-opt-out" data-analytics-toggle data-label-on="Opt out of analytics" data-label-off="Opt back in to analytics" data-status-off="Analytics is off on this device." data-status-on="Analytics comes back on from the next page you open.">Opt out of analytics</a><span class="visually-hidden" role="status" data-analytics-status></span><a href="/support/">Get help or sponsor</a><a href="https://github.com/ChelseaKR/gtfs-scorecard" target="_blank" rel="noopener">Source<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/accessibility.md" target="_blank" rel="noopener">Accessibility<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md" target="_blank" rel="noopener">Listing policy<span class="visually-hidden"> (opens in a new tab)</span></a><a href="https://chelseakr.com" target="_blank" rel="noopener">Built by Chelsea Kelly-Reif<span class="visually-hidden"> (opens in a new tab)</span></a></nav>
   </div>
 </footer>
 

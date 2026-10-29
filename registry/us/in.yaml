@@ -62,7 +62,7 @@ agencies:
     name: Muncie Indiana Transit System (MITS)
     subdivision_code: US-IN
     subdivision_name: Indiana
-    static_gtfs_url: http://www.mitsbus.org/wp-content/uploads/2016/11/GTFS.zip
+    static_gtfs_url: https://www.mitsbus.org/wp-content/uploads/2026/04/MITS2026GTFS.zip
     mdb_id: 719
     license_note: No stated data license in the Mobility Database; verify before publishing.
 
@@ -100,3 +100,12 @@ agencies:
     static_gtfs_url: https://gtfs.remix.com/citilink_fortwayne_in_us.zip
     mdb_id: 2266
     license_note: No stated data license in the Mobility Database; verify before publishing.
+
+  - id: city-of-kokomo
+    name: City of Kokomo
+    subdivision_code: US-IN
+    subdivision_name: Indiana
+    is_official: true
+    static_gtfs_url: https://rapid.nationalrtap.org/GTFSFileManagement/UserUploadFiles/11767/CityofKokomo_Transit.zip
+    mdb_id: ntd-50145
+    license_note: No stated data license in the source catalog; verify before publishing.

@@ -20,6 +20,7 @@ import io
 import json
 import logging
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -34,7 +35,7 @@ from .config import artifacts_dir, current_agency_ids, repo_root
 from .identity import resolve_published_agency_name
 from .location import country_name, normalize_country_code
 from .metrics import expiry_status
-from .ntd import assess_shapes_readiness
+from .ntd import _RANK, assess_shapes_readiness
 from .publish import _write_json, registered_agency_dirs
 from .ridership import annual_trips_for, duplicate_ntd_reporter_ids, normalize_ntd_id
 
@@ -191,7 +192,8 @@ def resolve_member_ids(rollup: Rollup) -> list[str]:
 def _shapes_status(latest: dict[str, Any]) -> str | None:
     """This agency's current shapes.txt (NTD RY2026) readiness status, or None
     when it does not apply: a non-US agency (NTD is a US-federal FTA program,
-    ADR 0026) or an artifact that predates the check. Recomputed from the
+    ADR 0026), an artifact that predates the check, or a feed with no trips,
+    where coverage has no denominator and the check could not run. Recomputed from the
     stored trip counts rather than trusting the stored status/prose directly,
     the same pattern render_site.py's _current_shapes_readiness uses, so a
     wording or threshold fix reaches every rollup without a rescore."""
@@ -203,7 +205,13 @@ def _shapes_status(latest: dict[str, Any]) -> str | None:
     total = shapes.get("total_trips")
     with_shape = shapes.get("trips_with_shape")
     if isinstance(total, int) and isinstance(with_shape, int):
-        return assess_shapes_readiness(total, with_shape).status
+        status = assess_shapes_readiness(
+            total, with_shape, flex_only=shapes.get("flex_only") is True
+        ).status
+        # A feed with no trips has no coverage denominator, so the check could
+        # not run and the member counts under "not_measured" rather than
+        # against the cohort's readiness.
+        return status if status in _RANK else None
     status = shapes.get("status")
     return str(status) if status is not None else None
 
@@ -218,6 +226,25 @@ def _rollup_identity(rollup: Rollup) -> dict[str, Any]:
         identity["country_code"] = rollup.country
         identity["country_name"] = country_name(rollup.country, rollup.country)
     return identity
+
+
+def count_shared_fixes(fix_lists: Iterable[Iterable[dict[str, Any]]]) -> list[dict[str, Any]]:
+    """Fixes named in more than one member's top fixes, most shared first.
+
+    Each list is one member's ``top_fixes``; a (code, fix) pair counts once for
+    every entry that names it. Ties keep the order the lists arrive in, so an
+    ordered input gives an ordered output. ``scorecard try --batch`` counts a
+    private cohort with this same function, so the two cannot drift apart.
+    """
+    counter: Counter[tuple[str, str]] = Counter()
+    for fixes in fix_lists:
+        for fix in fixes:
+            counter[(fix.get("code", ""), fix.get("fix", ""))] += 1
+    return [
+        {"code": code, "fix": fix, "agencies": n}
+        for (code, fix), n in counter.most_common()
+        if n > 1
+    ]
 
 
 def build_rollup(
@@ -355,17 +382,9 @@ def build_rollup(
         agencies=AGENCIES.values() if AGENCIES else None,
     )
     comparable_ids = {str(record["id"]) for record in comparable_records}
-    fix_counter: Counter[tuple[str, str]] = Counter()
-    for agency_id in comparable_ids:
-        for fix in fixes_by_id.get(agency_id, []):
-            fix_counter[(fix.get("code", ""), fix.get("fix", ""))] += 1
+    common = count_shared_fixes(fixes_by_id.get(agency_id, []) for agency_id in comparable_ids)
     scores = [float(m["score"]) for m in comparable_records]
     grades = Counter(str(m["grade"]) for m in comparable_records)
-    common = [
-        {"code": code, "fix": fix, "agencies": n}
-        for (code, fix), n in fix_counter.most_common()
-        if n > 1
-    ]
 
     # Expired feeds are the program's clearest worklist, split the same way the
     # public directory splits them: lapsed (expired within a year, likely still
@@ -437,7 +456,7 @@ def _configured_rt_kinds() -> dict[str, tuple[str, ...]]:
 def _realtime_block(members: list[dict[str, Any]]) -> dict[str, Any]:
     """Realtime reliability across this program's members, agency by agency.
 
-    The monthly reports a state programme publishes assess the schedule side,
+    The monthly reports a state program publishes assess the schedule side,
     and check realtime presence at most a couple of times a month. The realtime
     monitor here already records reachability, header freshness, and trip
     coverage on a schedule (ADR 0012); this rolls that record up per program so
@@ -545,6 +564,19 @@ _CSV_COLUMNS: tuple[tuple[str, str], ...] = (
     ("top_fix", "top_fix"),
     ("shapes_txt_status", "shapes_status"),
 )
+
+
+def csv_column_headers() -> tuple[str, ...]:
+    """The published column names of a rollup's CSV distribution, in order.
+
+    The rollup page advertises that CSV as a schema.org DataDownload and names
+    these as the dataset's ``variableMeasured``. Reading them from the writer's
+    own column table rather than restating them means a column added here is
+    described the moment it is published, and a column removed stops being
+    claimed; ``test_the_rollup_dataset_variables_are_the_published_csv_columns``
+    asserts the two stay the same list.
+    """
+    return tuple(header for header, _ in _CSV_COLUMNS)
 
 
 def _csv_cell(value: Any) -> str:

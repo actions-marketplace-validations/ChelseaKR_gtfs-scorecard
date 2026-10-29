@@ -152,6 +152,9 @@ def test_a_schema_exists_for_every_published_document_type() -> None:
         "sync-source-metadata.schema.json",
         "sync-source-metadata-1.1.schema.json",
         "sync-source-metadata-1.2.schema.json",
+        # /bundle/plan.json: the only published document that carries a price and a
+        # checkout link. Its own invariants live in tests/test_bundle_plan_contract.py.
+        "program-bundle-plan.schema.json",
     } <= names
 
 
@@ -439,7 +442,7 @@ def _country_contract_documents(country_code: str) -> dict[str, dict[str, Any]]:
 
 def test_country_contract_accepts_a_forward_compatible_iso_alpha_2_code() -> None:
     """Public schemas describe the portable shape, not the deployment allowlist."""
-    assert SCHEMA_VERSION == "1.18"
+    assert SCHEMA_VERSION == "1.19"
     for schema_name, document in _country_contract_documents("GB").items():
         _validator(schema_name).validate(document)
 

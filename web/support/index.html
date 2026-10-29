@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Support this project — GTFS Scorecard</title>
   <meta name="description"
-        content="How to sponsor the GTFS Scorecard's hosting and data work. What it costs to run, what sponsorship funds, and what stays free for every agency.">
+        content="Board report bundles for a whole transit program, and how sponsorship funds the hosting and data work. Every agency's own scorecard stays free.">
   <link rel="canonical" href="https://gtfsscorecard.org/support/">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"GTFS Scorecard","item":"https://gtfsscorecard.org/"},{"@type":"ListItem","position":2,"name":"About","item":"https://gtfsscorecard.org/about/"},{"@type":"ListItem","position":3,"name":"Get help or support the project","item":"https://gtfsscorecard.org/support/"}]}</script>
   <meta property="og:type" content="website">
   <meta property="og:title" content="Support this project — GTFS Scorecard">
-  <meta property="og:description" content="How to sponsor the GTFS Scorecard's hosting and data work. What it costs, what sponsorship funds, and what stays free.">
+  <meta property="og:description" content="Board report bundles for a whole transit program, and how sponsorship funds the hosting and data work.">
   <meta property="og:url" content="https://gtfsscorecard.org/support/">
   <meta property="og:image" content="https://gtfsscorecard.org/og.png">
   <meta property="og:image:alt" content="GTFS Scorecard: transit data quality for small agencies.">
@@ -17,7 +18,11 @@
   <meta name="twitter:image" content="https://gtfsscorecard.org/og.png">
   <meta name="twitter:image:alt" content="GTFS Scorecard: transit data quality for small agencies.">
   <link rel="stylesheet" href="/src/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23204e3a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2f3ee'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <script>
     /* Apply the saved theme before first paint to avoid a flash (1.4.8). */
     try {
@@ -27,7 +32,9 @@
     } catch (e) {}
   </script>
   <script src="/src/theme.js" defer></script>
+  <script src="/src/measure.js" defer></script>
   <script src="/src/nav.js" defer></script>
+  <script src="/src/plan-summary.js" defer></script>
   <noscript><style>
     /* Without JS the menu button cannot expand the collapsed nav, so show the
        stacked nav permanently and hide the button (content stays operable
@@ -61,8 +68,31 @@
         <h2 id="path-board-h">Take a scorecard to your board</h2>
         <p>Every agency page has a printable board one-pager, and the same report ships as a
         single self-contained file for a board packet or a grant application.</p>
+        <p>Free for every agency, for its own feed, with no account.</p>
         <p><a class="report-action" href="/agency/unitrans/board/">See a live board-report example</a></p>
         <p class="fineprint"><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/board-report.md">Generate the offline file yourself.</a></p>
+      </section>
+      <section class="support-path" aria-labelledby="path-bundle-h">
+        <p class="support-path-kicker">Paid</p>
+        <h2 id="path-bundle-h">Board reports for a whole program</h2>
+        <p>A state program, a technical-assistance center, a vendor, or a consultancy that
+        prepares packets for many agencies can get every agency's board report in one archive,
+        branded with its own name and logo, and refreshed monthly if it wants.</p>
+        <div class="plan-summary" data-plan-summary>
+          <p class="plan-summary-status" data-plan-status>Prices, delivery, and the refund
+          commitment are on the bundle page.</p>
+          <p><a class="report-action" href="/bundle/">See the plans and what each one includes</a></p>
+        </div>
+        <p class="fineprint">Cannot use a card link? <a href="/invoice/">Buy by invoice or purchase order.</a></p>
+      </section>
+      <section class="support-path" aria-labelledby="path-history-h">
+        <p class="support-path-kicker">Paid</p>
+        <h2 id="path-history-h">The scorecard history, as tables</h2>
+        <p>Every dated check and every finding across the whole corpus as two Parquet tables
+        with a data dictionary, provenance, and license, rebuilt monthly, for a vendor, a
+        consultancy, a program, or a researcher who needs the corpus over time. The dated
+        scorecards it is built from stay free.</p>
+        <p><a class="report-action" href="/data/history/">See what the tables hold and what they cost</a></p>
       </section>
       <section class="support-path" aria-labelledby="path-sponsor-h">
         <p class="support-path-kicker">Public infrastructure</p>
@@ -75,16 +105,21 @@
 
     <section aria-labelledby="costs-h">
       <h2 class="section-title" id="costs-h">What it costs to run</h2>
-      <p>The core site is deliberately cheap. Static pages, a scheduled daily scoring run, and a read
-      <abbr title="application programming interface">API</abbr> together cost single-digit
-      dollars a month today. A bounded operating envelope of roughly
-      <strong>$75 to $200 a month</strong> would add capacity while preserving hard spending
-      caps. Sponsorship at that level pays for:</p>
+      <p>The core site is built to be cheap, and it is not as cheap as it should be yet. In
+      September 2026 the Amazon S3 charges in the region that holds the published scorecard
+      data were <strong>$28.35</strong>, read from AWS Cost Explorer: $17.26 for data leaving
+      the bucket, $8.80 for requests, and $2.29 for storage. We have not yet measured which
+      readers cause the outbound data; the likeliest cause is the project's own scheduled runs
+      re-reading what they published earlier, and changes to cut it are under way. The target
+      is under $10 a month by March 31, 2027. Other AWS charges, such as DNS and the web
+      firewall, are shared with other projects, so this page states no total. A bounded
+      operating envelope of roughly <strong>$75 to $200 a month</strong> would add capacity
+      while preserving hard spending caps. Sponsorship at that level pays for:</p>
       <ul>
         <li><strong>Hosting and bandwidth</strong> for the site, the read API, and the grade
         badges the project publishes.</li>
         <li><strong>The scheduled daily data refresh</strong>: fetching and validating more than
-        2,200 configured feed records in the current worldwide coverage, still mostly in the US
+        2,600 configured feed records in the current worldwide coverage, still mostly in the US
         and Canada. The <a href="/status/">status page</a> reports the exact current count and
         records when each run completed.</li>
         <li><strong>Release monitoring and evidence reliability</strong>, including the private
@@ -121,8 +156,28 @@
         results to help programs decide where to start, but sponsors cannot buy prominence,
         change a grade, or alter how an agency is framed.</li>
       </ul>
-      <p>Sponsors are disclosed on this page and in the repository, always. Funding that comes
-      with a request to change any of the above is declined.</p>
+      <p>Funding that comes with a request to change any of the above is declined.</p>
+    </section>
+
+    <section aria-labelledby="disclosure-h">
+      <h2 class="section-title" id="disclosure-h">Who sponsors, and sponsors that are graded here</h2>
+      <p>Sponsors are named on the /support/ page and in the repository if they ask to be.
+      Anonymous sponsors are counted and their total is shown. A sponsor that publishes a feed
+      graded on this site, or sells GTFS products or services, is always named.</p>
+      <ul>
+        <li>The share of graded feed records that belong to a sponsor, or that a sponsor built,
+        is published beside its name.</li>
+        <li>A feed a sponsor built or publishes is scored and framed identically to every other
+        feed, by the same code and rubric. A sponsor's corrections go through the same public
+        claim form as everyone's.</li>
+        <li>Sponsorship is accepted only at the listed tiers.</li>
+        <li>No sponsorship is accepted while the sponsor has an open dispute about its own
+        grade.</li>
+      </ul>
+      <p>Vendors may sponsor this project; sponsors are listed on /support/ and are graded by
+      the same rubric as every other vendor.</p>
+      <p>The reasoning and what this commits the project to are in
+      <a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/decisions/0071-sponsors-whose-feeds-are-graded.md">ADR 0071</a>.</p>
     </section>
 
     <section aria-labelledby="how-h">
@@ -145,8 +200,9 @@
       nothing is earmarked.</p>
       <dl class="sponsor-tiers">
         <dt>$5 a month</dt>
-        <dd>The static core: the site, the daily scoring run, and the read API, which together
-        cost single-digit dollars a month today.</dd>
+        <dd>The static core: the site, the daily scoring run, and the read API. Their S3
+        charges were $28.35 in September 2026; the cost section above has the breakdown and
+        the target.</dd>
         <dt>$25 a month</dt>
         <dd>The dynamic edges: the subscribe API, the badge and API worker, and the MCP
         endpoint. They run on per-request compute, about $15 a month at plausible volume.</dd>
@@ -158,8 +214,8 @@
         (<a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/decisions/0029-instant-score-funnel.md">ADR 0029</a>).
         It is written and not switched on; this is its running cost.</dd>
       </dl>
-      <p class="fineprint">No sponsors yet. The first ones will be listed here, with what their
-      support pays for.</p>
+      <p class="fineprint">No sponsors yet. Named sponsors will be listed here, with what their
+      support pays for; anonymous sponsors will be counted, with their total.</p>
     </section>
   </main>
 
@@ -207,6 +263,14 @@
             <li><a href="/data/">Open data</a></li>
           </ul>
         </section>
+        <section aria-labelledby="footer-programs-h">
+          <h2 id="footer-programs-h">For programs</h2>
+          <ul>
+            <li><a href="/program/all/">Program rollups</a></li>
+            <li><a href="/bundle/">Board report bundle (paid)</a></li>
+          </ul>
+          <p class="footer-aside">Scoring an agency is free. A purchase buys no influence over grades, methodology, or which agencies are listed.</p>
+        </section>
         <section aria-labelledby="footer-project-h">
           <h2 id="footer-project-h">Project</h2>
           <ul>
@@ -218,6 +282,8 @@
             <li><a href="/crosswalk/">Standards crosswalk</a></li>
             <li><a href="/press/">For reporters</a></li>
             <li><a href="/accessibility/">Accessibility</a></li>
+            <li><a href="/about/#privacy">Privacy</a></li>
+            <li><a href="/about/#privacy-opt-out" data-analytics-toggle data-label-on="Opt out of analytics" data-label-off="Opt back in to analytics" data-status-off="Analytics is off on this device." data-status-on="Analytics comes back on from the next page you open.">Opt out of analytics</a><span class="visually-hidden" role="status" data-analytics-status></span></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/CONTRIBUTING.md">Contribute</a></li>
             <li><a href="https://github.com/ChelseaKR/gtfs-scorecard/blob/main/docs/listing-policy.md">Listing &amp; removal policy</a></li>
           </ul>

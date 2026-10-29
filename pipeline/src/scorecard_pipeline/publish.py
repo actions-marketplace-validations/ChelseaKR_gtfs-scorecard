@@ -14,6 +14,7 @@ import functools
 import json
 import logging
 import sys
+from collections.abc import Collection, Iterable
 from pathlib import Path
 from typing import Any
 
@@ -39,10 +40,12 @@ from .effort_calibration import (
     agency_episodes,
     stats_from_episodes,
 )
+from .feed_auth import AUTH_DISCLOSURE
 from .feed_provenance import (
     FeedSourceProvenance,
     classify_feed_source,
     confidence_source_note,
+    credentialed_fetch_note,
 )
 from .fetch import FetchResult
 from .fixlog import diff_receipts, load_fixlog_candidates, merge_receipts, reconcile_receipts
@@ -50,6 +53,7 @@ from .identity import resolve_published_agency_name
 from .metrics import expiry_status, resolve_service_horizon_status
 from .score import Scorecard
 from .site_shell import CATEGORY_LABELS
+from .url_redaction import redact_url_text
 
 log = logging.getLogger(__name__)
 
@@ -119,6 +123,8 @@ def _confidence(
     if fetch.source in {"mirror", "unknown"}:
         rank -= 1
     notes.append(confidence_source_note(source_provenance, fetch.source))
+    if fetch.auth_kind:
+        notes.append(credentialed_fetch_note(fetch.auth_kind))
 
     feed_age_days = max(0, (generated_at.date() - fetch.fetched_date).days)
     if feed_age_days:
@@ -136,6 +142,45 @@ def _confidence(
         "feed_age_days": feed_age_days,
         "notes": notes,
     }
+
+
+def _fetch_block(fetch: FetchResult) -> dict[str, Any]:
+    """The artifact's ``fetch`` block for one scored snapshot."""
+    # Fetch provenance: how the graded bytes were obtained — origin vs the
+    # Mobility Database mirror, the URL that actually served them, and the
+    # User-Agent presented — so a grade is a citable record and a mirror-scored
+    # snapshot is distinguishable from an origin fetch. Additive to the schema
+    # (consumers tolerate new fields, docs/api.md); optional fields are omitted
+    # when unknown so artifacts stay byte-stable.
+    fetch_block: dict[str, Any] = {
+        "source": fetch.source,
+        # A snapshot from before provenance recording has no final_url on disk;
+        # the configured feed URL is the best available statement of the fetch.
+        # Published URLs pass through the one redaction rule (ADR 0066): a
+        # redirect to a presigned object carries its signature and temporary
+        # credential, and some publishers put an API key in the URL.
+        "final_url": redact_url_text(fetch.final_url or fetch.url),
+        "user_agent": fetch.user_agent,
+        "reader_archive_profile": fetch.reader_archive_profile,
+    }
+    if fetch.max_attempts is not None:
+        fetch_block["max_attempts"] = fetch.max_attempts
+    if fetch.origin_error:
+        fetch_block["origin_error"] = fetch.origin_error
+    # Credentialed fetch disclosure (#371): that the bytes came from a gated
+    # endpoint and how the credential was presented, never the credential or
+    # the name of the variable that holds it. Omitted for keyless fetches, so
+    # every existing artifact is byte-identical.
+    if fetch.auth_kind:
+        fetch_block["auth"] = AUTH_DISCLOSURE
+        fetch_block["auth_kind"] = fetch.auth_kind
+    # The feed hash and validator still describe the exact raw archive. This
+    # optional flag discloses that Scorecard-owned readers used the bounded
+    # single-root/filename-whitespace view prepared by fetch.py.
+    fetch_block.update(
+        {"reader_archive_normalized": True} if fetch.reader_archive_normalized else {}
+    )
+    return fetch_block
 
 
 def build_artifact(
@@ -174,30 +219,7 @@ def build_artifact(
         agency_block["subdivision_code"] = agency.subdivision_code
     if agency.subdivision_name:
         agency_block["subdivision_name"] = agency.subdivision_name
-    # Fetch provenance: how the graded bytes were obtained — origin vs the
-    # Mobility Database mirror, the URL that actually served them, and the
-    # User-Agent presented — so a grade is a citable record and a mirror-scored
-    # snapshot is distinguishable from an origin fetch. Additive to the schema
-    # (consumers tolerate new fields, docs/api.md); optional fields are omitted
-    # when unknown so artifacts stay byte-stable.
-    fetch_block: dict[str, Any] = {
-        "source": fetch.source,
-        # A snapshot from before provenance recording has no final_url on disk;
-        # the configured feed URL is the best available statement of the fetch.
-        "final_url": fetch.final_url or fetch.url,
-        "user_agent": fetch.user_agent,
-        "reader_archive_profile": fetch.reader_archive_profile,
-    }
-    if fetch.max_attempts is not None:
-        fetch_block["max_attempts"] = fetch.max_attempts
-    if fetch.origin_error:
-        fetch_block["origin_error"] = fetch.origin_error
-    # The feed hash and validator still describe the exact raw archive. This
-    # optional flag discloses that Scorecard-owned readers used the bounded
-    # single-root/filename-whitespace view prepared by fetch.py.
-    fetch_block.update(
-        {"reader_archive_normalized": True} if fetch.reader_archive_normalized else {}
-    )
+    fetch_block = _fetch_block(fetch)
     artifact: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         # Provenance: which methodology and which validator produced this grade,
@@ -214,7 +236,7 @@ def build_artifact(
         "generated_at": generated_at.isoformat(timespec="seconds"),
         "snapshot_date": fetch.fetched_date.isoformat(),
         "feed": {
-            "static_url": fetch.url,
+            "static_url": redact_url_text(fetch.url),
             "sha256": fetch.sha256,
             "size_bytes": fetch.size_bytes,
             "license_note": agency.license_note,
@@ -372,17 +394,50 @@ def _with_current_conformance(artifact: dict[str, Any]) -> dict[str, Any]:
     return current
 
 
-def publish(artifact: dict[str, Any]) -> Path:
+def _with_consequences(artifact: dict[str, Any], agencies: Iterable[Agency]) -> dict[str, Any]:
+    """Attach a consequence block to every finding (issue #367).
+
+    Done here rather than in ``build_artifact`` because both writers pass
+    through ``publish``: the full score and the freshness sweep, which rebuilds
+    ``top_fixes`` and the freshness findings from their fields and would drop a
+    block attached earlier. The shared-reporter quarantine is computed over
+    every canonical registry record, the same set ``rollups`` and
+    ``render_site`` use, so a record whose NTD reporter another feed also
+    claims gets an absence instead of that reporter's whole count.
+    """
+    from .consequence import with_consequences
+    from .ridership import duplicate_ntd_reporter_ids
+
+    quarantined = duplicate_ntd_reporter_ids(a for a in agencies if a.is_canonical_feed)
+    return with_consequences(artifact, quarantined_ntd_ids=quarantined)
+
+
+def publish(
+    artifact: dict[str, Any],
+    *,
+    index_batch: dict[str, dict[str, Any]] | None = None,
+) -> Path:
     """Write historical evidence and, only for a current feed, current pointers.
 
     Retired registry aliases remain explicitly scoreable for reproduction, but
     that operation writes only its date-shaped evidence. It cannot recreate a
     ``latest.json``, badge, conformance credential, or current geometry after a
     curator has retired the feed.
+
+    ``index_batch`` defers this call's ``index.json`` update: the artifact is
+    recorded under its agency id and the caller writes the index once, through
+    :func:`flush_index`, after its loop. A caller publishing thousands of
+    feeds in one process (the freshness sweep) otherwise parses and rewrites
+    the whole index once per feed, and that file holds every agency's full
+    history. Measured 2026-10-22 against the published 148 MB index: 3.2 s a
+    feed, 2,489 feeds, a step of 134 to 167 minutes, killed at the job's
+    175-minute bound on most first-of-day cycles. The dated file and the
+    current pointers are written here either way, so the deferred merge reads
+    exactly what a per-call update would have read.
     """
     from .config import AGENCIES
 
-    artifact = _with_current_conformance(artifact)
+    artifact = _with_consequences(_with_current_conformance(artifact), AGENCIES.values())
     validate_artifact(artifact)
     agency_id = str(artifact["agency"]["id"])
     date = str(artifact["snapshot_date"])
@@ -400,13 +455,26 @@ def publish(artifact: dict[str, Any]) -> Path:
     dated = agency_dir / f"{date}.json"
     _write_json(dated, artifact)
     if agency is not None and not agency.is_canonical_feed:
-        _update_index(agency_id, artifact)
+        _update_index(agency_id, artifact, index_batch)
+        return dated
+
+    # A grade taken back stays taken back. The dated file above is written
+    # either way, because it is evidence of what was measured; the current
+    # pointers are what a reader sees, and a record corrections.yaml withdraws
+    # never becomes one again. A newer measurement is not this record and
+    # publishes normally.
+    from .corrections import load_corrections, suppresses_current
+
+    if suppresses_current(load_corrections().get(agency_id), artifact):
+        log.warning(
+            "%s: not republishing the grade corrections.yaml withdraws (%s)", agency_id, date
+        )
         return dated
 
     _write_json(agency_dir / "latest.json", artifact)
     _write_badge(agency_dir, artifact)
     _write_mark(agency_dir, artifact)
-    _update_index(agency_id, artifact)
+    _update_index(agency_id, artifact, index_batch)
     return dated
 
 
@@ -578,6 +646,90 @@ def enrich_index_history_provenance(index: dict[str, Any], root: Path | None = N
     return changed
 
 
+def _backfill_rows(
+    agency_dir: Path, agency_id: str, have: set[str], tail: str, skipped: dict[str, int]
+) -> list[dict[str, Any]]:
+    """History rows for mirrored dated records the index lacks (see below)."""
+    rows: list[dict[str, Any]] = []
+    for path in sorted(agency_dir.glob("[0-9]" * 4 + "-[0-9][0-9]-[0-9][0-9].json")):
+        if path.stem in have:
+            continue
+        if path.stem > tail:
+            skipped["after_tail"] += 1
+            continue
+        artifact = _read_artifact(path)
+        try:
+            if artifact is None:
+                raise TypeError("unreadable")
+            matches = (
+                str(artifact["snapshot_date"]) == path.stem
+                and str(artifact["agency"]["id"]) == agency_id
+            )
+            row = _history_entry(artifact)
+        except (KeyError, TypeError, ValueError):
+            skipped["unreadable"] += 1
+            continue
+        if not matches:
+            skipped["mismatched"] += 1
+            continue
+        rows.append(row)
+    return rows
+
+
+def backfill_index_history(index: dict[str, Any], mirror: Path) -> dict[str, Any]:
+    """Restore index history rows from a local mirror of the S3 dated records.
+
+    Until the incremental-publish fix, every intraday re-score or freshness
+    sweep rebuilt an agency's index history from the dated files in a bounded
+    checkout, so rows whose dated record lived only in S3 were dropped from
+    index.json while the records themselves stayed in S3. This puts them back.
+
+    Only feed records already in the index are touched, and only for dates
+    with no row: an existing row is never replaced, and nothing after the
+    agency's current index tail is added (the tail is the published commit
+    pointer). A mirror file is used only when it parses, its path date equals
+    its ``snapshot_date``, and its agency id equals the directory name. Each
+    added row is exactly what publishing that record would have written
+    (:func:`_history_entry`). Returns counts; mutates ``index`` in place.
+    """
+    added = 0
+    agencies_changed = 0
+    skipped: dict[str, int] = {"unreadable": 0, "mismatched": 0, "after_tail": 0}
+    for agency_id, entry in (index.get("agencies") or {}).items():
+        history = entry.get("history") or []
+        agency_dir = mirror / str(agency_id)
+        if not history or not agency_dir.is_dir():
+            continue
+        have = {str(row.get("date")) for row in history}
+        tail = str(history[-1].get("date") or "")
+        new_rows = _backfill_rows(agency_dir, str(agency_id), have, tail, skipped)
+        if new_rows:
+            entry["history"] = merge_index_history(
+                history, new_rows, {str(row["date"]) for row in new_rows}
+            )
+            added += len(new_rows)
+            agencies_changed += 1
+    return {"rows_added": added, "feed_records_changed": agencies_changed, "skipped": skipped}
+
+
+def _indexable_agency_dirs(root: Path, withdrawn: Iterable[str]) -> list[Path]:
+    """Registered agency directories, minus the ones whose grade is withdrawn.
+
+    The current pointers for a withdrawn id are removed by the reconcile pass
+    above. Leaving the agency out of the index keeps the retracted letter off
+    the directory and off the trend as well; the correction itself is published
+    at /corrections/ (corrections.py).
+    """
+    held_back = set(withdrawn)
+    keep = []
+    for agency_dir in registered_agency_dirs(root, log_skipped=True):
+        if agency_dir.name in held_back:
+            log.info("%s: current grade withdrawn (corrections.yaml)", agency_dir.name)
+        else:
+            keep.append(agency_dir)
+    return keep
+
+
 def registered_agency_dirs(root: Path, *, log_skipped: bool = False) -> list[Path]:
     """Current agency directories under ``root``, bounded to the loaded registry.
 
@@ -731,6 +883,28 @@ def _reindex_artifact_sequence(
     return [artifacts[date] for date in sorted(artifacts)], present_dates
 
 
+def merge_index_history(
+    prior_history: Iterable[dict[str, Any]],
+    local_history: Iterable[dict[str, Any]],
+    present_dates: Collection[str],
+) -> list[dict[str, Any]]:
+    """One agency's index history: local dated evidence over the prior index.
+
+    ``present_dates`` are the dated files that exist locally, readable or not.
+    A prior row survives only when its date has no local file (the dated
+    object lives in S3 and was not hydrated); a local readable artifact always
+    wins for its date. Used by both index writers so an incremental publish and
+    a full reindex cannot disagree about which dates a feed has.
+    """
+    by_date = {
+        str(item.get("date")): item
+        for item in prior_history
+        if item.get("date") and str(item.get("date")) not in present_dates
+    }
+    by_date.update({str(item["date"]): item for item in local_history})
+    return [by_date[date] for date in sorted(by_date)]
+
+
 def rebuild_index() -> Path:
     """Rebuild index.json, and reconcile each agency's latest.json + badge, from
     every dated artifact on disk.
@@ -765,14 +939,23 @@ def rebuild_index() -> Path:
     # It strips locally hydrated current pointers for retired/unregistered ids
     # and writes an exact deletion manifest for the additive S3 publisher. Dated
     # evidence remains untouched and may continue to be fetched by date.
-    reconcile_retired_current_artifacts(root, AGENCIES)
+    #
+    # Withdrawn grades (corrections.py) are cleaned by the same pass and for the
+    # same reason: they must not be re-derived here. This loop rebuilds
+    # latest.json from the newest dated artifact, so without the suppression
+    # below a retracted letter would come straight back out of the evidence file
+    # beside it, every run, forever.
+    from .corrections import load_corrections, withdrawn_now
+
+    withdrawn = withdrawn_now(load_corrections(), root)
+    reconcile_retired_current_artifacts(root, AGENCIES, withdrawn)
 
     # Finding-clearance episodes accumulate across every agency in this one walk,
     # so the corpus-level effort-calibration.json costs no extra artifact reads
     # (effort_calibration.py). The calibration itself requires a complete,
     # unchanged producer contract and makes no claim about who changed a feed.
     all_episodes: list[Any] = []
-    for agency_dir in registered_agency_dirs(root, log_skipped=True):
+    for agency_dir in _indexable_agency_dirs(root, withdrawn):
         name = agency_dir.name
         operating_note = ""
         prior_history = (
@@ -829,13 +1012,7 @@ def rebuild_index() -> Path:
             # while index.json carries the compact complete trend. Preserve
             # entries whose dated file is simply absent locally; an unreadable
             # file that is present is still dropped so corruption stays visible.
-            by_date = {
-                str(item.get("date")): item
-                for item in prior_history
-                if item.get("date") and str(item.get("date")) not in present_dates
-            }
-            by_date.update({str(item["date"]): item for item in history})
-            merged_history = [by_date[date] for date in sorted(by_date)]
+            merged_history = merge_index_history(prior_history, history, present_dates)
             entry: dict[str, Any] = {"name": name, "history": merged_history}
             if operating_note:
                 entry["operating_note"] = operating_note
@@ -864,16 +1041,53 @@ def _write_calibration(stats: dict[str, Any]) -> None:
     _write_json(repo_root() / "data" / "effort-calibration.json", payload)
 
 
-def _update_index(agency_id: str, artifact: dict[str, Any]) -> None:
+def _update_index(
+    agency_id: str,
+    artifact: dict[str, Any],
+    index_batch: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    """Record one publish in data/artifacts/index.json, now or at the flush.
+
+    With no batch the index is read, this agency merged and the file written,
+    as every publish always did. With a batch the artifact is held under its
+    agency id and :func:`flush_index` does the same merge for every held
+    agency in one read and one write.
+    """
+    if index_batch is None:
+        flush_index({agency_id: artifact})
+    else:
+        index_batch[agency_id] = artifact
+
+
+def flush_index(batch: dict[str, dict[str, Any]]) -> None:
     """Maintain data/artifacts/index.json: per-agency history of
     (date, score, grade) so the frontend can draw trends without fetching
-    every artifact."""
-    from .config import AGENCIES
+    every artifact.
 
+    One read and one write for every agency in ``batch``, in insertion order.
+    Each agency's merge touches only its own entry, and reads only its own
+    prior rows and its own dated files, so the file that comes out is
+    byte-identical to the one the same publishes leave behind when each
+    updates the index on its own; tests/test_publish.py holds that over a
+    fifty-agency fixture. An empty batch writes nothing, as a loop that
+    published nothing never touched the index.
+    """
+    if not batch:
+        return
     index_path = artifacts_dir() / "index.json"
     index: dict[str, Any] = {"schema_version": SCHEMA_VERSION, "agencies": {}}
     if index_path.exists():
         index = json.loads(index_path.read_text())
+    for agency_id, artifact in batch.items():
+        _merge_agency_into_index(index, agency_id, artifact)
+    _write_json(index_path, index)
+
+
+def _merge_agency_into_index(
+    index: dict[str, Any], agency_id: str, artifact: dict[str, Any]
+) -> None:
+    """Replace one agency's entry in a loaded index with its reconciled history."""
+    from .config import AGENCIES
 
     # A curator may retain a retired endpoint as an alias so its dated evidence
     # remains reproducible. A manual single-agency re-score may therefore still
@@ -883,19 +1097,26 @@ def _update_index(agency_id: str, artifact: dict[str, Any]) -> None:
     agency = AGENCIES.get(agency_id)
     if agency is not None and not agency.is_canonical_feed:
         index.setdefault("agencies", {}).pop(agency_id, None)
-        _write_json(index_path, index)
         return
 
-    # Reconcile this agency's history from the dated artifacts actually on disk,
-    # rather than appending to whatever the index held. This keeps an incremental
-    # publish identical to a full rebuild_index for that agency, so deleted dates
-    # drop and the two index code paths can't disagree.
+    # Reconcile this agency's history from the dated artifacts on disk, and keep
+    # the index's own rows for dates whose dated file is simply not in this
+    # checkout, exactly as rebuild_index does. S3 is the durable dated store; a
+    # CI checkout holds only the cutover snapshot plus the days a workflow
+    # hydrated. Rebuilding from local files alone erased every S3-only row each
+    # time the intraday refresh re-scored or freshness-swept a feed. By
+    # 2026-10-12 index.json held only the checkout's cutover dates plus the last
+    # two days for every feed (173,581 rows gone), and the national trend had
+    # two dates left. A dated file that is present
+    # but unreadable is still dropped, so corruption stays visible.
     agency_dir = artifacts_dir() / agency_id
-    history = [
-        _history_entry(art)
-        for dated in sorted(agency_dir.glob("[0-9]" * 4 + "-[0-9][0-9]-[0-9][0-9].json"))
-        if (art := _read_artifact(dated)) is not None
+    dated_paths = sorted(agency_dir.glob("[0-9]" * 4 + "-[0-9][0-9]-[0-9][0-9].json"))
+    present_dates = {path.stem for path in dated_paths}
+    local_history = [
+        _history_entry(art) for dated in dated_paths if (art := _read_artifact(dated)) is not None
     ]
+    prior_history = index.get("agencies", {}).get(agency_id, {}).get("history", [])
+    history = merge_index_history(prior_history, local_history, present_dates)
     entry: dict[str, Any] = {
         "name": resolve_published_agency_name(
             agency_id,
@@ -907,4 +1128,3 @@ def _update_index(agency_id: str, artifact: dict[str, Any]) -> None:
     if artifact["agency"].get("operating_note"):
         entry["operating_note"] = artifact["agency"]["operating_note"]
     index["agencies"][agency_id] = entry
-    _write_json(index_path, index)

@@ -10,9 +10,12 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import io
+import logging
 import zipfile
-from collections.abc import Iterator
+from collections.abc import Generator
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
 
 
 def _parse_gtfs_date(value: str) -> dt.date | None:
@@ -25,13 +28,31 @@ def _parse_gtfs_date(value: str) -> dt.date | None:
         return None
 
 
-# Cap a single uncompressed table to guard against zip bombs in untrusted feeds
-# and to bound the memory a table costs when read whole into Python. Most GTFS
-# tables are comfortably under this, but a national aggregate's stop_times.txt
-# can exceed it (the Swiss national timetable's is 2.4 GiB). Readers that hit
-# the cap raise TableTooLargeError so a caller can skip that one table rather
-# than fail the whole score.
+# Cap a single uncompressed table when it is read WHOLE into a list of dicts.
+#
+# This is not the zip-bomb guard. Archive shape -- entry count, compression
+# ratio, per-entry size, whole-archive size -- is checked in fetch.py before any
+# reader opens the bytes, and an admitted archive is already bounded there
+# (512 MiB per entry, or 3 GiB for a curator-approved large feed). What is left
+# for this constant to do is bound the memory one materialized table costs.
+#
+# It is a poor bound on that, and it must not be the only one. Bytes on disk
+# under-report the cost of the same rows as Python dicts by more than an order
+# of magnitude, and the multiplier moves with row width, so no fixed byte number
+# is both safe on a wide table and generous on a narrow one -- it is a cliff,
+# and which side of it a feed lands on can change from one export to the next.
+# Readers that hit the cap raise TableTooLargeError so a caller can skip that
+# one table rather than fail the whole score. A reader that needs only an
+# aggregate should not be here at all: stream the table with iter_table_rows,
+# where memory is bounded by the aggregate and not by the row count.
 MAX_MEMBER_BYTES = 1024 * 1024 * 1024
+
+# Report a table's uncompressed size at INFO from here up, whichever way it is
+# read, and always report one that is skipped. A table read whole is the largest
+# single memory commitment the pipeline makes, and when a shard dies inside one
+# the log should already say which table it was and how big -- not require a
+# re-run under instrumentation to find out.
+LOG_MEMBER_BYTES = 64 * 1024 * 1024
 
 
 class TableTooLargeError(ValueError):
@@ -43,17 +64,35 @@ class TableTooLargeError(ValueError):
     """
 
 
+def _log_member(name: str, size: int, how: str) -> None:
+    """Leave the size of a big table in the log, whichever way it was handled."""
+    if size >= LOG_MEMBER_BYTES:
+        log.info("%s: %d bytes uncompressed, %s", name, size, how)
+
+
 def _read_table(zf: zipfile.ZipFile, name: str) -> list[dict[str, str]]:
     try:
         info = zf.getinfo(name)
     except KeyError:
         return []
     if info.file_size > MAX_MEMBER_BYTES:
+        log.warning(
+            "%s: %d bytes uncompressed, not read (over the %d-byte whole-table cap)",
+            name,
+            info.file_size,
+            MAX_MEMBER_BYTES,
+        )
         raise TableTooLargeError(
             f"{name} is {info.file_size} bytes uncompressed, over the safety cap"
         )
+    _log_member(name, info.file_size, "reading whole")
     text = zf.read(name).decode("utf-8-sig", errors="replace")
-    return list(csv.DictReader(io.StringIO(text)))
+    # restval="" because a data row with fewer fields than the header
+    # otherwise yields None for the missing trailing columns, and every
+    # reader downstream writes row.get("col", "").strip() -- a default that
+    # only fires when the key is absent, not when it is present and None.
+    # One short trips.txt row was enough to crash scoring outright.
+    return list(csv.DictReader(io.StringIO(text), restval=""))
 
 
 def read_tables(gtfs_zip_path: str, names: list[str]) -> dict[str, list[dict[str, str]]]:
@@ -76,34 +115,56 @@ def _has_data_row(zf: zipfile.ZipFile, name: str) -> bool:
     """
     if name not in zf.namelist():
         return False
-    with zf.open(name) as handle:
-        if not handle.readline():  # no header means no table
+    with (
+        zf.open(name) as raw,
+        io.TextIOWrapper(
+            raw,
+            encoding="utf-8-sig",
+            errors="replace",
+            newline="",
+        ) as text,
+    ):
+        if not text.readline():  # no header means no table
             return False
-        return any(line.strip() for line in handle)
+        return any(line.strip() for line in text)
 
 
 def iter_table_rows(
     gtfs_zip_path: str,
     name: str,
     *,
-    max_member_bytes: int = MAX_MEMBER_BYTES,
-) -> Iterator[dict[str, str]]:
+    max_member_bytes: int | None = MAX_MEMBER_BYTES,
+) -> Generator[dict[str, str], None, None]:
     """Yield one GTFS table without materializing its decoded CSV.
 
     ``max_member_bytes`` lets a caller set a lower, task-specific analysis
     budget than the general whole-table reader. The size check happens before
     decompression, and a missing table yields no rows.
+
+    ``None`` removes the size check. A streamed row is released as soon as the
+    consumer is done with it, so a caller that folds the table into a bounded
+    aggregate pays a memory cost set by the aggregate, not by the table -- and
+    for that caller a byte ceiling buys nothing but a refusal to measure a large
+    feed. fetch.py's per-entry ceiling remains the bound on how much there can
+    be to read.
     """
     with zipfile.ZipFile(gtfs_zip_path) as zf:
         try:
             info = zf.getinfo(name)
         except KeyError:
             return
-        if info.file_size > max_member_bytes:
+        if max_member_bytes is not None and info.file_size > max_member_bytes:
+            log.warning(
+                "%s: %d bytes uncompressed, not read (over the %d-byte analysis cap)",
+                name,
+                info.file_size,
+                max_member_bytes,
+            )
             raise TableTooLargeError(
                 f"{name} is {info.file_size} bytes uncompressed, over the "
                 f"{max_member_bytes}-byte analysis cap"
             )
+        _log_member(name, info.file_size, "streaming")
         with (
             zf.open(info) as raw,
             io.TextIOWrapper(
@@ -113,7 +174,7 @@ def iter_table_rows(
                 newline="",
             ) as text,
         ):
-            yield from csv.DictReader(text)
+            yield from csv.DictReader(text, restval="")
 
 
 def read_agency_ids(gtfs_zip_path: str) -> list[str]:
@@ -145,21 +206,100 @@ class ShapesCoverage:
     Used by the shapes readiness check (ntd.assess_shapes_readiness). total_trips
     is the row count of trips.txt; trips_with_shape counts only rows whose
     shape_id is non-blank and actually present in shapes.txt (a dangling
-    reference does not count as coverage)."""
+    reference does not count as coverage).
+
+    ``demand_response_trips`` counts trips whose every stop_times row is a
+    GTFS-Flex row (see ``is_demand_response_row``); ``flex_only`` is true only
+    when that is every trip in a non-empty trips.txt. Both stay 0/False for a
+    feed with no GTFS-Flex files, which is also what a feed whose stop_times.txt
+    was too large to read reports: when in doubt a feed stays in the count."""
 
     total_trips: int
     trips_with_shape: int
+    demand_response_trips: int = 0
+    flex_only: bool = False
+
+    def stored_fields(self) -> dict[str, int]:
+        """Extra keys for the stored shapes_readiness block: present only when the
+        feed has demand-response trips, so a fixed-route feed stores what it always did."""
+        return (
+            {"demand_response_trips": self.demand_response_trips}
+            if self.demand_response_trips
+            else {}
+        )
+
+
+def is_demand_response_row(row: dict[str, str]) -> bool:
+    """Whether one stop_times row is GTFS-Flex service rather than a timed stop.
+
+    GTFS-Flex describes demand-response service by zone (location_id), by a group
+    of stops (location_group_id), or by a pickup/drop-off time window. A row
+    carrying any of those is a request-a-ride row, not a point on a fixed path.
+    """
+    return any(
+        (row.get(column) or "").strip()
+        for column in (
+            "location_id",
+            "location_group_id",
+            "start_pickup_drop_off_window",
+            "end_pickup_drop_off_window",
+            # The spelling an earlier GTFS-Flex draft used, still published
+            # (Colorado's Continuum Flex feed, for one).
+            "start_pickup_dropoff_window",
+            "end_pickup_dropoff_window",
+        )
+    )
+
+
+def _count_demand_response_trips(gtfs_zip_path: str, trip_ids: set[str]) -> int:
+    """Trips in ``trip_ids`` that have at least one stop_times row and only
+    demand-response rows. Streams stop_times.txt, so memory is bounded by the
+    number of trips, not by the number of rows."""
+    seen: set[str] = set()
+    fixed: set[str] = set()
+    for row in iter_table_rows(gtfs_zip_path, "stop_times.txt", max_member_bytes=None):
+        trip_id = (row.get("trip_id") or "").strip()
+        if trip_id not in trip_ids:
+            continue
+        seen.add(trip_id)
+        if not is_demand_response_row(row):
+            fixed.add(trip_id)
+    return len(seen - fixed)
 
 
 def read_shapes_coverage(gtfs_zip_path: str) -> ShapesCoverage:
-    """Read trips.txt and shapes.txt and report shape coverage across trips."""
+    """Read trips.txt and shapes.txt and report shape coverage across trips.
+
+    A feed that ships GTFS-Flex files also gets its trips classified. stop_times.txt
+    is read only then, so an ordinary fixed-route feed costs nothing extra, and
+    ``has_flex`` alone never changes the verdict: a feed is ``flex_only`` only
+    when every one of its trips is demand-response."""
+    from .flex import FLEX_FILES
+
     tables = read_tables(gtfs_zip_path, ["shapes.txt", "trips.txt"])
     shape_ids = {
         row["shape_id"].strip() for row in tables["shapes.txt"] if row.get("shape_id", "").strip()
     }
     trips = tables["trips.txt"]
     with_shape = sum(1 for t in trips if (t.get("shape_id") or "").strip() in shape_ids)
-    return ShapesCoverage(total_trips=len(trips), trips_with_shape=with_shape)
+    demand_response = 0
+    with zipfile.ZipFile(gtfs_zip_path) as zf:
+        has_flex_files = any(name in zf.namelist() for name in FLEX_FILES)
+    if has_flex_files and trips:
+        trip_ids = {(t.get("trip_id") or "").strip() for t in trips} - {""}
+        try:
+            demand_response = _count_demand_response_trips(gtfs_zip_path, trip_ids)
+        except (TableTooLargeError, zipfile.BadZipFile, UnicodeError, csv.Error):
+            demand_response = 0
+        flex_only = bool(trip_ids) and demand_response == len(trips)
+    else:
+        flex_only = False
+    return ShapesCoverage(
+        total_trips=len(trips),
+        trips_with_shape=with_shape,
+        demand_response_trips=demand_response,
+        flex_only=flex_only,
+    )
 
 
 @dataclass(frozen=True)
@@ -200,6 +340,25 @@ class FeedDates:
         stated end and the last scheduled service date."""
         candidates = [d for d in (self.feed_end_date, self.last_service_date) if d is not None]
         return min(candidates) if candidates else None
+
+    def expiry_limited_by(self) -> str | None:
+        """Which date sets ``effective_expiry``, so the earlier-of rule is never
+        silent (ADR 0061).
+
+        ``"feed_end_date"`` when feed_info ends strictly before the last service
+        date: the calendar runs on, but GTFS tells consumers to trust the feed
+        only through feed_end_date. ``"service_calendar"`` when service ends
+        first, or when feed_info states no end. ``"both"`` when they agree.
+        ``None`` when neither date is known.
+        """
+        end, last = self.feed_end_date, self.last_service_date
+        if end is None:
+            return "service_calendar" if last is not None else None
+        if last is None:
+            return "feed_end_date"
+        if end < last:
+            return "feed_end_date"
+        return "both" if end == last else "service_calendar"
 
 
 # A break of at least this many service-free days between calendar spans is

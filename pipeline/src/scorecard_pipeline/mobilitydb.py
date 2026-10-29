@@ -7,7 +7,7 @@ state, or list of providers, pairs each GTFS Schedule feed with any realtime
 feeds that reference it, and emits reviewable registry blocks.
 
 A human still reviews and merges the output, so the registry stays curated.
-The point is to remove the typing, not the judgement: key-gated realtime feeds
+The point is to remove the typing, not the judgment: key-gated realtime feeds
 become an `rt_note` rather than a broken `rt_urls` entry, key-gated Schedule
 feeds are withheld, licenses are carried through, and feeds already present in
 the registry are skipped by stable catalog id or normalized URL.
@@ -43,14 +43,17 @@ from .supersession_review import (
     review_flags,
 )
 
-# https://mobilitydatabase.org — V2 is the current proposal corpus. The legacy
-# export remains the default for existing consumers that depend on its mirror
-# and redirect behavior.
+# https://mobilitydatabase.org. The V2 CSV's address is kept only so code and
+# tests can name the host that is refused below; nothing requests it.
 MOBILITY_DATABASE_FEEDS_V2_URL = "https://files.mobilitydatabase.org/feeds_v2.csv"
 LEGACY_MOBILITY_DATABASE_CATALOG_URL = (
     "https://storage.googleapis.com/storage/v1/b/mdb-csv/o/sources.csv?alt=media"
 )
-DEFAULT_PROPOSAL_CATALOG_URL = MOBILITY_DATABASE_FEEDS_V2_URL
+# ADR 0070: files.mobilitydatabase.org serves `Disallow: /` and is never read.
+# Manual proposals default to the storage.googleapis.com export, and the weekly
+# update reads the Mobility Database API (catalog_api.py).
+DISALLOWED_CATALOG_HOSTS = frozenset({"files.mobilitydatabase.org"})
+DEFAULT_PROPOSAL_CATALOG_URL = LEGACY_MOBILITY_DATABASE_CATALOG_URL
 DEFAULT_CATALOG_URL = LEGACY_MOBILITY_DATABASE_CATALOG_URL
 
 # Mobility Database gtfs-rt rows carry an entity_type; map it to our rt kinds.
@@ -385,7 +388,7 @@ def parse_catalog_records(csv_text: str) -> list[CatalogFeed]:
 
 def parse_catalog(csv_text: str) -> list[CatalogFeed]:
     """Parse the catalog CSV into feed records, skipping rows without a usable
-    download URL or a recognised data type."""
+    download URL or a recognized data type."""
     return [feed for feed in parse_catalog_records(csv_text) if feed.direct_download]
 
 
@@ -1013,8 +1016,20 @@ def fetch_catalog_bytes(url: str = DEFAULT_CATALOG_URL) -> bytes:
 
     Routed through safe_get so an operator-supplied --catalog URL gets the same
     SSRF and size guards as every other fetch, rather than a raw urlopen.
+    A host whose robots.txt forbids us (ADR 0070) is refused before any request.
     """
-    return safe_get(url, timeout=60, max_bytes=128 * 1024 * 1024)
+    from urllib.parse import urlsplit
+
+    from .robots_policy import USER_AGENT
+
+    if (urlsplit(url).hostname or "").lower() in DISALLOWED_CATALOG_HOSTS:
+        raise ValueError(
+            f"{urlsplit(url).hostname} disallows automated access in robots.txt and is not "
+            "read; use the Mobility Database API (--catalog api) or a local CSV"
+        )
+    return safe_get(
+        url, headers={"User-Agent": USER_AGENT}, timeout=60, max_bytes=128 * 1024 * 1024
+    )
 
 
 def fetch_catalog(url: str = DEFAULT_CATALOG_URL) -> str:
@@ -1026,7 +1041,7 @@ _catalog_cache: list[CatalogFeed] | None = None
 
 
 def load_catalog(*, force: bool = False) -> list[CatalogFeed]:
-    """The parsed Mobility Database catalog, fetched once and memoised.
+    """The parsed Mobility Database catalog, fetched once and memoized.
 
     Used by the fetch fallback, which only consults it when an agency's origin
     feed is unreachable, so the catalog download happens for the blocked
@@ -1049,12 +1064,27 @@ def hosted_mirror_url(
     deliberately stricter than discovery: only a pinned exact ``mdb_id`` or an
     exact normalized current download URL may select a mirror. Names are never
     an identity boundary.
+
+    A row the catalog has marked ``deprecated`` never supplies a mirror. The
+    catalog deprecates a record when another record replaces it, and the hosted
+    copy of the replaced record is no longer kept in step with the URL the
+    registry still fetches. SacRT showed the cost: the registry keeps mdb-1296's
+    iportal URL as canonical because it serves the current feed, so when that
+    host's certificate expired, the fallback scored mdb-1296's hosted copy, a
+    September 2024 export last refreshed on 2024-10-17, and published it as the
+    agency's feed. Grading a copy that old as today's feed blames the agency for
+    an expiry that is not theirs. With no mirror, the run records the origin as
+    unreachable instead.
     """
     try:
         feeds = load_catalog()
     except Exception:
         return None
-    schedule = [feed for feed in feeds if feed.data_type == "gtfs" and feed.hosted_url]
+    schedule = [
+        feed
+        for feed in feeds
+        if feed.data_type == "gtfs" and feed.hosted_url and feed.status != "deprecated"
+    ]
 
     def current_mirror_url(feed: CatalogFeed) -> str:
         """Upgrade legacy numeric mirror records to the current V2 endpoint."""

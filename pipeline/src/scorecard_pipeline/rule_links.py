@@ -14,7 +14,7 @@ authorities:
   the validator's own notice code, so the link is built deterministically from
   it. A few scorecard-computed findings re-detect a validator concept under a
   scorecard code; those carry the canonical notice in ``canonical`` so the
-  audience recognises the alias.
+  audience recognizes the alias.
 - ``BEST_PRACTICE`` — a GTFS Best Practices recommendation, for scorecard
   completeness checks the validator does not flag (a present-but-empty field is
   valid GTFS, just poorer rider experience).
@@ -166,6 +166,11 @@ RULE_LINKS: dict[str, RuleLink] = {
     ),
     "scorecard_feed_expiring_soon": RuleLink(
         kind=BEST_PRACTICE, url=f"{BEST_PRACTICES_PAGE}#dataset-publishing-general-practices"
+    ),
+    # feed_end_date earlier than the calendar: the reference's feed_info.txt
+    # section is what says data past feed_end_date is not authoritative.
+    "scorecard_feed_end_date_before_calendar": RuleLink(
+        kind=REFERENCE, url=f"{SCHEDULE_REFERENCE_PAGE}#feed_infotxt"
     ),
     # Rider experience completeness: readability (mixed-case names) and station
     # navigation, neither of which the validator flags.

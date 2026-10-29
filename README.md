@@ -77,7 +77,7 @@ Scorecard is independent and is not an official compliance determination.
 
 Pilot agencies: [Unitrans](https://unitrans.ucdavis.edu) (ASUCD / City of
 Davis) and [Yolobus](https://yolobus.com) (Yolo County Transportation
-District). Beyond the pilots, the registry contains more than 2,200 curated
+District). Beyond the pilots, the registry contains more than 2,600 curated
 feed records, mostly in the United States and Canada, plus reviewed canaries
 across Europe, Asia-Pacific, and South America. Scoring is scheduled daily for
 every registered feed, and the public status page reports the exact current
@@ -91,7 +91,7 @@ with more than 2,100 numeric scorecards published. CI can only gate the
 snapshot figure, because `make verify` runs offline. A feed record is not
 always a distinct transit agency: regional feeds and modal variants are counted
 separately while the identity registry is reconciled. A record the Mobility
-Database has retired in favour of another is no longer one of them: it keeps
+Database has retired in favor of another is no longer one of them: it keeps
 its dated artifacts and redirects its old URL, and only its successor publishes
 a current grade, so one agency does not carry two
 (`docs/feed-supersessions.md`). That leaves the published count lower than it
@@ -128,6 +128,10 @@ be added through `registry/intake.yaml`.
   both. Scoring is free for every agency and stays that way; the
   [support page](https://gtfsscorecard.org/support/) explains what running the
   service costs, what sponsorship would pay for, and what it never buys.
+- **Report on every agency you support:** the program rollups
+  (`/program/<state>/`) are free; the paid
+  [program report bundle](https://gtfsscorecard.org/bundle/) packages a branded
+  board report per agency into one archive.
 
 ## What an agency gets
 
@@ -202,13 +206,21 @@ feed, prints the grade and the top fixes in the job log, and fails the build if
 the feed drops below `min-grade` or expires within `min-days-to-expiry`:
 
 ```yaml
-- uses: ChelseaKR/gtfs-scorecard@v1
+- uses: ChelseaKR/gtfs-scorecard@v1.5.1
   with:
     feed-url: https://your-agency.example/google_transit.zip
     country: CA
     min-grade: C
     min-days-to-expiry: 14
 ```
+
+Pin a full release tag or a commit SHA, as above. The floating major `@v1`
+still exists for consumers who already use it, but it is not recommended here
+and these examples no longer use it: it is one mutable pointer that moves to
+the newest `v1.x.y` on release day, so it changes what your workflow runs
+without a commit or a diff on your side. `v1.5.1` is the newest published
+Action release, and [docs/ci-action.md](docs/ci-action.md#which-ref-to-pin)
+says what it includes.
 
 `country` is the feed's assigned ISO 3166-1 alpha-2 code; it defaults to `US`
 for existing workflows. Both thresholds are optional; leave one blank to skip that check. Full input
@@ -270,8 +282,8 @@ current deployment status.
 
 The cohort drafted from the Mobility Database has grown well past the first
 California pass: the manifest-backed [`registry`](registry/README.md) now
-carries more than 2,200 curated feed records, mostly across the US and Canada,
-with a 618-record reviewed European cohort across 26 countries.
+carries more than 2,600 curated feed records, mostly across the US and Canada,
+with a 760-record reviewed European cohort across 28 countries.
 It now includes a geographically diverse reviewed canary cohort, scored daily
 (a 2026-07 dedupe pass removed ~350 records that duplicated an already-listed
 feed).
@@ -284,6 +296,33 @@ Any agency with a public GTFS feed can be added with one YAML block in
 [`web/submit.html`](web/submit.html) does the same without YAML through the
 deployed `infra/submit` endpoint; every submission still opens a pull request
 for human review before publication.
+
+## What is free, and what is paid
+
+Everything an agency needs for its own feed is free and stays free: its
+scorecard, the prioritized fixes, the history, the printable board one-pager,
+the self-contained board report it can hand to a board or attach to a grant
+application, the badge, the open data, and the read API. No account and no
+payment is involved anywhere in that path.
+
+Two things cost money. A program that prepares packets for many agencies at
+once (a state DOT, a technical-assistance center, a feed vendor, a consultancy)
+can buy the **program report bundle**: a single archive holding a board report
+for every agency id it names, carrying the program's own name, logo, and accent
+color on each cover, refreshed monthly if it wants. A vendor, a consultancy, a
+program, or a researcher who needs the whole corpus over time can buy the
+**scorecard history tables**: every dated check and every finding as two
+Parquet tables with a data dictionary, provenance, and license, rebuilt
+monthly and licensed to one organization
+([ADR 0063](docs/decisions/0063-history-tables-paid-tier.md),
+[docs/history-tables.md](docs/history-tables.md)). Plan sizes, prices,
+delivery terms, and the refund commitment live on the
+[bundle page](https://gtfsscorecard.org/bundle/) and the
+[history tables page](https://gtfsscorecard.org/data/history/), which read
+them from the live plan data; they are not copied into this file, where they
+would go stale. A purchase buys no influence over grades, methodology, or
+which agencies are listed, and nothing was subtracted from the free tier to
+create either.
 
 ## Support and sponsorship
 
@@ -315,7 +354,7 @@ declared here; none is silently skipped.
 | AI Development Measurement | Applies — delivery and quality-debt outcomes are measured at repository level; local AI-tool telemetry is never a merge gate | [`AI-DEVELOPMENT-MEASUREMENT-STANDARD.md`](docs/standards/AI-DEVELOPMENT-MEASUREMENT-STANDARD.md) |
 | Quality & Metrics | Applies (data-quality/lineage named for this repo explicitly) | [`QUALITY-AND-METRICS-STANDARD.md`](docs/standards/QUALITY-AND-METRICS-STANDARD.md) |
 | Documentation | Applies | [`DOCUMENTATION-STANDARD.md`](docs/standards/DOCUMENTATION-STANDARD.md) |
-| Release & Versioning | Applies — reusable Action tags (`v1`/`v1.5.0`), monthly dataset releases; the MCP server manifest is written but not published to the registry (see Versioning) | [`RELEASE-AND-VERSIONING-STANDARD.md`](docs/standards/RELEASE-AND-VERSIONING-STANDARD.md) |
+| Release & Versioning | Applies — reusable Action tags (`v1`; the newest version tag is `v1.5.1`), monthly dataset releases; `gtfs-scorecard` 1.5.1 is on PyPI and `io.github.ChelseaKR/gtfs-scorecard` 1.5.1 is listed in the MCP Registry (see Versioning) | [`RELEASE-AND-VERSIONING-STANDARD.md`](docs/standards/RELEASE-AND-VERSIONING-STANDARD.md) |
 | Responsible-Tech Framework | Applies (audits A-F; AI-governance rows N/A — no AI system) | [`RESPONSIBLE-TECH-FRAMEWORK.md`](docs/standards/RESPONSIBLE-TECH-FRAMEWORK.md) |
 | Incident Response | Applies — deployed static site and scheduled pipeline; incidents use the shared severity, label, postmortem, and secret-leak conventions | [`INCIDENT-RESPONSE-STANDARD.md`](docs/standards/INCIDENT-RESPONSE-STANDARD.md) |
 | Data Governance | Applies — public civic datasets, feed provenance, licenses, retention, and publication lineage are core product concerns | [`DATA-GOVERNANCE-STANDARD.md`](docs/standards/DATA-GOVERNANCE-STANDARD.md) |
@@ -336,8 +375,24 @@ N/A (no network surface to probe). For Tier B, every fresh site build passes a
 blocking structural SEO check. Lighthouse gates code changes, and a weekly
 synthetic run checks representative production routes. Build-time SEO reports
 are retained for 14 days and production Lighthouse reports for 90 days.
-The public site has no analytics loader, visitor-tracking code, or real-user
-monitoring beacon. Search Console ownership verification and sitemap submission
+The public site carries one first-party measurement script, `web/src/measure.js`,
+with two separate blocks. The PostHog block
+([ADR 0055](docs/decisions/0055-cookieless-site-measurement.md)) sends page views
+and bundle checkout clicks to PostHog Cloud US with no cookie and no identifier
+that outlives the browser tab, and is off unless the deploy carries a
+`POSTHOG_KEY`. The Google Analytics 4 block
+([ADR 0056](docs/decisions/0056-google-analytics-4.md)) loads GA4 for the
+measurement id in `site-seo.json` (`measurement_ga4_id`). GA4 records page views
+and engagement with the query string and referrer path dropped. It sets the
+first-party `_ga` cookies, which last up to two years, except in the EEA, the UK
+and Switzerland, where analytics storage is denied and no cookie is set. Google
+signals, ad personalization and ad storage are off everywhere. Both blocks load
+nothing under Global Privacy Control or Do Not Track, or for a reader who used
+the "Opt out of analytics" link in every page footer, which is remembered on
+that device and also deletes the GA4 cookies. What they record is
+stated at [/about/#privacy](https://gtfsscorecard.org/about/#privacy) and held by
+the structural check. Neither is real-user monitoring: no Core Web Vitals are
+collected. Search Console ownership verification and sitemap submission
 remain external domain-owner tasks; this repository stores no Search Console
 credentials or configuration. See the ADR and [deploy runbook](docs/deploy.md).
 
@@ -352,12 +407,28 @@ Supported-version policy: latest major only — this is a single-deployment
 civic tool, not a library with multiple consumers pinned to old majors.
 
 This repo also **produces releases**: the marketplace GitHub Action (tagged
-`v1`) and monthly citable dataset releases (`dataset-release.yml`). It also
-carries an MCP server manifest (`server.json`), which is **not** published to
-the MCP Registry — publishing needs an interactive operator login and the
-manifest still has no `packages[]` entry, so `io.github.chelseakr/gtfs-scorecard`
-does not resolve there. [docs/mcp.md](docs/mcp.md) has the install recipe that
-does work and the reason the packages entry was removed.
+`v1`) and monthly citable dataset releases (`dataset-release.yml`). It carries
+a publish workflow for the `gtfs-scorecard` Python package
+(`pypi-publish.yml`) and an MCP server manifest (`server.json`).
+[`gtfs-scorecard`](https://pypi.org/project/gtfs-scorecard/) 1.5.1 is on PyPI,
+and the MCP Registry lists `io.github.ChelseaKR/gtfs-scorecard` 1.5.1 with that
+package. The v1.5.0 run of the workflow reached the upload under the package's
+former name `scorecard-pipeline`, which PyPI refused as too similar to an
+existing project, so nothing was uploaded for 1.5.0 and the distribution is
+`gtfs-scorecard` from 1.5.1 on. A release tag starts the PyPI workflow, which
+then waits for a reviewer to approve the upload; the manifest goes to the
+registry only after that upload exists.
+
+`uvx gtfs-scorecard` starts the MCP server and
+`uvx --from gtfs-scorecard scorecard` runs the command-line tool; the import
+package stays `scorecard_pipeline`. To run code on `main` that is not released
+yet, install from the source tree instead:
+
+```sh
+uvx --from "git+https://github.com/ChelseaKR/gtfs-scorecard#subdirectory=pipeline" scorecard-mcp
+```
+
+[docs/mcp.md](docs/mcp.md) has the client config and the publishing steps.
 
 ## Run your own instance
 

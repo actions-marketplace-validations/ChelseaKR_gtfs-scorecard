@@ -28,7 +28,7 @@ jobs:
   gtfs-quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: ChelseaKR/gtfs-scorecard@v1
+      - uses: ChelseaKR/gtfs-scorecard@v1.5.1
         with:
           feed-url: https://example.org/gtfs/feed.zip
           name: Example Transit
@@ -37,8 +37,36 @@ jobs:
           min-days-to-expiry: 14
 ```
 
-`@v1` follows the latest compatible v1 release. Pin the current full version
-tag (`@v1.5.0`) or a commit SHA when you want an exact, unchanging contract.
+### Which ref to pin
+
+Name a full release tag, as the example does, or a commit SHA. `v1.5.1` is the
+newest published Action release, so a workflow that pins it runs a build whose
+behavior is written down on this page and cannot change underneath it.
+
+**The floating major `@v1` is not recommended.** The Marketplace convention
+offers it, and this repository keeps it for the consumers who already use it,
+but it is a single mutable pointer: it moves to the newest `v1.x.y` on release
+day, so a workflow naming it changes what it runs with no commit, no review and
+no diff on your side. On 2026-10-09 it moved from `v1.4.0` to `v1.5.0`, a jump
+of 821 commits made silently in every workflow that names it. On 2026-10-11 it
+moved again, to `v1.5.1`, and it moves with each release. Pin a release and
+upgrade on purpose.
+
+**What `v1.5.1` changes from `v1.5.0`.** Nothing the Action does. `v1.5.1`
+renamed the Python distribution to `gtfs-scorecard` so it could be uploaded to
+PyPI; the Action's inputs, outputs and grading are those of `v1.5.0`.
+
+**What `v1.5.0` includes, and `v1.4.0` does not.** Everything on this page.
+The refusal of an unreadable archive described under [Inputs](#inputs), and the
+`baseline`, `fail-on-regression`, `sarif`, `sarif-base`, `history-path` and
+`evidence-packet` inputs with their outputs, were on `main` only until
+`v1.5.0` was published on 2026-10-09. A workflow still pinned to `@v1.4.0`
+grades an archive that carries no schedule data rather than refusing it, and
+when it sets `history-path` or `evidence-packet` it gets a warning about an
+unexpected input and nothing else: no history is kept, no packet is retested,
+and the build does not fail on a finding that is still present. Tag namespaces
+and what each one promises are in
+[docs/release-checklist.md](release-checklist.md#tag-namespaces).
 
 ## Inputs
 
@@ -52,6 +80,12 @@ tag (`@v1.5.0`) or a commit SHA when you want an exact, unchanging contract.
 | `html` | no | _(skip)_ | Path to also write a standalone HTML scorecard, relative to the workspace. |
 | `json` | no | runner temporary file | Path for the complete machine-readable scorecard artifact. |
 | `summary` | no | `true` | Write a plain-language scorecard to the GitHub job summary. |
+| `baseline` | no | _(skip)_ | A prior scorecard artifact to compare this run against: a file path, an `https` URL, or `agency@YYYY-MM-DD` / `agency@latest`. |
+| `fail-on-regression` | no | `false` | Fail the build when the comparison shows a regression, or cannot be made because the two runs are different measurements. |
+| `sarif` | no | _(skip)_ | Path to also write validator notices as SARIF 2.1.0, relative to the workspace. |
+| `sarif-base` | no | _(root)_ | Directory the feed's files sit in inside the repository being annotated, for example `gtfs/`. |
+| `history-path` | no | _(skip)_ | Directory for a private run history: each run appends one record for the feed, read back with `scorecard trend`. Added in `v1.5.0`; see [Keeping a private history](workspace-history.md). |
+| `evidence-packet` | no | _(skip)_ | An evidence packet JSON from `scorecard evidence-packet --format json`. The feed this run scored is retested against it, and the build fails unless every finding in the packet is cleared. Added in `v1.5.0`; see [Retesting against an evidence packet](#retesting-against-an-evidence-packet). |
 | `ref` | no | _(ignored)_ | Deprecated compatibility input. The scorer is bundled with the Action release and always matches the selected Action ref. |
 
 Leave a threshold blank to skip it. With neither `min-grade` nor
@@ -62,18 +96,25 @@ One input fails with no threshold set, because it produces no scorecard to
 gate: an archive the scorer could read no schedule data out of — no stops and
 no trips — is refused rather than graded, exactly as a response body that is not
 a zip is. The step fails with `could not score <url>: ...` and `passed` is
-`false`. Until 2026-09, such a feed was graded and the default configuration
-reported `passed=true` for it.
+`false`. Before that change such a feed was graded and the default
+configuration reported `passed=true` for it.
+
+**Added in `v1.5.0`.** A workflow pinned to `@v1.4.0` grades such a feed
+instead. See [Which ref to pin](#which-ref-to-pin).
 
 ## Outputs and job summary
 
-The action exposes `grade`, `score`, `days-to-expiry`, `passed`, and
-`result-json`. The complete JSON is written before thresholds are applied, so
-later steps can upload or inspect it even when the gate fails.
+The action exposes `grade`, `score`, `days-to-expiry`, `passed`,
+`result-json`, `comparable`, `regressed`, `sarif`, `retest-outcome`, and
+`retest-json`. The complete JSON is written before thresholds are applied, so
+later steps can upload or inspect it even when the gate fails. `comparable` and
+`regressed` are blank unless you set `baseline`; `sarif` is blank unless you set
+`sarif`; `retest-outcome` and `retest-json` are blank unless you set
+`evidence-packet`.
 
 ```yaml
       - id: gtfs
-        uses: ChelseaKR/gtfs-scorecard@v1
+        uses: ChelseaKR/gtfs-scorecard@v1.5.1
         with:
           feed-url: https://example.org/gtfs/feed.zip
           min-grade: B
@@ -90,12 +131,145 @@ By default the job summary includes the grade, service days remaining, and the
 top three fixes. Set `summary: "false"` to suppress it. A failed gate also emits
 a concise workflow annotation while preserving the full result file.
 
+## Comparing against a baseline
+
+Set `baseline` to compare this run with a previous scorecard, so a pull request
+cannot quietly regress a published feed:
+
+```yaml
+      - uses: ChelseaKR/gtfs-scorecard@v1.5.1
+        with:
+          feed-url: https://example.org/gtfs/feed.zip
+          baseline: example-transit@latest
+          fail-on-regression: true
+```
+
+The comparison runs `scorecard diff`, which decides whether the two runs are the
+same measurement **before** it reports anything. Two artifacts scored under
+different rubric versions, scoring profiles, validator versions, reader archive
+profiles, or measured categories are different measurements, and the difference
+between them is not a statement about the feed. The job summary names which of
+those differs.
+
+What each result does to the build:
+
+| Result | `comparable` | `regressed` | Build |
+|---|---|---|---|
+| No regression | `true` | `false` | Passes. |
+| Regressed: grade dropped, or a finding appeared or grew | `true` | `true` | Fails when `fail-on-regression` is `true`. |
+| Not comparable: the two runs are different measurements | `false` | _(blank)_ | Fails when `fail-on-regression` is `true`. |
+| The baseline could not be read at all | _(blank)_ | _(blank)_ | **Always fails.** |
+
+The last two rows are the point. "I cannot tell you whether this regressed" is
+not a pass, so a regression gate fails closed on it. And a `baseline` the action
+could not read is a broken input rather than a fact about the feed, so it fails
+whatever `fail-on-regression` is set to: a gate that shrugs at its own missing
+baseline is a gate that cannot fail.
+
+When a run stops measuring a category — realtime, say, because the endpoint
+stopped answering — the findings in that category disappear from the artifact.
+They are listed as **not measured in the newer artifact**, never as cleared.
+Nobody looked at them, which is not the same as their being fixed.
+
+## Retesting against an evidence packet
+
+**Added in `v1.5.0`.** A workflow pinned to `@v1.4.0` warns about the
+unexpected input and retests nothing. See [Which ref to pin](#which-ref-to-pin).
+
+An [evidence packet](vendor-evidence-packets.md) is the work order an agency
+sends to whoever produces its feed. Set `evidence-packet` to check each new
+export against it. These are the inputs to add to the Action step once a
+release carries the input:
+
+```yaml
+        with:
+          feed-url: https://example.org/gtfs/feed.zip
+          country: US
+          evidence-packet: gtfs/example-packet.json
+```
+
+The action scores the feed once, as it always does, and then runs
+`scorecard retest PACKET --artifact RESULT --country COUNTRY` over the result it
+has just written. The validator does not run a second time. Each finding in the
+packet is reported as cleared, still present, or not comparable:
+
+| Result | `retest-outcome` | Build |
+|---|---|---|
+| Every finding in the packet is cleared | `all_cleared` | Passes. |
+| Any finding is still present | `still_present` | Fails. |
+| A finding could not be compared, for example because the retest ran under a different validator | `non_comparable` | Fails. |
+| The packet or the scored result could not be read or retested | _(blank)_ | Fails, and the annotation gives the reason. |
+
+Setting the input is the request for this check, so only the first row passes.
+A retest that could not judge the packet never passes as though nothing were
+still present.
+
+- **Cleared means absent.** A notice raised with a count of zero, such as
+  "0 of 0 stops don't say whether a wheelchair user can board there", is still
+  present.
+- **Set `country` to the country the packet's scorecard used.** The packet does
+  not record it, and a result scored under a different country is refused.
+- **The retest runs even when a threshold fails,** because the feed was still
+  scored. When the feed could not be scored there is nothing to retest, and the
+  step says so rather than skipping the check. With `evidence-packet` set, a
+  result already at the `json` path from an earlier step is removed before the
+  feed is scored, so the packet is never judged against another run's result.
+- **The job summary includes the retest record.** `retest-json` is the path to
+  the record as JSON, for a later step to upload.
+
+A retest record is not a closure receipt. It does not confirm who published the
+feed or say who caused or fixed a finding. See
+[What a retest record is not](vendor-evidence-packets.md#what-a-retest-record-is-not).
+
+## Findings in the Security tab (SARIF)
+
+Set `sarif` and upload the file to see each validator notice as a code-scanning
+alert, annotated on the line in `stops.txt` or `trips.txt` when the feed's text
+files are committed:
+
+```yaml
+    permissions:
+      contents: read
+      security-events: write     # upload-sarif only
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ChelseaKR/gtfs-scorecard@v1.5.1
+        with:
+          feed-url: https://example.org/gtfs/feed.zip
+          sarif: gtfs.sarif
+          sarif-base: gtfs/       # where the feed's .txt files live in this repo
+      - if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gtfs.sarif
+```
+
+`sarif-base` maps a validator notice's `stops.txt` onto `gtfs/stops.txt` in your
+checkout. Leave it blank when the feed is only a zip; results then attach at the
+file level and the alert still carries the rule link and the fix.
+
+Three things about the file are worth knowing:
+
+- **One result per notice code, not per row.** The gtfs-validator samples its
+  examples, so a code with 23 instances comes back with a handful of rows. The
+  result carries the true total in its message and says how many of them it
+  could point at. Emitting one result per sampled row would publish "5 problems"
+  about a feed with 23.
+- **Fingerprints are stable across runs and do not move with the count.** Two
+  runs of the same feed dedupe rather than doubling, and a finding you have
+  partly fixed stays the same alert instead of resurfacing as a new one.
+- **A feed that could not be read is not a clean feed.** SARIF has no way to say
+  "I did not run", and an empty `results` array looks exactly like a feed with
+  nothing wrong. So a refused feed writes a SARIF whose invocation is
+  `executionSuccessful: false` with the reason attached. Keep the `if: always()`
+  on the upload step so that file actually reaches the Security tab.
+
 ## Saving the HTML report
 
 Set `html` to keep the rendered scorecard as a build artifact:
 
 ```yaml
-      - uses: ChelseaKR/gtfs-scorecard@v1
+      - uses: ChelseaKR/gtfs-scorecard@v1.5.1
         with:
           feed-url: https://example.org/gtfs/feed.zip
           min-grade: C

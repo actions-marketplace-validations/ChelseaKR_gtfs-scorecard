@@ -31,6 +31,13 @@ import {
   VALIDATOR_RULES_PAGE,
 } from "./generated/constants.js";
 import { compareText, formatDate, formatLanguageName, formatNumber } from "./locale.js";
+import {
+  CONTEXT_HEADING,
+  NOT_A_RANKING,
+  feedConsequence,
+  feedContext,
+  findingReach,
+} from "./consequence.js";
 import { initStrings, t } from "./i18n.js";
 
 /** Candidate locations for published artifacts. A configured CDN base
@@ -796,8 +803,8 @@ function downloadFeatureCsv(rows, context) {
   URL.revokeObjectURL(url);
 }
 
-/** A grade-distribution bar: one labelled segment per grade, sized
- *  by share. Decorative fill, but each segment is a labelled list item so the
+/** A grade-distribution bar: one labeled segment per grade, sized
+ *  by share. Decorative fill, but each segment is a labeled list item so the
  *  same information is available without color. @param {any} dist @param {number} total
  *  @param {string} [label] */
 function gradeDistributionBar(dist, total, label = "Grade distribution across comparable scorecards") {
@@ -1201,7 +1208,7 @@ function renderOverview(directory) {
   const coverageLimit = usFeedCount > 0
     ? `Coverage is not a census of any country or region. The United States currently represents
       ${formatNumber(usFeedCount)} of ${formatNumber(total)} tracked feed records; other countries are
-      small canary sets while regional source and licence review continues.`
+      small canary sets while regional source and license review continues.`
     : `Coverage is not a census of any country or region. Country counts describe only the feeds
       currently tracked here.`;
   const comparisonContract = comparisonContractText(s.comparison);
@@ -2318,6 +2325,30 @@ function setupOverview(agencies, total, summary) {
 
 /* ---------------- program rollups ---------------- */
 
+/* The two promises the paid tier rests on, verbatim from the render_site.py
+   constants _BUNDLE_INDEPENDENCE and _BUNDLE_FREE_NOTE. #/programs and
+   #/program/<id> are this app rendering pages the site also publishes
+   statically, and the static twin names the tier; saying it in different words
+   here would mean one view of one page sells differently from the other.
+   Pinned by pipeline/tests/test_paid_tier_visibility.py, which compares these
+   strings against the Python constants rather than against a copy of them. No
+   price is quoted: prices live in web/bundle/plan.json and are read on
+   /bundle/. Apostrophes are avoided in this file on purpose -- the
+   hardcoded-string ratchet in test_l10n_readiness.py pairs quotes across the
+   whole file, and one stray apostrophe re-pairs every literal after it. */
+const BUNDLE_INDEPENDENCE =
+  "A purchase buys no influence over grades, methodology, or which agencies are listed.";
+const BUNDLE_FREE_NOTE =
+  "Scoring is free for every agency, and each agency keeps a free, printable board one-pager on its own page.";
+
+/** One paragraph pointing a program-audience view at the paid bundle. Same
+ *  placement rule as the static pages: a view of a group of feeds, never beside
+ *  the grade of one agency, and never on #/agency/<id>.
+ *  @param {string} lead @param {string} anchor */
+function bundlePointer(lead, anchor) {
+  return `<p class="fineprint">${lead} A program can <a href="/bundle/">${anchor}</a>, with prices on that page. ${BUNDLE_FREE_NOTE} ${BUNDLE_INDEPENDENCE}</p>`;
+}
+
 /** @param {any} index */
 function renderPrograms(index) {
   document.title = "Program rollups — GTFS Scorecard";
@@ -2346,6 +2377,10 @@ function renderPrograms(index) {
     <p class="page-lede reveal">A view for the people who support many agencies at once.
     Each rollup puts attention work first, ordered by rider impact when known, then lists
     other feed scorecards alphabetically. It also surfaces fixes shared across several feeds.</p>
+    ${bundlePointer(
+      "Supporting a whole program rather than one agency is what these pages are for.",
+      "order those board reports as one branded archive",
+    )}
     <ul class="agency-list">${cards}</ul>`;
 }
 
@@ -2445,7 +2480,15 @@ function renderProgram(rollup) {
       <h2 class="section-title" id="members-h">Feed scorecards: attention first, then alphabetical</h2>
       <ul class="program-list">${rows}</ul>
     </section>
-    ${commonSection}`;
+    ${commonSection}
+    <section aria-labelledby="bundle-h" class="reveal">
+      <h2 class="section-title" id="bundle-h">Board reports for this group</h2>
+      <p>Every agency listed above has a free, printable board one-pager on its own page, and
+      always will. A program that needs all of them at once can
+      <a href="/bundle/">buy them as one archive</a>, branded with its own name and logo and
+      refreshed monthly if it wants. Prices are on that page. ${BUNDLE_INDEPENDENCE}
+      The archive contains the same numbers published here.</p>
+    </section>`;
 }
 
 /* ---------------- my cohort (client-side) ---------------- */
@@ -2755,7 +2798,8 @@ function renderScorecard(artifact, history, dirRecord) {
   const cats = CATEGORY_ORDER.map((key, i) =>
     categoryCard(key, artifact.categories[key], i, artifact),
   ).join("");
-  const fixes = topFixes(artifact.top_fixes);
+  const recordHasConsequence = feedConsequence(artifact) !== null;
+  const fixes = topFixes(artifact.top_fixes, artifact, recordHasConsequence);
   const findings = collectFindings(artifact);
   const recsHtml = recommendationsSection(artifact);
   const autofixHtml = autofixSection(artifact);
@@ -2819,7 +2863,7 @@ function renderScorecard(artifact, history, dirRecord) {
       </dl>
     </section>`;
 
-  setupFindings(findings);
+  setupFindings(findings, recordHasConsequence);
 }
 
 /** A closed, presentation-only rider summary derived from existing artifact fields.
@@ -2989,7 +3033,7 @@ function ferryProfileSection(artifact) {
     <p class="ferry-profile-kicker">Ungraded capability read</p>
     <h2 class="section-title" id="ferry-profile-h">Ferry data profile</h2>
     <p class="page-lede">A ferry-specific view of what this GTFS feed publishes. Schedule
-      measurements use ferry routes and trips only; fare and realtime facts are labelled as
+      measurements use ferry routes and trips only; fare and realtime facts are labeled as
       whole-feed. Unknown values are not treated as no.</p>
     <dl class="ferry-profile-grid">${rows.map(([label, value]) =>
       `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>
@@ -3193,7 +3237,7 @@ function currentProducerHistory(history) {
 function peerContext(dirRecord) {
   if (!dirRecord) return "";
   const place = placeLabel(dirRecord);
-  return place ? `<p class="peer-context">Catalogued in <bdi>${esc(place)}</bdi>.</p>` : "";
+  return place ? `<p class="peer-context">Cataloged in <bdi>${esc(place)}</bdi>.</p>` : "";
 }
 
 /** @param {any} artifact */
@@ -3258,7 +3302,7 @@ function trendNote(history) {
 /** Inline SVG line of the overall score across checks, mirroring the static
  *  pages' shared sparkline (_spark_svg in render_site.py): a dot at every
  *  check carries a native hover tooltip (its date and score), the last one
- *  emphasised, and the aria-label carries the full series for screen readers.
+ *  emphasized, and the aria-label carries the full series for screen readers.
  *  The operable equivalent is the "Show the numbers" table below the chart.
  *  @param {any[]} history */
 function scoreSparkline(history) {
@@ -3290,7 +3334,7 @@ function scoreSparkline(history) {
 /** The "Show the numbers" table: the operable, screen-reader equivalent of the
  *  sparkline, mirroring the static pages' trend-table markup. Every check's
  *  date, score, and change from the check before, the change carried in words
- *  and an arrow, never colour alone.
+ *  and an arrow, never color alone.
  *  @param {any[]} history */
 function trendDataTable(history) {
   const rows = history
@@ -3414,8 +3458,57 @@ function categoryCard(key, cat, index, artifact) {
   </div>`;
 }
 
-/** Top fixes as prioritized "service alerts". @param {any[]} fixes */
-function topFixes(fixes) {
+/** The reach sentence under one finding, marked as measured or absent so the
+ *  two never look alike to a script or a test. A record with no consequence
+ *  blocks at all says so once, in the block under the fixes; this only speaks
+ *  for a finding that lacks its block while its neighbors have one.
+ *  @param {any} finding @param {boolean} recordHasConsequence @param {string} cls */
+function reachParagraph(finding, recordHasConsequence, cls) {
+  const reach = findingReach(finding);
+  if (!reach && !recordHasConsequence) return "";
+  const text = reach ? reach.text : t("consequence_reach_missing");
+  const state = reach && reach.known ? "measured" : "absent";
+  return `<p class="${cls}" data-consequence="reach" data-state="${state}">${esc(text)}</p>`;
+}
+
+/** Rider-trips and transit need for the feed behind the fixes. This view holds
+ *  neither number, so each line is the reason it is not shown here, and the
+ *  agency page (which joins dated snapshots when it renders) is linked.
+ *  @param {any} artifact */
+function consequenceContext(artifact) {
+  const block = feedConsequence(artifact);
+  const agencyId = String(artifact.agency?.id || "");
+  const agencyName = String(artifact.agency?.name || agencyId);
+  let items = "";
+  let pointer = Boolean(agencyId);
+  if (block) {
+    const context = feedContext(block, {
+      ridership: t("consequence_ridership_not_joined"),
+      need: t("consequence_need_not_joined"),
+    });
+    items = `<ul>
+        <li data-consequence="ridership" data-state="absent">${esc(context.ridership)}</li>
+        <li data-consequence="need" data-state="absent">${esc(context.need)}</li>
+      </ul>`;
+    pointer = pointer && context.pointsToAgencyPage;
+  } else {
+    items = `<p data-consequence="record" data-state="absent">${esc(t("consequence_legacy_note"))}</p>`;
+  }
+  const link = pointer
+    ? `<p class="consequence-more"><a href="/agency/${escAttr(encodeURIComponent(agencyId))}/">${esc(
+        t("consequence_agency_page_link", { agency: agencyName }),
+      )}</a></p>`
+    : "";
+  return `<div class="consequence">
+      <h3 id="consequence-h">${esc(CONTEXT_HEADING)}</h3>
+      ${items}${link}
+      <p class="fineprint">${esc(NOT_A_RANKING)}</p>
+    </div>`;
+}
+
+/** Top fixes as prioritized "service alerts".
+ *  @param {any[]} fixes @param {any} artifact @param {boolean} recordHasConsequence */
+function topFixes(fixes, artifact, recordHasConsequence) {
   if (!fixes.length) {
     return `<p class="all-clear">Nothing urgent. This feed passed every check we
     translate into fixes — keep publishing on schedule.</p>`;
@@ -3435,11 +3528,12 @@ function topFixes(fixes) {
         <div>
           <p class="afix">${esc(f.fix)}${owner}</p>
           <p class="awhy">${esc(f.what)} ${esc(f.why)}</p>
+          ${reachParagraph(f, recordHasConsequence, "awhy")}
           <p class="aeta">⏱ ${esc(f.effort)}${worth}</p>
         </div>
       </div>`;
     })
-    .join("")}</div>`;
+    .join("")}</div>${consequenceContext(artifact)}`;
 }
 
 /** @param {any} artifact @returns {any[]} */
@@ -3459,8 +3553,8 @@ function collectFindings(artifact) {
   return all;
 }
 
-/** @param {any[]} findings */
-function setupFindings(findings) {
+/** @param {any[]} findings @param {boolean} recordHasConsequence */
+function setupFindings(findings, recordHasConsequence) {
   const bar = /** @type {HTMLElement} */ (main.querySelector(".filterbar"));
   const list = /** @type {HTMLElement} */ (main.querySelector(".findings"));
   const countEl = /** @type {HTMLElement} */ (main.querySelector(".findings-count"));
@@ -3503,6 +3597,7 @@ function setupFindings(findings) {
           </div>
           <p class="what">${esc(f.what)}</p>
           <p class="why">${esc(f.why)}</p>
+          ${reachParagraph(f, recordHasConsequence, "why")}
           <p class="how"><strong>Fix:</strong> ${esc(f.fix)} <em>(${esc(f.effort)})</em></p>
           <p class="code">Finding code: ${esc(f.code)} ·
             <a class="fix-guide" href="${escAttr(FIX_DOCS_BASE + encodeURIComponent(f.code))}.md"
@@ -3816,7 +3911,7 @@ function presentedConformanceSummary(mark, place = "stop", artifact = null) {
 }
 
 /** Conformance mark: a pass/not-yet credential over the checks the grade uses.
- *  Reads the stored `conformance` block; "" if absent. Criteria are labelled in
+ *  Reads the stored `conformance` block; "" if absent. Criteria are labeled in
  *  text, never by color alone.
  *  @param {any} artifact @param {string} agencyId @param {string} agencyName */
 function conformanceSection(artifact, agencyId, agencyName) {

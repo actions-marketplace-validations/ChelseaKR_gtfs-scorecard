@@ -1,6 +1,6 @@
 # Program report bundle: what it is, what it costs, how it turns on
 
-The program tier's first product, built 2026-09-01 and **not launched**. The
+The program tier's first product, built 2026-09-01 and **launched 2026-09-12**. The
 decision behind it is [ADR 0049](decisions/0049-a-checkout-is-the-named-user.md);
 the money rules it lives under are the sustainability plan's
 (`gtfs-scorecard-plans/07-monetization-sustainability.md`, summarized in the
@@ -22,8 +22,8 @@ metric and no new grade. It is packaging, branding, and delivery.
 | Piece | Where | Status |
 | --- | --- | --- |
 | Core: validate a request, classify ids against the registry, render each current one through `report.generate_report`, zip with a manifest | `pipeline/src/scorecard_pipeline/bundle.py`; `scorecard bundle`, `scorecard bundle-email` | Built, tested |
-| Fulfilment: on-demand render, upload behind a capability key, email the link | `.github/workflows/report-bundle.yml` | Built; delivery steps gated on Actions variables |
-| Purchase plumbing: post-checkout form (confirms the session is paid, dispatches), download route (presigns per click), Stripe webhook, weekly refresh | `infra/program-bundle/` | Written, **not applied**; `payments_enabled = "0"` |
+| Fulfillment: on-demand render, upload behind a capability key, email the link | `.github/workflows/report-bundle.yml` | Built; delivery steps gated on Actions variables |
+| Purchase plumbing: post-checkout form (confirms the session is paid, dispatches), download route (presigns per click), Stripe webhook, weekly refresh, daily reconciler | `infra/program-bundle/` | **Applied and live** 2026-09-12; `payments_enabled = "1"`, `stripe_price_ids_are_live = true`. The daily reconciler's schedule (`reconciler_reporting_ready`) was confirmed and turned on the same day; see the reconciler status note below — this row previously read "DISABLED" and that was stale. |
 | Storage: `program-bundles/<id>/bundle.zip` expires after 30 days | `infra/artifacts/main.tf` lifecycle rule | Written; needs a re-apply of `infra/artifacts` |
 | Pages: plans read from `web/bundle/plan.json`; setup form posts to the API | `web/bundle/`, `web/src/bundle.js`, `web/src/bundle-setup.js` | Built; unlinked, `noindex`, out of the sitemap; `paymentsAvailable: false` |
 | Stripe objects: two products, four prices, four Payment Links | `scripts/stripe-setup.sh` | Script only; nothing created |
@@ -53,7 +53,12 @@ hands a board or a grant reviewer is the layer buyers pay for
 (`income-plan-2026-07/15-EXPANSION-STUDY4` F4, `09-NEW-PROJECT-IDEATION` N1).
 A program with twenty agencies gets twenty board packets for a twentieth of
 that. Set them in `scripts/stripe-setup.sh` and the Stripe dashboard; the
-site never carries a price of its own.
+site never carries a price of its own. `/bundle/` does state these amounts in
+the bytes it serves — as `Offer` structured data and as the plan list a reader
+without scripting sees — but both are generated from `web/bundle/plan.json` by
+`make sync-bundle-offers` and compared byte for byte against it in CI, so they
+are readings of that file rather than a fourth transcription of the decision.
+Switching the tier off still removes them, and still takes only a data change.
 
 | Knob | Price | What it covers |
 | --- | --- | --- |
@@ -61,6 +66,13 @@ site never carries a price of its own.
 | `bundle_100` | $349 once | One archive, up to 100 agencies |
 | `refresh_mo` | $49 a month | A fresh archive every month, up to 100 agencies, cancel any time |
 | `refresh_yr` | $490 a year | The same, billed yearly |
+
+The "up to" is enforced, not advisory. The setup route reads the Checkout
+Session's line item, refuses any price that is not one of these four, and
+holds the agency list to that price's cap: a `bundle_25` buyer who lists 26
+ids is told so and can resend the same checkout with 25. Without that check
+a paid checkout for anything else on the same Stripe account would pass the
+form, which is also why the account this runs on matters.
 
 Commitments on the page, which the operator has to be able to keep:
 
@@ -85,13 +97,27 @@ if it were working.
 | 0 purchases, `/bundle/` over about 50 unique visitors | A price or copy problem, not a demand problem. Halve the one-time price once; change nothing else for another 90 days. |
 | 1 or more purchases | Build the program workspace (hosted saved cohorts, team sharing, SLA'd support; 07's "supporter workspace" row) for that buyer. Ask permission to name their program on `/support/`. |
 
-Unique visitors come from the Pages traffic view, the only analytics this
-site has; the page is `noindex` and unlinked until launch, so the count
-starts at launch.
+Unique visitors come from the Pages traffic view and, once the `POSTHOG_KEY`
+secret is set, from the site's own page-view count
+([ADR 0055](decisions/0055-cookieless-site-measurement.md)), which is the only
+one of the two that can say whether a visit reached `/bundle/` and followed a
+checkout link (the `bundle_checkout_click` event carries the plan id). The
+count starts at launch. Google Analytics 4 counts visitors as well from
+2026-09-17 ([ADR 0056](decisions/0056-google-analytics-4.md)), though it cannot
+join visits in the EEA, the UK or Switzerland, where it sets no cookie.
 
 ## Runbook: from "written" to "on"
 
 Nothing before step 7 can charge anyone. Steps 1 to 6 are all in test mode.
+
+Steps 1 to 6 also run as one command: `scripts/bundle-testmode.sh`. It walks
+the test-mode rehearsal as a sequence of phases, each idempotent and each
+resumable with `--from`, checks every assertion below rather than trusting an
+exit code, and stops at the `web/src/config.js` commit because that is a change
+to a public site. It reads its three credentials from the environment, prints
+at most four characters of any of them, and refuses a live key. `--dry-run`
+runs every read-only check and creates nothing. The steps below stay the
+description of what has to be true; the script is how it is done and checked.
 
 1. **Stripe, test mode.** With a *test* secret key exported:
    `scripts/stripe-setup.sh`. It creates the two products, four prices, and
@@ -103,55 +129,322 @@ Nothing before step 7 can charge anyone. Steps 1 to 6 are all in test mode.
 2. **A restricted key for the Lambda.** In the Stripe dashboard create a
    *restricted* key with read access to Checkout Sessions only. That is
    `stripe_secret_key`. The full secret key is never given to anything
-   deployed.
-3. **Apply the module.** From `infra/program-bundle/`:
-   `pip install ../../pipeline -t build && cp *.py build/`, then
+   deployed, and the module refuses anything that is not an `rk_` key.
+   The setup route reads the session *and* its line items
+   (`GET /v1/checkout/sessions/{id}/line_items`), because what was bought
+   decides whether a build happens at all; line items are a sub-resource of
+   the session, so Checkout Sessions: Read is the permission for both. Check
+   it rather than trust it: the endpoint answers 403 with a body naming the
+   missing permission, and a key that cannot read line items refuses every
+   purchase.
+3. **Apply the module.** From the repository root:
+   `scripts/build-lambda-package.sh infra/program-bundle`, which vendors the
+   pipeline as Linux wheels and refuses a package holding a binary built for
+   anything else. A plain `pip install ../../pipeline -t build` on a Mac
+   produces a package that unpacks, deploys, and then dies on the first
+   request with `ModuleNotFoundError: No module named 'rpds.rpds'`. Then
    `terraform init && terraform apply` with `github_token` (a fine-grained
    PAT with **actions: write** on this repo and nothing else),
    `artifacts_bucket`, `stripe_secret_key`, and the price ids. Leave
-   `payments_enabled = "0"` for this apply. Note the two outputs.
-   Re-apply `infra/artifacts` so the `expire-program-bundles` lifecycle rule
-   exists.
+   `payments_enabled = "0"` for this apply. Note the two outputs. The
+   `terraform init` is what wires up the S3 backend in `backend.tf`: this
+   module's state holds the PAT, the restricted key, and the webhook secret
+   as Lambda environment variables, so it is never allowed to land in a local
+   `terraform.tfstate` on one laptop.
+   Apply the `expire-program-bundles` lifecycle rule in `infra/artifacts`
+   **as a targeted apply of that one resource**:
+   `terraform -chdir=infra/artifacts apply -target=aws_s3_bucket_lifecycle_configuration.artifacts`.
+   Do not apply the whole module from this runbook. On 2026-09-10 an untargeted
+   plan also carried a `www` redirect bucket, a Route 53 record, and a CDN
+   function update, merged work that had never been applied, and a payment
+   walkthrough is the wrong place to ship it. The module's `terraform.tfvars`
+   must also set `create_oidc_provider = false`, because this AWS account
+   already holds the GitHub OIDC provider; left at its default of `true`, the
+   plan adds a second one and rewrites both deploy roles' trust policies.
+   `scripts/bundle-testmode.sh` does both, and refuses a plan that reaches past
+   the lifecycle resource.
 4. **Webhook.** In Stripe (test mode) add one webhook endpoint at the
    `webhook_url` output with the events `checkout.session.completed`,
    `customer.subscription.created`, `customer.subscription.updated`,
    `customer.subscription.deleted`. Its signing secret is
    `stripe_webhook_secret`; apply again with it set.
 5. **Actions variables.** Set `BUNDLE_API_BASE` to the `api_base` output.
-   `ARTIFACTS_BUCKET`, `AWS_ROLE_ARN`, and `SES_FROM` already exist for the
-   daily run; the workflow reuses them. Confirm the OIDC role can `PutObject`
-   under `program-bundles/` in the artifacts bucket.
+   `ARTIFACTS_BUCKET` and `SES_FROM` already exist as repository *variables*
+   for the daily run, and `AWS_ROLE_ARN` as a repository *secret*
+   (`report-bundle.yml` reads it as `secrets.AWS_ROLE_ARN`); the workflow
+   reuses all three. Confirm the OIDC role can `PutObject` under
+   `program-bundles/` in the artifacts bucket.
 6. **End-to-end, test mode.** Apply once more with `payments_enabled = "1"`
-   (the preconditions now pass), set `window.SCORECARD_BUNDLE_URL` in
-   `web/src/config.js` to `api_base`, deploy, and buy a `bundle_25` with a
+   (the preconditions now pass), then set `window.SCORECARD_BUNDLE_URL` in
+   `web/src/config.js` to `api_base`. That value only exists once the module
+   is applied, so it cannot ride the launch branch: it is its own small commit
+   to `main`, merged and deployed by `pages.yml` before the purchase below.
+   The form stays invisible while it lands, because `/bundle/setup/` is
+   unlinked and `noindex`. Then buy a `bundle_25` with a
    Stripe test card through the Payment Link. Walk the loop: Payment Link →
    `/bundle/setup/` → form → workflow run → email → download link → archive
    with the right cover and a manifest that names every id. Then cancel a
    test subscription from the Stripe customer portal and confirm the row
-   reads `canceled`. Run `report-bundle.yml` by hand once with a deliberately
-   bad id to see it listed in the manifest, not dropped.
-7. **The live decision.** Record it here with the date and the reviews it
-   rests on (tax, refund policy, the two-business-day commitment). Then, in
+   reads `canceled`. Include one agency id the scorecard does not track in a
+   test purchase, to see it listed in the manifest, not dropped (a malformed
+   id is refused by the setup route before any order is stored, so it can no
+   longer reach a run). A hand re-run for a make-good takes the `order_ref`
+   from the order's capability row and must be dispatched with `--ref main`:
+   the OIDC role trusts `refs/heads/main` and nothing
+   else (`infra/artifacts/github_oidc.tf`), so a run dispatched on any other
+   ref cannot assume the role and fails at the upload.
+   Buy a `bundle_25` and try 26 agency ids as well: the plan's cap is
+   enforced by the setup route from the price that was actually paid for, so
+   that purchase is refused in the form with the reason, not quietly trimmed
+   and not quietly upgraded.
+7. **The live decision.** *Recorded 2026-09-12.* Live mode was opened on this
+   date on Stripe account `acct_1UEJ7fAJdYOJsO05` (verified activated:
+   `charges_enabled`, `payouts_enabled`, `details_submitted`, no outstanding
+   requirements). Four live prices and four Payment Links were created, a
+   restricted key scoped to Checkout Sessions: Read was deployed, a live
+   webhook endpoint was registered, and `infra/program-bundle` was applied
+   with `payments_enabled = "1"` and `stripe_price_ids_are_live = true`.
+   `/bundle/` was published the same day (PR #393, merge `865a6d6e173`).
+
+   **What the date turned on, and what it did not.** The 2026-10-01 date this
+   branch was named for existed to protect a TechCA Emerging Technologies
+   Forum submission that used gtfsscorecard.org as its supporting URL. That
+   submission is not being filed (a work conflict, decided 2026-09-12), so the
+   "no paywall" non-goal it protected was withdrawn rather than overridden.
+   Agency-facing scoring staying free is a separate commitment and is
+   untouched.
+
+   **Two of the three reviews this decision is supposed to rest on are still
+   NOT recorded**, and this paragraph does not pretend otherwise:
+
+   | Review | State |
+   |---|---|
+   | Tax treatment of the revenue | outstanding |
+   | Refund policy, written down | written 2026-09-14: the buy-terms list and FAQ on `/bundle/` state what happens on a late delivery, a wrong or broken archive, and a canceled subscription, in the buyer's own words rather than a linked document. No separate policy page exists; see the trust/policy audit this row records. |
+   | The two-business-day delivery commitment, reviewed against what the pipeline actually guarantees | outstanding |
+
+   The third is the one with teeth. `/bundle/` tells a buyer delivery is
+   "always within two business days. If it is later than that, the purchase is
+   refunded." That deadline is now computed at checkout from Stripe's own
+   payment timestamp, stored on the order, and shown to the buyer as a date;
+   an order past it with no archive is reported as a breach rather than as a
+   late build. Refunds remain manual by design: the deployed restricted key
+   reads Checkout Sessions and cannot issue one, and `scorecard
+   program-refunds` prints the Stripe reference and the commands for a person
+   to run.
+
+   **Reconciler status (this paragraph previously said the schedule was
+   `DISABLED` and stayed that way after it was actually turned on; that drift
+   is corrected here).** Both preconditions `reconciler_reporting_ready`'s
+   description names were confirmed on 2026-09-12 -- the dispatch token's
+   `Issues: Read and write` permission (the differential probe already
+   recorded in `infra/program-bundle/main.tf`) and the `program-bundle-reconciler`
+   label, created by hand since nothing in this repository creates it --
+   and the flag was set `true` in the local `terraform.tfvars` and applied
+   the same day. `aws events describe-rule --name
+   gtfs-scorecard-program-bundle-reconcile` shows `State: ENABLED`, and its
+   CloudWatch log carries a clean run on 2026-09-12, -13 and -14 (UTC 15:10,
+   `cron(10 15 * * ? *)`), each scanning every row in the bundles table and
+   finding nothing to report -- consistent with zero real purchases so far
+   (`report-bundle.yml` carries exactly two runs total, both `workflow_dispatch`
+   by hand on 2026-09-11, the day before the tier went on sale; none since).
+   The commitment is live and self-monitoring, not merely backed by the
+   watchdog. Because there have been no real orders yet, the branch that
+   files or updates the public GitHub issue has not fired outside its test
+   suite (`pipeline/tests/test_program_bundle_handlers.py`, the daily
+   reconciler section) -- that suite exercises a deliberately breached order,
+   a merely-late one and the idempotent open/unchanged/updated issue cycle
+   end to end against a mocked GitHub API, which is the verification this
+   repo's own posture calls for rather than filing a real issue about a
+   fictitious order.
+
+   One gap remains for whoever next re-applies this module from a clean
+   account: the label is not created by any committed script, so a fresh
+   apply with `reconciler_reporting_ready = true` and no label present would
+   fail loudly on the first real finding (`reconcile_handler.handler` raises
+   rather than swallowing a 422) instead of silently. Recreate it with
+   `gh label create program-bundle-reconciler --color B60205 --description
+   "Opened by the program-bundle reconciler: paid orders with no delivered
+   bundle"` before flipping the flag on a new deployment.
+
+   For reference, the original instruction for this step was: record the date
+   and the reviews it rests on (tax, refund policy, the two-business-day
+   commitment). Then, in
    live mode: `scripts/stripe-setup.sh` again with a *live* key, a live
    restricted key, a live webhook, and an apply with `stripe_price_ids_are_live
    = true`. The precondition refuses a live key paired with unconfirmed
    prices.
 8. **Turn the page on.** Edit `web/bundle/plan.json`: `paymentsAvailable:
-   true` and the `products` block from step 7. Link `/bundle/` from
-   `/support/` ("For programs and consultancies", the card that used to hold
-   the consulting link) and from the board one-pager's footer. Remove
-   `/bundle/` and `/bundle/setup/` from `site-seo.json`'s
-   `noindex_path_patterns` and drop the `robots` meta from both pages so the
-   sitemap and the SEO gate agree. Not before early October: the TechCA
+   true` *and* the `products` block from step 7, in the same branch and
+   before the merge. `paymentsAvailable: true` with the null placeholder
+   still in `products` publishes a page that announces checkout is open and
+   then prices every plan "Not yet available" (`web/src/bundle.js`).
+   Link `/bundle/` from `/support/` and from the board one-pager's footer.
+   That `/support/` link needs a new card: the "For programs and
+   consultancies" one this step used to name was removed in #332, along with
+   the dead consulting link it held.
+   Remove `/bundle/` from `site-seo.json`'s `noindex_path_patterns`, drop the
+   `robots` meta from that page, and add it to the hand-maintained `urls`
+   list at the top of `render_site.py`'s site render, which is what the
+   sitemap is built from; the SEO gate compares the three and fails if they
+   disagree. `/bundle/setup/` stays `noindex` and out of the sitemap: it is a
+   post-checkout form that says nothing to a reader who arrives without a
+   session, and an indexed one would collect search traffic it can only turn
+   away. Not before early October: the TechCA
    review window (`gtfs-scorecard-plans/10-next-60-days-2026-08.md`) freezes
    the public surface until then.
 9. **Ninety days later**, the gate table above.
 
+## The two-business-day promise, and what backs it
+
+`/bundle/` tells a buyer the archive arrives "always within two business days.
+If it is later than that, the purchase is refunded." That is a refund
+liability, so the date behind it is computed rather than believed.
+
+`scorecard_pipeline/deadline.py` is the only thing that decides it. The clock
+starts at Stripe's own record of the payment, not at the moment the setup form
+is submitted, so a buyer who pays on Friday and returns on Monday keeps the
+two days they were promised. Weekends and US federal holidays are not business
+days, and the holidays are computed from their rules rather than listed, so
+there is no year at which the table quietly runs out. The zone is
+America/Los_Angeles, end of day: the buyer's zone is unknown, and choosing one
+and saying so is better than guessing theirs.
+
+The date is computed once, at checkout, and stored on the order. The
+confirmation page prints the sentence the server sends rather than working the
+date out again, and the delivery email states the date the order was promised
+by, so the commitment is checkable by the person it was made to. One
+computation, in one language: a promise worked out twice is a promise that
+will eventually disagree with itself.
+
+An order past that date with no archive is reported by the reconciler as
+`deadline_breached` rather than as `undelivered`, and the issue title says
+`REFUND DUE`. One is a slow build and the other is money owed; they need
+different actions and must not arrive as one number.
+
+Refunds stay manual, by design. The deployed restricted key reads Checkout
+Sessions and cannot refund, and that is the right posture: a credential that
+can move money should not sit in a scheduled job. `scorecard program-refunds`
+runs on the operator's machine with her own AWS credentials, reads the table,
+and prints each breached order with its Stripe reference and the commands that
+would refund it. It runs none of them.
+
+## When an order does not get built
+
+Payment and fulfillment are separate systems, so there is a gap between them
+where a paid order can go quiet. Three ways it happens, and what answers each.
+
+**The dispatch fails.** GitHub is down, the token has lost `actions: write`,
+the workflow file was renamed. The claim records whether a build was ever
+started separately from whether the payment is spoken for, so an order in this
+state is still open: the buyer is told to submit the form again, and the retry
+finishes the same bundle id rather than opening a second order. One payment
+can still only ever produce one bundle.
+
+**The build fails.** `report-bundle.yml` writes an annotation and a run
+summary saying that a paid order did not complete. The only thing it names is
+`order_ref`, the random reference to the stored order, which carries no buyer
+data and grants nothing on its own: a run page on a public repository is a
+publication, and the bundle id is the download credential. The order is
+identified in the bundles table and in the reconciler's CloudWatch log, both
+private. Nor does that step send mail — `SES_FROM` is an address on a domain
+with no MX record, so the alert it used to send was delivered nowhere, which
+is the same defect as no alert wearing a coat. Re-dispatching with the same
+`order_ref` is the repair: the archive and the download link are both keyed
+on the bundle id stored inside the order, so the re-run fills the object the
+buyer's existing link already points at. That also makes the ambiguous
+failure safe — a dispatch whose socket timed out after GitHub had queued the
+run — because the retry resumes the same bundle id, so both runs render to one
+archive key under one capability row. `watchdog.yml` reads that
+workflow's most recent conclusion every six hours as the backstop, and counts
+`cancelled` as a failure because that is what a job killed by its own
+`timeout-minutes` records.
+
+**The workflow is never handed buyer data.** An earlier shape of
+`report-bundle.yml` took the delivery address, the program name, the agency
+list and the bundle id as `workflow_dispatch` inputs. GitHub prints each
+step's environment in the run log, this repository's run logs are public, and
+two hand test runs on 2026-09-11 published all of it that way before the tier
+had a real customer. The dispatch now carries `order_ref` alone: the setup
+and refresh handlers write the validated order to the private artifacts
+bucket (`program-requests/`, 30-day lifecycle, outside the CloudFront
+allow-list) and the workflow reads it back with its own OIDC role, which
+trusts runs on main only. The first thing the run does with the object is
+register an `::add-mask::` for every value in it — the bundle id, the
+delivery address, the program name, the logo address and each agency id —
+before validating it, so even an error message that quotes one prints blank.
+The reference is random and not derived from the bundle id, so the concurrency
+group that names it publishes nothing. `pipeline/tests/test_workflow_safety.py`
+fails the suite if a buyer field comes back as an input, an `env:` value, an
+unmasked rendered line, or an xtrace flag.
+
+**Nobody comes back.** The buyer pays and closes the tab before the setup
+form, or hits a failed dispatch and never retries. The daily reconciler
+(`infra/program-bundle/reconcile_handler.py`) walks the bundles table and
+reports any capability row older than six hours with no
+`program-bundles/<id>/bundle.zip`, any claim that never dispatched, and any
+`checkout#` row with no matching `session#` row. It refuses rather than
+reports clean when it cannot read a row's timestamp or the bucket will not
+answer.
+
+It reports by keeping one GitHub issue up to date, not by email. The
+operator's own domain has no MX record, so an emailed alert would have been
+delivered nowhere, and a notification that cannot arrive is the same defect
+as no notification. This repository is public, so that issue carries the
+counts and a CloudWatch pointer and nothing else: a bundle id is a download
+capability, and the delivery address, the program name and the agency list
+all describe a paying customer. The detail stays in CloudWatch, which is
+private to the account. The schedule stays disabled until
+`reconciler_reporting_ready` is set, because a reconciler with nowhere to
+report finds things and tells nobody. The dispatch token already carries the
+`Issues: Read and write` permission the design needs; what that switch records
+is that somebody checked, and that the label the report is filed under
+exists.
+
+## What is rehearsed without a purchase
+
+Nothing past step 7 has run for a real buyer. The joins between the pieces are
+run instead against a synthetic purchase, so the first sale is not the first
+execution. `pipeline/tests/test_paid_path_transaction.py` runs in `make verify`;
+`pipeline/tests/e2e/test_bundle_setup_form.py` runs in `e2e.yml`. Neither
+creates, reads or touches a Stripe object.
+
+- **Payment Link to `/bundle/setup/`.** The transaction test holds
+  `scripts/stripe-setup.sh` to the one redirect that names this page and
+  `plan.json` to four distinct `buy.stripe.com` links. It cannot open a link:
+  loading a Payment Link creates a Checkout Session. The live check this still
+  needs is a read of the four `plink_` objects (`after_completion.redirect.url`
+  and each one's single price), which only the owner's key can make.
+- **The form to the setup route.** The browser test drives the real page with
+  `?session_id=cs_test_…`, submits it, and reads the request it makes. The
+  endpoint is rewritten to the test server and every external request is
+  aborted. Stripe substituting `{CHECKOUT_SESSION_ID}` into the address is the
+  part it takes on Stripe's word.
+- **The setup route to `report-bundle.yml`.** The one input the Lambda sends
+  (`order_ref`) is compared with the one input the workflow declares (an
+  undeclared input, or a required one left empty, is a 422 and an order that
+  never starts), and one purchase is run from the form through the stored
+  order and the workflow's own pipeline steps to the archive key the download
+  route presigns, the email, and the reconciler's verdict with the archive
+  there and with it gone. The deployed token's `actions: write` scope is the
+  one thing this cannot check.
+- **The weekly tick.** A subscription is bought, its stored request is read
+  back 28 days later by `refresh_handler`, and the dispatch it produces is
+  built. The EventBridge rule is checked by its own log, not by a purchase:
+  with no subscribers the Tuesday invocation still writes
+  `{"refresh": {"scanned": 0, ...}}`, and a missing log group means it has
+  never fired.
+- **The webhook to a later refresh.** A signed `checkout.session.completed`
+  body goes through `webhook_handler.handler`, and the `checkout#` row it
+  writes is what a refresh months later inherits its cap from. Stripe's
+  delivery to the endpoint is the part this cannot check; an unsigned
+  `POST /webhook` answering 400 shows the route is deployed and closed.
+
 ## Closing it again
 
 Set `payments_enabled = "0"` and apply: the `/setup` route disappears, the
-weekly refresh rule is disabled, and the download route keeps serving links
-already issued until they expire. Set `paymentsAvailable: false` in
+weekly refresh and daily reconcile rules are disabled, and the download route
+keeps serving links already issued until they expire. Set `paymentsAvailable: false` in
 `plan.json`: the page shows "Not yet available" and no checkout link. Both
 halves are independent and fail closed, the same two-gate shape
 family-greenhouse uses.

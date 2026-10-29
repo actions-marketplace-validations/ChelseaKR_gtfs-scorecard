@@ -100,6 +100,16 @@ class BundleRequest:
         }
 
 
+def archive_key(bundle_id: str) -> str:
+    """Where a built bundle lives in the artifacts bucket.
+
+    One definition, because three things have to agree on it or a buyer's
+    link 404s: the workflow that uploads, the download route that presigns,
+    and the reconciler that decides whether an order was delivered.
+    """
+    return f"program-bundles/{bundle_id}/bundle.zip"
+
+
 def new_bundle_id() -> str:
     """A fresh 128-bit hex token; the bundle's download capability."""
     return secrets.token_hex(16)
@@ -110,7 +120,7 @@ def _text(raw: Mapping[str, object], key: str) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def _agency_ids(raw: object) -> tuple[str, ...]:
+def _agency_ids(raw: object, limit: int = MAX_AGENCIES) -> tuple[str, ...]:
     if isinstance(raw, str):
         parts = raw.replace("\n", ",").split(",")
     elif isinstance(raw, list | tuple):
@@ -131,10 +141,10 @@ def _agency_ids(raw: object) -> tuple[str, ...]:
             seen.append(agency_id)
     if not seen:
         raise BundleError("agency_ids must name at least one agency")
-    if len(seen) > MAX_AGENCIES:
-        raise BundleError(
-            f"a bundle covers at most {MAX_AGENCIES} agencies; {len(seen)} were given"
-        )
+    if len(seen) > limit:
+        if limit < MAX_AGENCIES:
+            raise BundleError(f"your plan covers at most {limit} agencies; {len(seen)} were given")
+        raise BundleError(f"a bundle covers at most {limit} agencies; {len(seen)} were given")
     return tuple(seen)
 
 
@@ -161,12 +171,18 @@ def _logo(raw: str) -> str | None:
     return raw
 
 
-def parse_request(raw: Mapping[str, object]) -> BundleRequest:
+def parse_request(raw: Mapping[str, object], *, max_agencies: int = MAX_AGENCIES) -> BundleRequest:
     """Validate a raw request (form body, workflow inputs, or a stored row).
 
     Raises BundleError with one plain sentence on the first problem, so the
     setup form can show it and a workflow log can be read without the code.
+
+    ``max_agencies`` narrows the cohort cap to what the buyer's plan covers
+    (the setup route passes 25 for a ``bundle_25`` purchase). It can only
+    narrow: anything above MAX_AGENCIES is held to MAX_AGENCIES.
     """
+    if max_agencies < 1:
+        raise ValueError("max_agencies must be at least 1")
     bundle_id = _text(raw, "bundle_id").lower()
     if not BUNDLE_ID_RE.match(bundle_id):
         raise BundleError("bundle_id must be 32 lowercase hex characters")
@@ -190,7 +206,7 @@ def parse_request(raw: Mapping[str, object]) -> BundleRequest:
         program_name=program_name,
         accent=accent,
         logo=_logo(_text(raw, "logo")),
-        agency_ids=_agency_ids(raw.get("agency_ids")),
+        agency_ids=_agency_ids(raw.get("agency_ids"), min(max_agencies, MAX_AGENCIES)),
         deliver_to=deliver_to,
         cadence=cadence,
     )
@@ -396,12 +412,20 @@ def delivery_email(
     manifest: Mapping[str, Any],
     download_url: str,
     expires_on: str,
+    promised_by: str = "",
 ) -> Email:
     """The plain-text email that carries the download link.
 
     Says what was included and, per id, what was not. The link is a
     capability that expires; the date is stated so nobody discovers that by
     clicking a dead link.
+
+    ``promised_by`` is the date this order was committed to at checkout. It is
+    stated here so the commitment is checkable by the person it was made to:
+    /bundle/ promises a refund if delivery is late, and a buyer holding a
+    late archive should not have to take our word for when it was due. Blank
+    when the caller does not know it, which is the case for a subscription
+    refresh, where no two-business-day promise was made.
     """
     included = int(manifest["included"])
     requested = int(manifest["requested"])
@@ -411,6 +435,10 @@ def delivery_email(
         f"Download (valid until {expires_on}):",
         f"  {download_url}",
         "",
+    ]
+    if promised_by:
+        lines += [f"This order was promised by {promised_by}.", ""]
+    lines += [
         f"{included} of {requested} requested agencies are included, one self-contained",
         "HTML file each. Open any of them in a browser and print to PDF.",
     ]

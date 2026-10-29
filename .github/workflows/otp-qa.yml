@@ -32,6 +32,7 @@ env:
 jobs:
   select:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       feeds: ${{ steps.select.outputs.feeds }}
     steps:
@@ -40,6 +41,7 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
+          enable-cache: true
           python-version: "3.12"
       - name: Pick the best and worst scored feeds
         id: select
@@ -69,6 +71,7 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
+          enable-cache: true
           python-version: "3.12"
       - name: Fetch the feed
         id: fetch
@@ -76,7 +79,7 @@ jobs:
           FEED_URL: ${{ matrix.feed.feed_url }}
         run: |
           mkdir -p otp-work
-          if curl -fsSL --retry 3 "$FEED_URL" -o otp-work/feed.gtfs.zip; then
+          if curl -fsSL --retry 3 --retry-all-errors "$FEED_URL" -o otp-work/feed.gtfs.zip; then
             jq -n '{transitFeeds: [{type: "gtfs", source: "feed.gtfs.zip", feedId: "qa"}]}' \
               > otp-work/build-config.json
             echo "available=true" >> "$GITHUB_OUTPUT"

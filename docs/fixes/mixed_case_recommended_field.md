@@ -1,11 +1,15 @@
 ---
 date_published: "2026-07-03"
-date_modified: "2026-07-03"
+date_modified: "2026-10-22"
 ---
 
-# Fix: rider-facing names are in ALL CAPS or all lowercase
+# Names in ALL CAPS or all lowercase
 
 Code: `mixed_case_recommended_field` (MobilityData validator)
+
+## The short answer
+
+Rider-facing text such as stop_name is in a single case. Fix: rewrite it in mixed case (Main St & 2nd Ave) and keep real acronyms as they are.
 
 ## What this means
 
@@ -24,14 +28,14 @@ of them. Fixing the case is a direct readability and accessibility improvement.
 
 ## How to fix it
 
-Rewrite the flagged names in mixed case: capitalise the first letter of each
+Rewrite the flagged names in mixed case: capitalize the first letter of each
 word, keep ordinals and directionals natural (`2nd`, `NW`), and leave genuine
 acronyms as they are (`UC Davis`, `VA Hospital`).
 
 - **In your scheduling tool**, this is usually a bulk edit on stop names and
-  headsigns. Some tools have a "title case" or "normalise case" helper.
+  headsigns. Some tools have a "title case" or "normalize case" helper.
 - **If the source data is all-caps**, fixing it at the source means it stays
-  fixed on every future export, rather than re-capitalising after each run.
+  fixed on every future export, rather than re-capitalizing after each run.
 
 Watch for names that should not be fully title-cased, like `Davis Amtrak` or a
 street named after initials; review rather than blindly applying a script.

@@ -1,14 +1,16 @@
 name: Standards pin
 
 # DOC-01/DOC-03: the vendored standards were verified byte-for-byte against
-# ChelseaKR/portfolio-standards v2.0.0 on 2026-08-09. The reviewed manifest
+# the signed ChelseaKR/portfolio-standards v3.0.1 release on 2026-10-02
+# (v2.0.0 on 2026-08-09 before that). The reviewed manifest
 # makes that proof self-contained and merge-blocking without a cross-repository
 # PAT. Renovate must update the pin, files, and manifest in one reviewed change.
 #
 # Scope, so this job is not mistaken for more than it is: it proves the
 # vendored bytes match the pinned tag. It does not run the conformance
 # checker, so no control gate in the standards is enforced here. The
-# applicability declaration and the open gaps against v2.0.0 live in
+# applicability declaration and its open gaps (last re-assessed against
+# v2.0.0; a v3.0.1 re-assessment is still owed) live in
 # docs/standards-conformance-gaps.md.
 
 on:
@@ -19,14 +21,19 @@ on:
 permissions:
   contents: read
 
-# Cancel superseded runs on the same ref (new push to a PR) to save minutes.
+# Cancel superseded runs of the same PULL REQUEST to save minutes -- and only those.
+# `github.ref` is `refs/pull/N/merge` on a pull request, which is what the comment above
+# always meant. On a push it is `refs/heads/main` for every commit, so this canceled one
+# commit's run when the next arrived, and a commit reached main whose only check-run was
+# `cancelled` -- no signal at all. A push is grouped by its own SHA and cancels nothing.
 concurrency:
-  group: standards-pin-${{ github.ref }}
-  cancel-in-progress: true
+  group: standards-pin-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   standards-pin:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:

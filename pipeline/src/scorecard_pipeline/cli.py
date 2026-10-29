@@ -4,6 +4,8 @@ operational commands the rollout roadmap (docs/roadmap.md) needs.
 scorecard run --all
 scorecard run --agency unitrans [--date 2026-06-11] [--force-fetch]
 scorecard try <gtfs-zip-url-or-path> [--country CA] [--name "Agency"]  # ad-hoc, unpublished
+scorecard try <feed> --sarif out.sarif             # notices as SARIF 2.1.0 for code scanning
+scorecard diff OLD NEW [--format markdown|json]   # what changed between two artifacts
 scorecard sync --country US --state California   # propose registry entries
 scorecard discover --expired [--apply]            # find feeds whose URL moved
 scorecard vendors [--rollup <id>]                 # expiry status by feed host
@@ -50,6 +52,7 @@ import jsonschema
 import requests
 
 from .agencies import AgencyConfigError, load_agencies
+from .catalog_api import CatalogPausedError
 from .config import AGENCIES, Agency, current_agency_ids, raw_dir, repo_root, utc_today
 from .constants_export import GRADE_RANK
 from .fetch import FetchResult, fetch_static, prepare_reader_archive
@@ -61,14 +64,17 @@ from .rt_drift import compute_drift, vehicle_plausibility
 from .s3_publish import DEFAULT_PUBLISH_WORKERS, MAX_PUBLISH_WORKERS
 from .score import build_scorecard, score_feed_content
 from .validate import (
+    ValidationReport,
     country_scoped_output_dir,
     parse_report,
     run_validator,
     validator_country_code,
 )
+from .worklock import heavy_section, outside_heavy_section
 
 if TYPE_CHECKING:  # imported lazily at runtime, inside the commands that use it
-    from .mobilitydb import FeedMatch
+    from .liveness import LivenessRecord
+    from .mobilitydb import CatalogFeed, FeedMatch
 
 log = logging.getLogger(__name__)
 
@@ -106,49 +112,60 @@ class RunOutcome:
     cache_hit: bool
 
 
-def _realtime_category(
+def _realtime_categories(
     agency: Agency,
     static_path: Path,
     date: dt.date,
     *,
     rt_samples: int,
     rt_interval: int,
-) -> CategoryResult:
+) -> list[CategoryResult]:
     """Sample and score only the realtime capabilities an agency publishes.
+
+    A list of nothing or one, so the caller adds a scored realtime category
+    without having to branch on its absence. Empty when the sampling window
+    turned out to be evidence about our fetcher rather than about the feed:
+    an absent category renders as not yet measured, where a fabricated one
+    would render as a grade.
 
     TripUpdates analysis reads schedule tables and VehiclePositions analysis
     reads shapes. Avoiding those paths when the corresponding feed kind is not
     configured keeps a partial realtime feed from paying irrelevant CPU and
     memory costs or failing on data that its score does not use.
     """
-    window = capture_window(agency, date, samples=rt_samples, interval_seconds=rt_interval)
+    # The window is a minute of mostly sleeping, so it gives the shared turn
+    # back (worklock.py). Its end is read before the turn is taken again: the
+    # scheduled trips are the ones due when the samples were taken, however
+    # long a sibling's validator then keeps this run waiting.
+    with outside_heavy_section():
+        window = capture_window(agency, date, samples=rt_samples, interval_seconds=rt_interval)
+        sampled_at = dt.datetime.now(dt.UTC)
     has_trip_updates = "trip_updates" in agency.rt_urls
     has_vehicle_positions = "vehicle_positions" in agency.rt_urls
-    scheduled = (
-        scheduled_trip_ids_at(str(static_path), dt.datetime.now(dt.UTC))
-        if has_trip_updates
-        else None
-    )
+    scheduled = scheduled_trip_ids_at(str(static_path), sampled_at) if has_trip_updates else None
     drift = compute_drift(window.samples, str(static_path)) if has_trip_updates else None
     plausibility = (
         vehicle_plausibility(window.samples, str(static_path)) if has_vehicle_positions else None
     )
-    return realtime(
+    category = realtime(
         window,
         scheduled or None,
         drift=drift,
         plausibility=plausibility,
         configured_kinds=agency.rt_urls,
     )
+    return [category] if category is not None else []
 
 
 def _routability_block(reader_path: Path) -> dict[str, Any]:
     """Build the ungraded routability block without failing a national feed.
 
-    National aggregates can safely clear archive validation while carrying a
-    stop_times.txt too large for Scorecard's whole-table reader. Routability is
-    descriptive and zero-deduction, so report that it was not measured rather
-    than withholding the feed's graded scorecard.
+    stop_times.txt is streamed, so its size no longer decides whether this block
+    can be measured; the remaining way to get here is a trips.txt or stops.txt
+    over the whole-table reader's cap. Routability is descriptive and
+    zero-deduction, so report that it was not measured rather than withholding
+    the feed's graded scorecard, and never let an unread table reach the
+    artifact as a count of zero.
     """
     from .gtfs import TableTooLargeError
     from .routability import assess_routability
@@ -248,8 +265,8 @@ def run_agency(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
         ),
     ]
     if agency.rt_urls and not skip_rt:
-        cats.append(
-            _realtime_category(
+        cats.extend(
+            _realtime_categories(
                 agency,
                 reader_path,
                 date,
@@ -283,7 +300,10 @@ def run_agency(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
     # any category score.
     from .recommend import gather_recommendations
 
-    artifact["recommendations"] = gather_recommendations(str(reader_path))
+    # The block carries recommendations_not_measured only when a check could not
+    # run: an empty rows list otherwise means the checks ran and found nothing,
+    # which is a different thing and must not read the same on the page.
+    artifact.update(gather_recommendations(str(reader_path)).artifact_block())
     # Conformance mark: a pass/not-yet credential over the scores just computed.
     # Attached so the badge and the page can show it without recomputing.
     from .conformance import assess as assess_conformance
@@ -359,9 +379,14 @@ def run_agency(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
         # 2025 final rule requires shapes.txt from Reduced, Rural, and Tribal
         # NTD reporters starting Report Year 2026 (Full Reporters, RY2025).
         shapes_coverage = read_shapes_coverage(str(reader_path))
-        artifact["shapes_readiness"] = assess_shapes_readiness(
-            shapes_coverage.total_trips, shapes_coverage.trips_with_shape
-        ).to_dict()
+        artifact["shapes_readiness"] = {
+            **assess_shapes_readiness(
+                shapes_coverage.total_trips,
+                shapes_coverage.trips_with_shape,
+                flex_only=shapes_coverage.flex_only,
+            ).to_dict(),
+            **shapes_coverage.stored_fields(),
+        }
         # NTD GTFS readiness (published / valid / current / agency_id), precomputed so
         # the web app and API render it without re-deriving the verdict.
         artifact["ntd_readiness"] = assess_ntd_readiness(artifact).to_dict()
@@ -384,14 +409,39 @@ def run_adhoc(
     name: str | None,
     date: dt.date,
     country: str = "US",
+    *,
+    large_feed: bool = False,
 ) -> dict[str, Any]:
     """Score an arbitrary GTFS Schedule URL or local zip without publishing.
+
+    The artifact only. :func:`run_adhoc_detailed` additionally hands back the
+    parsed validator report, which carries the per-notice file and row samples
+    the artifact does not.
+    """
+    artifact, _report = run_adhoc_detailed(source, name, date, country, large_feed=large_feed)
+    return artifact
+
+
+def run_adhoc_detailed(
+    source: str,
+    name: str | None,
+    date: dt.date,
+    country: str = "US",
+    *,
+    large_feed: bool = False,
+) -> tuple[dict[str, Any], ValidationReport]:
+    """Score an arbitrary feed and return both the artifact and the raw report.
 
     For live, exploratory use: point it at a public feed or a local corrected
     copy and get the same grade, category scores, and plain-language fixes a
     tracked agency gets. Nothing is written to the public artifacts or index;
     scratch bytes and validator output land in the gitignored data/raw cache.
     Realtime is not sampled because an ad-hoc source carries no RT endpoints.
+
+    ``large_feed`` applies the same opted-in ceilings a registry record gets
+    from ``large_feed: true``. Without it a curator cannot preflight the very
+    feeds that need the large-feed decision: the standard caps reject them, so
+    the answer to "should this be admitted?" was unobtainable from this command.
     """
     country_code = validator_country_code(country)
     candidate = Path(source).expanduser()
@@ -399,18 +449,36 @@ def run_adhoc(
     parsed = urllib.parse.urlparse(source)
     if not is_local and parsed.scheme not in {"http", "https"}:
         raise FileNotFoundError(f"local GTFS zip not found: {candidate}")
-    source_ref = candidate.resolve().as_uri() if is_local else source
+    local_path = candidate.resolve() if is_local else None
+    # What every output records the feed as. A local zip is recorded by file
+    # name only, the way `try --batch` (#363) and `scorecard retest` (#366)
+    # already record one: a scorecard is written to be forwarded to a vendor or
+    # attached to a ticket, and an absolute path carries a user name and a
+    # folder layout into it while adding no evidence -- the feed's SHA-256 in
+    # the same artifact already identifies the bytes, and `fetch.source` already
+    # says "local". See #398.
+    source_ref = local_path.name if local_path is not None else source
+    # What keeps concurrent runs apart, which is a different question: two
+    # people's `corrected.zip` are different feeds, so the scratch key stays on
+    # the resolved absolute path even though nothing records it.
+    scratch_ref = local_path.as_uri() if local_path is not None else source
     label = name or (candidate.stem if is_local else parsed.netloc) or "Ad-hoc feed"
-    agency = Agency(id="_adhoc", name=label, static_gtfs_url=source_ref, country=country_code)
+    agency = Agency(
+        id="_adhoc",
+        name=label,
+        static_gtfs_url=source_ref,
+        country=country_code,
+        large_feed=large_feed,
+    )
     # Keep the public artifact identity stable while isolating scratch files by
     # URL and validator country. Several local/worker invocations can score
     # different feeds at once; a shared `_adhoc/<date>` path lets one download
     # replace another between fetch and validation.
-    scratch_key = f"{country_code}\0{source_ref}".encode()
+    scratch_key = f"{country_code}\0{scratch_ref}".encode()
     scratch_id = f"_adhoc-{hashlib.sha256(scratch_key).hexdigest()[:16]}"
     scratch_agency = dataclasses.replace(agency, id=scratch_id)
-    if is_local:
-        local_source = candidate.resolve()
+    if local_path is not None:
+        local_source = local_path
         scratch_dir = raw_dir() / scratch_id / date.isoformat()
         scratch_dir.mkdir(parents=True, exist_ok=True)
         scratch_path = scratch_dir / "gtfs.zip"
@@ -454,7 +522,12 @@ def run_adhoc(
         artifact["ferry_profile"] = ferry_profile
     from .mode_language import adapt_artifact_language
 
-    return adapt_artifact_language(artifact)
+    # The report goes back with the artifact because it is the only place the
+    # per-notice file and row samples exist: `build_artifact` aggregates each
+    # notice code to a count and drops the samples. SARIF needs them, and
+    # re-reading report.json off disk would depend on a scratch path that is an
+    # implementation detail of this function.
+    return adapt_artifact_language(artifact), report
 
 
 _SUMMARY_LABELS = {
@@ -490,27 +563,169 @@ def _print_scorecard_summary(artifact: dict[str, Any]) -> None:
     print()
 
 
-def _cmd_try(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+def _write_sarif(path_text: str, payload: dict[str, Any]) -> None:
+    out = Path(path_text)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+
+def _finding_copy(artifact: dict[str, Any]) -> dict[str, dict[str, str]]:
+    """Each finding code's plain-language wording, for the SARIF rule metadata."""
+    copy: dict[str, dict[str, str]] = {}
+    for category in artifact.get("categories", {}).values():
+        if not isinstance(category, dict):
+            continue
+        for finding in category.get("findings", []) or []:
+            code = str(finding.get("code") or "")
+            if code and code not in copy:
+                copy[code] = {
+                    "what": str(finding.get("what") or ""),
+                    "why": str(finding.get("why") or ""),
+                }
+    return copy
+
+
+def _standalone_scorecard_html(artifact: dict[str, Any]) -> str:
+    """One scorecard page that renders when opened straight from disk (file://)."""
+    import re
+
+    from .instance import BASE_URL
+    from .render_site import _render_agency
+
+    # Rewrite root-absolute asset and nav links to the live domain so the
+    # page renders correctly opened straight from disk (file://).
+    return re.sub(r'(href|src)="/', rf'\1="{BASE_URL}/', _render_agency(artifact, []))
+
+
+# Single-feed `try` options. A batch row carries its own name, country and
+# large-feed flag, and the output files are per row, so a batch refuses these
+# rather than silently ignoring them.
+_SINGLE_FEED_ONLY = (
+    ("--name", "name"),
+    ("--html", "html"),
+    ("--comment", "comment"),
+    ("--json-out", "json_out"),
+    ("--page-url", "page_url"),
+    ("--min-grade", "min_grade"),
+    ("--sarif", "sarif"),
+    ("--sarif-base", "sarif_base"),
+    ("--large-feed", "large_feed"),
+    # `--history` is recorded by the single-feed path only; a batch would take
+    # the flag and write nothing.
+    ("--history", "history"),
+)
+
+
+def _cmd_try_batch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """`scorecard try --batch CSV --out DIR`: a private cohort rollup (#363).
+
+    The CSV and the output folder are checked before anything is fetched. A
+    feed that cannot be scored is listed with its reason and never graded; the
+    run still exits 0 so the rest of the rollup is usable, unless ``--strict``.
+    """
+    from .batch import (
+        BatchInputError,
+        build_cohort_rollup,
+        prepare_output_dir,
+        read_batch_csv,
+        score_batch,
+        write_batch_outputs,
+    )
+
+    if getattr(args, "url", None):
+        parser.error("give either one feed or --batch CSV, not both")
+    if not getattr(args, "out", None):
+        parser.error("--batch needs --out DIR")
+    refused = [flag for flag, attr in _SINGLE_FEED_ONLY if getattr(args, attr, None)]
+    if getattr(args, "min_days_to_expiry", None) is not None:
+        refused.append("--min-days-to-expiry")
+    if getattr(args, "country", "US") != "US":
+        refused.append("--country")
+    if refused:
+        parser.error(
+            f"{', '.join(refused)} apply to one feed; with --batch each CSV row carries "
+            "its own values"
+        )
+    csv_path = Path(args.batch)
+    out_dir = Path(args.out)
     try:
-        artifact = run_adhoc(
+        rows = read_batch_csv(csv_path)
+        prepare_output_dir(out_dir)
+    except BatchInputError as exc:
+        log.error("refusing %s before fetching anything: %s", csv_path.name, exc)
+        return 2
+    results = score_batch(
+        rows, date=args.date, score=run_adhoc_detailed, workers=args.batch_workers
+    )
+    rollup = build_cohort_rollup(results, as_of=args.date, cohort_name=csv_path.stem)
+    write_batch_outputs(out_dir, results, rollup, render_html=_standalone_scorecard_html)
+    for member in rollup["members"]:
+        if member["status"] == "scored":
+            print(f"  scored      {member['name']} -> {member['scorecard_html']}")
+        else:
+            print(f"  not scored  {member['name']}: {member['reason']}")
+    print(
+        f"\n  {rollup['feeds_scored']} of {rollup['feeds_listed']} feeds scored; "
+        f"rollup written to {out_dir / 'rollup.html'}\n"
+    )
+    if getattr(args, "strict", False) and rollup["feeds_not_scored"]:
+        return 1
+    return 0
+
+
+def _cmd_try(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    if getattr(args, "batch", None):
+        return _cmd_try_batch(args, parser)
+    if not getattr(args, "url", None):
+        parser.error("try needs a feed URL or local zip, or --batch CSV")
+    if getattr(args, "out", None) or getattr(args, "strict", False):
+        parser.error("--out and --strict apply only with --batch")
+    try:
+        artifact, report = run_adhoc_detailed(
             args.url,
             args.name,
             args.date,
             country=getattr(args, "country", "US"),
+            large_feed=getattr(args, "large_feed", False),
         )
     except Exception as exc:
         log.error("could not score %s: %s", args.url, exc)
+        if getattr(args, "sarif", None):
+            # Not an empty successful run. A zero-result SARIF renders exactly
+            # like a clean feed, so a feed nobody could read gets an explicit
+            # unsuccessful invocation with the reason attached.
+            from .sarif import unreadable_feed_sarif
+
+            _write_sarif(args.sarif, unreadable_feed_sarif(f"{args.url}: {exc}"))
         return 1
     _print_scorecard_summary(artifact)
+    stopped = _try_side_outputs(artifact, report, args)
+    if stopped is not None:
+        return stopped
+
+    # CI gating: a feed-deployment repo can run `scorecard try <url> --min-grade B
+    # --min-days-to-expiry 30` and fail the build before publishing a bad feed.
+    return _try_gate(artifact, args)
+
+
+def _try_side_outputs(
+    artifact: dict[str, Any], report: ValidationReport, args: argparse.Namespace
+) -> int | None:
+    """Write the optional files a single-feed `try` was asked for, in order.
+
+    Returns an exit code when one of them stops the run, and ``None`` when
+    every requested file was written and the run should go on to its gate.
+    Only the workspace history stops it: it refuses rather than mix two feeds
+    into one folder, and the refusal must not be followed by a SARIF file or a
+    threshold verdict that reads like a complete run.
+
+    Split out of ``_cmd_try`` so that function stays under the complexity
+    floor -- see docs/lint-complexity-ratchet.md. `--batch` (#363) and
+    `--history` (#362) each added a branch there in the same week; neither
+    crossed the floor alone and together they did.
+    """
     if args.html:
-        import re
-
-        from .instance import BASE_URL
-        from .render_site import _render_agency
-
-        # Rewrite root-absolute asset and nav links to the live domain so the
-        # page renders correctly opened straight from disk (file://).
-        page = re.sub(r'(href|src)="/', rf'\1="{BASE_URL}/', _render_agency(artifact, []))
+        page = _standalone_scorecard_html(artifact)
         out = Path(args.html)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(page)
@@ -530,9 +745,32 @@ def _cmd_try(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         out.write_text(json.dumps(artifact, indent=2, sort_keys=True) + "\n")
         print(f"  Scorecard JSON written to {out}\n")
 
-    # CI gating: a feed-deployment repo can run `scorecard try <url> --min-grade B
-    # --min-days-to-expiry 30` and fail the build before publishing a bad feed.
-    return _try_gate(artifact, args)
+    if getattr(args, "history", None):
+        from .workspace import WorkspaceError, append_run, describe_source
+
+        try:
+            ledger, step = append_run(
+                Path(args.history), artifact, source=describe_source(args.url)
+            )
+        except WorkspaceError as exc:
+            log.error("not recording this run in the history: %s", exc)
+            return 2
+        print(f"  History appended to {ledger}. {step.sentence}\n")
+
+    if getattr(args, "sarif", None):
+        from .sarif import build_sarif
+
+        _write_sarif(
+            args.sarif,
+            build_sarif(
+                report,
+                findings=_finding_copy(artifact),
+                base=getattr(args, "sarif_base", "") or "",
+            ),
+        )
+        print(f"  SARIF written to {args.sarif}\n")
+
+    return None
 
 
 def _try_gate(artifact: dict[str, Any], args: argparse.Namespace) -> int:
@@ -566,12 +804,126 @@ def _try_gate(artifact: dict[str, Any], args: argparse.Namespace) -> int:
     return 1 if failures else 0
 
 
+#: Exit codes for ``scorecard diff``. Kept distinct on purpose: "the feed got
+#: worse" and "I cannot tell you whether the feed got worse" are different
+#: answers, and a CI gate that collapses them fails closed on the wrong thing.
+DIFF_EXIT_OK = 0
+DIFF_EXIT_REGRESSED = 1
+DIFF_EXIT_NOT_COMPARABLE = 2
+#: An operand could not be read at all. Distinct from NOT_COMPARABLE on purpose:
+#: "these two artifacts are different measurements" is a verdict about two
+#: artifacts, and "I never got one of them" is not a verdict at all. Reporting a
+#: fetch failure as a contract boundary would attribute a broken configuration to
+#: the feed's methodology, which is the wrong thing to tell a maintainer and the
+#: wrong thing for a CI gate to act on.
+DIFF_EXIT_UNREADABLE = 3
+
+
+class ArtifactReferenceError(ValueError):
+    """A diff operand could not be resolved to a scorecard artifact."""
+
+
+def _load_artifact_reference(reference: str) -> dict[str, Any]:
+    """Resolve one ``scorecard diff`` operand to a parsed artifact.
+
+    Three forms, in the order they are tried:
+
+    * an ``http(s)`` URL, fetched through the same SSRF and size guards every
+      other network read in this project uses;
+    * an existing local path;
+    * ``agency@YYYY-MM-DD`` or ``agency@latest``, resolved against the local
+      artifacts directory.
+
+    An unreadable operand raises. It is never resolved to an empty artifact:
+    scoring an absence as a comparable zero is exactly the failure the
+    comparability check below exists to prevent, and it must not be reintroduced
+    one directory lookup earlier.
+    """
+    if reference.startswith(("http://", "https://")):
+        from .net import safe_get
+
+        body = safe_get(reference, timeout=(10, 60))
+        try:
+            payload = json.loads(body)
+        except json.JSONDecodeError as exc:
+            raise ArtifactReferenceError(
+                f"{reference} did not return JSON: {exc}. An HTTP 200 carrying an error "
+                f"page is not an artifact."
+            ) from exc
+    else:
+        path = Path(reference)
+        if not path.exists() and "@" in reference:
+            from .config import artifacts_dir
+
+            agency_id, _, when = reference.rpartition("@")
+            name = "latest.json" if when == "latest" else f"{when}.json"
+            path = artifacts_dir() / agency_id / name
+        if not path.exists():
+            raise ArtifactReferenceError(
+                f"no artifact at {reference!r}: expected a file path, an http(s) URL, or "
+                f"agency@YYYY-MM-DD / agency@latest resolvable under the artifacts directory"
+            )
+        try:
+            payload = json.loads(path.read_text())
+        except json.JSONDecodeError as exc:
+            raise ArtifactReferenceError(f"{path} is not valid JSON: {exc}") from exc
+    if not isinstance(payload, dict) or "categories" not in payload:
+        raise ArtifactReferenceError(
+            f"{reference} is not a scorecard artifact: it carries no 'categories' object, "
+            f"so there is nothing to compare"
+        )
+    return payload
+
+
+def _cmd_diff(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Compare two scorecard artifacts, refusing across a contract boundary."""
+    from .feeddiff import compare_contract, diff_json, render_diff_markdown, render_diff_text
+
+    try:
+        prev = _load_artifact_reference(args.old)
+        curr = _load_artifact_reference(args.new)
+    except (ArtifactReferenceError, UnsafeURLError, OSError) as exc:
+        log.error("could not read an artifact to diff: %s", exc)
+        return DIFF_EXIT_UNREADABLE
+
+    if args.format == "json":
+        rendered = json.dumps(diff_json(prev, curr), indent=2, sort_keys=True) + "\n"
+    elif args.format == "markdown":
+        rendered = render_diff_markdown(prev, curr)
+    else:
+        rendered = render_diff_text(prev, curr)
+    if args.out:
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(rendered)
+    else:
+        print(rendered, end="")
+
+    check = compare_contract(prev, curr)
+    if not check.comparable:
+        return DIFF_EXIT_NOT_COMPARABLE
+    from .feeddiff import diff_artifacts
+
+    return DIFF_EXIT_REGRESSED if diff_artifacts(prev, curr).regressed else DIFF_EXIT_OK
+
+
 def _country_arg(value: str) -> str:
     """Argparse adapter for assigned ISO 3166-1 alpha-2 country codes."""
     try:
         return validator_country_code(value)
     except ValueError as exc:
         raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _positive_int(value: str) -> int:
+    """Argparse adapter for a count or duration that has to be at least 1."""
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"not a whole number: {value!r}") from exc
+    if number < 1:
+        raise argparse.ArgumentTypeError(f"must be at least 1, got {number}")
+    return number
 
 
 def _artifact_contract_current(agency_id: str) -> bool:
@@ -631,9 +983,22 @@ def _liveness_unchanged(agency_id: str) -> bool:
         return False
 
     agency = AGENCIES[agency_id]
+    if agency.fetch_auth is not None:
+        # The conditional GET carries no credential (#371), so a gated URL
+        # would answer 401 and count as a liveness failure against a feed that
+        # is fine. Score it; the credentialed fetch is the real check.
+        log.info("Re-scoring %s: credentialed feeds skip the keyless liveness check", agency_id)
+        return False
     state_path = repo_root() / "data" / "liveness.json"
     state = load_state(state_path)
     prev = state.get(agency_id)
+    from .robots_policy import shared_checker
+
+    if not shared_checker().check(agency.static_gtfs_url).allowed:
+        # ADR 0070: no conditional GET either. Score it, so the fetch records
+        # the refusal as "not fetched" with its reason.
+        log.info("Re-scoring %s: robots.txt refuses the feed URL", agency_id)
+        return False
     record, classification = check_feed(agency.static_gtfs_url, prev)
     state[agency_id] = record
     save_state(state_path, state)
@@ -655,6 +1020,23 @@ def _log_run_failure(agency_id: str, exc: Exception, *, single: bool) -> None:
         log.error("%s: %s", agency_id, exc)
     else:
         log.exception("%s: pipeline run failed", agency_id)
+
+
+def _unreachable_reason(exc: Exception) -> str | None:
+    """The fixed reason for an unreachable outcome that is ours, not the feed's.
+
+    A missing credential is our configuration (#371) and a robots.txt refusal
+    is our policy (ADR 0070). Naming them lets /status/ and the operator tell
+    either apart from a publisher outage. Anything else is None.
+    """
+    from .feed_auth import CredentialNotConfiguredError
+    from .robots_policy import RobotsRefusedError
+
+    if isinstance(exc, CredentialNotConfiguredError):
+        return CredentialNotConfiguredError.reason
+    if isinstance(exc, RobotsRefusedError):
+        return exc.reason
+    return None
 
 
 def _cmd_run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
@@ -693,14 +1075,19 @@ def _cmd_run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
                 )
             continue
         try:
-            result = run_agency(
-                agency_id,
-                args.date,
-                force_fetch=args.force_fetch,
-                rt_samples=args.rt_samples,
-                rt_interval=args.rt_interval,
-                skip_rt=args.skip_rt,
-            )
+            # A no-op unless the intraday rescore set SCORECARD_HEAVY_LOCK, in
+            # which case sibling runs take turns at validating and scoring.
+            # The download and the realtime sampling window give the turn
+            # back while they wait (worklock.py).
+            with heavy_section():
+                result = run_agency(
+                    agency_id,
+                    args.date,
+                    force_fetch=args.force_fetch,
+                    rt_samples=args.rt_samples,
+                    rt_interval=args.rt_interval,
+                    skip_rt=args.skip_rt,
+                )
             print(result.path)
             if outcome_out:
                 from .run_summary import AgencyOutcome, append_outcome
@@ -721,12 +1108,14 @@ def _cmd_run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             if outcome_out:
                 from .run_summary import AgencyOutcome, append_outcome
 
+                reason = _unreachable_reason(exc)
                 append_outcome(
                     outcome_out,
                     AgencyOutcome(
                         agency_id=agency_id,
                         outcome="unreachable",
                         wall_seconds=time.monotonic() - started,
+                        reason=reason,
                     ),
                 )
     if failures:
@@ -793,12 +1182,17 @@ def _sync_tool_identity() -> dict[str, object]:
         digest.update(path.read_bytes())
         digest.update(b"\0")
     try:
-        version = importlib.metadata.version("scorecard-pipeline")
+        version = importlib.metadata.version("gtfs-scorecard")
     except importlib.metadata.PackageNotFoundError:
         version = "unknown"
     jurisdiction_registry = package_root / "data" / "iso3166.json"
     source_metadata_schema = _sync_source_metadata_schema_bytes()
     return {
+        # The 1.2 receipt schema fixes this value as a constant, and that schema
+        # is frozen under an immutable public id (tests/test_schemas.py). It is
+        # the tool's name under the 1.2 contract, not the PyPI distribution,
+        # which has been `gtfs-scorecard` since 1.5.1. A later schema version is
+        # where this label would change.
         "package": "scorecard-pipeline",
         "version": version,
         "proposal_contract_version": _SYNC_PROPOSAL_CONTRACT_VERSION,
@@ -1096,11 +1490,30 @@ def _validated_sync_catalog(
         catalog_schema = proposal_catalog_schema(csv_text)
     except ValueError as exc:
         parser.error(f"cannot use proposal catalog: {exc}")
-    if source == default_source and catalog_schema != "mobilitydatabase-feeds-v2":
-        parser.error(
-            "the default Mobility Database proposal URL must return the V2 feeds_v2.csv schema"
-        )
+    if source == default_source:
+        # ADR 0070: the default is the storage.googleapis.com export. It must
+        # prove the eligibility columns are present, so a truncated or wrong
+        # response cannot become an empty, apparently successful intake run.
+        header = {c.strip() for c in next(iter(csv.reader([csv_text.partition("\n")[0]])), [])}
+        missing = sorted(_DEFAULT_PROPOSAL_COLUMNS - header)
+        if catalog_schema != "mobilitydatabase-legacy" or missing:
+            parser.error(
+                "the default Mobility Database proposal URL must return the full export "
+                "schema" + (f" (missing: {', '.join(missing)})" if missing else "")
+            )
     return csv_text, catalog_schema
+
+
+_DEFAULT_PROPOSAL_COLUMNS = frozenset(
+    {
+        "mdb_source_id",
+        "data_type",
+        "status",
+        "is_official",
+        "urls.direct_download",
+        "urls.authentication_type",
+    }
+)
 
 
 def _sync_proposal_outputs(
@@ -1348,20 +1761,44 @@ def _report_discovery(
     return appliable
 
 
+# Exit code for "the catalog update is paused" (no API token): distinct from a
+# failure (1) and from the single-agency skip (2) so a workflow can say so.
+CATALOG_PAUSED_EXIT = 3
+
+
+def _catalog_feeds(catalog: str | None, default_url: str) -> list[CatalogFeed]:
+    """Catalog rows from the API (``--catalog api``), a local CSV, or a CSV URL.
+
+    ``api`` reads the Mobility Database API and raises ``CatalogPausedError``
+    before any request when the token is missing (ADR 0070). It never falls
+    back to another source. A URL on a host that disallows us is refused by
+    ``fetch_catalog``.
+    """
+    from .mobilitydb import fetch_catalog, parse_catalog
+
+    if catalog == "api":
+        from .catalog_api import load_api_catalog
+
+        return load_api_catalog()
+    source = catalog or default_url
+    if source.startswith(("http://", "https://")):
+        return parse_catalog(fetch_catalog(source))
+    return parse_catalog(Path(source).read_text())
+
+
 def _cmd_discover(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     from .config import repo_root
     from .mobilitydb import (
         DEFAULT_CATALOG_URL,
         apply_replacements,
-        fetch_catalog,
         find_replacements,
-        parse_catalog,
     )
 
-    source = args.catalog or DEFAULT_CATALOG_URL
-    is_url = source.startswith(("http://", "https://"))
-    csv_text = fetch_catalog(source) if is_url else Path(source).read_text()
-    feeds = parse_catalog(csv_text)
+    try:
+        feeds = _catalog_feeds(args.catalog, DEFAULT_CATALOG_URL)
+    except CatalogPausedError as paused:
+        log.warning("%s", paused)
+        return CATALOG_PAUSED_EXIT
 
     # Which tracked agencies to check. Default to the expired ones, since a
     # current feed's URL is by definition still working; --all checks every one.
@@ -1414,27 +1851,42 @@ def _cmd_supersessions(args: argparse.Namespace, parser: argparse.ArgumentParser
     current scorecard beside the record that replaced it, so one agency carries
     two grades and neither page mentions the other.
     """
+    from .catalog_repoint import (
+        apply_repoints,
+        check_successor_robots,
+        find_repoints,
+        render_repoints_md,
+    )
     from .config import repo_root
     from .mobilitydb import (
         DEFAULT_PROPOSAL_CATALOG_URL,
         apply_supersessions,
-        fetch_catalog,
         find_supersessions,
         hold_for_review,
-        parse_catalog,
         render_supersessions_md,
     )
+    from .robots_policy import shared_checker
     from .supersession_review import REVIEW_FILENAME, read_review
 
-    source = args.catalog or DEFAULT_PROPOSAL_CATALOG_URL
-    is_url = source.startswith(("http://", "https://"))
-    csv_text = fetch_catalog(source) if is_url else Path(source).read_text()
-    feeds = parse_catalog(csv_text)
+    try:
+        feeds = _catalog_feeds(args.catalog, DEFAULT_PROPOSAL_CATALOG_URL)
+    except CatalogPausedError as paused:
+        log.warning("%s", paused)
+        return CATALOG_PAUSED_EXIT
     found, unresolved = find_supersessions(feeds, AGENCIES.values())
     superseded, held = hold_for_review(found, read_review(repo_root()))
     report = render_supersessions_md(
         superseded, unresolved, today=utc_today().isoformat(), held=held
     )
+    # ADR 0069: a retirement whose one current successor we do not track is a
+    # URL repair, not an alias. The successor host's robots.txt is read before
+    # the edit is proposed, under the same policy as the daily fetch (ADR
+    # 0070); a refusal holds it for a person.
+    repoints = check_successor_robots(
+        find_repoints(feeds, AGENCIES.values()),
+        shared_checker().check,
+    )
+    report = report.rstrip("\n") + "\n\n" + render_repoints_md(repoints)
     if args.out:
         Path(args.out).write_text(report)
         log.info("Wrote the supersession report to %s", args.out)
@@ -1467,6 +1919,17 @@ def _cmd_supersessions(args: argparse.Namespace, parser: argparse.ArgumentParser
             log.info("Retired %d superseded record(s) in the registry.", len(changed))
         else:
             log.info("No superseded records to retire.")
+        moved: list[str] = []
+        for registry_path in registry_paths(repo_root()):
+            updated, moved_here = apply_repoints(registry_path.read_text(), repoints)
+            if moved_here:
+                registry_path.write_text(updated)
+                moved.extend(moved_here)
+        log.info(
+            "Moved %d record(s) to the catalog's successor feed; %d held for review.",
+            len(moved),
+            sum(1 for item in repoints if not item.ready),
+        )
     return 0
 
 
@@ -1542,7 +2005,24 @@ def _cmd_evidence_packet(args: argparse.Namespace, parser: argparse.ArgumentPars
         artifact = json.loads(artifact_path.read_text())
     except (OSError, json.JSONDecodeError) as exc:
         parser.error(f"could not read scorecard artifact: {exc}")
-    packet = build_evidence_packet(artifact, scorecard_url=args.scorecard_url)
+    # Rider-trips and need are joined here, when the packet is built, from the
+    # same snapshots the agency page reads (issue #367). The quarantine needs the
+    # registry, which _dispatch has loaded.
+    from .consequence import join_feed_context
+    from .consequence_sources import load_render_sources
+    from .ridership import duplicate_ntd_reporter_ids
+
+    sources = load_render_sources(
+        repo_root(),
+        frozenset(duplicate_ntd_reporter_ids(a for a in AGENCIES.values() if a.is_canonical_feed)),
+    )
+    agency_id = str((artifact.get("agency") or {}).get("id") or "")
+    feed_context = join_feed_context(
+        artifact, sources, us_state=_published_states().get(agency_id, "")
+    )
+    packet = build_evidence_packet(
+        artifact, scorecard_url=args.scorecard_url, feed_context=feed_context
+    )
     output = (
         render_evidence_packet_markdown(packet)
         if args.format == "markdown"
@@ -1554,6 +2034,101 @@ def _cmd_evidence_packet(args: argparse.Namespace, parser: argparse.ArgumentPars
     else:
         print(output, end="")
     return 0
+
+
+#: `retest` options that only mean something when it scores FEED itself.
+_RETEST_FEED_ONLY = (("--name", "name"), ("--date", "date"), ("--large-feed", "large_feed"))
+
+
+def _cmd_retest(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Check a new export against an evidence packet (#366).
+
+    The export is either scored here (FEED) or was already scored by
+    `scorecard try --json-out` (``--artifact``), which is how the Action's
+    `evidence-packet` input avoids running the validator twice. The packet is
+    read and validated first either way, so a refused packet costs no download,
+    no validator run and no artifact read. Exit 0 when every packet finding is
+    cleared, 1 when any is still present, and 2 for anything this command could
+    not judge: a refused packet, a feed that could not be scored, an artifact
+    that could not be read, or a finding that is not comparable.
+    """
+    from .retest import PacketError, validate_packet
+
+    if bool(args.feed) == bool(args.artifact):
+        parser.error("give exactly one of FEED to score or --artifact for an export already scored")
+    if args.artifact:
+        # Refused rather than ignored: the artifact was scored already, so a
+        # name, date or large-feed ceiling given here would change nothing
+        # while reading as though it had.
+        ignored = [flag for flag, attr in _RETEST_FEED_ONLY if getattr(args, attr)]
+        if ignored:
+            parser.error(f"{', '.join(ignored)} apply only when retest scores FEED itself")
+    packet_path = Path(args.packet)
+    try:
+        packet = validate_packet(json.loads(packet_path.read_text()))
+    except (OSError, json.JSONDecodeError, PacketError) as exc:
+        log.error(
+            "refusing %s before %s: %s",
+            packet_path,
+            "reading the scored artifact" if args.artifact else "fetching anything",
+            exc,
+        )
+        return 2
+    scored = _retest_scored(args, packet)
+    if scored is None:
+        return 2
+    return _write_retest(args, packet, *scored)
+
+
+def _retest_scored(
+    args: argparse.Namespace, packet: dict[str, Any]
+) -> tuple[dict[str, Any], str] | None:
+    """The retest's artifact and how the record names its feed, or ``None`` after
+    logging why there is none. A feed nobody could read is a retest nobody could
+    judge, not a finding that is still present, so the caller exits 2 for it."""
+    from .retest import ArtifactError, artifact_source, describe_source, read_scored_artifact
+
+    if args.artifact:
+        path = Path(args.artifact)
+        try:
+            artifact = read_scored_artifact(path, country=args.country)
+        except ArtifactError as exc:
+            log.error("cannot retest: %s", exc)
+            return None
+        return artifact, artifact_source(artifact, path)
+    try:
+        artifact, _report = run_adhoc_detailed(
+            args.feed,
+            args.name or str(packet["agency"].get("name") or "") or None,
+            args.date or utc_today(),
+            country=args.country,
+            large_feed=args.large_feed,
+        )
+    except Exception as exc:
+        # The same breadth `scorecard try` catches.
+        log.error("could not score %s: %s", args.feed, exc)
+        return None
+    return artifact, describe_source(args.feed)
+
+
+def _write_retest(
+    args: argparse.Namespace, packet: dict[str, Any], artifact: dict[str, Any], source: str
+) -> int:
+    """Build the retest record, write and print it, and return its exit code."""
+    from .retest import build_retest_record, render_retest_markdown, retest_exit_code
+
+    record = build_retest_record(packet, artifact, retest_source=source, country=args.country)
+    markdown = render_retest_markdown(record)
+    if args.json_out:
+        out = Path(args.json_out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
+    if args.markdown_out:
+        out = Path(args.markdown_out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(markdown)
+    print(markdown, end="")
+    return retest_exit_code(record)
 
 
 def _cmd_fix_outcomes(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
@@ -1676,6 +2251,7 @@ def _latest_records(agency_ids: list[str] | None = None) -> list[dict[str, Any]]
 
     from .config import artifacts_dir
     from .publish import registered_agency_dirs
+    from .url_redaction import redact_artifact
 
     root = artifacts_dir()
     if not root.exists():
@@ -1692,6 +2268,9 @@ def _latest_records(agency_ids: list[str] | None = None) -> list[dict[str, Any]]
             art = _json.loads(latest.read_text())
         except (OSError, ValueError):
             continue
+        # These records feed public exports (the dataset and portfolio
+        # commands); an older artifact's URLs pass the one redaction rule.
+        redact_artifact(art)
         comp = art.get("categories", {}).get("completeness", {}).get("details", {})
         records.append(
             {
@@ -1920,6 +2499,7 @@ def _cmd_ntd_crosswalk(args: argparse.Namespace, parser: argparse.ArgumentParser
 def _cmd_ntd_ridership(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     from .comparisons import build_comparison_cohort, reader_archive_profile
     from .config import repo_root
+    from .consequence_sources import ridership_meta
     from .metrics import expiry_status
     from .ridership import (
         duplicate_ntd_reporter_ids,
@@ -1942,6 +2522,13 @@ def _cmd_ntd_ridership(args: argparse.Namespace, parser: argparse.ArgumentParser
             if len(parse_ridership_csv(text)) > 100:
                 csv_path.parent.mkdir(parents=True, exist_ok=True)
                 csv_path.write_text(text)
+                # The stamp pages cite when they join these trips (issue #367).
+                # Without it the join refuses to show them, so a hand-committed
+                # CSV never reads as a dated snapshot.
+                csv_path.with_suffix(".meta.json").write_text(
+                    json.dumps(ridership_meta(candidate, utc_today()), indent=2, sort_keys=True)
+                    + "\n"
+                )
                 log.info("Fetched NTD %s ridership to %s.", candidate, csv_path)
                 break
         else:
@@ -2032,22 +2619,156 @@ def _cmd_ntd_ridership(args: argparse.Namespace, parser: argparse.ArgumentParser
     return 0
 
 
+#: Hygiene kinds that ``--strict`` refuses to merge over. Everything else
+#: ``lint_registry`` reports is advisory: a standing backlog about the whole
+#: registry, not a verdict on the entry in front of you.
+#: ``literal_credential`` (#371) blocks because a merged literal credential is
+#: published the moment it lands, and the registry is public.
+STRICT_LINT_KINDS = frozenset(
+    {"feed_descriptor_name", "duplicate_mdb_id", "duplicate_feed_url", "literal_credential"}
+)
+
+
 def _cmd_lint(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Report registry hygiene, and say plainly whether it blocks a merge.
+
+    docs/add-your-agency.md sends a first-time contributor here and tells them
+    "a green result here means a green check there". There was no green result
+    to see. The advisory kinds -- non-HTTPS feed URLs and missing Mobility
+    Database ids -- stand at well over a thousand rows across the whole
+    registry, so adding one correct entry prints a screenful of tab-separated
+    lines about other people's agencies and then exits 0 silently. The summary
+    that would have explained it went to ``log.info``, which the CLI does not
+    show by default, so the only signal was an exit status nobody looks at.
+
+    The report itself is unchanged and still goes to stdout, one row per issue,
+    so anything parsing it is unaffected. The verdict goes to stderr, where the
+    contributor reads it and a pipeline does not.
+    """
     from collections import Counter
 
     from .lint import lint_registry
 
     issues = lint_registry(AGENCIES.values())
     if not issues:
-        log.info("Registry is clean: %d agencies, no hygiene issues.", len(AGENCIES))
+        print(
+            f"Registry lint: clean. {len(AGENCIES)} agencies, no hygiene issues.", file=sys.stderr
+        )
         return 0
     for issue in issues:
         print(f"{issue.kind}\t{issue.agency_id}\t{issue.detail}")
     by_kind = Counter(i.kind for i in issues)
-    log.info("%d registry issue(s): %s", len(issues), dict(by_kind))
-    strict_kinds = {"feed_descriptor_name", "duplicate_mdb_id", "duplicate_feed_url"}
-    if args.strict and strict_kinds.intersection(by_kind):
+    blocking = sorted(STRICT_LINT_KINDS.intersection(by_kind))
+    counted = ", ".join(f"{kind} {count}" for kind, count in sorted(by_kind.items()))
+    print(
+        f"Registry lint: {len(issues)} issue(s) across {len(AGENCIES)} agencies ({counted}).",
+        file=sys.stderr,
+    )
+    if not args.strict:
+        print(
+            "Registry lint: advisory only; --strict is what the merge gate runs.",
+            file=sys.stderr,
+        )
+        return 0
+    if blocking:
+        print(
+            "Registry lint FAILED: --strict blocks on " + ", ".join(blocking) + ".",
+            file=sys.stderr,
+        )
         return 1
+    print(
+        "Registry lint PASSED --strict. Every issue above is advisory and does not "
+        "block a merge; none of them is about a single new entry.",
+        file=sys.stderr,
+    )
+    return 0
+
+
+def _cmd_license_audit(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Count registry records by the license each note names (issue #372).
+
+    A report, never a gate: it exits 0 whatever it finds. Share-alike is admitted
+    with a notice (owner decision, 2026-09-19), so its share-alike count is a
+    measurement, not a list of records to remove.
+    """
+    from .license_audit import license_audit, render_text
+
+    report = license_audit(AGENCIES.values())
+    if args.json:
+        print(json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        print(render_text(report), end="")
+    return 0
+
+
+def _cmd_license_lint(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Report records with no structured license block, or an inconsistent one (issue #372).
+
+    Advisory, and it says so in its own output: it does not change which feeds
+    are admitted, scored, or published, and it exits 0 whatever it finds. There
+    is no ``--strict``; an admission rule waits on the migration, and it would
+    not refuse a share-alike license.
+    """
+    from .license_ledger import NO_LICENSE_BLOCK, STATUSES, ledger_report
+
+    report = ledger_report(AGENCIES.values())
+    if args.json:
+        print(json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False))
+        return 0
+    by_kind = report["by_kind"]
+    lines = [
+        f"License ledger lint. {report['notice']}",
+        f"Records: {report['records']}. With a structured license block: "
+        f"{report['with_block']}. Without: {report['without_block']}.",
+        "Blocks by status: "
+        + ", ".join(f"{status} {report['by_status'][status]}" for status in STATUSES)
+        + ".",
+        "Findings by kind:",
+        *(f"  {kind:<38} {count:>6}" for kind, count in by_kind.items()),
+        f"Records with no finding: {report['clean_records']}.",
+    ]
+    rows = [f for f in report["findings"] if args.all or f["kind"] != NO_LICENSE_BLOCK]
+    if rows:
+        lines.append("")
+        lines.extend(f"{f['kind']}\t{f['agency_id']}\t{f['detail']}" for f in rows)
+    hidden = by_kind[NO_LICENSE_BLOCK] if not args.all else 0
+    if hidden:
+        lines.append("")
+        lines.append(f"{hidden} {NO_LICENSE_BLOCK} rows not listed; pass --all to list them.")
+    print("\n".join(lines))
+    return 0
+
+
+def _cmd_license_migrate(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Propose structured license blocks from license notes; a dry run unless --apply (#372).
+
+    Mechanical mappings only: a note that names one vocabulary license gets that
+    block as ``unreviewed``, and everything else gets ``unknown`` and
+    ``needs_review``. It never writes a review. ``--apply`` edits the registry
+    shards after verifying every edit in memory; without it nothing is written.
+    """
+    from .license_migrate import (
+        MigrationError,
+        apply_migration,
+        migration_report,
+        plan_migration,
+        render_rows,
+        render_summary,
+    )
+
+    plan = plan_migration(AGENCIES.values())
+    files_changed = 0
+    if args.apply:
+        try:
+            files_changed = apply_migration(plan)
+        except MigrationError as exc:
+            print(f"License migration FAILED, nothing was written: {exc}", file=sys.stderr)
+            return 1
+    report = migration_report(plan, applied=args.apply, files_changed=files_changed)
+    if args.json:
+        print(json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        print(render_summary(report) + "\n" + render_rows(report), end="")
     return 0
 
 
@@ -2155,6 +2876,15 @@ def _cmd_rt_health(args: argparse.Namespace, parser: argparse.ArgumentParser) ->
         # The monitor stays a lightweight realtime poll: coverage needs the static
         # feed and is recorded by the daily score, not here.
         obs = observe(window, kinds_total=len(agency.rt_urls), scheduled=None)
+        if obs is None:
+            # Every sample failed inside our own fetcher, so this run is
+            # evidence about us and not about the feed. Recording it would
+            # publish our outage as theirs on /realtime/.
+            log.warning(
+                "%s: no realtime endpoint could be sampled; recording no observation.",
+                agency_id,
+            )
+            continue
         try:
             append_observation(agency_id, obs)
         except RtHealthRecordCorruptError:
@@ -2370,12 +3100,44 @@ def _cmd_query(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
     return 0
 
 
+def _cmd_history_export(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Build the scorecard history tables (ADR 0063): checks and findings as
+    Parquet, with the data dictionary, provenance, and license, from the dated
+    artifacts under data/artifacts. Reads the public data and writes nothing
+    into it."""
+    from .history_export import HistoryExportError, export_history, read_exclusions
+
+    try:
+        exclusions = read_exclusions(Path(args.exclusions)) if args.exclusions else None
+        counters = export_history(
+            Path(args.out),
+            root=Path(args.artifacts) if args.artifacts else None,
+            exclusions=exclusions,
+            generated_on=args.generated_on,
+            zip_path=Path(args.zip) if args.zip else None,
+        )
+    except HistoryExportError as exc:
+        parser.error(str(exc))
+    log.info(
+        "History tables: %d checks and %d findings over %d feed records (%s to %s); "
+        "%d artifacts unreadable; %d feed records excluded by request.",
+        counters.checks,
+        counters.findings,
+        counters.feed_records,
+        counters.first_snapshot,
+        counters.last_snapshot,
+        counters.artifacts_unreadable,
+        counters.excluded_records,
+    )
+    return 0
+
+
 def _cmd_equity(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     import json as _json
 
     from .config import artifacts_dir
     from .dataset import build_quality_dataset
-    from .equity import build_overlay, fetch_state_indicators, render_overlay
+    from .equity import ACS_YEAR, build_overlay, fetch_state_indicators, render_overlay
 
     index_path = artifacts_dir() / "index.json"
     index = _json.loads(index_path.read_text()) if index_path.exists() else {"agencies": {}}
@@ -2418,6 +3180,10 @@ def _cmd_equity(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
             len(overlay["states"]),
         )
         return 1
+    # The ACS vintage and build date, which a page cites when it joins a
+    # state's tier to a feed (issue #367). An undated overlay is not joined.
+    overlay["acs_year"] = ACS_YEAR
+    overlay["generated_on"] = utc_today().isoformat()
     if args.json_out:
         Path(args.json_out).write_text(_json.dumps(overlay, indent=2, sort_keys=True) + "\n")
         log.info("Wrote equity overlay JSON to %s", args.json_out)
@@ -2437,6 +3203,7 @@ def _cmd_canada_equity(args: argparse.Namespace, parser: argparse.ArgumentParser
     from .agencies import load_agencies
     from .cimd import agency_cimd
     from .config import AGENCIES, artifacts_dir
+    from .consequence_sources import CIMD_SOURCE
     from .tract_data import stops_from_geometry
 
     load_agencies()
@@ -2461,7 +3228,13 @@ def _cmd_canada_equity(args: argparse.Namespace, parser: argparse.ArgumentParser
             continue
         results[agency.id] = {"name": agency.name, "need_tier": tier, "mean_quintile": quintile}
         log.info("canada-equity: %s -> %s (mean quintile %s)", agency.id, tier, quintile)
-    doc: dict[str, Any] = {"schema_version": 1, "agencies": results}
+    # Source and build date, which a page cites when it joins a tier (#367).
+    doc: dict[str, Any] = {
+        "schema_version": 1,
+        "agencies": results,
+        "source": CIMD_SOURCE,
+        "generated_on": utc_today().isoformat(),
+    }
     out_path = Path(args.out) if args.out else artifacts_dir() / "canada-equity.json"
 
     # Every failure above is a `continue`, so without these two checks a StatCan
@@ -2589,12 +3362,105 @@ def _cmd_onboard(args: argparse.Namespace, parser: argparse.ArgumentParser) -> i
     return 0
 
 
-def _cmd_freshness_sweep(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
-    import json as _json
+def _current_artifact_for_sweep(agency_dir: Path) -> dict[str, Any] | None:
+    """This agency's current artifact, or None when there is nothing to sweep.
 
+    A directory with no ``latest.json``, or one that cannot be read as JSON, is
+    not a sweep candidate. Kept out of the command so its loop stays a sequence
+    of decisions about the artifact rather than about the file.
+    """
+    latest = agency_dir / "latest.json"
+    if not latest.exists():
+        return None
+    try:
+        artifact = json.loads(latest.read_text())
+    except (OSError, ValueError):
+        return None
+    return artifact if isinstance(artifact, dict) else None
+
+
+def _warn_held_back_from_sweep(held_back: list[str], corrections_filename: str) -> None:
+    """Say which published grades the sweep refused to carry to a new date.
+
+    The sweep runs unattended every cycle, so this is the only place a person
+    learns that a record is publishing a letter over an archive with nothing in
+    it. Taking that letter down is a reviewed entry in the corrections file,
+    which nobody can write for a record they were never told about.
+    """
+    if not held_back:
+        return
+    log.warning(
+        "Held back %d published grade(s) over an archive with no stops and no "
+        "trips; the sweep will not re-date them, and they stay published until "
+        "withdrawn in %s: %s",
+        len(held_back),
+        corrections_filename,
+        ", ".join(sorted(held_back)),
+    )
+
+
+@dataclasses.dataclass
+class _SweepOutcome:
+    """What one freshness sweep did, by agency id."""
+
+    swept_ids: list[str] = dataclasses.field(default_factory=list)
+    held_back: list[str] = dataclasses.field(default_factory=list)
+    deferred: list[str] = dataclasses.field(default_factory=list)
+    changes: list[dict[str, Any]] = dataclasses.field(default_factory=list)
+
+
+def _sweep_agencies(
+    root: Path, today: dt.date, *, apply: bool, deadline: float | None
+) -> _SweepOutcome:
+    """Re-date every registered agency that is due, until ``deadline`` passes.
+
+    ``deadline`` is a ``time.monotonic()`` reading; None means no budget.
+    """
+    from .publish import flush_index, publish, registered_agency_dirs
+    from .sweep import carries_a_grade_the_scorer_would_refuse, needs_sweep, resweep
+
+    outcome = _SweepOutcome()
+    # index.json is written once, after the loop, instead of once per agency:
+    # every publish re-serialized the whole file, which holds every agency's
+    # full history (148 MB on 2026-10-22), and that alone made a first-of-day
+    # sweep of ~2,500 agencies take 134 to 167 minutes.
+    index_batch: dict[str, dict[str, Any]] = {}
+    # Bounded to the registry: re-stamping an unlisted S3-hydrated directory
+    # keeps a delisted feed looking alive (docs/listing-policy.md).
+    for agency_dir in registered_agency_dirs(root):
+        artifact = _current_artifact_for_sweep(agency_dir)
+        if artifact is None:
+            continue
+        # Named, never skipped quietly: this record publishes a letter over an
+        # archive with no stops and no trips, so the sweep must not carry it to
+        # a new date. Retracting it is a reviewed corrections.yaml entry, and
+        # nobody can write one for a record they were never told about.
+        if carries_a_grade_the_scorer_would_refuse(artifact):
+            outcome.held_back.append(agency_dir.name)
+            continue
+        if not needs_sweep(artifact, today):
+            continue
+        if deadline is not None and time.monotonic() >= deadline:
+            # Its last published record stays as it is, byte for byte: its
+            # snapshot_date and recompute.as_of still say when it was last
+            # computed, and the next cycle finds it again because that date
+            # is still older than today.
+            outcome.deferred.append(agency_dir.name)
+            continue
+        new_artifact, summary = resweep(artifact, today)
+        outcome.swept_ids.append(str(summary["id"]))
+        if summary["grade_changed"]:
+            outcome.changes.append(summary)
+        if apply:
+            publish(new_artifact, index_batch=index_batch)
+    if apply:
+        flush_index(index_batch)
+    return outcome
+
+
+def _cmd_freshness_sweep(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     from .config import artifacts_dir
-    from .publish import publish, registered_agency_dirs
-    from .sweep import needs_sweep, resweep
+    from .corrections import CORRECTIONS_FILENAME
 
     today = args.date
     root = artifacts_dir()
@@ -2602,32 +3468,35 @@ def _cmd_freshness_sweep(args: argparse.Namespace, parser: argparse.ArgumentPars
         log.info("No artifacts to sweep.")
         return 0
 
-    swept = 0
-    swept_ids: list[str] = []
-    changes: list[dict[str, Any]] = []
-    # Bounded to the registry: re-stamping an unlisted S3-hydrated directory
-    # keeps a delisted feed looking alive (docs/listing-policy.md).
-    for agency_dir in registered_agency_dirs(root):
-        latest = agency_dir / "latest.json"
-        if not latest.exists():
-            continue
-        try:
-            artifact = _json.loads(latest.read_text())
-        except (OSError, ValueError):
-            continue
-        if not needs_sweep(artifact, today):
-            continue
-        new_artifact, summary = resweep(artifact, today)
-        swept += 1
-        swept_ids.append(str(summary["id"]))
-        if summary["grade_changed"]:
-            changes.append(summary)
-        if args.apply:
-            publish(new_artifact)
+    # The budget counts from here, not from the job's start: this step does no
+    # network work, so its own clock is the one that says whether it is still
+    # the cheap step the cadence assumes.
+    deadline = None if args.budget_seconds is None else time.monotonic() + args.budget_seconds
+    outcome = _sweep_agencies(root, today, apply=args.apply, deadline=deadline)
 
     if args.changed_out:
-        Path(args.changed_out).write_text("".join(f"{agency_id}\n" for agency_id in swept_ids))
+        Path(args.changed_out).write_text(
+            "".join(f"{agency_id}\n" for agency_id in outcome.swept_ids)
+        )
 
+    _log_sweep_grade_changes(outcome.changes)
+    _warn_held_back_from_sweep(outcome.held_back, CORRECTIONS_FILENAME)
+    _warn_deferred_from_sweep(outcome.deferred, args.budget_seconds, len(outcome.swept_ids))
+    verb = "Applied" if args.apply else "Would change"
+    log.info(
+        "Freshness sweep for %s: %d agencies reswept, %d held back, %d deferred, %s %d grade(s).%s",
+        today.isoformat(),
+        len(outcome.swept_ids),
+        len(outcome.held_back),
+        len(outcome.deferred),
+        verb.lower(),
+        len(outcome.changes),
+        "" if args.apply else " Re-run with --apply to publish.",
+    )
+    return 0
+
+
+def _log_sweep_grade_changes(changes: list[dict[str, Any]]) -> None:
     for c in sorted(changes, key=lambda c: (c["new_grade"], c["id"] or "")):
         log.info(
             "%s: %s -> %s (%s -> %s days)",
@@ -2637,26 +3506,62 @@ def _cmd_freshness_sweep(args: argparse.Namespace, parser: argparse.ArgumentPars
             c["old_days"],
             c["new_days"],
         )
-    verb = "Applied" if args.apply else "Would change"
-    log.info(
-        "Freshness sweep for %s: %d agencies reswept, %s %d grade(s).%s",
-        today.isoformat(),
+
+
+def _warn_deferred_from_sweep(deferred: list[str], budget_seconds: int | None, swept: int) -> None:
+    """Name every agency the sweep's time budget left for the next cycle.
+
+    A deferred record is not rewritten: it keeps the expiry countdown and the
+    dates it was published with, and a reader can tell how old those are from
+    its own ``snapshot_date`` and ``recompute.as_of``. Nothing writes a zero or
+    a null into it to mean "not recomputed today". The log carries every id;
+    the annotation carries the count, because the job summary is where a
+    person first sees that a cycle came up short.
+    """
+    if not deferred:
+        return
+    log.warning(
+        "Freshness sweep stopped at its %ss budget: %d agencies reswept, %d deferred. "
+        "A deferred agency keeps its last published record (expiry countdown not "
+        "recomputed today) and is swept next cycle. Deferred: %s",
+        budget_seconds,
         swept,
-        verb.lower(),
-        len(changes),
-        "" if args.apply else " Re-run with --apply to publish.",
+        len(deferred),
+        ", ".join(sorted(deferred)),
     )
-    return 0
+    print(
+        f"::warning title=freshness sweep deferred::{len(deferred)} agencies not re-dated "
+        f"within {budget_seconds}s; each keeps its last published record and is swept next "
+        "cycle (the ids are in the step log)",
+        file=sys.stderr,
+    )
+
+
+def _liveness_targets(
+    state: dict[str, LivenessRecord], only: set[str] | None, tally: Counter[str]
+) -> list[tuple[str, str, LivenessRecord | None]]:
+    """The canonical feeds a liveness sweep checks, in id order, with their last record."""
+    targets: list[tuple[str, str, LivenessRecord | None]] = []
+    for agency_id, agency in sorted(AGENCIES.items()):
+        if not agency.is_canonical_feed or (only is not None and agency_id not in only):
+            continue
+        # The keyless conditional GET would read a gated URL's 401 as an
+        # outage (#371). Nothing is recorded, so no failure streak builds
+        # against a feed the scoring run fetches with its credential.
+        credentialed = agency.fetch_auth is not None
+        tally["credentialed_skipped"] += credentialed
+        if credentialed:
+            continue
+        targets.append((agency_id, agency.static_gtfs_url, state.get(agency_id)))
+    return targets
 
 
 def _cmd_liveness(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
-    from collections import Counter
-
     from .config import repo_root
     from .liveness import (
         CHANGED,
         UNREACHABLE,
-        check_feed,
+        check_feeds,
         load_state,
         recovered,
         save_state,
@@ -2664,6 +3569,11 @@ def _cmd_liveness(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
 
     state_path = repo_root() / "data" / "liveness.json"
     state = load_state(state_path)
+    if args.baseline_out:
+        # What every record looked like before this sweep, so a feed the
+        # rescore later defers can be put back (`scorecard rescore
+        # --liveness-baseline`) instead of reading as unchanged next cycle.
+        save_state(Path(args.baseline_out), state)
     tally: Counter[str] = Counter()
     changed: list[str] = []
     unreachable: list[str] = []
@@ -2673,13 +3583,10 @@ def _cmd_liveness(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
     if args.only:
         only = {line.strip() for line in Path(args.only).read_text().splitlines() if line.strip()}
 
-    for agency_id, agency in sorted(AGENCIES.items()):
-        if not agency.is_canonical_feed:
-            continue
-        if only is not None and agency_id not in only:
-            continue
-        prev = state.get(agency_id)
-        record, classification = check_feed(agency.static_gtfs_url, prev, timeout=args.timeout)
+    targets = _liveness_targets(state, only, tally)
+    results = check_feeds(targets, workers=args.workers, timeout=args.timeout)
+    for agency_id, _url, prev in targets:
+        record, classification = results[agency_id]
         if recovered(prev, classification):
             recovered_ids.append(agency_id)
         state[agency_id] = record
@@ -2708,14 +3615,71 @@ def _cmd_liveness(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
         save_state(state_path, state)
         log.info("Wrote liveness state for %d feeds.", len(state))
     log.info(
-        "Liveness: %d changed, %d unreachable, %d recovered, %d unchanged.%s",
+        "Liveness: %d changed, %d unreachable, %d recovered, %d unchanged, "
+        "%d credentialed not checked.%s",
         len(changed),
         len(unreachable),
         len(recovered_ids),
         tally.get("unchanged", 0),
+        tally.get("credentialed_skipped", 0),
         "" if args.apply else " Report only; re-run with --apply to persist state.",
     )
     return 0
+
+
+def _cmd_rescore(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Re-score the intraday refresh's changed feeds, several at a time (rescore.py)."""
+    import tempfile
+
+    from .config import repo_root
+    from .liveness import load_state, requeue, save_state
+    from .rescore import job_for, launch_run, report, run_batch
+
+    ids_path = Path(args.ids)
+    ids = (
+        [line.strip() for line in ids_path.read_text().splitlines() if line.strip()]
+        if ids_path.is_file()
+        else []
+    )
+    if args.deferred_out is not None:
+        args.deferred_out.write_text("")
+    if not ids:
+        print("No changed feeds to re-score.")
+        return 0
+
+    deadline = args.started_epoch + args.budget_seconds
+    jobs = [job_for(AGENCIES[agency_id]) for agency_id in ids if agency_id in AGENCIES]
+    print(
+        f"re-scoring {len(jobs)} changed feed(s), up to {args.workers} at a time; none starts "
+        f"after {dt.datetime.fromtimestamp(deadline, dt.UTC).isoformat(timespec='seconds')}"
+    )
+    with tempfile.TemporaryDirectory(prefix="rescore-") as log_dir:
+        tally = run_batch(
+            jobs,
+            workers=args.workers,
+            deadline=deadline,
+            launch=lambda job: launch_run(job, log_dir=Path(log_dir), heavy_lock=args.heavy_lock),
+        )
+    # Every id here came from the liveness sweep, which reads the same
+    # registry, so this should never fire. `scorecard run` answers an unknown
+    # id with argparse's exit 2, the code reserved for "unchanged", so one
+    # must be caught here and named rather than counted as a success.
+    for agency_id in ids:
+        if agency_id not in AGENCIES:
+            tally.attempted += 1
+            tally.failed.append(agency_id)
+            print(f"::warning title=rescore failed::{agency_id} is not in the registry")
+
+    if args.deferred_out is not None:
+        args.deferred_out.write_text("".join(f"{agency_id}\n" for agency_id in tally.deferred))
+    requeued = False
+    if tally.deferred and args.liveness_baseline is not None:
+        state_path = repo_root() / "data" / "liveness.json"
+        state = load_state(state_path)
+        requeue(state, load_state(args.liveness_baseline), tally.deferred)
+        save_state(state_path, state)
+        requeued = True
+    return report(tally, budget_minutes=args.budget_seconds // 60, requeued=requeued)
 
 
 def _cmd_shards(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
@@ -2726,17 +3690,43 @@ def _cmd_shards(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
     )
     # issue #297: a `large_feed` gets a shard to itself, so a killed runner
     # costs that one feed rather than the ~65 records its shard had already
-    # scored and had not yet uploaded. See plan_shards.
-    large_feeds = frozenset(
-        agency_id for agency_id in current_ids if AGENCIES[agency_id].large_feed
+    # scored and had not yet uploaded. A record marked `own_shard` gets the same
+    # treatment for a different reason: a source that takes minutes to serve one
+    # feed must not spend its neighbors' job budget. See plan_shards.
+    solo_feeds = frozenset(
+        agency_id
+        for agency_id in current_ids
+        if AGENCIES[agency_id].large_feed or AGENCIES[agency_id].own_shard
     )
-    print(json.dumps(plan_shards(current_ids, args.count, isolate=large_feeds)))
+    print(json.dumps(plan_shards(current_ids, args.count, isolate=solo_feeds)))
     return 0
 
 
 def _cmd_publish_artifacts(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     """Publish a local tree to S3, uploading only objects whose bytes changed."""
+    from .corrections import load_corrections, withdrawn_now
     from .s3_publish import PublishError, publish_tree, s3_client
+
+    # A withdrawal (corrections.py) is not a retirement: the agency stays
+    # listed, canonical, and active in the registry, but its current grade is
+    # suppressed. The retirement manifest legitimately names it too (see
+    # publish.py), so it must not also be protected here -- otherwise the
+    # manifest and the protection set agree on the id and every publish fails
+    # closed. Only exclude ids the withdrawal actually covers right now;
+    # anything else canonical stays protected against showing up unexplained.
+    #
+    # Ask that of the tree reindex wrote the manifest from, which is the
+    # directory the manifest sits in, not of --root. The two differ in the
+    # intraday refresh and the targeted score, which publish a staging tree
+    # holding only the feeds they touched. A withdrawn id is almost never among
+    # them, so asking --root found nothing withdrawn and refused the manifest
+    # anyway: Intraday refresh 35299487909, on #456's own commit.
+    lifecycle_root = (
+        args.retirement_manifest.parent if args.retirement_manifest is not None else args.root
+    )
+    protected_agency_ids = {
+        agency_id for agency_id, agency in AGENCIES.items() if agency.is_canonical_feed
+    } - set(withdrawn_now(load_corrections(), lifecycle_root))
 
     try:
         result = publish_tree(
@@ -2748,9 +3738,7 @@ def _cmd_publish_artifacts(args: argparse.Namespace, parser: argparse.ArgumentPa
             cache_control=args.cache_control,
             workers=args.workers,
             retirement_manifest=args.retirement_manifest,
-            protected_agency_ids={
-                agency_id for agency_id, agency in AGENCIES.items() if agency.is_canonical_feed
-            },
+            protected_agency_ids=protected_agency_ids,
         )
     except PublishError as exc:
         parser.error(str(exc))
@@ -2890,6 +3878,62 @@ def _cmd_alerts(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
     return 0
 
 
+def _cmd_trend(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Read a private workspace history as a trend, with its alerts (#362).
+
+    Exit 2 when there is nothing to read: no history under the directory, or a
+    named feed without one. A line the history cannot read is named in the
+    output and in the log, never dropped silently.
+    """
+    from .workspace import RENDERERS, WorkspaceError, build_trend
+
+    try:
+        trend = build_trend(Path(args.history), feeds=args.feed, expiry_days=args.expiry_days)
+    except WorkspaceError as exc:
+        log.error("%s", exc)
+        return 2
+    for skipped in trend.skipped:
+        log.warning("%s", skipped.message())
+    text = RENDERERS[args.format](trend)
+    if args.out:
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text)
+        log.info("Wrote the workspace trend for %d feed(s) to %s", len(trend.feeds), out)
+    else:
+        print(text, end="")
+    return 0
+
+
+def _send_digests(
+    args: argparse.Namespace,
+    parser: argparse.ArgumentParser,
+    emails: list[Any],
+    webhooks: list[Any],
+) -> int:
+    """Send the rendered digests. One recipient SES refuses does not stop the
+    others and is never named (see notify.send_via_ses); the step still fails, so
+    an operator looks, and the log carries counts and error codes only."""
+    from .notify import send_via_ses, send_webhooks
+
+    email_failures = 0
+    if emails:
+        sender = args.sender or os.environ.get("SES_FROM")
+        if not sender:
+            parser.error("--send requires --from or the SES_FROM environment variable")
+        region = os.environ.get("AWS_REGION", "us-west-2")
+        report = send_via_ses(emails, sender, region=region)
+        log.info("Sent %d of %d digest email(s) via SES.", report.sent, len(emails))
+        email_failures = report.failed
+    if webhooks:
+        sent_hooks = send_webhooks(webhooks)
+        log.info("Posted %d digest webhook(s) of %d configured.", sent_hooks, len(webhooks))
+    if email_failures:
+        log.error("%d digest email(s) could not be sent; see the warnings above.", email_failures)
+        return 1
+    return 0
+
+
 def _cmd_notify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     from .alerts import build_digest
     from .notify import (
@@ -2897,8 +3941,7 @@ def _cmd_notify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
         build_webhook_notifications,
         load_subscribers,
         load_subscribers_from_dynamo,
-        send_via_ses,
-        send_webhooks,
+        mask_lines,
     )
 
     table = args.table or os.environ.get("SUBSCRIPTIONS_TABLE")
@@ -2908,6 +3951,13 @@ def _cmd_notify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
     else:
         subs_path = Path(args.subscriptions) if args.subscriptions else None
         subscribers = load_subscribers(subs_path)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        # This repository is public, so its run logs are a publication. Register
+        # a mask for every address, webhook URL and token before anything that
+        # could print one runs: the dry-run listing below, a library error that
+        # quotes a recipient, or a future log line.
+        for command in mask_lines(subscribers, args.sender or os.environ.get("SES_FROM", "")):
+            print(command, flush=True)
     digest = build_digest(today=args.date, expiry_days=args.expiry_days)
     unsubscribe_base = os.environ.get("ALERTS_API_BASE")
     emails = build_emails(subscribers, digest, unsubscribe_base=unsubscribe_base)
@@ -2920,17 +3970,7 @@ def _cmd_notify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
         return 0
 
     if args.send:
-        if emails:
-            sender = args.sender or os.environ.get("SES_FROM")
-            if not sender:
-                parser.error("--send requires --from or the SES_FROM environment variable")
-            region = os.environ.get("AWS_REGION", "us-west-2")
-            sent = send_via_ses(emails, sender, region=region)
-            log.info("Sent %d digest email(s) via SES from %s.", sent, sender)
-        if webhooks:
-            sent_hooks = send_webhooks(webhooks)
-            log.info("Posted %d digest webhook(s) of %d configured.", sent_hooks, len(webhooks))
-        return 0
+        return _send_digests(args, parser, emails, webhooks)
 
     for email in emails:
         print(f"=== To: {email.to}\nSubject: {email.subject}\n\n{email.body}")
@@ -3021,8 +4061,14 @@ def _cmd_coverage_check(args: argparse.Namespace, parser: argparse.ArgumentParse
         previous = json.loads(baseline_path.read_text())
 
     message = coverage_regression(previous, current)
+    measured = current["instance_weighted_coverage"] is not None
     if message:
         print(message)
+    elif not measured:
+        print(
+            f"NOT MEASURED  no finding instances in the covered corpus "
+            f"({scored} scored agencies), so there is no coverage share to report"
+        )
     else:
         print(
             f"OK  instance-weighted plain-language coverage "
@@ -3030,21 +4076,31 @@ def _cmd_coverage_check(args: argparse.Namespace, parser: argparse.ArgumentParse
             f"({current['curated_codes']}/{current['total_codes']} codes curated, "
             f"{scored} scored agencies)"
         )
-    if args.save:
-        baseline_path.parent.mkdir(parents=True, exist_ok=True)
-        baseline_path.write_text(
-            json.dumps(
-                {
-                    "as_of": args.date.isoformat(),
-                    "distinct_code_coverage": current["distinct_code_coverage"],
-                    "instance_weighted_coverage": current["instance_weighted_coverage"],
-                },
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n"
-        )
+    if args.save and not measured:
+        # Refused rather than swallowed. Saving would replace a real bar with a
+        # reading nobody took, and every later week would be measured against
+        # it. Same instinct as refusing to overwrite a corrupt rt-health record.
+        print("NOT SAVED  refusing to overwrite the baseline with an unmeasured reading")
+    elif args.save:
+        _save_coverage_baseline(baseline_path, current, args.date)
     return 0
+
+
+def _save_coverage_baseline(path: Path, current: dict[str, Any], as_of: dt.date) -> None:
+    """Persist the coverage baseline every later week is measured against."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "as_of": as_of.isoformat(),
+                "distinct_code_coverage": current["distinct_code_coverage"],
+                "instance_weighted_coverage": current["instance_weighted_coverage"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
 
 
 def _cmd_rollups(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
@@ -3116,6 +4172,34 @@ def _cmd_render_constants(args: argparse.Namespace, parser: argparse.ArgumentPar
     return 0
 
 
+def _cmd_render_measure(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    from .site_shell import (
+        GA4_ID_SETTING,
+        MEASURE_KEY_ENV,
+        ga4_measurement_id,
+        write_measure_script,
+    )
+
+    # The deploy's one chance to turn measurement on. An unset or empty secret
+    # writes the committed no-op shim; a malformed one fails the deploy with
+    # the reason, rather than shipping a broken file (ADR 0055). The GA4 id
+    # comes from site-seo.json, not the environment, and is held to the same
+    # rule (ADR 0056).
+    try:
+        ga4_id = ga4_measurement_id()
+        on = write_measure_script(Path(args.out), os.environ.get(MEASURE_KEY_ENV), ga4_id=ga4_id)
+    except ValueError as exc:
+        parser.error(str(exc))
+    state = "on" if on else f"off ({MEASURE_KEY_ENV} is not set; nothing will be sent)"
+    ga4_state = (
+        f"on ({ga4_id})"
+        if ga4_id
+        else f"off ({GA4_ID_SETTING} in site-seo.json is empty; nothing will load)"
+    )
+    print(f"wrote {args.out}: site measurement {state}; Google Analytics {ga4_state}")
+    return 0
+
+
 def _cmd_report(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     from .report import ReportError, generate_report, load_brand
 
@@ -3132,7 +4216,7 @@ def _cmd_report(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
 def _cmd_bundle(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     """Program report bundle (docs/program-plan.md): validate a request, and
     either print the build plan (--plan) or render the zip + manifest."""
-    from .bundle import BundleError, build_bundle, parse_request, plan
+    from .bundle import MAX_AGENCIES, BundleError, build_bundle, parse_request, plan
 
     try:
         raw = json.loads(Path(args.request).read_text())
@@ -3140,7 +4224,10 @@ def _cmd_bundle(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
         print(f"error: could not read request {args.request}: {err}", file=sys.stderr)
         return 2
     try:
-        request = parse_request(raw if isinstance(raw, dict) else {})
+        request = parse_request(
+            raw if isinstance(raw, dict) else {},
+            max_agencies=args.max_agencies or MAX_AGENCIES,
+        )
         if args.plan is not None:
             args.plan.parent.mkdir(parents=True, exist_ok=True)
             args.plan.write_text(json.dumps(plan(request), indent=2) + "\n")
@@ -3159,6 +4246,24 @@ def _cmd_bundle(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
     return 0
 
 
+def _cmd_bundle_sample(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Render the on-site sample of a Program Report Bundle cover
+    (bundle_sample.py): one real, currently published agency, rendered
+    through the exact path a paid build uses, with placeholder branding and
+    marked SAMPLE throughout. Wired into pages.yml so it regenerates on
+    every deploy; see web/bundle/index.html's "See a sample report" link."""
+    from .bundle_sample import build_bundle_sample
+    from .report import ReportError
+
+    try:
+        path = build_bundle_sample(args.out)
+    except ReportError as err:
+        print(f"error: {err}", file=sys.stderr)
+        return 2
+    print(path)
+    return 0
+
+
 def _cmd_bundle_email(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     """Render (and with --send, send through SES) the delivery email for a
     built bundle. Rendering never touches the network; --send needs boto3."""
@@ -3171,7 +4276,7 @@ def _cmd_bundle_email(args: argparse.Namespace, parser: argparse.ArgumentParser)
     except (OSError, ValueError, BundleError) as err:
         print(f"error: {err}", file=sys.stderr)
         return 2
-    email = delivery_email(request, manifest, args.download_url, args.expires_on)
+    email = delivery_email(request, manifest, args.download_url, args.expires_on, args.promised_by)
     if args.out is not None:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(f"To: {email.to}\nSubject: {email.subject}\n\n{email.body}")
@@ -3182,6 +4287,52 @@ def _cmd_bundle_email(args: argparse.Namespace, parser: argparse.ArgumentParser)
         send_via_ses([email], args.sender)
         print(f"sent to {email.to}")
     return 0
+
+
+def _cmd_program_refunds(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """List paid program orders past the two-business-day delivery promise.
+
+    Runs on the operator's machine with the operator's own AWS credentials.
+    The public reconciler issue carries counts only, because the repository is
+    public and a bundle id is a download capability; this is where the detail
+    lives. It reads DynamoDB and S3, prints the Stripe reference and the
+    commands that would refund each order, and **refunds nothing**: no Stripe
+    credential is used and no Stripe call is made.
+
+    Exit 1 when there is at least one breach, so it can gate a script.
+    """
+    import boto3  # type: ignore[import-not-found]
+
+    from .program_refunds import breached_orders, render
+
+    table = boto3.resource("dynamodb", region_name=args.region).Table(args.table)
+    s3 = boto3.client("s3", region_name=args.region)
+
+    rows: list[dict[str, object]] = []
+    scan: dict[str, object] = {}
+    while True:
+        page = table.scan(**scan)
+        rows.extend(page.get("Items") or [])
+        start = page.get("LastEvaluatedKey")
+        if not start:
+            break
+        scan = {"ExclusiveStartKey": start}
+
+    def present(bundle_id: str) -> bool:
+        from .bundle import archive_key
+
+        try:
+            s3.head_object(Bucket=args.bucket, Key=archive_key(bundle_id))
+        except Exception:  # botocore ClientError: absent, or unreadable
+            return False
+        return True
+
+    orders = breached_orders(rows, archive_present=present)
+    if args.json:
+        print(json.dumps(orders, indent=2, sort_keys=True))
+    else:
+        print(render(orders), end="")
+    return 1 if orders else 0
 
 
 def _cmd_canary(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
@@ -3199,6 +4350,52 @@ def _cmd_canary(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
     )
     print(md_path)
     print(json_path)
+    return 0
+
+
+def _cmd_backfill_index_history(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Restore index.json rows that bounded checkouts dropped (see publish.py)."""
+    from .config import artifacts_dir
+    from .publish import _write_json, backfill_index_history
+
+    index_path = Path(args.index) if args.index else artifacts_dir() / "index.json"
+    mirror = Path(args.mirror)
+    if not mirror.is_dir():
+        parser.error(f"mirror directory not found: {mirror}")
+    index = json.loads(index_path.read_text())
+    counts = backfill_index_history(index, mirror)
+    print(json.dumps(counts, indent=2, sort_keys=True))
+    if args.write:
+        _write_json(index_path, index)
+        print(f"wrote {index_path}")
+    else:
+        print("dry run: pass --write to update the index")
+    return 0
+
+
+def _cmd_rescore_history(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Rescore stored earlier-rubric records under the current rubric (offline)."""
+    from .config import artifacts_dir
+    from .rescore_history import RESCORED_HISTORY_FILENAME, build_rescored_history
+
+    mirror = Path(args.mirror)
+    if not mirror.is_dir():
+        parser.error(f"mirror directory not found: {mirror}")
+    index_path = Path(args.index) if args.index else artifacts_dir() / "index.json"
+    index = json.loads(index_path.read_text())
+    agencies = index.get("agencies") or {}
+    through = {
+        str(agency_id): str(entry["history"][-1]["date"])
+        for agency_id, entry in agencies.items()
+        if entry.get("history")
+    }
+    document = build_rescored_history(mirror, through, through=through)
+    out = Path(args.out) if args.out else index_path.parent / RESCORED_HISTORY_FILENAME
+    # Compact on purpose: ~150,000 rows. The file is a derived input to the
+    # trend, not a page anyone reads by eye.
+    out.write_text(json.dumps(document, sort_keys=True, separators=(",", ":")) + "\n")
+    print(json.dumps(document["coverage"], indent=2, sort_keys=True))
+    print(f"wrote {out}")
     return 0
 
 
@@ -3225,6 +4422,34 @@ def _cmd_reproduce(args: argparse.Namespace, parser: argparse.ArgumentParser) ->
     for line in result["differences"]:
         print(f"  - {line}")
     return 1
+
+
+def _cmd_explain(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Print the deduction-by-deduction trail behind one artifact's grade.
+
+    Exit 2 covers everything this command could not judge: an unreadable file
+    and an artifact from a rubric version whose constants this build does not
+    carry. Both are refusals rather than verdicts, so neither shares exit 1
+    with a real disagreement.
+    """
+    from .explain import RENDERERS, UnknownRubricVersion, build_trail
+
+    path = Path(args.artifact)
+    try:
+        artifact = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        log.error("could not read %s: %s", path, exc)
+        return 2
+    if not isinstance(artifact, dict):
+        log.error("%s is not a scorecard artifact", path)
+        return 2
+    try:
+        trail = build_trail(artifact)
+    except UnknownRubricVersion as exc:
+        log.error("%s", exc)
+        return 2
+    print(RENDERERS[args.format](trail), end="")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -3259,7 +4484,11 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     adhoc = sub.add_parser("try", help="score any GTFS feed URL or local zip (not published)")
-    adhoc.add_argument("url", help="direct link or local path to a GTFS Schedule zip")
+    adhoc.add_argument(
+        "url",
+        nargs="?",
+        help="direct link or local path to a GTFS Schedule zip (leave out with --batch)",
+    )
     adhoc.add_argument("--name", help="agency name to show (default: the feed host)")
     adhoc.add_argument(
         "--country",
@@ -3273,6 +4502,11 @@ def main(argv: list[str] | None = None) -> int:
         default=utc_today(),
         help="snapshot date (default: today in UTC)",
     )
+    adhoc.add_argument(
+        "--large-feed",
+        action="store_true",
+        help="apply the large-feed ingestion ceilings, as a record with large_feed: true gets",
+    )
     adhoc.add_argument("--html", help="also write a standalone HTML scorecard to this path")
     adhoc.add_argument(
         "--comment",
@@ -3281,6 +4515,14 @@ def main(argv: list[str] | None = None) -> int:
     adhoc.add_argument(
         "--json-out",
         help="write the complete scorecard artifact as JSON before applying CI thresholds",
+    )
+    adhoc.add_argument(
+        "--history",
+        metavar="DIR",
+        help=(
+            "append this run to a private history at DIR/<feed>/history.jsonl, read back "
+            "with `scorecard trend --history DIR`; counts and codes only, nothing published"
+        ),
     )
     adhoc.add_argument(
         "--page-url", help="link to the full scorecard, included in the --comment markdown"
@@ -3295,6 +4537,61 @@ def main(argv: list[str] | None = None) -> int:
         type=int,
         help="exit non-zero if the feed expires within this many days (for CI gating)",
     )
+    adhoc.add_argument(
+        "--sarif",
+        help="write validator notices as SARIF 2.1.0 to this path, for upload-sarif",
+    )
+    adhoc.add_argument(
+        "--sarif-base",
+        default="",
+        help=(
+            "directory the feed's files sit in inside the repository being annotated "
+            "(e.g. gtfs/); leave blank when the feed is a zip or sits at the root"
+        ),
+    )
+    adhoc.add_argument(
+        "--batch",
+        metavar="CSV",
+        help=(
+            "score every feed listed in this CSV (columns name, url, country, and optionally "
+            "ntd_id and large_feed) and write a private cohort rollup; see docs/batch-scoring.md"
+        ),
+    )
+    adhoc.add_argument(
+        "--out",
+        metavar="DIR",
+        help="with --batch: a new or empty directory for the per-feed scorecards and the rollup",
+    )
+    adhoc.add_argument(
+        "--batch-workers",
+        type=int,
+        choices=range(1, 5),
+        default=2,
+        metavar="N",
+        help="with --batch: how many feeds to score at once, 1 to 4 (default: 2)",
+    )
+    adhoc.add_argument(
+        "--strict",
+        action="store_true",
+        help="with --batch: exit 1 when any listed feed could not be scored",
+    )
+
+    diff = sub.add_parser(
+        "diff",
+        help="compare two scorecard artifacts, refusing across a measurement-contract boundary",
+    )
+    diff.add_argument(
+        "old",
+        help="older artifact: a file path, an http(s) URL, or agency@YYYY-MM-DD / agency@latest",
+    )
+    diff.add_argument("new", help="newer artifact, in any of the same three forms")
+    diff.add_argument(
+        "--format",
+        choices=["text", "markdown", "json"],
+        default="text",
+        help="output format (default: text)",
+    )
+    diff.add_argument("--out", help="write the rendered diff to this path instead of stdout")
 
     onboard = sub.add_parser(
         "onboard", help="parse a feed URL and name from a score-a-feed issue body"
@@ -3346,6 +4643,24 @@ def main(argv: list[str] | None = None) -> int:
     )
     query.add_argument("sql", nargs="?", help="SQL against the 'agencies' table")
     query.add_argument("--export", help="write the dataset to this Parquet path and exit")
+
+    history_export = sub.add_parser(
+        "history-export",
+        help="build the scorecard history tables (checks + findings Parquet, ADR 0063)",
+    )
+    history_export.add_argument("--out", required=True, help="a new or empty directory")
+    history_export.add_argument("--zip", help="also pack the export into this zip")
+    history_export.add_argument(
+        "--artifacts", help="artifact root to read (default: data/artifacts)"
+    )
+    history_export.add_argument(
+        "--exclusions",
+        help="the opt-out ledger to apply (default: history-export-exclusions.yaml)",
+    )
+    history_export.add_argument(
+        "--generated-on",
+        help="ISO date for the provenance file (default: the newest snapshot date)",
+    )
 
     otp = sub.add_parser(
         "otp", help="routing QA: ask an OpenTripPlanner instance to plan sample trips"
@@ -3505,6 +4820,57 @@ def main(argv: list[str] | None = None) -> int:
     )
     evidence_packet.add_argument("--scorecard-url", help="override the canonical scorecard URL")
     evidence_packet.add_argument("--out", help="write the packet here instead of stdout")
+
+    retest = sub.add_parser(
+        "retest",
+        help=(
+            "score a new export and check it against an evidence packet's acceptance "
+            "tests: cleared, still present, or not comparable (#366)"
+        ),
+    )
+    retest.add_argument(
+        "packet", help="evidence packet JSON written by `scorecard evidence-packet --format json`"
+    )
+    retest.add_argument(
+        "feed",
+        nargs="?",
+        help="direct link or local path to the new GTFS Schedule zip (or use --artifact)",
+    )
+    retest.add_argument(
+        "--artifact",
+        help=(
+            "scorecard JSON the export was already scored into by `scorecard try "
+            "--json-out`, to retest instead of scoring FEED; the Action's "
+            "evidence-packet input uses this so the validator runs once"
+        ),
+    )
+    retest.add_argument(
+        "--country",
+        type=_country_arg,
+        required=True,
+        help=(
+            "ISO 3166-1 alpha-2 country the packet's scorecard was scored under; the packet "
+            "does not record it, and the validator's country setting changes some checks"
+        ),
+    )
+    retest.add_argument(
+        "--name", help="agency name for the scratch scorecard (default: the packet's)"
+    )
+    retest.add_argument(
+        "--date",
+        type=dt.date.fromisoformat,
+        help="snapshot date to score FEED under (default: today in UTC)",
+    )
+    retest.add_argument(
+        "--large-feed",
+        action="store_true",
+        help="apply the large-feed ingestion ceilings, as `scorecard try --large-feed` does",
+    )
+    retest.add_argument("--json-out", help="also write the retest record as JSON to this path")
+    retest.add_argument(
+        "--markdown-out", help="also write the retest record as Markdown to this path"
+    )
+    retest.set_defaults(registry_free=True)
 
     fix_outcomes = sub.add_parser(
         "fix-outcomes",
@@ -3692,6 +5058,37 @@ def main(argv: list[str] | None = None) -> int:
     alerts.add_argument("--expiry-days", type=int, default=60, help="warn within this many days")
     alerts.add_argument("--out", help="write the digest here instead of stdout")
 
+    trend = sub.add_parser(
+        "trend",
+        help=(
+            "read a private history written by `try --history` as a trend, with the "
+            "alerts `scorecard alerts` would raise (#362)"
+        ),
+    )
+    trend.add_argument(
+        "--history", required=True, metavar="DIR", help="the directory given to `try --history`"
+    )
+    trend.add_argument(
+        "--feed",
+        action="append",
+        metavar="NAME",
+        help="only this feed's history (its folder name under DIR); repeat for more",
+    )
+    trend.add_argument(
+        "--format",
+        choices=["text", "markdown", "html"],
+        default="text",
+        help="output format (default: text)",
+    )
+    trend.add_argument(
+        "--expiry-days",
+        type=int,
+        default=60,
+        help="warn within this many days, as `scorecard alerts` does (default: 60)",
+    )
+    trend.add_argument("--out", help="write the trend here instead of stdout")
+    trend.set_defaults(registry_free=True)
+
     notify = sub.add_parser("notify", help="build per-subscriber feed-health emails")
     notify.add_argument("--subscriptions", help="path to subscriptions.yaml")
     notify.add_argument(
@@ -3758,10 +5155,38 @@ def main(argv: list[str] | None = None) -> int:
     )
     campaign.add_argument("--out", help="write the campaign here instead of stdout")
     sub.add_parser("reindex", help="rebuild index.json from artifacts on disk")
+    backfill = sub.add_parser(
+        "backfill-index-history",
+        help="restore index.json rows from a local mirror of the stored dated records",
+    )
+    backfill.add_argument(
+        "--mirror", required=True, help="local copy of data/artifacts dated files"
+    )
+    backfill.add_argument("--index", help="index.json to update (default: the artifacts dir)")
+    backfill.add_argument("--write", action="store_true", help="write the index (default: dry run)")
+    rescore_hist = sub.add_parser(
+        "rescore-history",
+        help="rescore stored earlier-rubric records under the current rubric, offline",
+    )
+    rescore_hist.add_argument("--mirror", required=True, help="local copy of the dated records")
+    rescore_hist.add_argument("--index", help="index.json naming the feed records and their tails")
+    rescore_hist.add_argument("--out", help="output path (default: beside the index)")
     sub.add_parser("render-site", help="generate crawlable static HTML pages, sitemap, robots")
     sub.add_parser(
         "render-constants",
         help="regenerate web/src/generated/constants.js from the Python definitions",
+    )
+    render_measure = sub.add_parser(
+        "render-measure",
+        help=(
+            "write web/src/measure.js with the POSTHOG_KEY from the environment and the "
+            "GA4 id from site-seo.json (deploy only)"
+        ),
+    )
+    render_measure.add_argument(
+        "--out",
+        required=True,
+        help="where to write the rendered shim, e.g. ../_site/src/measure.js",
     )
 
     report = sub.add_parser(
@@ -3795,6 +5220,24 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="write the build plan (ids to fetch, ids refused) and stop; renders nothing",
     )
+    bundle.add_argument(
+        "--max-agencies",
+        type=int,
+        default=None,
+        metavar="N",
+        help="hold the cohort to what the order was sold with (setup route stores it)",
+    )
+    bundle_sample = sub.add_parser(
+        "bundle-sample",
+        help="render the on-site sample of a Program Report Bundle cover (web/bundle/sample/)",
+    )
+    bundle_sample.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="output path (default: web/bundle/sample/index.html at the repo root)",
+    )
+
     bundle_email = sub.add_parser(
         "bundle-email", help="render or send the delivery email for a built program bundle"
     )
@@ -3807,6 +5250,22 @@ def main(argv: list[str] | None = None) -> int:
     )
     bundle_email.add_argument("--send", action="store_true", help="send through SES (needs boto3)")
     bundle_email.add_argument("--from", dest="sender", default="", help="verified SES sender")
+    bundle_email.add_argument(
+        "--promised-by",
+        default="",
+        help="the date this order was committed to at checkout, as the buyer was told it",
+    )
+
+    program_refunds = sub.add_parser(
+        "program-refunds",
+        help="list paid program orders past the delivery promise (reads DynamoDB; refunds nothing)",
+    )
+    program_refunds.add_argument(
+        "--table", default="gtfs-scorecard-program-bundles", help="DynamoDB table of capabilities"
+    )
+    program_refunds.add_argument("--bucket", required=True, help="artifacts bucket to check")
+    program_refunds.add_argument("--region", default="us-west-2")
+    program_refunds.add_argument("--json", action="store_true", help="machine-readable output")
 
     backfill = sub.add_parser(
         "backfill-state", help="fill missing agency state from the Mobility Database catalog"
@@ -3821,6 +5280,38 @@ def main(argv: list[str] | None = None) -> int:
         help=(
             "exit non-zero for feed-descriptor names or duplicate canonical feed identity (for CI)"
         ),
+    )
+
+    license_audit = sub.add_parser(
+        "license-audit",
+        help="count registry records by the license their license_note names (report only)",
+    )
+    license_audit.add_argument("--json", action="store_true", help="print the report as JSON")
+
+    license_lint = sub.add_parser(
+        "license-lint",
+        help=(
+            "report records with no structured license block or an inconsistent one "
+            "(advisory only; changes nothing about admission)"
+        ),
+    )
+    license_lint.add_argument("--json", action="store_true", help="print the report as JSON")
+    license_lint.add_argument(
+        "--all", action="store_true", help="also list every record that has no block yet"
+    )
+
+    license_migrate = sub.add_parser(
+        "license-migrate",
+        help=(
+            "propose structured license blocks from license notes; a dry run unless --apply "
+            "is given"
+        ),
+    )
+    license_migrate.add_argument("--json", action="store_true", help="print the report as JSON")
+    license_migrate.add_argument(
+        "--apply",
+        action="store_true",
+        help="write the proposed blocks into the registry shards (default: a dry run)",
     )
 
     identity = sub.add_parser(
@@ -3842,6 +5333,13 @@ def main(argv: list[str] | None = None) -> int:
         "--changed-out",
         help="write ids whose artifacts were refreshed (one per line)",
     )
+    sweep.add_argument(
+        "--budget-seconds",
+        type=_positive_int,
+        default=None,
+        help="start no agency once this many seconds have passed; the rest keep their last "
+        "record and are named in the log (default: no budget)",
+    )
 
     liveness = sub.add_parser(
         "liveness",
@@ -3861,6 +5359,54 @@ def main(argv: list[str] | None = None) -> int:
     liveness.add_argument(
         "--only", help="check only the feed ids listed in this file (one per line)"
     )
+    liveness.add_argument(
+        "--workers",
+        type=_positive_int,
+        default=1,
+        help="hosts checked at the same time; never more than one request per host (default: 1)",
+    )
+    liveness.add_argument(
+        "--baseline-out",
+        dest="baseline_out",
+        help="write the liveness state as it was before this sweep here",
+    )
+
+    rescore = sub.add_parser(
+        "rescore",
+        help="re-score a list of feeds a few at a time within a deadline (intraday refresh)",
+    )
+    rescore.add_argument(
+        "--ids", required=True, help="feed ids to re-score, one per line (missing or empty: none)"
+    )
+    rescore.add_argument(
+        "--workers",
+        type=_positive_int,
+        default=1,
+        help="feeds in flight at once; they take turns validating and scoring (default: 1)",
+    )
+    rescore.add_argument(
+        "--started-epoch",
+        type=int,
+        required=True,
+        help="when the job began, in Unix seconds; the budget is measured from here",
+    )
+    rescore.add_argument(
+        "--budget-seconds",
+        type=_positive_int,
+        required=True,
+        help="start no feed once this many seconds have passed since --started-epoch",
+    )
+    rescore.add_argument(
+        "--heavy-lock",
+        type=Path,
+        help="lock file the runs take turns on for validating and scoring",
+    )
+    rescore.add_argument(
+        "--liveness-baseline",
+        type=Path,
+        help="put deferred feeds' liveness records back from this pre-sweep state file",
+    )
+    rescore.add_argument("--deferred-out", type=Path, help="write deferred feed ids here")
 
     cadence = sub.add_parser(
         "cadence",
@@ -3940,6 +5486,22 @@ def main(argv: list[str] | None = None) -> int:
     reproduce.add_argument("agency", help="agency id, e.g. unitrans")
     reproduce.add_argument("date", help="published snapshot date, YYYY-MM-DD")
 
+    explain = sub.add_parser(
+        "explain",
+        help=(
+            "print the deduction-by-deduction arithmetic behind a published artifact's "
+            "grade, reading the artifact only (#364)"
+        ),
+    )
+    explain.add_argument("artifact", help="path to a scorecard artifact JSON file")
+    explain.add_argument(
+        "--format",
+        choices=("text", "markdown", "json"),
+        default="text",
+        help="output format (default: text)",
+    )
+    explain.set_defaults(registry_free=True)
+
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
@@ -3975,10 +5537,15 @@ def main(argv: list[str] | None = None) -> int:
 def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     """Load the registry (except for the registry-free commands) and run the subcommand.
 
-    `try` scores one supplied URL and `otp-build-check` reads one log file;
-    neither looks an agency up, so neither pays for the registry.
+    `try` scores one supplied URL, `otp-build-check` reads one log file, and
+    `diff` reads two artifacts it was handed; none looks an agency up, so none
+    pays for the registry.
     """
-    if args.command not in {"try", "otp-build-check"}:
+    # A subcommand that never looks an agency up can also say so on its own
+    # parser, with ``set_defaults(registry_free=True)``.
+    if args.command not in {"try", "otp-build-check", "diff"} and not getattr(
+        args, "registry_free", False
+    ):
         load_agencies()
         agency_id = getattr(args, "agency", None)
         if agency_id and agency_id not in AGENCIES:
@@ -3987,6 +5554,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     handlers = {
         "run": _cmd_run,
         "try": _cmd_try,
+        "diff": _cmd_diff,
         "sync": _cmd_sync,
         "discover": _cmd_discover,
         "supersessions": _cmd_supersessions,
@@ -3995,6 +5563,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         "vendor-report": _cmd_vendor_report,
         "vendor-radar": _cmd_vendor_radar,
         "evidence-packet": _cmd_evidence_packet,
+        "retest": _cmd_retest,
         "fix-outcomes": _cmd_fix_outcomes,
         "dataset": _cmd_dataset,
         "sensitivity": _cmd_sensitivity,
@@ -4007,22 +5576,32 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         "activation-hydrate": _cmd_activation_hydrate,
         "run-summary": _cmd_run_summary,
         "alerts": _cmd_alerts,
+        "trend": _cmd_trend,
         "notify": _cmd_notify,
         "portfolio-digest": _cmd_portfolio_digest,
         "coverage-check": _cmd_coverage_check,
         "rollups": _cmd_rollups,
         "campaign": _cmd_campaign,
         "reindex": _cmd_reindex,
+        "backfill-index-history": _cmd_backfill_index_history,
+        "rescore-history": _cmd_rescore_history,
         "render-site": _cmd_render_site,
         "render-constants": _cmd_render_constants,
+        "render-measure": _cmd_render_measure,
         "report": _cmd_report,
         "bundle": _cmd_bundle,
+        "bundle-sample": _cmd_bundle_sample,
         "bundle-email": _cmd_bundle_email,
+        "program-refunds": _cmd_program_refunds,
         "backfill-state": _cmd_backfill_state,
         "lint": _cmd_lint,
+        "license-audit": _cmd_license_audit,
+        "license-lint": _cmd_license_lint,
+        "license-migrate": _cmd_license_migrate,
         "identity": _cmd_identity,
         "freshness-sweep": _cmd_freshness_sweep,
         "liveness": _cmd_liveness,
+        "rescore": _cmd_rescore,
         "cadence": _cmd_cadence,
         "feedapi": _cmd_feedapi,
         "canary": _cmd_canary,
@@ -4032,12 +5611,14 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         "equity": _cmd_equity,
         "canada-equity": _cmd_canada_equity,
         "query": _cmd_query,
+        "history-export": _cmd_history_export,
         "otp": _cmd_otp,
         "otp-batch": _cmd_otp_batch,
         "otp-build-check": _cmd_otp_build_check,
         "rt-health": _cmd_rt_health,
         "rt-archive": _cmd_rt_archive,
         "reproduce": _cmd_reproduce,
+        "explain": _cmd_explain,
     }
     handler = handlers.get(args.command)
     if handler is None:

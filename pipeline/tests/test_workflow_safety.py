@@ -404,21 +404,14 @@ def test_dataset_release_packages_only_a_validated_canonical_deployment() -> Non
     assert 'and .object.type == "commit"' in workflow
     assert "and .object.sha == $target" in workflow
 
-    # The 15:23 intraday deploy normally occurs before the 17:47 monthly cut.
-    # Scheduled releases therefore consume the selected Daily run's exact Pages
-    # artifact instead of expecting that run to remain the mutable live deploy.
-    release_cron = re.search(r'cron: "(\d+) (\d+) 1 \* \*"', workflow)
-    refresh_cron = re.search(r'cron: "(\d+) \*/(\d+) \* \* \*"', refresh)
-    assert release_cron is not None and refresh_cron is not None
-    release_minute = int(release_cron.group(2)) * 60 + int(release_cron.group(1))
-    refresh_minute = int(refresh_cron.group(1))
-    refresh_step = int(refresh_cron.group(2))
-    prior_refreshes = [
-        hour * 60 + refresh_minute
-        for hour in range(0, 24, refresh_step)
-        if hour * 60 + refresh_minute < release_minute
-    ]
-    assert max(prior_refreshes) == 15 * 60 + 23
+    # Scheduled releases consume the selected Daily run's exact Pages artifact
+    # instead of expecting that run to remain the mutable live deploy. Until
+    # 2026-10-30 a 15:23 intraday deploy normally replaced it before the 17:47
+    # monthly cut. The refresh has had no schedule since 2026-10-31, but a code
+    # push or a hand-run refresh can still deploy in between, so the rule
+    # stands.
+    assert "schedule:" not in refresh
+    assert "workflow_dispatch:" in refresh
     scheduled_source = workflow[
         workflow.index('if [ "$SOURCE_MODE" = scheduled-daily ]') : workflow.index(
             "else\n            # Manual cuts retain latest-production semantics"
@@ -725,9 +718,7 @@ def test_a_transient_s3_error_cannot_abort_a_score_shard() -> None:
     """
     workflow = _workflow("scorecard.yml")
 
-    score = workflow.index("\n  score:")
-    collect = workflow.index("\n  collect:")
-    score_block = workflow[score:collect]
+    score_block = _job_block(workflow, "score")
 
     assert "s3_retry() {" in score_block, (
         "the per-agency loop must route retryable S3 calls through a helper"
@@ -816,7 +807,7 @@ def test_the_shard_denominator_comes_from_the_plan_not_the_requested_count() -> 
     assert "shard_count: ${{ steps.plan.outputs.count }}" in workflow, (
         "the plan job must publish the count it actually produced"
     )
-    assert "needs: [plan, score]" in workflow, (
+    assert "needs: [plan, score, liveness]" in _job_block(workflow, "collect"), (
         "collect must depend on plan to read its shard_count output"
     )
     verify_at = workflow.index("Verify shard artifacts before publishing")
@@ -910,7 +901,7 @@ def _rescore_step() -> str:
 
 
 def test_the_intraday_refresh_has_a_floor_under_its_rescore_loop() -> None:
-    """`refresh.yml` deploys roughly nine times a day and turned every
+    """`refresh.yml` deployed roughly nine times a day and turned every
     per-feed failure into an `echo`. Nothing counted them, so a cycle in which
     every changed feed failed to re-score still ran reindex, rollups,
     render-site, the S3 publish and the Pages deploy, and reported success.
@@ -1183,7 +1174,7 @@ def _job_timeout(workflow: str, job: str) -> int:
     return int(bound.group(1))
 
 
-def test_the_intraday_refresh_bound_sits_between_its_runtime_and_its_cadence() -> None:
+def test_the_intraday_refresh_bound_clears_its_runtime() -> None:
     """`timeout-minutes: 240` sat above the job's own 180-minute cron.
 
     It was argued from "~70 to ~137 minutes", a figure the job outgrew: the longest
@@ -1194,25 +1185,19 @@ def test_the_intraday_refresh_bound_sits_between_its_runtime_and_its_cadence() -
     as the realtime monitor's test, for the same reason.
 
     No 90% headroom is asserted here, unlike collect. 171 of 175 is 97.7%, and no
-    bound under the 180-minute cadence gets under 90% of a 170-minute run. The
-    watchdog will fail on a run that long, which is the signal that the job needs
-    to be faster or the cron longer.
+    bound under the 180-minute cadence got under 90% of a 170-minute run.
+
+    The refresh has had no schedule since 2026-10-31, so there is no cadence
+    left to sit under; the bound still has to clear the measured runtime, and
+    the job still publishes through the serial group.
     """
     workflow = _workflow("refresh.yml")
-    every_n_hours = re.search(r'- cron: "\d+ \*/(\d+) \* \* \*"', workflow)
-    assert every_n_hours, "refresh.yml no longer declares an every-N-hours cron"
-    cadence_minutes = int(every_n_hours.group(1)) * 60
     timeout_minutes = _job_timeout(workflow, "refresh")
 
     assert timeout_minutes > INTRADAY_REFRESH_OBSERVED_RUNTIME_CEILING_MINUTES, (
         f"timeout-minutes: {timeout_minutes} is at or below the longest recorded refresh "
         f"({INTRADAY_REFRESH_OBSERVED_RUNTIME_CEILING_MINUTES} min), so a legitimately heavy "
         "cycle is killed and recorded as `cancelled`."
-    )
-    assert timeout_minutes < cadence_minutes, (
-        f"timeout-minutes: {timeout_minutes} is at or above the {cadence_minutes}-minute "
-        "cron. A refresh allowed to outlive its cadence queues the next one in the serial "
-        "publish group. Make the job faster or the cron longer instead of raising this."
     )
     refresh = _job_block(workflow, "refresh")
     assert "group: artifacts-publish" in refresh
@@ -1273,8 +1258,9 @@ def test_the_watchdog_measures_publish_jobs_against_the_bounds_they_declare() ->
             r"^ +([a-z0-9-]+\.yml)\|([a-z0-9_-]+)\|(\d+)\|(\d+)$", step, re.MULTILINE
         )
     }
+    # The Intraday refresh left this list when it stopped running on a schedule
+    # (2026-10-31); its last run, however old, would be re-read forever.
     assert set(declared) == {
-        ("refresh.yml", "refresh"),
         ("scorecard.yml", "collect"),
         ("scorecard.yml", "score"),
     }
@@ -1283,15 +1269,6 @@ def test_the_watchdog_measures_publish_jobs_against_the_bounds_they_declare() ->
             f"the watchdog measures {workflow} {job} against {bound} minutes, which is not "
             "the bound that workflow declares"
         )
-
-    # Refresh runs every three hours and the watchdog every six, so reading fewer
-    # than two runs would skip every other refresh.
-    refresh_cron = re.search(r'- cron: "\d+ \*/(\d+) ', _workflow("refresh.yml"))
-    watch_cron = re.search(r'- cron: "\d+ \*/(\d+) \* \* \*" # every', watchdog)
-    assert refresh_cron, "refresh.yml no longer declares an every-N-hours cron"
-    assert watch_cron, "watchdog.yml no longer declares its every-N-hours cron"
-    refresh_hours, watch_hours = int(refresh_cron.group(1)), int(watch_cron.group(1))
-    assert declared[("refresh.yml", "refresh")][1] * refresh_hours >= watch_hours
 
     assert "if: ${{ always() }}" in step
     assert "set -euo pipefail" in step
@@ -2240,3 +2217,34 @@ def test_the_expiry_sweep_has_a_budget_under_a_step_timeout_under_the_job_bound(
     assert step_timeout * 60 - budget_seconds >= 5 * 60
     # Both sit far below the bound the sweep was being killed at.
     assert step_timeout * 2 <= job_timeout
+
+
+def test_the_daily_collect_refreshes_expiry_for_feeds_its_shards_missed() -> None:
+    """The freshness sweep moved into collect when the Intraday refresh came off
+    the schedule (2026-10-31). Without it, a feed whose fetch failed would keep
+    the expiry countdown of the day it last scored, because nothing else re-dates
+    it. It must run on the merged corpus (after the shard artifacts are gathered)
+    and before reindex, so the rebuilt index and the publish carry it, and it
+    must apply its changes rather than only report them."""
+    collect = _job_block(_workflow("scorecard.yml"), "collect")
+    name = "- name: Refresh expiry for feeds today's scoring did not reach"
+    at = collect.index(name)
+    step = collect[at : collect.index("\n      - name:", at + len(name))]
+    assert "scorecard freshness-sweep --apply" in step
+    assert "--budget-seconds" in step
+    assert "timeout-minutes:" in step
+    assert collect.index("- name: Gather shard artifacts") < at
+    assert at < collect.index("- name: Rebuild index and rollups")
+
+
+def test_the_watchdog_staleness_bound_fits_one_deploy_a_day() -> None:
+    """With the Intraday refresh off the schedule (2026-10-31) the Daily is the
+    only scheduled deploy, about 23 to 25 hours apart. A bound under a day would
+    page on every healthy day; the step's message must name the same bound it
+    tests."""
+    watchdog = _workflow("watchdog.yml")
+    bound = re.search(r'if \[ "\$age" -gt (\d+) \]; then', watchdog)
+    assert bound is not None
+    hours = int(bound.group(1))
+    assert hours > 26
+    assert f"old (>{hours}h)" in watchdog

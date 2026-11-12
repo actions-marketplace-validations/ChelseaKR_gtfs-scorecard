@@ -261,8 +261,8 @@ Actions; this is the inventory an operator should know exists:
 
 | Workflow | Cadence | What it does |
 | --- | --- | --- |
-| `scorecard.yml` | daily | The full sharded re-score, commit, deploy, optional S3 mirror and SES digest. |
-| `refresh.yml` | every 3 h | Cheap intraday tier: change/down detection by conditional GET, no validator (ADR 0010). |
+| `scorecard.yml` | daily | The full sharded re-score, the daily direct liveness check and freshness sweep, commit, deploy, optional S3 mirror and SES digest. |
+| `refresh.yml` | manual | Cheap intraday tier: change/down detection by conditional GET and re-score of changed feeds, no full validation (ADR 0010). Off the schedule since 2026-10-31. |
 | `targeted-score.yml` | manual | Activates up to 25 reviewed registry agencies against the authoritative S3 corpus, then deploys. |
 | `rt-monitor.yml` | every 3 h | Short realtime sampling burst across agencies into `data/rt-health` (ADR 0012). |
 | `rt-archive.yml` | manual | Bounded high-resolution realtime polling session for one agency (ADR 0012). |
@@ -313,12 +313,12 @@ credential never enters Actions.
 `pages.yml` also runs as the deploy job of the daily, intraday, and targeted
 data workflows. Its own push trigger ignores `data/rt-health/**`, so the
 three-hourly realtime observation commit does not add a redundant site build of
-its own; the observations go out with the next intraday refresh deploy. The
-refresh runs and publishes to S3 every three hours, but to cut S3 egress it
-redeploys the site only on every other cycle (those starting in the 00, 06, 12
-and 18 UTC windows; a manual dispatch always deploys), so the site can be up to
-about six hours behind S3. Watchdog's staleness check allows 14 hours for that
-reason.
+its own; the observations go out with the next Daily deploy or code push. To
+cut S3 egress, the refresh has run only by hand since 2026-10-31 (it ran every
+three hours until 2026-10-30, then once a day at 01:23 UTC), so the Daily,
+which fires at 13:23 UTC, is the one scheduled deploy a day. Watchdog's
+staleness check allows 30 hours: Daily runs finished 23.0 to 25.1 hours apart
+from 2026-10-22 to 2026-10-31, and a failed Daily is paged on its own.
 
 ### What each site build downloads from S3
 
@@ -343,7 +343,12 @@ pair. When bounded hydration or lifecycle retention omitted the current dated
 record, the build creates an ephemeral byte-identical copy of `latest.json`
 before rendering. An existing dated record must already match. The workflows
 then assemble a fresh `_site` directory and run the blocking structural check
-before the page-budget check. The structural command is:
+before the page-budget check. The assembly copies only the documented public
+filenames, then rewrites every JSON copy compact and trims the published
+`index.json` to each agency's newest 120 history points without `feed_sha256`
+or `service_horizon_status` (`pipeline/src/scorecard_pipeline/publish_boundary.py`);
+the bucket, the committed history, and `latest.json`'s fields are untouched.
+The structural command is:
 
 ```sh
 cd pipeline

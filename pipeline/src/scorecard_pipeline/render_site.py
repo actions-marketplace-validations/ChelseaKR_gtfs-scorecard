@@ -56,7 +56,7 @@ from .directory import build_directory
 from .embed_badge import HEIGHT as BADGE_HEIGHT
 from .embed_badge import WIDTH as BADGE_WIDTH
 from .embed_badge import BadgeState, badge_sentence, badge_state, render_named_badge
-from .feed_provenance import feed_source_lede
+from .feed_provenance import feed_source_lede, mirror_copy_caveat
 from .feeddiff import FeedDiff, diff_artifacts
 from .findings_national import agency_findings, plain_language_coverage
 from .fixlog import load_fixlog
@@ -113,7 +113,7 @@ from .rule_links import (
     RuleLink,
     rule_link_for,
 )
-from .score import letter_grade, published_score
+from .score import grade_qualifier, letter_grade, published_score, qualified_grade
 from .site_shell import (  # noqa: F401  (re-exported: the site's shared shell)
     _SOCIAL_IMAGE_HEIGHT,
     _SOCIAL_IMAGE_URL,
@@ -1626,8 +1626,9 @@ def _board_hero(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
             else "First scorecard for this agency"
         )
 
+    qualifier = grade_qualifier(artifact)
     reel = (
-        f'<div class="reel" role="img" aria-label="Overall grade {esc(g)}" '
+        f'<div class="reel" role="img" aria-label="Overall grade {esc(qualified_grade(g, qualifier))}" '
         f'style="--flap-end: calc(var(--reel-h) * -{idx})">'
         '<div class="reel-strip"><span>F</span><span>D</span><span>C</span><span>B</span><span>A</span></div></div>'
     )
@@ -1644,13 +1645,43 @@ def _board_hero(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
         f'<p class="board-kicker"><span class="blip" aria-hidden="true"></span>Feed status &middot; checked {esc(artifact["snapshot_date"])}</p>'
         f'<h1 class="board-title"><bdi>{esc(agency_name)}</bdi></h1>'
         f'<p class="board-sub">{esc(feed_source_lede(_artifact_source_provenance(artifact), _artifact_fetch_source(artifact)))}</p>'
+        f"{_mirror_caveat_html(artifact, 'board-sub')}"
         f"{mode_html}"
         f'<div class="grade-block">{reel}'
         f'<div class="score-block"><div><span class="score-big">{o["score"]}</span><span class="score-of"> / 100</span></div>'
+        f"{_grade_qualifier_html(qualifier)}"
         f'<p class="score-trend">{trend}</p>{_peer_context(peer_record)}'
         f'<div class="chips">{"".join(chips)}</div></div></div>'
         "</div></div>"
     )
+
+
+def _grade_qualifier_html(qualifier: str | None) -> str:
+    """The partial-grade mark under the score, or "" for a full grade.
+
+    Rubric 1.5 keeps the letter when freshness was not measured, but never
+    shows it bare: the words sit beside the score, not in a tooltip.
+    """
+    if not qualifier:
+        return ""
+    return f'<p class="score-qualifier"><strong>{esc(qualifier.capitalize())}.</strong></p>'
+
+
+def _partial_suffix(qualifier: object) -> str:
+    """`` · partial: freshness not measured`` for a list row, or ""."""
+    return f" · {esc(qualifier)}" if isinstance(qualifier, str) and qualifier else ""
+
+
+def _brief_partial_html(artifact: dict[str, Any]) -> str:
+    """`` &middot; partial: freshness not measured`` after a brief's grade line, or ""."""
+    qualifier = grade_qualifier(artifact)
+    return f" &middot; {esc(qualifier)}" if qualifier else ""
+
+
+def _mirror_caveat_html(artifact: dict[str, Any], css_class: str) -> str:
+    """The mirror-copy sentence as one paragraph, or "" for an origin fetch."""
+    caveat = mirror_copy_caveat(artifact)
+    return f'<p class="{css_class}">{esc(caveat)}</p>' if caveat else ""
 
 
 def _realtime_unmeasured_label(category: dict[str, Any]) -> str:
@@ -1942,7 +1973,10 @@ def _citation_reference(
     sha = str((artifact.get("feed") or {}).get("sha256", "") or "")
     sha_note = f", feed sha256 {sha[:12]}…" if sha else ""
     overall = artifact.get("overall") or {}
-    grade_note = f"grade {overall.get('grade', '—')} ({overall.get('score', '—')}/100)"
+    grade_note = (
+        f"grade {qualified_grade(overall.get('grade', '—'), grade_qualifier(artifact))} "
+        f"({overall.get('score', '—')}/100)"
+    )
     return (
         f"GTFS Scorecard. ({year}). {agency_name} GTFS feed-quality record, "
         f"dated {date} ({grade_note}, rubric v{rubric}, gtfs-validator "
@@ -1966,7 +2000,8 @@ def _citation_bibtex(
     note = (
         f"Checked {date}; rubric v{rubric}; gtfs-validator {validator}; "
         f"reader archive profile {reader_profile}; "
-        f"grade {overall.get('grade', '—')} ({overall.get('score', '—')}/100)"
+        f"grade {qualified_grade(overall.get('grade', '—'), grade_qualifier(artifact))} "
+        f"({overall.get('score', '—')}/100)"
     )
     return (
         f"@misc{{{key},\n"
@@ -3078,7 +3113,9 @@ def _seo_grade_facts(artifact: dict[str, Any] | None) -> tuple[str, str, str] | 
         return None
     if not (isinstance(checked, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", checked)):
         return None
-    return grade, str(score), checked
+    # A partial grade (rubric 1.5) carries its qualifier into the snippet too,
+    # so a search result never states it as a full grade.
+    return qualified_grade(grade, grade_qualifier(artifact)), str(score), checked
 
 
 def _agency_title(
@@ -3232,6 +3269,122 @@ def _metadata_collision_components(
     return [group for group in groups.values() if len(group) > 1]
 
 
+@dataclass(frozen=True)
+class SearchIntentCopy:
+    """Hand-written search copy for one agency page, chosen from real queries.
+
+    ``identity`` + ``suffix`` is the title. ``lead`` opens the description and
+    ``tail`` closes it; the page's own dated grade goes between them exactly
+    as ``_agency_seo_metadata`` writes it, or is left out when the page has
+    none. Every word must be something the agency page itself shows.
+    """
+
+    identity: str
+    suffix: str
+    lead: str
+    tail: str
+
+
+#: Search Console, 90 days to 2026-10-29: these pages ranked between 3 and 15
+#: with almost no clicks, and the queries that reached them name something
+#: the generated copy did not. JGP Niš is searched in Latin letters ("jgp
+#: nis") while its title was Cyrillic only. The others are searched as
+#: "<agency> gtfs", sometimes with "download", "official", or the feed's own
+#: URL: people looking for the feed itself, which every agency page links as
+#: its source feed. A few also fix a doubled word the generator produced
+#: ("FlixBus (Norway) (Norway)", "national GTFS GTFS") or a name cut mid-way.
+#: A record missing from the corpus is ignored, and copy that does not fit
+#: the length budget or collides with another page falls back to the
+#: generated metadata (see ``_apply_search_intent``).
+_SEARCH_INTENT_COPY: dict[str, SearchIntentCopy] = {
+    "jgp-nis": SearchIntentCopy(
+        "JGP Niš (Јавни градски превоз Ниш)",
+        " GTFS feed quality report",
+        "JGP Niš (the Niš city network, Serbia) GTFS feed",
+        "See the source feed, service dates and fixes.",
+    ),
+    "lpp-ljubljana": SearchIntentCopy(
+        "LPP Ljubljana",
+        " GTFS feed: download link and quality report",
+        "Ljubljanski potniški promet (LPP), Ljubljana, Slovenia, GTFS feed",
+        "See the feed download link and fixes.",
+    ),
+    "caltrain": SearchIntentCopy(
+        "Caltrain",
+        " GTFS feed: source URL, realtime access, quality",
+        "Caltrain (California) GTFS feed",
+        "See the source feed URL, realtime access, service dates and fixes.",
+    ),
+    "amtrak": SearchIntentCopy(
+        "Amtrak",
+        " GTFS feed: source URL and quality report",
+        "Amtrak GTFS feed",
+        "See the source feed URL, service dates, validator findings and fixes.",
+    ),
+    "metra-2854": SearchIntentCopy(
+        "Metra (Illinois)",
+        " GTFS feed: source URL and quality report",
+        "Metra (Illinois) GTFS feed",
+        "See the source feed URL, validator findings and fixes.",
+    ),
+    "israel-mot-national": SearchIntentCopy(
+        "Israel national",
+        " GTFS feed: source URL and quality report",
+        "Israel Ministry of Transport national GTFS feed",
+        "See the source feed URL, validator findings and fixes.",
+    ),
+    "flixbus-norway": SearchIntentCopy(
+        "FlixBus (Norway)",
+        " GTFS feed: source URL and quality report",
+        "FlixBus (Norway) GTFS feed",
+        "See the source feed URL, validator findings and fixes.",
+    ),
+    "fr-pan-81653": SearchIntentCopy(
+        "Trenitalia France",
+        " GTFS feed: source URL and quality report",
+        "Réseau national Trenitalia France GTFS feed",
+        "See the source feed URL, validator findings and fixes.",
+    ),
+    "mwasalat-oman": SearchIntentCopy(
+        "Mwasalat (Oman National Transport Company)",
+        " GTFS feed quality",
+        "Mwasalat (Oman National Transport Company) GTFS feed",
+        "See the source feed URL, service dates and fixes.",
+    ),
+}
+
+
+def _apply_search_intent(
+    agency_id: str,
+    metadata: AgencySeoMetadata,
+    grade_facts: tuple[str, str, str] | None,
+) -> AgencySeoMetadata:
+    """Swap in the hand-written copy for ``agency_id`` when it fits the budget.
+
+    The grade clause is the same one the generated description carries, so a
+    result never states a grade the page does not. Copy that cannot fit is
+    dropped, not cut: the generated metadata is always a safe fallback.
+    """
+    copy = _SEARCH_INTENT_COPY.get(agency_id)
+    if copy is None:
+        return metadata
+    title = f"{copy.identity}{copy.suffix}"
+    if not 15 <= len(title) <= _TITLE_MAX:
+        return metadata
+    if grade_facts is not None:
+        grade, score, checked = grade_facts
+        candidates = [
+            f"{copy.lead}: grade {grade}, {score} of 100, checked {checked}. {copy.tail}",
+            f"{copy.lead}: grade {grade}, {score} of 100, checked {checked}.",
+        ]
+    else:
+        candidates = [f"{copy.lead} quality report. {copy.tail}"]
+    description = next((d for d in candidates if 50 <= len(d) <= _DESC_MAX), "")
+    if not description:
+        return metadata
+    return replace(metadata, title=title, description=description, identity=copy.identity)
+
+
 def _plan_agency_seo_metadata(
     records: list[dict[str, Any]],
     artifacts_by_id: dict[str, dict[str, Any]],
@@ -3242,13 +3395,18 @@ def _plan_agency_seo_metadata(
     record_by_id = {str(record["id"]): record for record in records}
     for agency_id, record in record_by_id.items():
         artifact = artifacts_by_id[agency_id]
-        planned[agency_id] = _agency_seo_metadata(
-            str(record.get("name") or agency_id),
-            location_label=_location_label(record),
-            rt_measured=(
-                artifact.get("categories", {}).get("realtime", {}).get("status") == "measured"
+        grade_facts = _seo_grade_facts(artifact)
+        planned[agency_id] = _apply_search_intent(
+            agency_id,
+            _agency_seo_metadata(
+                str(record.get("name") or agency_id),
+                location_label=_location_label(record),
+                rt_measured=(
+                    artifact.get("categories", {}).get("realtime", {}).get("status") == "measured"
+                ),
+                grade_facts=grade_facts,
             ),
-            grade_facts=_seo_grade_facts(artifact),
+            grade_facts,
         )
 
     for group in _metadata_collision_components(planned):
@@ -4435,8 +4593,8 @@ def _render_brief(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
     <header class="brief-head">
       <p class="brief-kicker">Call-prep brief &middot; checked {esc(str(artifact.get("snapshot_date", "")))}</p>
       <h1 class="brief-title">{esc(agency_name)}</h1>
-      <p class="brief-grade">Grade {esc(str(overall["grade"]))} &middot; {esc(str(overall["score"]))} / 100</p>
-      <p class="brief-trend">{_brief_trend_line(history)}</p>
+      <p class="brief-grade">Grade {esc(str(overall["grade"]))} &middot; {esc(str(overall["score"]))} / 100{_brief_partial_html(artifact)}</p>
+      <p class="brief-trend">{_brief_trend_line(history)}</p>{_mirror_caveat_html(artifact, "brief-trend")}
       <p class="brief-forcall">For this call: lead with the grade and the three fixes below, then
         {call_prompt}. Each fix is framed as a next step,
         not a failure.</p>
@@ -4465,7 +4623,8 @@ def _render_brief(  # noqa: C901 - tracked, see docs/lint-complexity-ratchet.md
     body = "\n".join(line.rstrip() for line in body.splitlines())
     scope_detail = "NTD readiness" if country.upper() == "US" else "guidance"
     desc = (
-        f"Call-prep brief for {agency_name}: grade {overall['grade']}, top fixes, "
+        f"Call-prep brief for {agency_name}: grade "
+        f"{qualified_grade(overall['grade'], grade_qualifier(artifact))}, top fixes, "
         f"{scope_detail}, and key feed facts on one page."
     )
     title = f"{agency_name} call-prep brief — GTFS Scorecard"
@@ -4515,6 +4674,10 @@ def _render_board_page(
     else:
         progress_html = (
             "<p>No newly cleared items this period. The score and trend above "
+            "reflect the mirror copy described above, which may not match the "
+            "feed the agency publishes today.</p>"
+            if mirror_copy_caveat(artifact)
+            else "<p>No newly cleared items this period. The score and trend above "
             "reflect where the feed stands today.</p>"
         )
 
@@ -4553,8 +4716,8 @@ def _render_board_page(
     <header class="brief-head">
       <p class="brief-kicker">Board packet &middot; transit data quality &middot; checked {esc(str(artifact.get("snapshot_date", "")))}</p>
       <h1 class="brief-title">{esc(agency_name)}</h1>
-      <p class="brief-grade">Grade {esc(str(overall["grade"]))} &middot; {esc(str(overall["score"]))} / 100</p>
-      <p class="brief-trend">{_brief_trend_line(history)}</p>
+      <p class="brief-grade">Grade {esc(str(overall["grade"]))} &middot; {esc(str(overall["score"]))} / 100{_brief_partial_html(artifact)}</p>
+      <p class="brief-trend">{_brief_trend_line(history)}</p>{_mirror_caveat_html(artifact, "brief-trend")}
     </header>
     <section aria-labelledby="board-what-h">
       <h2 id="board-what-h">What this grade measures</h2>
@@ -4580,7 +4743,8 @@ def _render_board_page(
       validator {esc(str(artifact.get("validator_version", "—")))}.</p>
     </div>"""
     desc = (
-        f"Board-packet one-pager for {agency_name}: grade {overall['grade']}, progress "
+        f"Board-packet one-pager for {agency_name}: grade "
+        f"{qualified_grade(overall['grade'], grade_qualifier(artifact))}, progress "
         "this period, and the next asks, on one printable page."
     )
     title = f"{agency_name} board one-pager — GTFS Scorecard"
@@ -5156,7 +5320,7 @@ def _rt_health_section(agency_id: str) -> str:
 
     The window names the date it **ends**, and that is the point of it. This
     read "over the last N days", which is a claim about now, computed from a
-    span that need not end now: the page is rebuilt on the intraday cadence
+    span that need not end now: the page is rebuilt on the deploy cadence
     whether or not the monitor recorded anything, so a monitor that stops
     leaves every agency page saying "the last N days" about a window that
     closed whenever the last observation landed. It is not hypothetical --
@@ -5704,7 +5868,8 @@ def _index_card(aid: str, a: dict[str, Any], note: str = "", *, fixlog: bool = F
         f'<li class="agency-card"><span class="grade-chip {_grade_class(last["grade"])}">'
         f'{esc(last["grade"])}<span class="visually-hidden"> grade</span></span>'
         f'<div><h3><a href="/agency/{esc(aid)}/"><bdi>{esc(a["name"])}</bdi></a></h3>'
-        f'<p class="meta">Overall {last["score"]} out of 100 · '
+        f'<p class="meta">Overall {last["score"]} out of 100'
+        f"{_partial_suffix(last.get('grade_qualifier'))} · "
         f"checked {esc(last['date'])}</p>{extra}{op}{log}</div></li>"
     )
 
@@ -6467,7 +6632,7 @@ def _full_member_rows(members: list[dict[str, Any]]) -> str:
             f'<li class="program-row"><span class="grade-chip {_grade_class(m["grade"])}">'
             f'{esc(m["grade"])}<span class="visually-hidden"> grade</span></span>'
             f'<div><h3><a href="/agency/{esc(m["id"])}/">{esc(m["name"])}</a>{attn}</h3>'
-            f'<p class="meta">{m["score"]} out of 100 · checked {esc(m["snapshot_date"])}'
+            f'<p class="meta">{m["score"]} out of 100{_partial_suffix(m.get("grade_qualifier"))} · checked {esc(m["snapshot_date"])}'
             f"{handoff_link}</p>"
             "</div></li>"
         )
@@ -6826,7 +6991,7 @@ def _rollup_member_row(m: dict[str, Any], note: str, compact: bool = False) -> s
         f'{esc(m["grade"])}<span class="visually-hidden"> grade</span></span>'
         f'<div><h3><a href="/agency/{esc(m["id"])}/">{esc(m["name"])}</a> '
         f'<span class="pill-warn">{esc(note)}</span></h3>'
-        f'<p class="meta">{m["score"]} out of 100 · checked {esc(m["snapshot_date"])}'
+        f'<p class="meta">{m["score"]} out of 100{_partial_suffix(m.get("grade_qualifier"))} · checked {esc(m["snapshot_date"])}'
         f"{handoff_link}</p>"
         "</div></li>"
     )
@@ -7943,7 +8108,7 @@ def _status_commitment_section(doc: dict[str, Any]) -> str:
     else:
         record_section = (
             "<p>No direct liveness state has been recorded yet on this deployment "
-            "(the intraday refresh has not run). This section fills in once it has.</p>"
+            "(the daily liveness check has not run). This section fills in once it has.</p>"
         )
 
     policy_items = "".join(f"<li>{esc(s)}</li>" for s in policy["statements"])
@@ -7957,9 +8122,9 @@ def _status_commitment_section(doc: dict[str, Any]) -> str:
     {record_section}</section>
 
     <section aria-labelledby="cadence-h"><h3 class="section-title" id="cadence-h">Scheduled checks</h3>
-    <p>Each feed belongs to one of two direct-liveness tiers. A separate full validation is
-    scheduled once daily for every registered feed. The latest-run section below records what
-    that daily work completed.</p>
+    <p>Each feed belongs to one of two direct-liveness tiers, and both are checked once a day.
+    A separate full validation is scheduled once daily for every registered feed. The
+    latest-run section below records what that daily work completed.</p>
     <div class="table-wrap"><table><thead><tr><th scope="col">Check</th><th scope="col">Cadence</th>
     <th scope="col">Applies to</th></tr></thead><tbody>{tier_rows}</tbody></table></div></section>
 
@@ -7967,8 +8132,8 @@ def _status_commitment_section(doc: dict[str, Any]) -> str:
     <p>The scorecard keeps the last successful evidence available and makes the degraded state visible:</p>
     <ul>{policy_items}</ul></section>
 
-    <p class="fineprint">This section is generated from the same liveness state used by the
-    intraday refresh. It reports only observations the pipeline recorded.</p>"""
+    <p class="fineprint">This section is generated from the liveness state the daily check
+    keeps. It reports only observations the pipeline recorded.</p>"""
 
 
 def _methodology_versions_section() -> str:
@@ -8448,9 +8613,9 @@ def _states_by_agency() -> dict[str, str]:
 
 
 def _load_liveness() -> dict[str, dict[str, Any]]:
-    """The intraday refresh's per-feed change-detection state, keyed by agency id.
-    Missing or malformed file degrades to empty, so the site renders fine before
-    the first refresh has run."""
+    """The daily liveness check's per-feed change-detection state, keyed by agency
+    id. Missing or malformed file degrades to empty, so the site renders fine
+    before the first check has run."""
     path = _repo_root() / "data" / "liveness.json"
     try:
         data = json.loads(path.read_text())
@@ -9017,6 +9182,8 @@ def _map_feature(
         return None
     overall = artifact.get("overall", {})
     grade = str(overall.get("grade", "?"))
+    qualifier = grade_qualifier(artifact)
+    partial = {"grade_qualifier": qualifier} if qualifier else {}
     name = str(artifact.get("agency", {}).get("name", agency_id))
     # Flexible (demand-responsive) service, as detected by flex.py and recorded
     # under categories.completeness.details.flex in the artifact.
@@ -9036,6 +9203,9 @@ def _map_feature(
             "subdivision_code": subdivision_code or "",
             "subdivision_name": subdivision_name or state or "",
             "has_flex": has_flex,
+            # Only on a partial grade, so the national feature file does not
+            # grow a null on every point.
+            **partial,
             # The grade letter is drawn as the marker's label so grade is never
             # carried by color alone (WCAG 1.4.1); color only reinforces it.
             "color": _MAP_GRADE_COLOR.get(grade, "#5a5a5a"),
@@ -9083,7 +9253,8 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
             {
                 "id": str(p.get("id", "")),
                 "name": str(p.get("name", "")),
-                "grade": str(p.get("grade", "?")),
+                "grade": qualified_grade(p.get("grade", "?"), p.get("grade_qualifier")),
+                "letter": str(p.get("grade", "?")),
                 "state": str(p.get("state", "") or ""),
                 "country": str(p.get("country", "") or ""),
                 "subdivision_code": str(p.get("subdivision_code", "") or ""),
@@ -9102,7 +9273,7 @@ def _render_map_page(features: list[dict[str, Any]]) -> str:
     # Do not duplicate that identifier in a data attribute: at full coverage,
     # repeated row metadata has a measurable first-paint cost.
     table_rows = "".join(
-        f'<tr data-grade="{esc(r["grade"])}" '
+        f'<tr data-grade="{esc(r["letter"])}" '
         f'data-state="{esc(r["state"])}" '
         f'data-country="{esc(r["country"])}" '
         f'data-subdivision="{esc(r["subdivision_code"])}" '
@@ -13095,7 +13266,7 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:  # noqa: C901 - t
 
     # The consumer-facing freshness/uptime commitment (EXP-10): machine-readable
     # status.json, extending FIX-11's internal run-summary outward. Built from
-    # the same liveness state the intraday refresh keeps, so it renders (with
+    # the same liveness state the daily liveness check keeps, so it renders (with
     # an honest empty record) even before the first refresh has ever run. The
     # human-readable page is written later, once the run summary and catalog
     # (FIX-11's half of /status/) are also ready -- see `_render_status`.
@@ -13182,7 +13353,7 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:  # noqa: C901 - t
         str(aid): (entry or {}).get("history") or []
         for aid, entry in (index.get("agencies") or {}).items()
     }
-    # Per-feed change-detection freshness from the intraday refresh; loaded once,
+    # Per-feed change-detection freshness from the daily liveness check; loaded once,
     # early, so both the directory's expired-feed split and each agency page
     # (below) read the same state. Keep every directory document bounded: the
     # production corpus is large enough that one giant HTML list delays first
@@ -13285,6 +13456,7 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:  # noqa: C901 - t
             "id": agency_id,
             "name": artifact["agency"]["name"],
             "grade": overall["grade"],
+            "grade_qualifier": grade_qualifier(artifact),
             "score": overall["score"],
             "correctness": (categories.get("correctness") or {}).get("score"),
             "freshness": (categories.get("freshness") or {}).get("score"),
@@ -13477,6 +13649,9 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:  # noqa: C901 - t
             base_url=BASE_URL,
             comparison=_comparison_metadata,
             export_changes=export_changes,
+            checked_on=newest_data_date(
+                artifact.get("snapshot_date") for artifact in artifacts_by_id.values()
+            ),
         ),
     )
 
@@ -13749,6 +13924,7 @@ def render_site(now: dt.datetime | None = None) -> list[Path]:  # noqa: C901 - t
                     artifact["agency"]["name"],
                     _agency_feed_events(artifact, history),
                     base_url=BASE_URL,
+                    checked_on=data_date(artifact.get("snapshot_date")),
                 ),
             )
 

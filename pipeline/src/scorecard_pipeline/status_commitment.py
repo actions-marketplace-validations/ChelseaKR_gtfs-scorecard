@@ -6,11 +6,11 @@ consumer (an app developer, a researcher, a state program) should not have to
 take "refreshed daily" on faith from a README. This builds the machine-readable
 commitment they can check the pipeline against:
 
-- the *intended* refresh cadence per tier, sourced from the same tiering the
-  intraday refresh actually runs on (`cadence.py`, ADR 0010) rather than a
-  separately maintained claim that can drift from reality;
+- the *intended* refresh cadence per tier (ADR 0010), with the cron each one
+  runs on, which CI cross-reads against the workflow files so the claim cannot
+  drift from what actually runs;
 - the current feed-URL liveness record, computed from the state
-  (`data/liveness.json`) the intraday refresh already keeps: how many tracked
+  (`data/liveness.json`) the daily liveness check keeps: how many tracked
   feeds are checking clean, how old the latest checks are, and how many have
   been flagged unreachable;
 - a stated degradation policy: what happens, and what a consumer sees, when a
@@ -28,20 +28,30 @@ import datetime as dt
 from typing import Any
 
 from . import DATA_ATTRIBUTION, DATA_LICENSE
-from .cadence import REFRESH_STEP_HOURS, STANDARD_PERIOD
 from .metrics import STALE_FEED_DAYS, UNREACHABLE_STREAK_CHECKS
 
-# The two workflows this commitment describes (ADR 0010). Kept as plain
-# strings, not parsed from the workflow YAML, so a change to the schedule is a
-# deliberate edit here too rather than a silent drift -- the CI check in
+# The one scheduled workflow this commitment describes (ADR 0010). Kept as a
+# plain string, not parsed from the workflow YAML, so a change to the schedule
+# is a deliberate edit here too rather than a silent drift -- the CI check in
 # test_status_commitment.py cross-reads the workflow files to catch that drift.
+#
+# Both direct-liveness tiers run on it: the Daily scorecard's `liveness` job
+# checks every feed once a day. Until 2026-10-31 they ran on the Intraday
+# refresh (`refresh.yml`: every three hours, then from 2026-10-30 once a day at
+# 01:23 UTC). That workflow now runs only by hand and publishes no cron here.
 DAILY_FULL_SCORE_CRON = "23 13 * * *"  # .github/workflows/scorecard.yml
-INTRADAY_REFRESH_CRON = f"23 */{REFRESH_STEP_HOURS} * * *"  # .github/workflows/refresh.yml
+
+# Both liveness tiers get the same sentence: one check of every feed a day.
+# The tiers stay separate entries so a consumer of api/v1/status.json keeps
+# the shape it reads; the tiering in cadence.py now only matters to a hand-run
+# Intraday refresh.
+DAILY_LIVENESS_CADENCE = "one direct liveness check each day"
 
 
 def cadence_commitment() -> list[dict[str, Any]]:
     """The intended refresh cadence per tier: what a consumer should expect,
-    not just what happened once. Mirrors `cadence.py`'s two tiers exactly."""
+    not just what happened once. Names `cadence.py`'s two tiers, which have
+    shared one daily check since 2026-10-31."""
     return [
         {
             "tier": "priority",
@@ -50,16 +60,14 @@ def cadence_commitment() -> list[dict[str, Any]]:
                 "expiry danger or recovery window (expiring soon, or recently "
                 "lapsed)"
             ),
-            "cadence": f"one direct liveness check every {REFRESH_STEP_HOURS} hours",
-            "schedule_cron": INTRADAY_REFRESH_CRON,
+            "cadence": DAILY_LIVENESS_CADENCE,
+            "schedule_cron": DAILY_FULL_SCORE_CRON,
         },
         {
             "tier": "standard",
             "applies_to": "every other tracked feed",
-            "cadence": f"one direct liveness check in each {STANDARD_PERIOD}-hour "
-            "period, on a stable per-feed schedule that spreads requests across "
-            "the period",
-            "schedule_cron": INTRADAY_REFRESH_CRON,
+            "cadence": DAILY_LIVENESS_CADENCE,
+            "schedule_cron": DAILY_FULL_SCORE_CRON,
         },
         {
             "tier": "full_validation",
@@ -86,7 +94,7 @@ def degradation_policy() -> dict[str, Any]:
             "which changes how it is described but not whether it is served.",
             "A configured feed URL is labeled 'unreachable' after "
             f"{UNREACHABLE_STREAK_CHECKS} consecutive direct checks fail (roughly "
-            "a week at standard cadence). This is separate from an expired "
+            "a week at one check a day). This is separate from an expired "
             "calendar.",
             "These observations do not guarantee an agency's GTFS host will stay "
             "online. The status page records what the pipeline observed and when.",
@@ -130,7 +138,7 @@ def _liveness_buckets(feeds: dict[str, dict[str, Any]]) -> tuple[int, int, int]:
 
 
 def refresh_success_record(feeds: dict[str, dict[str, Any]], now: dt.datetime) -> dict[str, Any]:
-    """The current direct-URL liveness record computed from intraday state.
+    """The current direct-URL liveness record computed from the liveness state.
 
     ``success_rate_pct`` is retained as the v1 compatibility name for the
     current clean-feed share. It is not a historical request-success rate;
